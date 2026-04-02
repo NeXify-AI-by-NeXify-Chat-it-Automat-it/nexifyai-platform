@@ -1,0 +1,56 @@
+<svg width="1600" height="520" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">NeXifyAI by NeXify - Chat it. Automate it.</title>
+  <desc id="desc">Premium dark logo with orange accent and connected node mark for NeXifyAI by NeXify.</desc>
+  <defs>
+    <linearGradient id="bgGlow" x1="0" y1="0" x2="1600" y2="520" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#08111F"/>
+      <stop offset="1" stop-color="#03070D"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="80" y1="60" x2="390" y2="340" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF8B37"/>
+      <stop offset="1" stop-color="#FF5524"/>
+    </linearGradient>
+    <linearGradient id="accentSoft" x1="160" y1="100" x2="360" y2="320" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFC18C" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#FF6A2C" stop-opacity="0.2"/>
+    </linearGradient>
+    <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="18" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 0.45 0 0 0  0 0 0 0 0  0 0 0 0.6 0"/>
+    </filter>
+    <filter id="cardGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="520" rx="36" fill="url(#bgGlow)"/>
+  <path d="M0 420C240 330 315 260 420 0" stroke="#FF6428" stroke-opacity="0.16" stroke-width="3"/>
+  <path d="M118 472C332 378 390 314 488 80" stroke="#FF7A31" stroke-opacity="0.08" stroke-width="2"/>
+  <circle cx="252" cy="204" r="114" fill="#FF6A2C" fill-opacity="0.07" filter="url(#softGlow)"/>
+
+  <g transform="translate(86 90)">
+    <rect x="0" y="0" width="274" height="274" rx="74" fill="#0B1423" stroke="rgba(255,255,255,0.08)"/>
+    <rect x="0.5" y="0.5" width="273" height="273" rx="73.5" stroke="url(#accentSoft)" stroke-opacity="0.65"/>
+
+    <path d="M54 214V58L146 164L220 70V214" stroke="white" stroke-width="25" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M94 214V126L146 164" stroke="url(#accent)" stroke-width="25" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M146 164L220 70" stroke="url(#accent)" stroke-width="25" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <circle cx="54" cy="214" r="16" fill="#FFF4EC"/>
+    <circle cx="146" cy="164" r="16" fill="#FF7A31"/>
+    <circle cx="220" cy="70" r="16" fill="#FFF4EC"/>
+    <circle cx="220" cy="214" r="16" fill="#FF7A31"/>
+
+    <circle cx="146" cy="164" r="40" fill="#FF7A31" fill-opacity="0.18" filter="url(#cardGlow)"/>
+  </g>
+
+  <g transform="translate(420 112)">
+    <text x="0" y="132" fill="white" font-family="Inter, Manrope, Arial, sans-serif" font-size="118" font-weight="800" letter-spacing="-3.5">NeXify</text>
+    <text x="441" y="132" fill="#FF7A31" font-family="Inter, Manrope, Arial, sans-serif" font-size="118" font-weight="800" letter-spacing="-3.5">AI</text>
+    <text x="6" y="186" fill="#A9B4C6" font-family="Inter, Manrope, Arial, sans-serif" font-size="34" font-weight="500" letter-spacing="0.6">by NeXify</text>
+    <line x1="6" y1="229" x2="628" y2="229" stroke="white" stroke-opacity="0.12" stroke-width="2"/>
+    <text x="6" y="286" fill="white" font-family="Inter, Manrope, Arial, sans-serif" font-size="52" font-weight="700" letter-spacing="-0.9">Chat it.</text>
+    <text x="220" y="286" fill="#FF7A31" font-family="Inter, Manrope, Arial, sans-serif" font-size="52" font-weight="700" letter-spacing="-0.9">Automate it.</text>
+    <text x="6" y="344" fill="#93A1B5" font-family="Inter, Manrope, Arial, sans-serif" font-size="26" font-weight="500" letter-spacing="0.4">AI chat, automations, integrations and custom digital systems for DACH.</text>
+  </g>
+</svg>

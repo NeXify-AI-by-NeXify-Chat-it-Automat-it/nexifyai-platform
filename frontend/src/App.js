@@ -1,23 +1,17 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import './App.css';
 
-// Company Data - Fixed according to project brief
+// ============== CONSTANTS ==============
+const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+
 const COMPANY = {
   name: "NeXifyAI by NeXify",
   tagline: "Chat it. Automate it.",
   legalName: "NeXify Automate",
   ceo: "Pascal Courbois, Geschäftsführer",
   addresses: {
-    de: {
-      street: "Wallstraße 9",
-      city: "41334 Nettetal-Kaldenkirchen",
-      country: "Deutschland"
-    },
-    nl: {
-      street: "Graaf van Loonstraat 1E",
-      city: "5921 JA Venlo",
-      country: "Niederlande"
-    }
+    de: { street: "Wallstraße 9", city: "41334 Nettetal-Kaldenkirchen", country: "Deutschland" },
+    nl: { street: "Graaf van Loonstraat 1E", city: "5921 JA Venlo", country: "Niederlande" }
   },
   phone: "+31 6 133 188 56",
   email: "support@nexify-automate.com",
@@ -26,85 +20,106 @@ const COMPANY = {
   vatId: "NL865786276B01"
 };
 
-// API URL
-const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+const LEAD_STATUSES = {
+  neu: { label: 'Neu', color: '#3b82f6' },
+  qualifiziert: { label: 'Qualifiziert', color: '#8b5cf6' },
+  termin_gebucht: { label: 'Termin gebucht', color: '#f59e0b' },
+  in_bearbeitung: { label: 'In Bearbeitung', color: '#06b6d4' },
+  gewonnen: { label: 'Gewonnen', color: '#22c55e' },
+  verloren: { label: 'Verloren', color: '#ef4444' },
+  archiviert: { label: 'Archiviert', color: '#6b7280' }
+};
 
-// Material Icon Component
+// ============== UTILITIES ==============
+const generateSessionId = () => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+const trackEvent = async (event, properties = {}) => {
+  try {
+    const sessionId = sessionStorage.getItem('nx_session') || generateSessionId();
+    sessionStorage.setItem('nx_session', sessionId);
+    
+    await fetch(`${API_URL}/api/analytics/track`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event,
+        properties: { ...properties, timestamp: new Date().toISOString() },
+        session_id: sessionId,
+        page: window.location.pathname
+      })
+    });
+  } catch (e) {
+    console.debug('Analytics:', e);
+  }
+};
+
+const formatDate = (dateStr) => {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+};
+
+// ============== COMPONENTS ==============
 const Icon = ({ name, className = '' }) => (
-  <span className={`material-symbols-outlined ${className}`}>{name}</span>
+  <span className={`material-symbols-outlined ${className}`} aria-hidden="true">{name}</span>
 );
 
-// Navigation Component
-const Navigation = ({ onOpenChat }) => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+// Navigation
+const Navigation = ({ onOpenChat, onOpenBooking }) => {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const navLinks = [
     { label: 'Lösungen', href: '#loesungen' },
     { label: 'Anwendungsfälle', href: '#use-cases' },
     { label: 'Prozess', href: '#prozess' },
     { label: 'Integrationen', href: '#integrationen' },
-    { label: 'Preise', href: '#preise' },
+    { label: 'Leistungen', href: '#preise' },
     { label: 'FAQ', href: '#faq' },
   ];
 
+  const handleNavClick = (href) => {
+    setMobileOpen(false);
+    trackEvent('navigation_click', { target: href });
+  };
+
   return (
-    <nav className="nav" data-testid="navigation">
+    <nav className={`nav ${scrolled ? 'scrolled' : ''}`} role="navigation" aria-label="Hauptnavigation">
       <div className="nav-container container">
-        <a href="#hero" className="nav-logo" data-testid="nav-logo">
-          <span className="nav-logo-mark"></span>
-          NeXifyAI
+        <a href="#hero" className="nav-logo" onClick={() => trackEvent('logo_click')}>
+          <img src="/logo-light.svg" alt="NeXifyAI Logo" className="nav-logo-img" width="140" height="32" loading="eager" />
         </a>
         
-        {/* Desktop Navigation */}
-        <div className="nav-links">
+        <div className="nav-links" role="menubar">
           {navLinks.map(link => (
-            <a key={link.href} href={link.href} className="nav-link">
+            <a key={link.href} href={link.href} className="nav-link" role="menuitem" onClick={() => handleNavClick(link.href)}>
               {link.label}
             </a>
           ))}
         </div>
 
         <div className="nav-actions">
-          <button 
-            className="btn btn-primary nav-cta"
-            onClick={onOpenChat}
-            data-testid="nav-cta-button"
-          >
+          <button className="btn btn-primary nav-cta" onClick={() => { onOpenBooking(); trackEvent('cta_click', { location: 'nav', cta: 'gespräch_buchen' }); }}>
             Gespräch buchen
           </button>
-          
-          {/* Mobile Menu Button */}
-          <button 
-            className="nav-mobile-toggle"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={mobileMenuOpen ? 'Menü schließen' : 'Menü öffnen'}
-            aria-expanded={mobileMenuOpen}
-            data-testid="mobile-menu-toggle"
-          >
-            <Icon name={mobileMenuOpen ? 'close' : 'menu'} />
+          <button className="nav-mobile-toggle" onClick={() => setMobileOpen(!mobileOpen)} aria-label={mobileOpen ? 'Menü schließen' : 'Menü öffnen'} aria-expanded={mobileOpen}>
+            <Icon name={mobileOpen ? 'close' : 'menu'} />
           </button>
         </div>
 
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="nav-mobile-menu" data-testid="mobile-menu">
+        {mobileOpen && (
+          <div className="nav-mobile-menu" role="menu">
             {navLinks.map(link => (
-              <a 
-                key={link.href} 
-                href={link.href} 
-                className="nav-mobile-link"
-                onClick={() => setMobileMenuOpen(false)}
-              >
+              <a key={link.href} href={link.href} className="nav-mobile-link" role="menuitem" onClick={() => handleNavClick(link.href)}>
                 {link.label}
               </a>
             ))}
-            <button 
-              className="btn btn-primary nav-mobile-cta"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenChat();
-              }}
-            >
+            <button className="btn btn-primary nav-mobile-cta" onClick={() => { setMobileOpen(false); onOpenBooking(); }}>
               Gespräch buchen
             </button>
           </div>
@@ -115,156 +130,109 @@ const Navigation = ({ onOpenChat }) => {
 };
 
 // Hero Section
-const HeroSection = ({ onOpenChat, onScrollToContact }) => (
-  <section id="hero" className="hero architectural-grid" data-testid="hero-section">
-    <div className="container hero-grid">
-      <div className="hero-content">
-        <span className="hero-label">NeXifyAI by NeXify</span>
-        <h1 className="hero-title">
-          Aus Chats werden <span className="text-primary">Prozesse.</span><br />
-          Aus Prozessen wird Wachstum.
-        </h1>
-        <p className="hero-description">
-          Wir bauen die architektonische Brücke zwischen generativer KI und operativer Exzellenz. 
-          Enterprise-Lösungen für den DACH-Mittelstand – präzise, sicher und skalierbar.
-        </p>
-        <div className="hero-actions">
-          <button 
-            className="btn btn-primary"
-            onClick={onScrollToContact}
-            data-testid="hero-cta-primary"
-          >
-            POTENZIAL ANALYSIEREN
-            <Icon name="arrow_forward" />
-          </button>
-          <a href="#loesungen" className="btn btn-secondary" data-testid="hero-cta-secondary">
-            LÖSUNGEN ANSEHEN
-          </a>
-        </div>
-        <div className="hero-stats">
-          <div className="hero-stat">
-            <div className="hero-stat-title">Ausrichtung</div>
-            <div className="hero-stat-value">Strategische Integration</div>
-          </div>
-          <div className="hero-stat">
-            <div className="hero-stat-title">Fokus</div>
-            <div className="hero-stat-value">Operative Wertschöpfung</div>
-          </div>
-          <div className="hero-stat">
-            <div className="hero-stat-title">Leistung</div>
-            <div className="hero-stat-value">Skalierbare Workflows</div>
-          </div>
-          <div className="hero-stat">
-            <div className="hero-stat-title">Delivery</div>
-            <div className="hero-stat-value">Pünktlich & Präzise</div>
-          </div>
-        </div>
-      </div>
-      <div className="hero-visual">
-        <ArchitecturePanel />
-      </div>
-    </div>
-  </section>
-);
+const HeroSection = ({ onOpenBooking }) => {
+  useEffect(() => {
+    trackEvent('page_view', { section: 'hero' });
+  }, []);
 
-// Architecture Panel Component (Responsive)
+  return (
+    <section id="hero" className="hero architectural-grid" aria-labelledby="hero-title">
+      <div className="container hero-grid">
+        <div className="hero-content">
+          <span className="hero-label">NeXifyAI by NeXify</span>
+          <h1 id="hero-title" className="hero-title">
+            Aus Chats werden <span className="text-primary">Prozesse.</span><br />
+            Aus Prozessen wird Wachstum.
+          </h1>
+          <p className="hero-description">
+            Enterprise KI-Lösungen für den DACH-Mittelstand. Intelligente Chatbots, CRM/ERP-Integration, 
+            Prozessautomation und Wissenssysteme – DSGVO-konform und skalierbar.
+          </p>
+          <div className="hero-actions">
+            <button className="btn btn-primary btn-lg" onClick={() => { onOpenBooking(); trackEvent('cta_click', { location: 'hero', cta: 'beratung_buchen' }); }}>
+              BERATUNGSGESPRÄCH BUCHEN
+              <Icon name="arrow_forward" />
+            </button>
+            <a href="#loesungen" className="btn btn-secondary btn-lg" onClick={() => trackEvent('cta_click', { location: 'hero', cta: 'loesungen' })}>
+              LÖSUNGEN ENTDECKEN
+            </a>
+          </div>
+          <div className="hero-stats">
+            {[
+              { title: 'Ausrichtung', value: 'Strategische Integration' },
+              { title: 'Fokus', value: 'Operative Wertschöpfung' },
+              { title: 'Leistung', value: 'Skalierbare Workflows' },
+              { title: 'Delivery', value: 'Pünktlich & Präzise' }
+            ].map((stat, i) => (
+              <div key={i} className="hero-stat">
+                <div className="hero-stat-title">{stat.title}</div>
+                <div className="hero-stat-value">{stat.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="hero-visual">
+          <ArchitecturePanel />
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// Architecture Panel
 const ArchitecturePanel = () => (
-  <div className="architecture-panel glass-panel" data-testid="architecture-panel">
+  <div className="architecture-panel" aria-label="KI-Architektur Visualisierung">
     <div className="architecture-inner">
       <div className="architecture-header">
-        <div className="architecture-icon">
-          <Icon name="account_tree" />
-        </div>
+        <div className="architecture-icon"><Icon name="account_tree" /></div>
         <div className="architecture-title">
-          <div className="architecture-code">CORE_ENGINE_V4</div>
+          <div className="architecture-code">NEXIFY_CORE_V4</div>
           <div className="architecture-name">Inferenz-Architektur</div>
         </div>
       </div>
-      
-      <div className="architecture-progress">
-        <div className="architecture-progress-bar"></div>
-      </div>
-      
+      <div className="architecture-progress"><div className="architecture-progress-bar" style={{width: '75%'}}></div></div>
       <div className="architecture-modules">
-        <div className="architecture-module">
-          <Icon name="psychology" />
-          <span>LLM</span>
-        </div>
-        <div className="architecture-module active">
-          <Icon name="memory" />
-          <span>Memory</span>
-        </div>
-        <div className="architecture-module">
-          <Icon name="hub" />
-          <span>API</span>
-        </div>
+        <div className="architecture-module"><Icon name="psychology" /><span>LLM</span></div>
+        <div className="architecture-module active"><Icon name="memory" /><span>Memory</span></div>
+        <div className="architecture-module"><Icon name="hub" /><span>API</span></div>
       </div>
-      
       <div className="architecture-flow">
         <div className="architecture-node">Input</div>
         <div className="architecture-connector"></div>
         <div className="architecture-node highlight">Processing</div>
         <div className="architecture-connector"></div>
-        <div className="architecture-node">Output</div>
+        <div className="architecture-node">Action</div>
       </div>
     </div>
-    <div className="architecture-decor-top"></div>
-    <div className="architecture-decor-bottom"></div>
   </div>
 );
 
-// Solutions Grid Section
+// Solutions Section
 const SolutionsSection = () => {
   const solutions = [
-    {
-      icon: 'smart_toy',
-      title: 'AI-Assistenz',
-      description: 'Kontextbewusste Co-Piloten für spezifische Fachabteilungen, integriert in bestehende Toolsets.'
-    },
-    {
-      icon: 'settings_input_component',
-      title: 'Automationen',
-      description: 'End-to-End Workflow Automatisierung durch agentische KI-Systeme ohne Medienbrüche.'
-    },
-    {
-      icon: 'hub',
-      title: 'Integrationen',
-      description: 'Nahtlose Anbindung an SAP, Salesforce und Microsoft-Ecosysteme mit höchster Datensicherheit.'
-    },
-    {
-      icon: 'menu_book',
-      title: 'Interne Wissenssysteme',
-      description: 'Semantic Search & RAG-Architekturen für sofortigen Zugriff auf das gesamte Firmenwissen.'
-    },
-    {
-      icon: 'description',
-      title: 'Dokumentenautomation',
-      description: 'KI-gestützte Extraktion und Validierung komplexer Vertragsdaten und Dokumente.'
-    },
-    {
-      icon: 'corporate_fare',
-      title: 'Enterprise Solutions',
-      description: 'Custom-Modelle und On-Premise Deployments für maximale Souveränität Ihrer Daten.'
-    }
+    { icon: 'smart_toy', title: 'KI-Assistenz', description: 'Kontextbewusste Co-Piloten für spezifische Fachabteilungen, integriert in Ihre bestehenden Tools und Systeme.' },
+    { icon: 'settings_input_component', title: 'Automationen', description: 'End-to-End Workflow-Automatisierung durch agentische KI-Systeme ohne Medienbrüche.' },
+    { icon: 'hub', title: 'Integrationen', description: 'Nahtlose Anbindung an SAP, Salesforce, HubSpot und Microsoft 365 mit höchster Datensicherheit.' },
+    { icon: 'menu_book', title: 'Wissenssysteme', description: 'RAG-Architekturen für sofortigen Zugriff auf Ihr gesamtes Firmenwissen – strukturiert und suchbar.' },
+    { icon: 'description', title: 'Dokumentenautomation', description: 'KI-gestützte Extraktion und Validierung komplexer Vertragsdaten, Rechnungen und Dokumente.' },
+    { icon: 'corporate_fare', title: 'Enterprise Solutions', description: 'Custom-Modelle und On-Premise Deployments für maximale Souveränität Ihrer Daten.' }
   ];
 
   return (
-    <section id="loesungen" className="solutions-section" data-testid="solutions-section">
+    <section id="loesungen" className="solutions-section" aria-labelledby="solutions-title">
       <div className="container">
-        <div className="section-header">
-          <h2 className="section-title">Infrastruktur für Intelligenz</h2>
-          <p className="section-description">
-            Keine Spielereien, sondern fundamentale Fähigkeiten für die moderne Enterprise-Architektur.
-          </p>
-        </div>
-        <div className="solutions-grid">
-          {solutions.map((solution, idx) => (
-            <div key={idx} className="solution-card" data-testid={`solution-card-${idx}`}>
-              <Icon name={solution.icon} className="solution-icon" />
-              <h3 className="solution-title">{solution.title}</h3>
-              <p className="solution-description">{solution.description}</p>
+        <header className="section-header">
+          <h2 id="solutions-title" className="section-title">Infrastruktur für Intelligenz</h2>
+          <p className="section-description">Fundamentale KI-Fähigkeiten für die moderne Enterprise-Architektur – keine Spielereien, sondern echte operative Hebel.</p>
+        </header>
+        <div className="solutions-grid" role="list">
+          {solutions.map((s, i) => (
+            <article key={i} className="solution-card" role="listitem">
+              <Icon name={s.icon} className="solution-icon" />
+              <h3 className="solution-title">{s.title}</h3>
+              <p className="solution-description">{s.description}</p>
               <div className="solution-indicator"></div>
-            </div>
+            </article>
           ))}
         </div>
       </div>
@@ -274,64 +242,36 @@ const SolutionsSection = () => {
 
 // Use Cases Section
 const UseCasesSection = () => (
-  <section id="use-cases" className="use-cases-section" data-testid="use-cases-section">
+  <section id="use-cases" className="use-cases-section" aria-labelledby="usecases-title">
     <div className="container">
-      <div className="section-header">
-        <div>
-          <h2 className="section-title">Operative Realität</h2>
-          <p className="section-description">
-            Konkrete Implementierungsszenarien, die heute bereits Produktivität freisetzen.
-          </p>
-        </div>
-      </div>
+      <header className="section-header">
+        <h2 id="usecases-title" className="section-title">Operative Realität</h2>
+        <p className="section-description">Konkrete Implementierungsszenarien, die heute bereits Produktivität freisetzen.</p>
+      </header>
       <div className="use-cases-grid">
-        <div className="use-case-card large">
-          <div className="use-case-bg-icon">
-            <Icon name="analytics" />
-          </div>
+        <article className="use-case-card large">
+          <div className="use-case-bg-icon"><Icon name="analytics" /></div>
           <div className="use-case-content">
             <span className="use-case-label">Effizienz-Boost</span>
-            <h3 className="use-case-title">Vertriebsanfragen & Qualifizierung</h3>
-            <p className="use-case-description">
-              Automatisierte Triage eingehender Leads mit CRM-Abgleich und automatisierter Terminkoordination.
-            </p>
+            <h3 className="use-case-title">Vertriebsanfragen & Lead-Qualifizierung</h3>
+            <p className="use-case-description">Automatisierte Triage eingehender Leads mit CRM-Abgleich und automatisierter Terminkoordination. Bis zu 60% weniger manuelle Arbeit.</p>
           </div>
-          <div className="use-case-dashboard">
-            <div className="dashboard-card">
-              <div className="dashboard-line"></div>
-              <div className="dashboard-line short"></div>
-              <div className="dashboard-bar"></div>
-            </div>
-            <div className="dashboard-card">
-              <div className="dashboard-avatar"></div>
-              <div className="dashboard-metric"></div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="use-case-card">
+        </article>
+        <article className="use-case-card">
           <Icon name="notes" className="use-case-icon" />
-          <h3 className="use-case-title">Angebotsstandardisierung</h3>
-          <p className="use-case-description">
-            Präzise Angebotserstellung aus unstrukturierten Projektnotizen innerhalb von Sekunden.
-          </p>
-        </div>
-        
-        <div className="use-case-card">
+          <h3 className="use-case-title">Angebotserstellung</h3>
+          <p className="use-case-description">Präzise Angebote aus unstrukturierten Projektnotizen – in Sekunden statt Stunden.</p>
+        </article>
+        <article className="use-case-card">
           <Icon name="database" className="use-case-icon" />
           <h3 className="use-case-title">Wissensbestände</h3>
-          <p className="use-case-description">
-            Zentralisierung von Silo-Wissen für den Kundensupport und technischen Service.
-          </p>
-        </div>
-        
-        <div className="use-case-card wide">
+          <p className="use-case-description">Zentralisierung von Silo-Wissen für Support und technischen Service.</p>
+        </article>
+        <article className="use-case-card wide">
           <div className="use-case-split">
             <div>
               <h3 className="use-case-title">CRM/ERP Orchestrierung</h3>
-              <p className="use-case-description">
-                Die KI agiert als intelligenter Agent zwischen Ihren Datensilos und führt Aktionen autonom in Drittsystemen aus.
-              </p>
+              <p className="use-case-description">Die KI als intelligenter Agent zwischen Ihren Datensilos – führt Aktionen autonom in SAP, HubSpot und Salesforce aus.</p>
             </div>
             <div className="orchestration-visual">
               <div className="orchestration-circle">
@@ -341,7 +281,7 @@ const UseCasesSection = () => (
               </div>
             </div>
           </div>
-        </div>
+        </article>
       </div>
     </div>
   </section>
@@ -350,54 +290,29 @@ const UseCasesSection = () => (
 // Process Section
 const ProcessSection = () => {
   const steps = [
-    {
-      num: '01',
-      title: 'Analyse',
-      description: 'Status-quo Audit Ihrer Prozesse und Identifikation der größten Hebel für KI-Automation.',
-      progress: 1
-    },
-    {
-      num: '02',
-      title: 'Architektur',
-      description: 'Entwurf der technischen Infrastruktur unter Berücksichtigung von Governance und IT-Security.',
-      progress: 2
-    },
-    {
-      num: '03',
-      title: 'Umsetzung',
-      description: 'Iterative Entwicklung und Integration in Ihre Toolchain mit klarem Fokus auf UI/UX.',
-      progress: 3
-    },
-    {
-      num: '04',
-      title: 'Optimierung',
-      description: 'Kontinuierliches Monitoring, Feedback-Loop und Performance-Tuning der Modelle.',
-      progress: 4
-    }
+    { num: '01', title: 'Analyse', description: 'Status-quo Audit Ihrer Prozesse und Identifikation der größten Hebel für KI-Automation.', progress: 1 },
+    { num: '02', title: 'Architektur', description: 'Entwurf der technischen Infrastruktur unter Berücksichtigung von Governance und IT-Security.', progress: 2 },
+    { num: '03', title: 'Umsetzung', description: 'Iterative Entwicklung und Integration in Ihre Toolchain mit klarem Fokus auf UI/UX.', progress: 3 },
+    { num: '04', title: 'Optimierung', description: 'Kontinuierliches Monitoring, Feedback-Loop und Performance-Tuning der Modelle.', progress: 4 }
   ];
 
   return (
-    <section id="prozess" className="process-section architectural-grid" data-testid="process-section">
+    <section id="prozess" className="process-section architectural-grid" aria-labelledby="process-title">
       <div className="container">
-        <div className="section-header centered">
+        <header className="section-header centered">
           <span className="section-label">Workflow</span>
-          <h2 className="section-title">Von der Vision zum Deployment</h2>
-        </div>
-        <div className="process-grid">
-          {steps.map((step, idx) => (
-            <div key={idx} className="process-step" data-testid={`process-step-${idx}`}>
+          <h2 id="process-title" className="section-title">Von der Vision zum Deployment</h2>
+        </header>
+        <div className="process-grid" role="list">
+          {steps.map((step, i) => (
+            <article key={i} className="process-step" role="listitem">
               <div className="process-num">{step.num}</div>
-              <h4 className="process-title">{step.title}</h4>
+              <h3 className="process-title-item">{step.title}</h3>
               <p className="process-description">{step.description}</p>
               <div className="process-progress">
-                {[1, 2, 3, 4].map(i => (
-                  <div 
-                    key={i} 
-                    className={`process-bar ${i <= step.progress ? 'active' : ''}`}
-                  ></div>
-                ))}
+                {[1,2,3,4].map(n => <div key={n} className={`process-bar ${n <= step.progress ? 'active' : ''}`}></div>)}
               </div>
-            </div>
+            </article>
           ))}
         </div>
       </div>
@@ -406,178 +321,90 @@ const ProcessSection = () => {
 };
 
 // Integrations Section
-const IntegrationsSection = () => {
-  const integrations = ['Microsoft 365', 'HubSpot', 'Salesforce', 'SAP S/4HANA'];
-  const apis = ['REST API', 'WEBHOOKS', 'PYTHON SDK'];
-
-  return (
-    <section id="integrationen" className="integrations-section" data-testid="integrations-section">
-      <div className="container integrations-container">
-        <div className="integrations-info">
-          <h2 className="section-title">Perfekte Symbiose</h2>
-          <p className="section-description">
-            Unsere Agenten sprechen die Sprache Ihrer bestehenden Software. 
-            Keine neuen Silos, sondern intelligente Vernetzung.
-          </p>
-          <div className="api-badges">
-            {apis.map(api => (
-              <span key={api} className="api-badge">{api}</span>
-            ))}
-          </div>
-        </div>
-        <div className="integrations-grid">
-          {integrations.map(name => (
-            <div key={name} className="integration-card" data-testid={`integration-${name.replace(/\s/g, '-').toLowerCase()}`}>
-              <span className="integration-name">{name}</span>
-            </div>
-          ))}
+const IntegrationsSection = () => (
+  <section id="integrationen" className="integrations-section" aria-labelledby="integrations-title">
+    <div className="container integrations-container">
+      <div className="integrations-info">
+        <h2 id="integrations-title" className="section-title">Perfekte Symbiose</h2>
+        <p className="section-description">Unsere Agenten sprechen die Sprache Ihrer bestehenden Software. Keine neuen Silos, sondern intelligente Vernetzung.</p>
+        <div className="api-badges">
+          {['REST API', 'WEBHOOKS', 'PYTHON SDK'].map(api => <span key={api} className="api-badge">{api}</span>)}
         </div>
       </div>
-    </section>
-  );
-};
+      <div className="integrations-grid">
+        {['Microsoft 365', 'HubSpot', 'Salesforce', 'SAP S/4HANA'].map(name => (
+          <div key={name} className="integration-card"><span className="integration-name">{name}</span></div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
 
 // Governance Section
-const GovernanceSection = () => {
-  const features = [
-    {
-      icon: 'gavel',
-      title: 'Rechtssicher im DACH-Raum',
-      description: 'Vollständige DSGVO-Konformität, Datenspeicherung in zertifizierten deutschen Rechenzentren (Frankfurt/München).'
-    },
-    {
-      icon: 'shield_person',
-      title: 'Role-Based Access Control (RBAC)',
-      description: 'Präzise Steuerung, welche KI-Modelle Zugriff auf welche Unternehmensdaten haben – auf Benutzerebene.'
-    },
-    {
-      icon: 'policy',
-      title: 'Audit-Log Management',
-      description: 'Lückenlose Protokollierung aller KI-Entscheidungen und Datenzugriffe für maximale Transparenz.'
-    }
-  ];
-
-  const certifications = [
-    { label: 'Standard', title: 'GDPR/DSGVO', description: '100% Datenschutzkonform.', highlight: false },
-    { label: 'Barrierefreiheit', title: 'WCAG 2.2', description: 'Barrierefreie Schnittstellen.', highlight: false },
-    { label: 'Zielsetzung', title: 'ISO 27001', description: 'Informationssicherheit angestrebt.', highlight: true },
-    { label: 'Roadmap', title: 'SOC 2 Type II', description: 'In Vorbereitung.', highlight: true }
-  ];
-
-  return (
-    <section className="governance-section" data-testid="governance-section">
-      <div className="container governance-container">
-        <div className="governance-features">
-          <h2 className="section-title">Governance & Compliance</h2>
-          <div className="governance-list">
-            {features.map((feature, idx) => (
-              <div key={idx} className="governance-item">
-                <div className="governance-icon">
-                  <Icon name={feature.icon} />
-                </div>
-                <div>
-                  <h4 className="governance-item-title">{feature.title}</h4>
-                  <p className="governance-item-description">{feature.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="certifications-grid">
-          {certifications.map((cert, idx) => (
-            <div key={idx} className={`certification-card ${cert.highlight ? 'highlight' : ''}`}>
-              <span className="certification-label">{cert.label}</span>
-              <div className="certification-title">{cert.title}</div>
-              <p className="certification-description">{cert.description}</p>
+const GovernanceSection = () => (
+  <section className="governance-section" aria-labelledby="governance-title">
+    <div className="container governance-container">
+      <div className="governance-features">
+        <h2 id="governance-title" className="section-title">Governance & Compliance</h2>
+        <div className="governance-list">
+          {[
+            { icon: 'gavel', title: 'Rechtssicher im DACH-Raum', desc: 'DSGVO-Konformität, Datenspeicherung in deutschen Rechenzentren (Frankfurt/München).' },
+            { icon: 'shield_person', title: 'Role-Based Access Control', desc: 'Präzise Steuerung, welche KI-Modelle auf welche Daten zugreifen – auf Benutzerebene.' },
+            { icon: 'policy', title: 'Audit-Log Management', desc: 'Lückenlose Protokollierung aller KI-Entscheidungen für maximale Transparenz.' }
+          ].map((f, i) => (
+            <div key={i} className="governance-item">
+              <div className="governance-icon"><Icon name={f.icon} /></div>
+              <div><h3 className="governance-item-title">{f.title}</h3><p className="governance-item-description">{f.desc}</p></div>
             </div>
           ))}
         </div>
       </div>
-    </section>
-  );
-};
+      <div className="certifications-grid">
+        {[
+          { label: 'Standard', title: 'GDPR/DSGVO', desc: '100% Datenschutzkonform.', highlight: false },
+          { label: 'Barrierefreiheit', title: 'WCAG 2.2', desc: 'Barrierefreie Schnittstellen.', highlight: false },
+          { label: 'Zielsetzung', title: 'ISO 27001', desc: 'Informationssicherheit angestrebt.', highlight: true },
+          { label: 'Roadmap', title: 'SOC 2 Type II', desc: 'In Vorbereitung.', highlight: true }
+        ].map((c, i) => (
+          <div key={i} className={`certification-card ${c.highlight ? 'highlight' : ''}`}>
+            <span className="certification-label">{c.label}</span>
+            <div className="certification-title">{c.title}</div>
+            <p className="certification-description">{c.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
 
-// Pricing Section
-const PricingSection = ({ onScrollToContact }) => {
+// Pricing Section  
+const PricingSection = ({ onOpenBooking }) => {
   const plans = [
-    {
-      name: 'Starter',
-      price: '€1.900',
-      period: '/Mo',
-      features: [
-        '2 Custom KI-Agenten',
-        'Shared Infrastructure',
-        'Email Support (48h)'
-      ],
-      cta: 'JETZT STARTEN',
-      highlight: false
-    },
-    {
-      name: 'Growth',
-      price: '€4.500',
-      period: '/Mo',
-      features: [
-        '10 Custom KI-Agenten',
-        'Private Cloud Deployment',
-        'Priority Support (4h)',
-        'CRM/ERP Integration-Kit'
-      ],
-      cta: 'KOSTENLOS TESTEN',
-      highlight: true,
-      badge: 'Empfehlung'
-    },
-    {
-      name: 'Enterprise',
-      price: 'Individuell',
-      period: '',
-      features: [
-        'Unlimitierte KI-Agenten',
-        'On-Premise Option',
-        'Dedicated Account Manager',
-        'Custom LLM Training'
-      ],
-      cta: 'ANFRAGE SENDEN',
-      highlight: false
-    }
+    { name: 'Starter', price: '€1.900', period: '/Mo', features: ['2 Custom KI-Agenten', 'Shared Infrastructure', 'Email Support (48h)', 'Basis-Integrationen'], cta: 'GESPRÄCH VEREINBAREN', highlight: false },
+    { name: 'Growth', price: '€4.500', period: '/Mo', features: ['10 Custom KI-Agenten', 'Private Cloud Deployment', 'Priority Support (4h)', 'CRM/ERP Integration-Kit', 'Dedicated Onboarding'], cta: 'GESPRÄCH VEREINBAREN', highlight: true, badge: 'Empfehlung' },
+    { name: 'Enterprise', price: 'Individuell', period: '', features: ['Unlimitierte KI-Agenten', 'On-Premise Option', 'Dedicated Account Manager', 'Custom LLM Training', 'SLA-Garantien'], cta: 'ANFRAGE SENDEN', highlight: false }
   ];
 
   return (
-    <section id="preise" className="pricing-section" data-testid="pricing-section">
+    <section id="preise" className="pricing-section" aria-labelledby="pricing-title">
       <div className="container">
-        <div className="section-header centered">
-          <h2 className="section-title">Transparente Architektur-Tarife</h2>
-          <p className="section-description">
-            Wählen Sie das Fundament, das zu Ihrer Unternehmensgröße passt.
-          </p>
-        </div>
-        <div className="pricing-grid">
-          {plans.map((plan, idx) => (
-            <div 
-              key={idx} 
-              className={`pricing-card ${plan.highlight ? 'highlight' : ''}`}
-              data-testid={`pricing-card-${plan.name.toLowerCase()}`}
-            >
+        <header className="section-header centered">
+          <h2 id="pricing-title" className="section-title">Transparente Architektur-Tarife</h2>
+          <p className="section-description">Wählen Sie das Fundament, das zu Ihrer Unternehmensgröße passt. Alle Tarife beinhalten ein Erstgespräch zur Bedarfsanalyse.</p>
+        </header>
+        <div className="pricing-grid" role="list">
+          {plans.map((plan, i) => (
+            <article key={i} className={`pricing-card ${plan.highlight ? 'highlight' : ''}`} role="listitem">
               {plan.badge && <span className="pricing-badge">{plan.badge}</span>}
               <div className="pricing-name">{plan.name}</div>
-              <div className="pricing-price">
-                {plan.price}
-                <span className="pricing-period">{plan.period}</span>
-              </div>
+              <div className="pricing-price">{plan.price}<span className="pricing-period">{plan.period}</span></div>
               <ul className="pricing-features">
-                {plan.features.map((feature, fIdx) => (
-                  <li key={fIdx} className="pricing-feature">
-                    <Icon name="check_circle" className="pricing-check" />
-                    {feature}
-                  </li>
-                ))}
+                {plan.features.map((f, fi) => <li key={fi} className="pricing-feature"><Icon name="check_circle" className="pricing-check" />{f}</li>)}
               </ul>
-              <button 
-                className={`btn ${plan.highlight ? 'btn-primary' : 'btn-secondary'} pricing-cta`}
-                onClick={onScrollToContact}
-              >
+              <button className={`btn ${plan.highlight ? 'btn-primary' : 'btn-secondary'} pricing-cta`} onClick={() => { onOpenBooking(); trackEvent('pricing_click', { plan: plan.name }); }}>
                 {plan.cta}
               </button>
-            </div>
+            </article>
           ))}
         </div>
       </div>
@@ -587,61 +414,30 @@ const PricingSection = ({ onScrollToContact }) => {
 
 // FAQ Section
 const FAQSection = () => {
-  const [openIndex, setOpenIndex] = useState(0);
-
+  const [openIdx, setOpenIdx] = useState(0);
   const faqs = [
-    {
-      question: 'Werden unsere Daten zum Training der Modelle genutzt?',
-      answer: 'Nein. Alle Kundendaten verbleiben in isolierten Instanzen. Wir nutzen Ihre geschäftskritischen Daten niemals zum Training allgemeiner Sprachmodelle. Ihre Daten bleiben Ihr Eigentum und werden ausschließlich für Ihre spezifischen Anwendungsfälle verwendet.'
-    },
-    {
-      question: 'Wie lange dauert eine Standard-Implementierung?',
-      answer: 'Die Implementierungsdauer variiert je nach Komplexität. Ein einfacher KI-Assistent kann innerhalb von 2-4 Wochen produktiv sein. Komplexere Integrationen mit mehreren Systemen (CRM, ERP) benötigen typischerweise 6-12 Wochen. Im Erstgespräch erstellen wir einen realistischen Zeitplan für Ihr Projekt.'
-    },
-    {
-      question: 'Ist die Lösung mit SAP kompatibel?',
-      answer: 'Ja. Wir bieten native Konnektoren für SAP S/4HANA und SAP Business One. Die Integration erfolgt über standardisierte APIs und berücksichtigt alle relevanten Sicherheits- und Berechtigungskonzepte. Auch Legacy-SAP-Systeme können über Middleware-Lösungen angebunden werden.'
-    },
-    {
-      question: 'Wie hoch ist die Fehlerquote (Halluzinationen)?',
-      answer: 'Durch den Einsatz von RAG-Architekturen (Retrieval-Augmented Generation) und strukturierten Validierungsschritten minimieren wir Halluzinationen erheblich. Bei faktenbasierten Aufgaben liegt die Genauigkeit typischerweise über 95%. Kritische Prozesse können zusätzlich mit Human-in-the-Loop-Mechanismen abgesichert werden.'
-    },
-    {
-      question: 'Welche Datenschutz-Garantien gibt es?',
-      answer: 'Alle Daten werden ausschließlich in zertifizierten deutschen Rechenzentren (Frankfurt/München) verarbeitet. Wir sind vollständig DSGVO-konform und können auf Wunsch Auftragsverarbeitungsverträge (AVV) bereitstellen. Für besonders sensible Daten bieten wir On-Premise-Deployments an.'
-    }
+    { q: 'Werden unsere Daten zum Training der Modelle genutzt?', a: 'Nein. Alle Kundendaten verbleiben in isolierten Instanzen. Wir nutzen Ihre geschäftskritischen Daten niemals zum Training allgemeiner Sprachmodelle. Ihre Daten bleiben Ihr Eigentum.' },
+    { q: 'Wie lange dauert eine Standard-Implementierung?', a: 'Ein einfacher KI-Assistent kann innerhalb von 2-4 Wochen produktiv sein. Komplexere CRM/ERP-Integrationen benötigen 6-12 Wochen. Im Erstgespräch erstellen wir einen realistischen Zeitplan.' },
+    { q: 'Ist die Lösung mit SAP kompatibel?', a: 'Ja. Wir bieten native Konnektoren für SAP S/4HANA und SAP Business One. Die Integration erfolgt über standardisierte APIs und berücksichtigt alle Sicherheitskonzepte.' },
+    { q: 'Wie minimieren Sie Halluzinationen?', a: 'Durch RAG-Architekturen und strukturierte Validierungsschritte liegt die Genauigkeit bei faktenbasierten Aufgaben über 95%. Kritische Prozesse können mit Human-in-the-Loop abgesichert werden.' },
+    { q: 'Welche Datenschutz-Garantien gibt es?', a: 'Alle Daten werden in zertifizierten deutschen Rechenzentren verarbeitet. Wir sind DSGVO-konform und bieten AVV. Für sensible Daten bieten wir On-Premise-Deployments.' }
   ];
 
   return (
-    <section id="faq" className="faq-section" data-testid="faq-section">
+    <section id="faq" className="faq-section" aria-labelledby="faq-title">
       <div className="container faq-container">
         <div className="faq-info">
-          <h2 className="section-title">Häufige Fragen</h2>
-          <p className="section-description">
-            Details zur technischen Umsetzung, Datensicherheit und Integration.
-          </p>
+          <h2 id="faq-title" className="section-title">Häufige Fragen</h2>
+          <p className="section-description">Details zur technischen Umsetzung, Datensicherheit und Integration.</p>
         </div>
-        <div className="faq-list">
-          {faqs.map((faq, idx) => (
-            <div 
-              key={idx} 
-              className={`faq-item ${openIndex === idx ? 'open' : ''}`}
-              data-testid={`faq-item-${idx}`}
-            >
-              <button 
-                type="button"
-                className="faq-question"
-                onClick={() => setOpenIndex(openIndex === idx ? -1 : idx)}
-                aria-expanded={openIndex === idx}
-              >
-                <span>{faq.question}</span>
-                <Icon name={openIndex === idx ? 'expand_less' : 'expand_more'} />
+        <div className="faq-list" role="list">
+          {faqs.map((faq, i) => (
+            <div key={i} className={`faq-item ${openIdx === i ? 'open' : ''}`} role="listitem">
+              <button type="button" className="faq-question" onClick={() => setOpenIdx(openIdx === i ? -1 : i)} aria-expanded={openIdx === i}>
+                <span>{faq.q}</span>
+                <Icon name={openIdx === i ? 'expand_less' : 'expand_more'} />
               </button>
-              {openIndex === idx && (
-                <div className="faq-answer">
-                  {faq.answer}
-                </div>
-              )}
+              {openIdx === i && <div className="faq-answer">{faq.a}</div>}
             </div>
           ))}
         </div>
@@ -650,183 +446,105 @@ const FAQSection = () => {
   );
 };
 
-// Contact Form Section
-const ContactSection = () => {
-  const [formData, setFormData] = useState({
-    vorname: '',
-    nachname: '',
-    email: '',
-    nachricht: ''
-  });
+// Contact Section
+const ContactSection = ({ onOpenBooking }) => {
+  const [form, setForm] = useState({ vorname: '', nachname: '', email: '', telefon: '', unternehmen: '', nachricht: '', _hp: '' });
   const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState(null);
-  const formRef = useRef(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState(null);
 
   const validate = () => {
-    const newErrors = {};
-    if (formData.vorname.trim().length < 2) {
-      newErrors.vorname = 'Bitte geben Sie Ihren Vornamen ein';
-    }
-    if (formData.nachname.trim().length < 2) {
-      newErrors.nachname = 'Bitte geben Sie Ihren Nachnamen ein';
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Bitte geben Sie eine gültige E-Mail-Adresse ein';
-    }
-    if (formData.nachricht.trim().length < 10) {
-      newErrors.nachricht = 'Bitte beschreiben Sie Ihr Anliegen (mind. 10 Zeichen)';
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const e = {};
+    if (form.vorname.trim().length < 2) e.vorname = 'Bitte Vornamen eingeben';
+    if (form.nachname.trim().length < 2) e.nachname = 'Bitte Nachnamen eingeben';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Gültige E-Mail erforderlich';
+    if (form.nachricht.trim().length < 10) e.nachricht = 'Mindestens 10 Zeichen';
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-
-    setIsSubmitting(true);
-    setSubmitStatus(null);
-
+    setSubmitting(true);
+    trackEvent('form_submit', { form: 'contact' });
+    
     try {
-      const response = await fetch(`${API_URL}/api/contact`, {
+      const res = await fetch(`${API_URL}/api/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(form)
       });
-      
-      const result = await response.json();
-      
-      if (response.ok) {
-        setSubmitStatus({ type: 'success', message: result.message });
-        setFormData({ vorname: '', nachname: '', email: '', nachricht: '' });
+      const data = await res.json();
+      if (res.ok) {
+        setStatus({ type: 'success', message: data.message });
+        setForm({ vorname: '', nachname: '', email: '', telefon: '', unternehmen: '', nachricht: '', _hp: '' });
       } else {
-        throw new Error(result.detail || 'Übertragung fehlgeschlagen');
+        throw new Error(data.detail || 'Fehler');
       }
-    } catch (error) {
-      setSubmitStatus({ 
-        type: 'error', 
-        message: 'Entschuldigung, es gab ein technisches Problem. Bitte versuchen Sie es später erneut oder kontaktieren Sie uns direkt.' 
-      });
+    } catch (err) {
+      setStatus({ type: 'error', message: 'Übertragung fehlgeschlagen. Bitte versuchen Sie es erneut.' });
+      trackEvent('form_error', { form: 'contact', error: err.message });
     } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: null }));
+      setSubmitting(false);
     }
   };
 
   return (
-    <section id="kontakt" className="contact-section" data-testid="contact-section">
+    <section id="kontakt" className="contact-section" aria-labelledby="contact-title">
       <div className="container contact-container">
         <div className="contact-info">
-          <h2 className="section-title large">Bereit für die Architektur des Wachstums?</h2>
-          <p className="section-description">
-            Lassen Sie uns in einem 30-minütigen Gespräch Ihre operativen Potenziale identifizieren.
-          </p>
+          <h2 id="contact-title" className="section-title large">Bereit für die Architektur des Wachstums?</h2>
+          <p className="section-description">Lassen Sie uns in einem 30-minütigen Gespräch Ihre operativen Potenziale identifizieren.</p>
           <div className="contact-benefits">
-            <div className="contact-benefit">
-              <Icon name="verified" />
-              <span>Kostenloses Erstgespräch</span>
-            </div>
-            <div className="contact-benefit">
-              <Icon name="verified" />
-              <span>Prozess-Audit inklusive</span>
-            </div>
-            <div className="contact-benefit">
-              <Icon name="verified" />
-              <span>Unverbindliche Beratung</span>
-            </div>
+            {['Unverbindliches Erstgespräch', 'Prozess-Audit inklusive', 'Konkrete Handlungsempfehlungen'].map((b, i) => (
+              <div key={i} className="contact-benefit"><Icon name="verified" /><span>{b}</span></div>
+            ))}
           </div>
+          <button className="btn btn-primary btn-lg contact-booking-cta" onClick={() => { onOpenBooking(); trackEvent('cta_click', { location: 'contact', cta: 'termin_buchen' }); }}>
+            TERMIN DIREKT BUCHEN
+            <Icon name="calendar_month" />
+          </button>
         </div>
-        
         <div className="contact-form-container">
-          <form ref={formRef} onSubmit={handleSubmit} className="contact-form" data-testid="contact-form">
+          <form onSubmit={handleSubmit} className="contact-form" noValidate>
+            <input type="text" name="_hp" value={form._hp} onChange={e => setForm({...form, _hp: e.target.value})} style={{display:'none'}} tabIndex={-1} autoComplete="off" />
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="vorname" className="form-label">Vorname</label>
-                <input
-                  type="text"
-                  id="vorname"
-                  name="vorname"
-                  value={formData.vorname}
-                  onChange={handleChange}
-                  className={`form-input ${errors.vorname ? 'error' : ''}`}
-                  disabled={isSubmitting}
-                  data-testid="input-vorname"
-                />
-                {errors.vorname && <span className="form-error">{errors.vorname}</span>}
+                <label htmlFor="vorname" className="form-label">Vorname *</label>
+                <input type="text" id="vorname" className={`form-input ${errors.vorname ? 'error' : ''}`} value={form.vorname} onChange={e => setForm({...form, vorname: e.target.value})} disabled={submitting} required />
+                {errors.vorname && <span className="form-error" role="alert">{errors.vorname}</span>}
               </div>
               <div className="form-group">
-                <label htmlFor="nachname" className="form-label">Nachname</label>
-                <input
-                  type="text"
-                  id="nachname"
-                  name="nachname"
-                  value={formData.nachname}
-                  onChange={handleChange}
-                  className={`form-input ${errors.nachname ? 'error' : ''}`}
-                  disabled={isSubmitting}
-                  data-testid="input-nachname"
-                />
-                {errors.nachname && <span className="form-error">{errors.nachname}</span>}
+                <label htmlFor="nachname" className="form-label">Nachname *</label>
+                <input type="text" id="nachname" className={`form-input ${errors.nachname ? 'error' : ''}`} value={form.nachname} onChange={e => setForm({...form, nachname: e.target.value})} disabled={submitting} required />
+                {errors.nachname && <span className="form-error" role="alert">{errors.nachname}</span>}
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="email" className="form-label">Geschäftliche E-Mail *</label>
+                <input type="email" id="email" className={`form-input ${errors.email ? 'error' : ''}`} value={form.email} onChange={e => setForm({...form, email: e.target.value})} disabled={submitting} required />
+                {errors.email && <span className="form-error" role="alert">{errors.email}</span>}
+              </div>
+              <div className="form-group">
+                <label htmlFor="telefon" className="form-label">Telefon</label>
+                <input type="tel" id="telefon" className="form-input" value={form.telefon} onChange={e => setForm({...form, telefon: e.target.value})} disabled={submitting} />
               </div>
             </div>
             <div className="form-group">
-              <label htmlFor="email" className="form-label">Geschäftliche E-Mail</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className={`form-input ${errors.email ? 'error' : ''}`}
-                disabled={isSubmitting}
-                data-testid="input-email"
-              />
-              {errors.email && <span className="form-error">{errors.email}</span>}
+              <label htmlFor="unternehmen" className="form-label">Unternehmen</label>
+              <input type="text" id="unternehmen" className="form-input" value={form.unternehmen} onChange={e => setForm({...form, unternehmen: e.target.value})} disabled={submitting} />
             </div>
             <div className="form-group">
-              <label htmlFor="nachricht" className="form-label">Nachricht</label>
-              <textarea
-                id="nachricht"
-                name="nachricht"
-                rows="4"
-                value={formData.nachricht}
-                onChange={handleChange}
-                className={`form-textarea ${errors.nachricht ? 'error' : ''}`}
-                disabled={isSubmitting}
-                data-testid="input-nachricht"
-              ></textarea>
-              {errors.nachricht && <span className="form-error">{errors.nachricht}</span>}
+              <label htmlFor="nachricht" className="form-label">Ihre Anfrage *</label>
+              <textarea id="nachricht" rows="4" className={`form-textarea ${errors.nachricht ? 'error' : ''}`} value={form.nachricht} onChange={e => setForm({...form, nachricht: e.target.value})} disabled={submitting} required></textarea>
+              {errors.nachricht && <span className="form-error" role="alert">{errors.nachricht}</span>}
             </div>
-            <button 
-              type="submit" 
-              className="btn btn-primary contact-submit"
-              disabled={isSubmitting}
-              data-testid="contact-submit-button"
-            >
-              {isSubmitting ? (
-                <>
-                  <span className="spinner"></span>
-                  WIRD GESENDET...
-                </>
-              ) : (
-                'STRATEGIEGESPRÄCH ANFORDERN'
-              )}
+            <button type="submit" className="btn btn-primary contact-submit" disabled={submitting}>
+              {submitting ? <><span className="spinner"></span>WIRD GESENDET...</> : 'ANFRAGE SENDEN'}
             </button>
-            
-            {submitStatus && (
-              <div className={`form-status ${submitStatus.type}`} data-testid="form-status">
-                <Icon name={submitStatus.type === 'success' ? 'check_circle' : 'error'} />
-                {submitStatus.message}
-              </div>
-            )}
+            {status && <div className={`form-status ${status.type}`} role="alert"><Icon name={status.type === 'success' ? 'check_circle' : 'error'} />{status.message}</div>}
           </form>
         </div>
       </div>
@@ -834,119 +552,167 @@ const ContactSection = () => {
   );
 };
 
-// Advisory Chat Modal
-const AdvisoryChatModal = ({ isOpen, onClose }) => {
-  const modalRef = useRef(null);
+// Live Chat Component
+const LiveChat = ({ isOpen, onClose, initialQuestion }) => {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [sessionId] = useState(() => generateSessionId());
+  const [qualification, setQualification] = useState({});
+  const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
+
+  const presetQuestions = [
+    { icon: 'trending_up', text: 'Wie kann KI unseren Vertrieb automatisieren?' },
+    { icon: 'hub', text: 'Welche CRM/ERP-Integrationen bieten Sie?' },
+    { icon: 'menu_book', text: 'Wie funktioniert ein internes Wissenssystem?' },
+    { icon: 'support_agent', text: 'Können Sie unseren Support automatisieren?' },
+    { icon: 'analytics', text: 'Wie identifizieren Sie Automationspotenziale?' },
+    { icon: 'shield', text: 'Wie sicher sind unsere Daten bei Ihnen?' }
+  ];
 
   useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') onClose();
-    };
-    
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-      modalRef.current?.focus();
+    if (isOpen && messages.length === 0) {
+      setMessages([{
+        role: 'assistant',
+        content: 'Willkommen bei NeXifyAI! Ich helfe Ihnen, das richtige KI-Szenario für Ihr Unternehmen zu identifizieren. Wählen Sie eine Frage oder beschreiben Sie Ihr Anliegen.',
+        timestamp: new Date().toISOString()
+      }]);
+      trackEvent('chat_started');
     }
+  }, [isOpen, messages.length]);
+
+  useEffect(() => {
+    if (initialQuestion && isOpen) {
+      handleSend(initialQuestion);
+    }
+  }, [initialQuestion, isOpen]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  useEffect(() => {
+    if (isOpen) {
+      inputRef.current?.focus();
+      document.body.style.overflow = 'hidden';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
+
+  const handleSend = async (text = input) => {
+    if (!text.trim() || loading) return;
     
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = '';
-    };
-  }, [isOpen, onClose]);
+    const userMsg = { role: 'user', content: text.trim(), timestamp: new Date().toISOString() };
+    setMessages(prev => [...prev, userMsg]);
+    setInput('');
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_URL}/api/chat/message?session_id=${sessionId}&message=${encodeURIComponent(text)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+      
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: data.message,
+        timestamp: new Date().toISOString(),
+        actions: data.suggested_actions
+      }]);
+      setQualification(data.qualification || {});
+      
+      if (data.should_escalate) {
+        trackEvent('chat_escalation', { qualification: data.qualification });
+      }
+    } catch (err) {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Entschuldigung, es gab ein technisches Problem. Bitte versuchen Sie es erneut oder nutzen Sie unser Kontaktformular.',
+        timestamp: new Date().toISOString()
+      }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePresetClick = (question) => {
+    trackEvent('preset_question_clicked', { question });
+    handleSend(question);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
 
   if (!isOpen) return null;
 
-  const handleOverlayClick = (e) => {
-    if (e.target === e.currentTarget) onClose();
-  };
-
-  const starterQuestions = [
-    'Wie kann KI unseren Vertrieb unterstützen?',
-    'Welche Prozesse eignen sich für Automation?',
-    'Wie sicher sind unsere Daten bei Ihnen?',
-    'Was unterscheidet Sie von ChatGPT-Wrappern?'
-  ];
-
   return (
-    <div 
-      className="modal-overlay" 
-      onClick={handleOverlayClick}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="chat-modal-title"
-      data-testid="advisory-modal"
-    >
-      <div 
-        className="modal-content advisory-modal"
-        ref={modalRef}
-        tabIndex={-1}
-      >
-        <button 
-          className="modal-close"
-          onClick={onClose}
-          aria-label="Schließen"
-          data-testid="modal-close-button"
-        >
-          <Icon name="close" />
-        </button>
+    <div className="chat-overlay" onClick={(e) => e.target === e.currentTarget && onClose()} role="dialog" aria-modal="true" aria-labelledby="chat-title">
+      <div className="chat-modal">
+        <button className="chat-close" onClick={onClose} aria-label="Chat schließen"><Icon name="close" /></button>
         
-        <div className="advisory-grid">
-          <div className="advisory-info">
-            <h2 id="chat-modal-title" className="advisory-title">
-              Wie können wir Ihnen helfen?
-            </h2>
-            <p className="advisory-description">
-              Unser Advisory-System hilft Ihnen, den richtigen Einstieg in KI-gestützte Automation zu finden. 
-              Wählen Sie eine Frage oder beschreiben Sie Ihr Anliegen.
-            </p>
-            
-            <div className="starter-questions">
-              {starterQuestions.map((question, idx) => (
-                <button 
-                  key={idx} 
-                  className="starter-question"
-                  onClick={() => {
-                    // In future: send to chat
-                    window.location.href = '#kontakt';
-                    onClose();
-                  }}
-                >
-                  {question}
-                  <Icon name="arrow_forward" />
+        <div className="chat-layout">
+          <div className="chat-sidebar">
+            <h2 id="chat-title" className="chat-sidebar-title">Wie können wir Ihnen helfen?</h2>
+            <p className="chat-sidebar-desc">Wählen Sie eine Frage oder starten Sie direkt das Gespräch.</p>
+            <div className="chat-presets">
+              {presetQuestions.map((q, i) => (
+                <button key={i} className="chat-preset-btn" onClick={() => handlePresetClick(q.text)}>
+                  <Icon name={q.icon} />
+                  <span>{q.text}</span>
                 </button>
               ))}
             </div>
-            
-            <div className="advisory-actions">
-              <a href="#kontakt" className="btn btn-primary" onClick={onClose}>
-                Projekt einschätzen lassen
-              </a>
-              <a href="#loesungen" className="btn btn-secondary" onClick={onClose}>
-                Lösungen ansehen
-              </a>
+            <div className="chat-sidebar-cta">
+              <a href="#kontakt" className="btn btn-primary" onClick={onClose}>Direkt Termin buchen</a>
             </div>
           </div>
           
-          <div className="advisory-preview">
-            <div className="chat-preview">
-              <div className="chat-header">
-                <div className="chat-status">
-                  <span className="status-dot online"></span>
-                  <span>NeXifyAI Advisory</span>
+          <div className="chat-main">
+            <div className="chat-header">
+              <div className="chat-status"><span className="status-dot online"></span>NeXifyAI Advisor</div>
+              {qualification.use_case && <span className="chat-topic">Thema: {qualification.use_case}</span>}
+            </div>
+            
+            <div className="chat-messages">
+              {messages.map((msg, i) => (
+                <div key={i} className={`chat-message ${msg.role}`}>
+                  <div className="chat-message-content">{msg.content}</div>
+                  {msg.actions && msg.actions.length > 0 && (
+                    <div className="chat-message-actions">
+                      {msg.actions.map((action, ai) => (
+                        <a key={ai} href={action.type === 'booking' ? '#kontakt' : '#kontakt'} className="btn btn-sm btn-primary" onClick={onClose}>
+                          {action.label}
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-              <div className="chat-messages">
-                <div className="chat-message bot">
-                  Willkommen! Ich bin der NeXifyAI Advisor. Wie kann ich Ihnen bei Ihrer KI-Strategie helfen?
-                </div>
-                <div className="chat-message user">
-                  Wir möchten unseren Vertriebsprozess automatisieren.
-                </div>
-                <div className="chat-message bot">
-                  Sehr gut! Vertriebsautomation ist einer unserer Kernbereiche. Darf ich fragen, welches CRM-System Sie aktuell nutzen?
-                </div>
-              </div>
+              ))}
+              {loading && <div className="chat-message assistant"><div className="chat-typing"><span></span><span></span><span></span></div></div>}
+              <div ref={messagesEndRef} />
+            </div>
+            
+            <div className="chat-input-area">
+              <input
+                ref={inputRef}
+                type="text"
+                className="chat-input"
+                placeholder="Ihre Nachricht..."
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={loading}
+                aria-label="Nachricht eingeben"
+              />
+              <button className="chat-send" onClick={() => handleSend()} disabled={!input.trim() || loading} aria-label="Senden">
+                <Icon name="send" />
+              </button>
             </div>
           </div>
         </div>
@@ -955,106 +721,304 @@ const AdvisoryChatModal = ({ isOpen, onClose }) => {
   );
 };
 
-// Footer Component
+// Booking Modal
+const BookingModal = ({ isOpen, onClose }) => {
+  const [step, setStep] = useState(1);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedTime, setSelectedTime] = useState('');
+  const [slots, setSlots] = useState([]);
+  const [form, setForm] = useState({ vorname: '', nachname: '', email: '', telefon: '', unternehmen: '', thema: '' });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(null);
+
+  const availableDates = useMemo(() => {
+    const dates = [];
+    const today = new Date();
+    for (let i = 1; i <= 14; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      if (d.getDay() !== 0 && d.getDay() !== 6) {
+        dates.push(d.toISOString().split('T')[0]);
+      }
+    }
+    return dates;
+  }, []);
+
+  useEffect(() => {
+    if (selectedDate) {
+      fetchSlots(selectedDate);
+    }
+  }, [selectedDate]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      trackEvent('booking_modal_opened');
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
+
+  const fetchSlots = async (date) => {
+    try {
+      const res = await fetch(`${API_URL}/api/booking/slots?date=${date}`);
+      const data = await res.json();
+      setSlots(data.slots || []);
+    } catch (e) {
+      setSlots(['09:00', '10:00', '11:00', '14:00', '15:00', '16:00']);
+    }
+  };
+
+  const validate = () => {
+    const e = {};
+    if (form.vorname.trim().length < 2) e.vorname = 'Pflichtfeld';
+    if (form.nachname.trim().length < 2) e.nachname = 'Pflichtfeld';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Gültige E-Mail';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    setLoading(true);
+    trackEvent('booking_submit', { date: selectedDate, time: selectedTime });
+
+    try {
+      const res = await fetch(`${API_URL}/api/booking`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, date: selectedDate, time: selectedTime })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSuccess(data);
+        trackEvent('calendar_booked', { booking_id: data.booking_id });
+      } else {
+        throw new Error(data.detail);
+      }
+    } catch (err) {
+      setErrors({ submit: err.message || 'Buchung fehlgeschlagen' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="booking-overlay" onClick={e => e.target === e.currentTarget && onClose()} role="dialog" aria-modal="true" aria-labelledby="booking-title">
+      <div className="booking-modal">
+        <button className="booking-close" onClick={onClose} aria-label="Schließen"><Icon name="close" /></button>
+        
+        {success ? (
+          <div className="booking-success">
+            <Icon name="check_circle" className="booking-success-icon" />
+            <h2>Termin bestätigt!</h2>
+            <p>Ihr Beratungsgespräch am <strong>{formatDate(selectedDate)}</strong> um <strong>{selectedTime} Uhr</strong> ist gebucht.</p>
+            <p>Sie erhalten eine Bestätigung per E-Mail an {form.email}.</p>
+            <button className="btn btn-primary" onClick={onClose}>Schließen</button>
+          </div>
+        ) : (
+          <>
+            <h2 id="booking-title" className="booking-title">Beratungsgespräch buchen</h2>
+            <div className="booking-steps">
+              <div className={`booking-step ${step >= 1 ? 'active' : ''}`}>1. Termin wählen</div>
+              <div className={`booking-step ${step >= 2 ? 'active' : ''}`}>2. Daten eingeben</div>
+            </div>
+            
+            {step === 1 && (
+              <div className="booking-step-content">
+                <h3>Wählen Sie einen Termin</h3>
+                <div className="booking-dates">
+                  {availableDates.map(date => (
+                    <button key={date} className={`booking-date ${selectedDate === date ? 'selected' : ''}`} onClick={() => setSelectedDate(date)}>
+                      {new Date(date).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'short' })}
+                    </button>
+                  ))}
+                </div>
+                {selectedDate && (
+                  <>
+                    <h3>Verfügbare Zeiten</h3>
+                    <div className="booking-times">
+                      {slots.length > 0 ? slots.map(time => (
+                        <button key={time} className={`booking-time ${selectedTime === time ? 'selected' : ''}`} onClick={() => setSelectedTime(time)}>
+                          {time} Uhr
+                        </button>
+                      )) : <p>Keine Zeiten verfügbar</p>}
+                    </div>
+                  </>
+                )}
+                <button className="btn btn-primary booking-next" disabled={!selectedDate || !selectedTime} onClick={() => setStep(2)}>
+                  Weiter <Icon name="arrow_forward" />
+                </button>
+              </div>
+            )}
+            
+            {step === 2 && (
+              <div className="booking-step-content">
+                <button className="booking-back" onClick={() => setStep(1)}><Icon name="arrow_back" /> Zurück</button>
+                <div className="booking-selected">
+                  <Icon name="event" />
+                  <span>{formatDate(selectedDate)} um {selectedTime} Uhr</span>
+                </div>
+                <div className="booking-form">
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="b-vorname" className="form-label">Vorname *</label>
+                      <input type="text" id="b-vorname" className={`form-input ${errors.vorname ? 'error' : ''}`} value={form.vorname} onChange={e => setForm({...form, vorname: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="b-nachname" className="form-label">Nachname *</label>
+                      <input type="text" id="b-nachname" className={`form-input ${errors.nachname ? 'error' : ''}`} value={form.nachname} onChange={e => setForm({...form, nachname: e.target.value})} />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="b-email" className="form-label">E-Mail *</label>
+                    <input type="email" id="b-email" className={`form-input ${errors.email ? 'error' : ''}`} value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="b-telefon" className="form-label">Telefon</label>
+                      <input type="tel" id="b-telefon" className="form-input" value={form.telefon} onChange={e => setForm({...form, telefon: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="b-unternehmen" className="form-label">Unternehmen</label>
+                      <input type="text" id="b-unternehmen" className="form-input" value={form.unternehmen} onChange={e => setForm({...form, unternehmen: e.target.value})} />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="b-thema" className="form-label">Worüber möchten Sie sprechen?</label>
+                    <select id="b-thema" className="form-input" value={form.thema} onChange={e => setForm({...form, thema: e.target.value})}>
+                      <option value="">Bitte wählen...</option>
+                      <option value="KI-Assistenz / Chatbot">KI-Assistenz / Chatbot</option>
+                      <option value="CRM/ERP-Integration">CRM/ERP-Integration</option>
+                      <option value="Prozessautomation">Prozessautomation</option>
+                      <option value="Wissenssystem / RAG">Wissenssystem / RAG</option>
+                      <option value="Support-Automation">Support-Automation</option>
+                      <option value="Allgemeine Beratung">Allgemeine Beratung</option>
+                    </select>
+                  </div>
+                  {errors.submit && <div className="form-error">{errors.submit}</div>}
+                  <button className="btn btn-primary booking-submit" onClick={handleSubmit} disabled={loading}>
+                    {loading ? <><span className="spinner"></span>Wird gebucht...</> : 'Termin verbindlich buchen'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Footer
 const Footer = () => (
-  <footer className="footer" data-testid="footer">
+  <footer className="footer" role="contentinfo">
     <div className="container">
       <div className="footer-grid">
         <div className="footer-company">
-          <span className="footer-logo">NeXifyAI</span>
+          <img src="/logo-light.svg" alt="NeXifyAI" className="footer-logo" width="120" height="28" loading="lazy" />
           <p className="footer-tagline">{COMPANY.tagline}</p>
           <p className="footer-legal-name">Ein Produkt von {COMPANY.legalName}</p>
-          <div className="footer-contact-info">
+          <address className="footer-contact-info">
             <p><strong>NL:</strong> {COMPANY.addresses.nl.street}, {COMPANY.addresses.nl.city}</p>
             <p><strong>DE:</strong> {COMPANY.addresses.de.street}, {COMPANY.addresses.de.city}</p>
             <p>Tel: <a href={`tel:${COMPANY.phone.replace(/\s/g, '')}`}>{COMPANY.phone}</a></p>
             <p>E-Mail: <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></p>
-          </div>
+          </address>
         </div>
-        
-        <div className="footer-nav">
-          <h5 className="footer-nav-title">Navigation</h5>
+        <nav className="footer-nav" aria-label="Navigation">
+          <h3 className="footer-nav-title">Navigation</h3>
           <ul className="footer-links">
             <li><a href="#loesungen">Lösungen</a></li>
             <li><a href="#use-cases">Anwendungsfälle</a></li>
-            <li><a href="#preise">Preise</a></li>
+            <li><a href="#preise">Leistungen</a></li>
             <li><a href="#kontakt">Kontakt</a></li>
           </ul>
-        </div>
-        
-        <div className="footer-nav">
-          <h5 className="footer-nav-title">Rechtliches</h5>
+        </nav>
+        <nav className="footer-nav" aria-label="Rechtliches">
+          <h3 className="footer-nav-title">Rechtliches</h3>
           <ul className="footer-links">
-            <li><a href="#impressum">Impressum</a></li>
-            <li><a href="#datenschutz">Datenschutz</a></li>
-            <li><a href="#agb">AGB</a></li>
+            <li><a href="/impressum">Impressum</a></li>
+            <li><a href="/datenschutz">Datenschutz</a></li>
+            <li><a href="/agb">AGB</a></li>
           </ul>
           <div className="footer-legal-ids">
             <p>KvK: {COMPANY.kvk}</p>
             <p>USt-ID: {COMPANY.vatId}</p>
           </div>
-        </div>
+        </nav>
       </div>
-      
       <div className="footer-bottom">
-        <span className="footer-copyright">
-          © {new Date().getFullYear()} {COMPANY.legalName}. Alle Rechte vorbehalten.
-        </span>
-        <div className="footer-status">
-          <span className="status-dot online"></span>
-          <span>System Status: Optimal</span>
-        </div>
+        <span className="footer-copyright">© {new Date().getFullYear()} {COMPANY.legalName}. Alle Rechte vorbehalten.</span>
+        <div className="footer-status"><span className="status-dot online"></span>System Status: Optimal</div>
       </div>
     </div>
   </footer>
 );
 
-// Chat Trigger Button
+// Chat Trigger
 const ChatTrigger = ({ onClick }) => (
-  <button 
-    className="chat-trigger"
-    onClick={onClick}
-    aria-label="Architektur-Beratung öffnen"
-    data-testid="chat-trigger"
-  >
-    <span className="chat-trigger-text">Architektur-Beratung</span>
-    <span className="chat-trigger-icon">
-      <Icon name="forum" />
-    </span>
+  <button className="chat-trigger" onClick={onClick} aria-label="Beratung starten">
+    <span className="chat-trigger-text">Beratung starten</span>
+    <span className="chat-trigger-icon"><Icon name="forum" /></span>
   </button>
 );
 
-// Main App Component
+// Main App
 function App() {
-  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [chatQuestion, setChatQuestion] = useState('');
 
-  const openChat = useCallback(() => setIsChatOpen(true), []);
-  const closeChat = useCallback(() => setIsChatOpen(false), []);
-  
-  const scrollToContact = useCallback(() => {
-    document.getElementById('kontakt')?.scrollIntoView({ behavior: 'smooth' });
+  useEffect(() => {
+    trackEvent('page_view', { page: 'landing' });
+    
+    // Scroll tracking
+    let maxScroll = 0;
+    const handleScroll = () => {
+      const scrollPercent = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+      if (scrollPercent > maxScroll) {
+        maxScroll = scrollPercent;
+        if ([25, 50, 75, 100].includes(scrollPercent)) {
+          trackEvent('scroll_depth', { depth: scrollPercent });
+        }
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const openChatWithQuestion = (question) => {
+    setChatQuestion(question);
+    setChatOpen(true);
+  };
 
   return (
     <div className="app">
-      <Navigation onOpenChat={openChat} />
+      <a href="#loesungen" className="skip-link">Zum Inhalt springen</a>
       
-      <main>
-        <HeroSection onOpenChat={openChat} onScrollToContact={scrollToContact} />
+      <Navigation onOpenChat={() => setChatOpen(true)} onOpenBooking={() => setBookingOpen(true)} />
+      
+      <main id="main-content">
+        <HeroSection onOpenBooking={() => setBookingOpen(true)} />
         <SolutionsSection />
         <UseCasesSection />
         <ProcessSection />
         <IntegrationsSection />
         <GovernanceSection />
-        <PricingSection onScrollToContact={scrollToContact} />
+        <PricingSection onOpenBooking={() => setBookingOpen(true)} />
         <FAQSection />
-        <ContactSection />
+        <ContactSection onOpenBooking={() => setBookingOpen(true)} />
       </main>
       
       <Footer />
       
-      <ChatTrigger onClick={openChat} />
-      <AdvisoryChatModal isOpen={isChatOpen} onClose={closeChat} />
+      <ChatTrigger onClick={() => { setChatOpen(true); trackEvent('chat_trigger_click'); }} />
+      
+      <LiveChat isOpen={chatOpen} onClose={() => setChatOpen(false)} initialQuestion={chatQuestion} />
+      <BookingModal isOpen={bookingOpen} onClose={() => setBookingOpen(false)} />
     </div>
   );
 }

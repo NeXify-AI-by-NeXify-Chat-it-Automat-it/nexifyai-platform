@@ -1,16 +1,19 @@
-# NeXifyAI Landing Page - PRD
+# NeXifyAI Landing Page - PRD v2.0
 
 ## Projektübersicht
-**Projekt:** NeXifyAI by NeXify – Landing Page & Advisory Entry System
-**Typ:** Hybrid (SaaS/Consulting/White-Label)
-**Zielgruppe:** DACH-Mittelstand, B2B, Enterprise
+**Projekt:** NeXifyAI by NeXify – Landing Page, Advisory Chat & CRM System
+**Version:** 2.0 (Production Wave)
+**Typ:** B2B Enterprise SaaS/Consulting Landing Page
+**Zielmarkt:** DACH-Mittelstand
 
 ## Original Problem Statement
-Optimierung und Fehlerkorrektur eines bestehenden HTML-Prototyps für die NeXifyAI Landing Page mit folgenden Anforderungen:
-- Design-Token und Design-System verwenden
-- Unternehmensdaten fest hinterlegen
-- Bestehende Fehler beheben und verfeinern
-- Kein neues Design, sondern Verfeinerung
+Vollständige Implementierung einer production-ready Landing Page mit:
+- SEO-Optimierung für DACH
+- Live Advisory Chat
+- Kalender-Buchungssystem
+- Admin CRM unter /admin
+- E-Mail-System via Resend
+- Compliance & Accessibility
 
 ## Unternehmensdaten (Fix)
 - **Marke:** NeXifyAI by NeXify
@@ -25,131 +28,165 @@ Optimierung und Fehlerkorrektur eines bestehenden HTML-Prototyps für die NeXify
 - **KvK:** 90483944
 - **USt-ID:** NL865786276B01
 
-## Implementierte Features
+## Implementierte Features (02.04.2026)
 
-### ✅ Vollständig implementiert (02.04.2026)
+### A) SEO & DACH Optimization ✅
+- Vollständige Meta-Tags (title, description, keywords)
+- Open Graph & Twitter Cards
+- Canonical URL
+- Schema.org Structured Data (Organization, Website, FAQ, Service)
+- Semantic HTML5 Landmarks
+- Einziges H1, korrekte Heading-Hierarchie
+- Deutsche Sprache, DACH-Keywords
+- robots.txt ready
 
-1. **Navigation**
-   - Responsive Navbar mit Mobile-Menü
-   - Interne Anker-Navigation zu allen Sections
-   - Sticky header mit Blur-Effekt
+### B) Performance Optimizations ✅
+- Font preloading & optimized loading
+- CSS Design Tokens für Konsistenz
+- Keine externen Animationsbibliotheken
+- Lazy loading für nicht-kritische Elemente
+- Minimale JS-Bundles (React 18)
+- Responsive Bilder-Handling
 
-2. **Hero Section**
-   - Editorial, links-ausgerichtetes Layout
-   - Responsives Architecture Panel
-   - Zwei CTAs (Potenzial analysieren, Lösungen ansehen)
-   - Key-Stats Grid
+### C) Mobile Responsive ✅
+- Vollständig responsiv: Mobile, Tablet, Desktop
+- Mobile Navigation mit Hamburger-Menü
+- Touch-freundliche Buttons (min 44px)
+- Responsive Chat Modal
+- Responsive Booking Modal
+- Architecture Panel breakpoints
 
-3. **Solutions Grid**
-   - 6 Lösungskarten mit Icons
-   - Hover-Effekte
-   - Responsive Grid-Layout
+### D) Live Advisory Chat ✅
+- Vollständig interaktiver Chat
+- 6 Preset-Fragen für DACH B2B Use Cases
+- Qualifizierungs-Flow mit Themenerkennung
+- Lead-Eskalation zu Buchung
+- Session-basierte Konversation
+- Backend-Integration mit MongoDB-Speicherung
+- Schließbar via ESC, Overlay-Click, Close-Button
 
-4. **Use Cases Section**
-   - Bento-Grid Layout
-   - Dashboard-Visualisierungen
-   - Orchestrierungs-Diagramm
+### E) Contact & Booking Flow ✅
+- Consultation-First CTAs ("Beratungsgespräch buchen")
+- Direktes Kontaktformular mit Validierung
+- Kalender-Buchungssystem (14 Tage voraus)
+- Zeitslot-Verfügbarkeit (9-17 Uhr, keine Wochenenden)
+- Booking-Bestätigung mit E-Mail
 
-5. **Prozess Timeline**
-   - 4-Schritt Workflow
-   - Progress-Indikatoren
-   - Responsive Grid
+### F) Resend Email Integration ✅
+- Kontakt-Bestätigungs-E-Mail
+- Interne Benachrichtigung (support@, nexifyai@)
+- Booking-Bestätigung
+- Booking-Benachrichtigung an Admin
+- Branded HTML-Templates im CI-Design
 
-6. **Integrationen**
-   - Microsoft 365, HubSpot, Salesforce, SAP
-   - API-Badges (REST, Webhooks, Python SDK)
+### G) Admin Area (/admin) ✅
+- HTTP Basic Auth (Email + Password Hash)
+- Dashboard mit Statistics
+- Lead-Übersicht mit Suche & Filter
+- Lead-Detail mit Status-Update
+- Notizen-Funktion
+- Booking-Übersicht
+- Click-to-Call, Click-to-Mail
+- Copy-to-Clipboard für Kontaktdaten
 
-7. **Governance & Compliance**
-   - DSGVO-konform
-   - RBAC-Features
-   - Audit-Logging
-   - Zertifizierungsübersicht (ISO 27001 angestrebt, WCAG 2.2)
+### H) Data Model & Persistence ✅
+- MongoDB Collections: leads, bookings, chat_sessions, analytics
+- Indexes für Performance
+- Lead Status: neu, qualifiziert, termin_gebucht, in_bearbeitung, gewonnen, verloren, archiviert
 
-8. **Pricing Section**
-   - 3-Tier Pricing (Starter €1.900, Growth €4.500, Enterprise individuell)
-   - Highlight für empfohlenen Plan
+### I) Compliance & Accessibility ✅
+- WCAG 2.2 grundlegende Konformität
+- Keyboard-Navigation
+- Focus-States
+- aria-labels und aria-expanded
+- Skip-Link
+- Semantic structure
+- Formular-Labels und Error-Messages
+- Impressum & Datenschutz Seiten
 
-9. **FAQ Section**
-   - 5 vollständige Fragen mit Antworten
-   - Accordion-Funktionalität
-   - Tastatur-bedienbar
+### J) Analytics Tracking ✅
+- page_view
+- cta_click
+- scroll_depth (25%, 50%, 75%, 100%)
+- form_submit, form_error
+- chat_started, preset_question_clicked
+- booking_modal_opened, booking_submit
+- calendar_booked
 
-10. **Contact Form**
-    - Validierung aller Felder
-    - Backend-Integration (/api/contact)
-    - Success/Error Feedback
-    - Loading State
-
-11. **Advisory Chat Modal**
-    - Öffnen/Schließen (Button, ESC, Overlay-Click)
-    - Starter-Fragen
-    - Chat-Preview
-    - Focus Trap
-
-12. **Footer**
-    - Korrekte Unternehmensdaten
-    - Navigation Links
-    - Rechtliche Links
-    - KvK & USt-ID
+### K) UX/Content ✅
+- Consultation-orientierte CTAs
+- Keine "kostenlos testen" Sprache
+- Premium B2B-Ton
+- DACH-relevante Use Cases
+- Keine falschen Zertifizierungsclaims
+- FAQ mit echten Antworten
 
 ## Tech Stack
-- **Frontend:** React 18, CSS Custom Properties (Design Tokens)
-- **Backend:** FastAPI, Pydantic
-- **Fonts:** Manrope (Headlines), Inter (Body), Material Symbols
-- **Icons:** Material Symbols Outlined
+- **Frontend:** React 18, React Router 6, CSS Custom Properties
+- **Backend:** FastAPI, Pydantic, Motor (async MongoDB)
+- **Database:** MongoDB
+- **Email:** Resend API
+- **Fonts:** Manrope, Inter, Material Symbols
 
-## Design System
+## Environment Variables Required
 
-### Farben
-- Primary: #ffb599 (Orange)
-- Background: #0e141b (Deep Navy)
-- Surface: #1b2028, #171c23, #252a32
-- Text: #dee3ed, #c5c6cb
+### Backend (.env)
+```
+MONGO_URL=mongodb://localhost:27017
+DB_NAME=nexifyai
+RESEND_API_KEY=re_xxx
+SENDER_EMAIL=noreply@send.nexify-automate.com
+ADMIN_EMAIL=p.courbois@icloud.com
+ADMIN_PASSWORD_HASH=<sha256 hash of admin password>
+```
 
-### Typografie
-- Headlines: Manrope 700-800
-- Body: Inter 400-500
-- Labels: Inter 700 uppercase
+### Frontend (.env)
+```
+REACT_APP_BACKEND_URL=
+```
+
+## Admin Setup
+1. Admin-Email: p.courbois@icloud.com
+2. Passwort muss als SHA256-Hash in ADMIN_PASSWORD_HASH gesetzt werden
+3. Hash generieren: `python3 -c "import hashlib; print(hashlib.sha256('YOUR_PASSWORD'.encode()).hexdigest())"`
 
 ## API Endpoints
+
+### Public
 - `GET /api/health` - Health Check
-- `GET /api/company` - Unternehmensdaten
+- `GET /api/company` - Firmendaten
 - `POST /api/contact` - Kontaktformular
-- `POST /api/newsletter` - Newsletter
+- `GET /api/booking/slots?date=YYYY-MM-DD` - Verfügbare Termine
+- `POST /api/booking` - Termin buchen
+- `POST /api/chat/message` - Chat-Nachricht
+- `POST /api/analytics/track` - Event-Tracking
 
-## Bekannte Annahmen
-1. SOC 2 Type II auf "In Vorbereitung" gesetzt (kein falscher Claim)
-2. ISO 27001 als "angestrebt" markiert
-3. Fiktiver CTO-Quote entfernt
-4. Alle Links sind interne Anker (keine #-Platzhalter mehr)
-
-## Prioritized Backlog
-
-### P0 - Erledigt
-- [x] Alle # Links durch echte Anker ersetzen
-- [x] Footer-Daten korrigieren
-- [x] FAQ mit Antworten befüllen
-- [x] Contact Form Validierung
-- [x] Mobile Navigation
-
-### P1 - Future
-- [ ] Cookie-Consent Banner
-- [ ] Impressum Seite
-- [ ] Datenschutz Seite
-- [ ] AGB Seite
-- [ ] CRM-Integration (HubSpot)
-- [ ] Email-Service Integration (Resend/SendGrid)
-
-### P2 - Nice to have
-- [ ] Chat mit echtem AI-Backend (Mem0 + DeepSeek)
-- [ ] Analytics Integration
-- [ ] A/B Testing Setup
-- [ ] Performance Monitoring
+### Admin (Basic Auth)
+- `GET /api/admin/stats` - Dashboard-Statistiken
+- `GET /api/admin/leads` - Lead-Liste
+- `GET /api/admin/leads/{id}` - Lead-Details
+- `PATCH /api/admin/leads/{id}` - Lead-Update
+- `GET /api/admin/bookings` - Buchungs-Liste
 
 ## Test Status
-- Backend: 100% (7/7 Tests bestanden)
-- Frontend: 95% (FAQ Fix angewendet)
-- E2E: Nicht verfügbar (Preview-Service temporär offline)
+- Backend Health: ✅
+- Contact Form: ✅
+- Booking System: ✅
+- Email (Resend): Konfiguriert, Domain: send.nexify-automate.com
+
+## Remaining Blockers
+1. **ADMIN_PASSWORD_HASH** - Muss vom Kunden gesetzt werden
+2. Resend Domain-Verifikation ggf. erforderlich
+
+## Compliance Matrix
+
+| Standard | Status | Anmerkung |
+|----------|--------|-----------|
+| DSGVO | ✅ Implementiert | Datenschutzseite, Consent-ready |
+| WCAG 2.2 A | ✅ Grundlegend | Focus, Keyboard, Labels |
+| WCAG 2.2 AA | ⚠️ Teilweise | Kontraste geprüft, erweiterte Tests empfohlen |
+| ISO 27001 | 📋 Angestrebt | Nur als Zielsetzung kommuniziert |
+| SOC 2 Type II | 📋 Roadmap | Nur als Roadmap kommuniziert |
 
 ---
 *Letzte Aktualisierung: 02.04.2026*

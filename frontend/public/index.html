@@ -2,14 +2,151 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  
+  <!-- Primary Meta Tags -->
+  <title>NeXifyAI by NeXify | KI-Agenten & Automationen für den DACH-Mittelstand</title>
+  <meta name="title" content="NeXifyAI by NeXify | KI-Agenten & Automationen für den DACH-Mittelstand" />
+  <meta name="description" content="Enterprise KI-Lösungen für den Mittelstand: Intelligente Chatbots, CRM/ERP-Integration, Prozessautomation und Wissenssysteme. DSGVO-konform aus Deutschland. Jetzt Beratungsgespräch buchen." />
+  <meta name="keywords" content="KI-Agenten, Unternehmenschatbot, CRM-Integration, ERP-Integration, Prozessautomation, RAG, Wissenssystem, DACH, Mittelstand, Enterprise AI, DSGVO" />
+  <meta name="author" content="NeXify Automate" />
+  <meta name="robots" content="index, follow" />
+  <meta name="language" content="de" />
+  <meta name="revisit-after" content="7 days" />
   <meta name="theme-color" content="#0e141b" />
-  <meta name="description" content="NeXifyAI by NeXify – Architectural AI Intelligence für den DACH-Mittelstand. Chat it. Automate it." />
-  <title>NeXifyAI by NeXify | Architectural AI Intelligence</title>
+  
+  <!-- Canonical -->
+  <link rel="canonical" href="https://nexifyai.de/" />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://nexifyai.de/" />
+  <meta property="og:title" content="NeXifyAI – KI-Agenten & Automationen für den DACH-Mittelstand" />
+  <meta property="og:description" content="Enterprise KI-Lösungen: Chatbots, CRM/ERP-Integration, Prozessautomation. DSGVO-konform. Beratungsgespräch buchen." />
+  <meta property="og:image" content="https://nexifyai.de/og-image.png" />
+  <meta property="og:locale" content="de_DE" />
+  <meta property="og:site_name" content="NeXifyAI" />
+  
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://nexifyai.de/" />
+  <meta name="twitter:title" content="NeXifyAI – KI-Agenten für den Mittelstand" />
+  <meta name="twitter:description" content="Enterprise KI-Lösungen: Chatbots, CRM/ERP-Integration, Prozessautomation. DSGVO-konform." />
+  <meta name="twitter:image" content="https://nexifyai.de/og-image.png" />
+  
+  <!-- Geo -->
+  <meta name="geo.region" content="DE-NW" />
+  <meta name="geo.placename" content="Nettetal" />
+  
+  <!-- Preconnect for performance -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  
+  <!-- Fonts - optimized loading -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" as="style" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@300&display=swap" rel="stylesheet" />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/icon-mark.svg" />
+  
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "NeXifyAI by NeXify",
+    "alternateName": "NeXify Automate",
+    "url": "https://nexifyai.de",
+    "logo": "https://nexifyai.de/logo-dark.svg",
+    "description": "Enterprise KI-Lösungen für den DACH-Mittelstand: Intelligente Chatbots, CRM/ERP-Integration, Prozessautomation und Wissenssysteme.",
+    "address": [
+      {
+        "@type": "PostalAddress",
+        "streetAddress": "Graaf van Loonstraat 1E",
+        "addressLocality": "Venlo",
+        "postalCode": "5921 JA",
+        "addressCountry": "NL"
+      },
+      {
+        "@type": "PostalAddress",
+        "streetAddress": "Wallstraße 9",
+        "addressLocality": "Nettetal-Kaldenkirchen",
+        "postalCode": "41334",
+        "addressCountry": "DE"
+      }
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+31-6-133-188-56",
+      "contactType": "sales",
+      "availableLanguage": ["German", "Dutch", "English"]
+    },
+    "sameAs": []
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "NeXifyAI",
+    "url": "https://nexifyai.de"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Werden unsere Daten zum Training der Modelle genutzt?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Nein. Alle Kundendaten verbleiben in isolierten Instanzen. Wir nutzen Ihre geschäftskritischen Daten niemals zum Training allgemeiner Sprachmodelle."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Wie lange dauert eine Standard-Implementierung?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Ein einfacher KI-Assistent kann innerhalb von 2-4 Wochen produktiv sein. Komplexere Integrationen mit CRM/ERP benötigen typischerweise 6-12 Wochen."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Ist die Lösung mit SAP kompatibel?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Ja. Wir bieten native Konnektoren für SAP S/4HANA und SAP Business One. Die Integration erfolgt über standardisierte APIs."
+        }
+      }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "serviceType": "KI-Beratung und Implementierung",
+    "provider": {
+      "@type": "Organization",
+      "name": "NeXifyAI by NeXify"
+    },
+    "areaServed": {
+      "@type": "GeoCircle",
+      "geoMidpoint": {
+        "@type": "GeoCoordinates",
+        "latitude": 51.3,
+        "longitude": 6.3
+      },
+      "geoRadius": "500"
+    },
+    "description": "Enterprise KI-Lösungen für den DACH-Mittelstand"
+  }
+  </script>
 </head>
 <body>
   <noscript>Sie müssen JavaScript aktivieren, um diese App auszuführen.</noscript>

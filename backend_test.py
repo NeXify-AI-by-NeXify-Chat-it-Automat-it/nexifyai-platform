@@ -134,17 +134,50 @@ class NeXifyAPITester:
             data=invalid_data
         )
 
-    def test_newsletter_subscription(self):
-        """Test newsletter subscription"""
-        newsletter_data = {
-            "email": "newsletter@example.com"
+    def test_booking_slots(self):
+        """Test booking slots endpoint"""
+        from datetime import datetime, timedelta
+        tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+        return self.run_test(
+            "Booking Slots",
+            "GET",
+            f"api/booking/slots?date={tomorrow}",
+            200
+        )
+
+    def test_booking_creation(self):
+        """Test booking creation"""
+        from datetime import datetime, timedelta
+        tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+        booking_data = {
+            "vorname": "Test",
+            "nachname": "User",
+            "email": "test.booking@example.com",
+            "date": tomorrow,
+            "time": "10:00",
+            "thema": "KI-Assistenz / Chatbot"
         }
         return self.run_test(
-            "Newsletter Subscription",
+            "Booking Creation",
             "POST",
-            "api/newsletter",
+            "api/booking",
             200,
-            data=newsletter_data
+            data=booking_data
+        )
+
+    def test_analytics_tracking(self):
+        """Test analytics tracking"""
+        analytics_data = {
+            "event": "page_view",
+            "properties": {"page": "landing"},
+            "session_id": "test_session_123"
+        }
+        return self.run_test(
+            "Analytics Tracking",
+            "POST",
+            "api/analytics/track",
+            200,
+            data=analytics_data
         )
 
 def main():
@@ -162,7 +195,9 @@ def main():
         tester.test_contact_form_invalid_email,
         tester.test_contact_form_short_name,
         tester.test_contact_form_short_message,
-        tester.test_newsletter_subscription
+        tester.test_booking_slots,
+        tester.test_booking_creation,
+        tester.test_analytics_tracking
     ]
     
     for test in tests:
