@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
+import { HeroScene, IntegrationsGlobe, ProcessScene } from './components/Scene3D';
 import './App.css';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
@@ -21,8 +23,23 @@ const track = async (ev, props = {}) => {
 };
 
 const fmtDate = (d) => new Date(d).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-
 const I = ({ n, c = '' }) => <span className={`material-symbols-outlined ${c}`} aria-hidden="true">{n}</span>;
+
+/* ═══════════ ANIMATION VARIANTS ═══════════ */
+const fadeUp = { hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.25, 0.4, 0, 1] } } };
+const fadeIn = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.6 } } };
+const stagger = { visible: { transition: { staggerChildren: 0.1 } } };
+const scaleIn = { hidden: { opacity: 0, scale: 0.9 }, visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: [0.25, 0.4, 0, 1] } } };
+
+function AnimSection({ children, className = '', id, ...props }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: '-80px' });
+  return (
+    <motion.section ref={ref} id={id} className={className} initial="hidden" animate={isInView ? 'visible' : 'hidden'} variants={stagger} {...props}>
+      {children}
+    </motion.section>
+  );
+}
 
 /* ═══════════ LOGO ═══════════ */
 const Logo = ({ size = 'md' }) => {
@@ -56,12 +73,14 @@ const Nav = ({ onBook }) => {
           <button className="btn btn-primary nav-cta" onClick={() => { onBook(); track('cta_click', { loc: 'nav' }); }} data-testid="nav-book-btn">Strategiegespräch buchen</button>
           <button className="nav-toggle" onClick={() => setMob(!mob)} aria-label={mob ? 'Menü schließen' : 'Menü öffnen'} aria-expanded={mob} data-testid="nav-toggle"><I n={mob ? 'close' : 'menu'} /></button>
         </div>
-        {mob && (
-          <div className="nav-mobile" role="menu" data-testid="nav-mobile-menu">
-            {links.map(l => <a key={l.h} href={l.h} role="menuitem" onClick={() => go(l.h)}>{l.l}</a>)}
-            <button className="btn btn-primary nav-mobile-cta" onClick={() => { setMob(false); onBook(); }}>Strategiegespräch buchen</button>
-          </div>
-        )}
+        <AnimatePresence>
+          {mob && (
+            <motion.div className="nav-mobile" role="menu" data-testid="nav-mobile-menu" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+              {links.map(l => <a key={l.h} href={l.h} role="menuitem" onClick={() => go(l.h)}>{l.l}</a>)}
+              <button className="btn btn-primary nav-mobile-cta" onClick={() => { setMob(false); onBook(); }}>Strategiegespräch buchen</button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </nav>
   );
@@ -72,50 +91,28 @@ const Hero = ({ onBook }) => {
   useEffect(() => { track('page_view', { section: 'hero' }); }, []);
   return (
     <section id="hero" className="hero" aria-labelledby="hero-t" data-testid="hero-section">
-      <div className="container">
+      <HeroScene />
+      <div className="container hero-container">
         <div className="hero-inner">
-          <div className="hero-content">
-            <span className="label hero-label">NeXifyAI by NeXify</span>
+          <motion.div className="hero-content" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: [0.25, 0.4, 0, 1] }}>
+            <motion.span className="label hero-label" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>NeXifyAI by NeXify</motion.span>
             <h1 id="hero-t">Aus Chats werden <span className="text-accent">Prozesse.</span><br />Aus Prozessen wird Wachstum.</h1>
             <p className="hero-desc">Enterprise KI-Lösungen für den DACH-Mittelstand. Intelligente Chatbots, CRM/ERP-Integration, Prozessautomation, Web-Apps und Wissenssysteme — DSGVO-konform und skalierbar.</p>
-            <div className="hero-actions">
-              <button className="btn btn-primary btn-lg" onClick={() => { onBook(); track('cta_click', { loc: 'hero' }); }} data-testid="hero-book-btn">STRATEGIEGESPRÄCH BUCHEN <I n="arrow_forward" /></button>
+            <motion.div className="hero-actions" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>
+              <button className="btn btn-primary btn-lg btn-glow" onClick={() => { onBook(); track('cta_click', { loc: 'hero' }); }} data-testid="hero-book-btn">STRATEGIEGESPRÄCH BUCHEN <I n="arrow_forward" /></button>
               <a href="#loesungen" className="btn btn-secondary btn-lg" onClick={() => track('cta_click', { loc: 'hero', t: 'explore' })}>LEISTUNGEN ENTDECKEN</a>
-            </div>
-            <div className="hero-stats" data-testid="hero-stats">
+            </motion.div>
+            <motion.div className="hero-stats" data-testid="hero-stats" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}>
               {[{ t: 'Ausrichtung', v: 'Strategische Integration' }, { t: 'Fokus', v: 'Operative Wertschöpfung' }, { t: 'Leistung', v: 'Skalierbare Workflows' }, { t: 'Delivery', v: 'Pünktlich & Präzise' }].map((s, i) => (
                 <div key={i} className="hero-stat"><div className="hero-stat-title">{s.t}</div><div className="hero-stat-value">{s.v}</div></div>
               ))}
-            </div>
-          </div>
-          <div className="hero-visual"><ArchPanel /></div>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
     </section>
   );
 };
-
-const ArchPanel = () => (
-  <div className="arch-panel" aria-label="KI-Architektur">
-    <div className="arch-inner">
-      <div className="arch-header">
-        <div className="arch-icon"><I n="account_tree" /></div>
-        <div className="arch-title"><div className="arch-code">NEXIFY_CORE_V4</div><div className="arch-name">Inferenz-Architektur</div></div>
-      </div>
-      <div className="arch-bar"><div className="arch-bar-fill" style={{ width: '75%' }}></div></div>
-      <div className="arch-modules">
-        <div className="arch-module"><I n="psychology" /><span>LLM</span></div>
-        <div className="arch-module active"><I n="memory" /><span>Memory</span></div>
-        <div className="arch-module"><I n="hub" /><span>API</span></div>
-      </div>
-      <div className="arch-flow">
-        <div className="arch-node">Input</div><div className="arch-conn"></div>
-        <div className="arch-node hl">Processing</div><div className="arch-conn"></div>
-        <div className="arch-node">Action</div>
-      </div>
-    </div>
-  </div>
-);
 
 /* ═══════════ SOLUTIONS ═══════════ */
 const Solutions = () => {
@@ -128,35 +125,47 @@ const Solutions = () => {
     { i: 'corporate_fare', t: 'Enterprise Solutions', d: 'Custom-Modelle und On-Premise Deployments für maximale Souveränität Ihrer Daten.' }
   ];
   return (
-    <section id="loesungen" className="section bg-s1" aria-labelledby="sol-t" data-testid="solutions-section">
+    <AnimSection id="loesungen" className="section bg-s1" aria-labelledby="sol-t" data-testid="solutions-section">
       <div className="container">
-        <header className="section-header"><h2 id="sol-t">Infrastruktur für Intelligenz</h2><p className="section-subtitle">Fundamentale KI-Fähigkeiten für die moderne Enterprise-Architektur — keine Spielereien, sondern echte operative Hebel.</p></header>
+        <motion.header className="section-header" variants={fadeUp}>
+          <h2 id="sol-t">Infrastruktur für Intelligenz</h2>
+          <p className="section-subtitle">Fundamentale KI-Fähigkeiten für die moderne Enterprise-Architektur — keine Spielereien, sondern echte operative Hebel.</p>
+        </motion.header>
         <div className="solutions-grid" role="list">
           {items.map((s, i) => (
-            <article key={i} className="sol-card" role="listitem">
-              <I n={s.i} c="sol-icon" /><h3 className="sol-title">{s.t}</h3><p className="sol-desc">{s.d}</p><div className="sol-bar"></div>
-            </article>
+            <motion.article key={i} className="sol-card" role="listitem" variants={scaleIn} whileHover={{ y: -6, transition: { duration: 0.25 } }}>
+              <div className="sol-icon-wrap"><I n={s.i} c="sol-icon" /></div>
+              <h3 className="sol-title">{s.t}</h3>
+              <p className="sol-desc">{s.d}</p>
+              <div className="sol-bar"></div>
+            </motion.article>
           ))}
         </div>
       </div>
-    </section>
+    </AnimSection>
   );
 };
 
 /* ═══════════ USE CASES ═══════════ */
 const UseCases = () => (
-  <section id="use-cases" className="section bg-dark" aria-labelledby="uc-t" data-testid="usecases-section">
+  <AnimSection id="use-cases" className="section bg-dark" aria-labelledby="uc-t" data-testid="usecases-section">
     <div className="container">
-      <header className="section-header"><h2 id="uc-t">Operative Realität</h2><p className="section-subtitle">Konkrete Implementierungsszenarien, die heute bereits Produktivität freisetzen.</p></header>
+      <motion.header className="section-header" variants={fadeUp}><h2 id="uc-t">Operative Realität</h2><p className="section-subtitle">Konkrete Implementierungsszenarien, die heute bereits Produktivität freisetzen.</p></motion.header>
       <div className="uc-grid">
-        <article className="uc-card uc-lg"><div className="uc-bg-icon"><I n="analytics" /></div><div className="uc-content"><span className="label">Effizienz-Boost</span><h3 className="uc-title">Vertriebsanfragen & Lead-Qualifizierung</h3><p className="uc-desc">Automatisierte Triage eingehender Leads mit CRM-Abgleich und automatisierter Terminkoordination. Bis zu 60% weniger manuelle Arbeit.</p></div></article>
-        <article className="uc-card uc-sm"><I n="notes" c="uc-icon" /><h3 className="uc-title">Angebotserstellung</h3><p className="uc-desc">Präzise Angebote aus unstrukturierten Projektnotizen — in Sekunden statt Stunden.</p></article>
-        <article className="uc-card uc-sm"><I n="database" c="uc-icon" /><h3 className="uc-title">Wissensbestände</h3><p className="uc-desc">Zentralisierung von Silo-Wissen für Support und technischen Service.</p></article>
-        <article className="uc-card uc-wd"><div className="uc-split"><div><h3 className="uc-title">CRM/ERP Orchestrierung</h3><p className="uc-desc">Die KI als intelligenter Agent zwischen Ihren Datensilos — führt Aktionen autonom in SAP, HubSpot und Salesforce aus.</p></div><div className="orch-visual"><div className="orch-circle"><I n="sync_alt" /><span className="orch-label top">SAP</span><span className="orch-label btm">HubSpot</span></div></div></div></article>
-        <article className="uc-card uc-sm"><I n="support_agent" c="uc-icon" /><h3 className="uc-title">Support-Automation</h3><p className="uc-desc">Intelligente Ticket-Klassifizierung und automatisierte Erstantworten in Ihrer Tonalität.</p></article>
+        <motion.article className="uc-card uc-lg" variants={fadeUp} whileHover={{ borderColor: 'rgba(255,155,122,0.3)' }}>
+          <div className="uc-bg-icon"><I n="analytics" /></div>
+          <div className="uc-content"><span className="label">Effizienz-Boost</span><h3 className="uc-title">Vertriebsanfragen & Lead-Qualifizierung</h3><p className="uc-desc">Automatisierte Triage eingehender Leads mit CRM-Abgleich und automatisierter Terminkoordination. Bis zu 60% weniger manuelle Arbeit.</p></div>
+        </motion.article>
+        <motion.article className="uc-card uc-sm" variants={scaleIn} whileHover={{ y: -4 }}><I n="notes" c="uc-icon" /><h3 className="uc-title">Angebotserstellung</h3><p className="uc-desc">Präzise Angebote aus unstrukturierten Projektnotizen — in Sekunden statt Stunden.</p></motion.article>
+        <motion.article className="uc-card uc-sm" variants={scaleIn} whileHover={{ y: -4 }}><I n="database" c="uc-icon" /><h3 className="uc-title">Wissensbestände</h3><p className="uc-desc">Zentralisierung von Silo-Wissen für Support und technischen Service.</p></motion.article>
+        <motion.article className="uc-card uc-wd" variants={fadeUp}>
+          <div className="uc-split"><div><h3 className="uc-title">CRM/ERP Orchestrierung</h3><p className="uc-desc">Die KI als intelligenter Agent zwischen Ihren Datensilos — führt Aktionen autonom in SAP, HubSpot und Salesforce aus.</p></div>
+          <div className="orch-visual"><div className="orch-circle"><I n="sync_alt" /><span className="orch-label top">SAP</span><span className="orch-label btm">HubSpot</span></div></div></div>
+        </motion.article>
+        <motion.article className="uc-card uc-sm" variants={scaleIn} whileHover={{ y: -4 }}><I n="support_agent" c="uc-icon" /><h3 className="uc-title">Support-Automation</h3><p className="uc-desc">Intelligente Ticket-Klassifizierung und automatisierte Erstantworten in Ihrer Tonalität.</p></motion.article>
       </div>
     </div>
-  </section>
+  </AnimSection>
 );
 
 /* ═══════════ APP DEVELOPMENT ═══════════ */
@@ -170,14 +179,18 @@ const AppDev = ({ onBook }) => {
     { i: 'cloud_sync', t: 'KI-Ökosysteme', d: 'Vernetzte App-Landschaften, die Ihre bestehende Infrastruktur mit intelligenten Schnittstellen verbinden.' }
   ];
   return (
-    <section id="app-dev" className="section bg-s2" aria-labelledby="appdev-t" data-testid="appdev-section">
+    <AnimSection id="app-dev" className="section bg-s2" aria-labelledby="appdev-t" data-testid="appdev-section">
       <div className="container">
-        <header className="section-header"><span className="label">Neu: App-Entwicklung</span><h2 id="appdev-t">Web-Apps, Mobile-Apps & Kundenportale</h2><p className="section-subtitle">Wir entwickeln digitale Produkte, die Ihre KI-Strategie in nutzbare Anwendungen übersetzen — von der Idee bis zum Go-Live.</p></header>
+        <motion.header className="section-header" variants={fadeUp}><span className="label">Neu: App-Entwicklung</span><h2 id="appdev-t">Web-Apps, Mobile-Apps & Kundenportale</h2><p className="section-subtitle">Wir entwickeln digitale Produkte, die Ihre KI-Strategie in nutzbare Anwendungen übersetzen — von der Idee bis zum Go-Live.</p></motion.header>
         <div className="appdev-grid">
           {items.map((s, i) => (
-            <div key={i} className="appdev-card"><I n={s.i} c="appdev-icon" /><h3 className="appdev-title">{s.t}</h3><p className="appdev-desc">{s.d}</p></div>
+            <motion.div key={i} className="appdev-card" variants={scaleIn} whileHover={{ y: -6, borderColor: 'rgba(255,155,122,0.25)' }}>
+              <div className="appdev-icon-wrap"><I n={s.i} c="appdev-icon" /></div>
+              <h3 className="appdev-title">{s.t}</h3>
+              <p className="appdev-desc">{s.d}</p>
+            </motion.div>
           ))}
-          <div className="appdev-highlight">
+          <motion.div className="appdev-highlight" variants={fadeUp}>
             <h3>Warum App-Entwicklung mit NeXifyAI?</h3>
             <p className="appdev-desc">Weil wir KI nicht nur integrieren — wir bauen die Anwendungen, die Ihre Prozesse wirklich transformieren. Alles aus einer Hand, alles DSGVO-konform.</p>
             <div className="appdev-highlight-inner">
@@ -185,11 +198,11 @@ const AppDev = ({ onBook }) => {
               <div className="appdev-metric"><div className="appdev-metric-val">KI-native</div><div className="appdev-metric-label">Von Grund auf</div></div>
               <div className="appdev-metric"><div className="appdev-metric-val">DSGVO</div><div className="appdev-metric-label">Konform</div></div>
             </div>
-            <button className="btn btn-primary" onClick={() => { onBook(); track('cta_click', { loc: 'appdev' }); }} data-testid="appdev-book-btn">PROJEKT BESPRECHEN <I n="arrow_forward" /></button>
-          </div>
+            <button className="btn btn-primary btn-glow" onClick={() => { onBook(); track('cta_click', { loc: 'appdev' }); }} data-testid="appdev-book-btn">PROJEKT BESPRECHEN <I n="arrow_forward" /></button>
+          </motion.div>
         </div>
       </div>
-    </section>
+    </AnimSection>
   );
 };
 
@@ -202,16 +215,22 @@ const Process = () => {
     { n: '04', t: 'Optimierung', d: 'Kontinuierliches Monitoring, Feedback-Loop und Performance-Tuning der Modelle.', p: 4 }
   ];
   return (
-    <section id="prozess" className="section bg-dark bg-grid" aria-labelledby="proc-t" data-testid="process-section">
+    <AnimSection id="prozess" className="section bg-dark bg-grid" aria-labelledby="proc-t" data-testid="process-section">
       <div className="container">
-        <header className="section-header centered"><span className="label">Workflow</span><h2 id="proc-t">Von der Vision zum Deployment</h2></header>
+        <motion.header className="section-header centered" variants={fadeUp}><span className="label">Workflow</span><h2 id="proc-t">Von der Vision zum Deployment</h2></motion.header>
+        <ProcessScene />
         <div className="process-grid" role="list">
           {steps.map((s, i) => (
-            <article key={i} className="proc-step" role="listitem"><div className="proc-num">{s.n}</div><h3 className="proc-title">{s.t}</h3><p className="proc-desc">{s.d}</p><div className="proc-bars">{[1,2,3,4].map(n => <div key={n} className={`proc-bar ${n <= s.p ? 'on' : ''}`}></div>)}</div></article>
+            <motion.article key={i} className="proc-step" role="listitem" variants={fadeUp} whileHover={{ y: -4 }}>
+              <div className="proc-num">{s.n}</div>
+              <h3 className="proc-title">{s.t}</h3>
+              <p className="proc-desc">{s.d}</p>
+              <div className="proc-bars">{[1,2,3,4].map(n => <div key={n} className={`proc-bar ${n <= s.p ? 'on' : ''}`}></div>)}</div>
+            </motion.article>
           ))}
         </div>
       </div>
-    </section>
+    </AnimSection>
   );
 };
 
@@ -231,40 +250,43 @@ const INTEGRATIONS = [
 const TOTAL_INTEG = INTEGRATIONS.reduce((a, c) => a + c.items.length, 0);
 
 const Integrations = () => (
-  <section id="integrationen" className="section bg-s1" aria-labelledby="integ-t" data-testid="integrations-section">
+  <AnimSection id="integrationen" className="section bg-s1" aria-labelledby="integ-t" data-testid="integrations-section">
     <div className="container">
-      <div className="integ-header-row">
-        <div>
-          <span className="label">Konnektivität</span>
-          <h2 id="integ-t" style={{ marginTop: 8 }}>Perfekte Symbiose mit Ihrer Software</h2>
-          <p className="section-subtitle">Unsere Agenten sprechen die Sprache Ihrer bestehenden Systeme. Keine neuen Silos, sondern intelligente Vernetzung.</p>
+      <div className="integ-layout">
+        <div className="integ-left">
+          <motion.div variants={fadeUp}>
+            <span className="label">Konnektivität</span>
+            <h2 id="integ-t" style={{ marginTop: 8 }}>Perfekte Symbiose mit Ihrer Software</h2>
+            <p className="section-subtitle">Unsere Agenten sprechen die Sprache Ihrer bestehenden Systeme. Keine neuen Silos, sondern intelligente Vernetzung.</p>
+          </motion.div>
+          <motion.div className="integ-counter" variants={fadeUp}>
+            <div className="integ-count">{TOTAL_INTEG}+</div>
+            <div className="integ-count-label">Integrationen</div>
+            <div className="integ-badges" style={{ marginTop: 12 }}>
+              {['REST API', 'WEBHOOKS', 'PYTHON SDK', 'GRAPHQL'].map(b => <span key={b} className="integ-badge">{b}</span>)}
+            </div>
+          </motion.div>
+          <IntegrationsGlobe />
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <div className="integ-count">{TOTAL_INTEG}+</div>
-          <div className="integ-count-label">Integrationen</div>
-          <div className="integ-badges" style={{ marginTop: 12 }}>
-            {['REST API', 'WEBHOOKS', 'PYTHON SDK', 'GRAPHQL'].map(b => <span key={b} className="integ-badge">{b}</span>)}
-          </div>
-        </div>
-      </div>
-      <div className="integ-cats" data-testid="integrations-list">
-        {INTEGRATIONS.map((cat, ci) => (
-          <div key={ci}>
-            <div className="integ-cat-name">{cat.cat}</div>
-            <div className="integ-cat-items">{cat.items.map((item, ii) => <span key={ii} className="integ-item">{item}</span>)}</div>
-          </div>
-        ))}
+        <motion.div className="integ-cats" data-testid="integrations-list" variants={stagger}>
+          {INTEGRATIONS.map((cat, ci) => (
+            <motion.div key={ci} variants={fadeUp}>
+              <div className="integ-cat-name">{cat.cat}</div>
+              <div className="integ-cat-items">{cat.items.map((item, ii) => <span key={ii} className="integ-item">{item}</span>)}</div>
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
     </div>
-  </section>
+  </AnimSection>
 );
 
 /* ═══════════ GOVERNANCE ═══════════ */
 const Governance = () => (
-  <section className="section bg-s2" style={{ borderTop: '1px solid var(--nx-border)', borderBottom: '1px solid var(--nx-border)' }} aria-labelledby="gov-t" data-testid="governance-section">
+  <AnimSection className="section bg-s2" style={{ borderTop: '1px solid var(--nx-border)', borderBottom: '1px solid var(--nx-border)' }} aria-labelledby="gov-t" data-testid="governance-section">
     <div className="container">
       <div className="gov-grid">
-        <div>
+        <motion.div variants={fadeUp}>
           <h2 id="gov-t">Governance & Compliance</h2>
           <div className="gov-list">
             {[
@@ -272,23 +294,28 @@ const Governance = () => (
               { i: 'shield_person', t: 'Role-Based Access Control', d: 'Präzise Steuerung, welche KI-Modelle auf welche Daten zugreifen — auf Benutzerebene und mit vollständiger Protokollierung.' },
               { i: 'policy', t: 'Audit-Log Management', d: 'Lückenlose Protokollierung aller KI-Entscheidungen und Zugriffe für maximale Transparenz und Nachvollziehbarkeit.' }
             ].map((f, i) => (
-              <div key={i} className="gov-item"><div className="gov-icon-box"><I n={f.i} /></div><div><h3 className="gov-item-title">{f.t}</h3><p className="gov-item-desc">{f.d}</p></div></div>
+              <motion.div key={i} className="gov-item" variants={fadeUp} whileHover={{ x: 4 }}>
+                <div className="gov-icon-box"><I n={f.i} /></div>
+                <div><h3 className="gov-item-title">{f.t}</h3><p className="gov-item-desc">{f.d}</p></div>
+              </motion.div>
             ))}
           </div>
-        </div>
-        <div className="cert-grid">
+        </motion.div>
+        <motion.div className="cert-grid" variants={stagger}>
           {[
             { l: 'Standard', t: 'DSGVO', d: '100% Datenschutzkonform' },
             { l: 'Barrierefreiheit', t: 'WCAG 2.2', d: 'Barrierefreie Schnittstellen' },
             { l: 'Zielsetzung', t: 'ISO 27001', d: 'Informationssicherheit angestrebt', hl: true },
             { l: 'Roadmap', t: 'SOC 2 Type II', d: 'In Vorbereitung', hl: true }
           ].map((c, i) => (
-            <div key={i} className={`cert-card ${c.hl ? 'hl' : ''}`}><span className="cert-label">{c.l}</span><div className="cert-title">{c.t}</div><p className="cert-desc">{c.d}</p></div>
+            <motion.div key={i} className={`cert-card ${c.hl ? 'hl' : ''}`} variants={scaleIn} whileHover={{ scale: 1.03 }}>
+              <span className="cert-label">{c.l}</span><div className="cert-title">{c.t}</div><p className="cert-desc">{c.d}</p>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </div>
-  </section>
+  </AnimSection>
 );
 
 /* ═══════════ PRICING ═══════════ */
@@ -299,22 +326,22 @@ const Pricing = ({ onBook }) => {
     { n: 'Enterprise', p: 'Individuell', per: '', f: ['Unlimitierte KI-Agenten', 'On-Premise Option', 'Dedicated Account Manager', 'Custom LLM Training', 'SLA-Garantien'], hl: false }
   ];
   return (
-    <section id="preise" className="section bg-dark" aria-labelledby="price-t" data-testid="pricing-section">
+    <AnimSection id="preise" className="section bg-dark" aria-labelledby="price-t" data-testid="pricing-section">
       <div className="container">
-        <header className="section-header centered"><h2 id="price-t">Transparente Architektur-Tarife</h2><p className="section-subtitle">Wählen Sie das Fundament, das zu Ihrer Unternehmensgröße passt. Alle Tarife beinhalten ein Erstgespräch zur Bedarfsanalyse.</p></header>
+        <motion.header className="section-header centered" variants={fadeUp}><h2 id="price-t">Transparente Architektur-Tarife</h2><p className="section-subtitle">Wählen Sie das Fundament, das zu Ihrer Unternehmensgröße passt. Alle Tarife beinhalten ein Erstgespräch zur Bedarfsanalyse.</p></motion.header>
         <div className="pricing-grid" role="list">
           {plans.map((pl, i) => (
-            <article key={i} className={`price-card ${pl.hl ? 'hl' : ''}`} role="listitem">
+            <motion.article key={i} className={`price-card ${pl.hl ? 'hl' : ''}`} role="listitem" variants={scaleIn} whileHover={{ y: -8, transition: { duration: 0.25 } }}>
               {pl.badge && <span className="price-badge">{pl.badge}</span>}
               <div className="price-name">{pl.n}</div>
               <div className="price-val">{pl.p}<span className="price-period">{pl.per}</span></div>
               <ul className="price-features">{pl.f.map((f, fi) => <li key={fi} className="price-feat"><I n="check_circle" c="price-check" />{f}</li>)}</ul>
-              <button className={`btn ${pl.hl ? 'btn-primary' : 'btn-secondary'} price-cta`} onClick={() => { onBook(); track('pricing_click', { plan: pl.n }); }} data-testid={`price-cta-${pl.n.toLowerCase()}`}>GESPRÄCH VEREINBAREN</button>
-            </article>
+              <button className={`btn ${pl.hl ? 'btn-primary btn-glow' : 'btn-secondary'} price-cta`} onClick={() => { onBook(); track('pricing_click', { plan: pl.n }); }} data-testid={`price-cta-${pl.n.toLowerCase()}`}>GESPRÄCH VEREINBAREN</button>
+            </motion.article>
           ))}
         </div>
       </div>
-    </section>
+    </AnimSection>
   );
 };
 
@@ -331,21 +358,27 @@ const FAQ = () => {
     { q: 'Wie sieht die Preisgestaltung aus?', a: 'Die Tarife beginnen bei 1.900 EUR/Monat für kleinere Setups. Komplexere Enterprise-Projekte werden individuell kalkuliert. Das Erstgespräch ist immer unverbindlich und kostenfrei.' }
   ];
   return (
-    <section id="faq" className="section bg-s1" aria-labelledby="faq-t" data-testid="faq-section">
+    <AnimSection id="faq" className="section bg-s1" aria-labelledby="faq-t" data-testid="faq-section">
       <div className="container">
         <div className="faq-layout">
-          <div><h2 id="faq-t">Häufige Fragen</h2><p className="section-subtitle">Details zur technischen Umsetzung, Datensicherheit und Integration.</p></div>
+          <motion.div variants={fadeUp}><h2 id="faq-t">Häufige Fragen</h2><p className="section-subtitle">Details zur technischen Umsetzung, Datensicherheit und Integration.</p></motion.div>
           <div className="faq-list" role="list">
             {faqs.map((f, i) => (
-              <div key={i} className={`faq-item ${open === i ? 'open' : ''}`} role="listitem">
+              <motion.div key={i} className={`faq-item ${open === i ? 'open' : ''}`} role="listitem" variants={fadeUp}>
                 <button type="button" className="faq-q" onClick={() => setOpen(open === i ? -1 : i)} aria-expanded={open === i} data-testid={`faq-q-${i}`}><span>{f.q}</span><I n={open === i ? 'expand_less' : 'expand_more'} /></button>
-                {open === i && <div className="faq-a" data-testid={`faq-a-${i}`}>{f.a}</div>}
-              </div>
+                <AnimatePresence>
+                  {open === i && (
+                    <motion.div className="faq-a" data-testid={`faq-a-${i}`} initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }}>
+                      <div className="faq-a-inner">{f.a}</div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
             ))}
           </div>
         </div>
       </div>
-    </section>
+    </AnimSection>
   );
 };
 
@@ -367,18 +400,18 @@ const Contact = ({ onBook }) => {
     finally { setBusy(false); }
   };
   return (
-    <section id="kontakt" className="section bg-dark" aria-labelledby="contact-t" data-testid="contact-section">
+    <AnimSection id="kontakt" className="section bg-dark" aria-labelledby="contact-t" data-testid="contact-section">
       <div className="container">
         <div className="contact-grid">
-          <div className="contact-info">
+          <motion.div className="contact-info" variants={fadeUp}>
             <h2 id="contact-t" style={{ fontSize: 'clamp(1.75rem,4vw,2.5rem)', fontWeight: 800 }}>Bereit für die Architektur des Wachstums?</h2>
             <p className="section-subtitle">Lassen Sie uns in einem 30-minütigen Gespräch Ihre operativen Potenziale identifizieren.</p>
             <div className="contact-benefits">
               {['Unverbindliches Erstgespräch', 'Prozess-Audit inklusive', 'Konkrete Handlungsempfehlungen'].map((b, i) => <div key={i} className="contact-benefit"><I n="verified" /><span>{b}</span></div>)}
             </div>
-            <button className="btn btn-primary btn-lg contact-cta-btn" onClick={() => { onBook(); track('cta_click', { loc: 'contact' }); }} data-testid="contact-book-btn">TERMIN DIREKT BUCHEN <I n="calendar_month" /></button>
-          </div>
-          <div className="contact-form-box">
+            <button className="btn btn-primary btn-lg btn-glow contact-cta-btn" onClick={() => { onBook(); track('cta_click', { loc: 'contact' }); }} data-testid="contact-book-btn">TERMIN DIREKT BUCHEN <I n="calendar_month" /></button>
+          </motion.div>
+          <motion.div className="contact-form-box" variants={fadeUp}>
             <form onSubmit={submit} className="contact-form" noValidate data-testid="contact-form">
               <input type="text" name="_hp" value={form._hp} onChange={e => setForm({ ...form, _hp: e.target.value })} style={{ display: 'none' }} tabIndex={-1} autoComplete="off" />
               <div className="form-row">
@@ -391,17 +424,17 @@ const Contact = ({ onBook }) => {
               </div>
               <div className="form-group"><label htmlFor="unternehmen" className="form-label">Unternehmen</label><input type="text" id="unternehmen" className="form-input" value={form.unternehmen} onChange={e => setForm({ ...form, unternehmen: e.target.value })} disabled={busy} /></div>
               <div className="form-group"><label htmlFor="nachricht" className="form-label">Ihre Anfrage *</label><textarea id="nachricht" rows="4" className={`form-textarea ${errors.nachricht ? 'error' : ''}`} value={form.nachricht} onChange={e => setForm({ ...form, nachricht: e.target.value })} disabled={busy} required data-testid="input-nachricht"></textarea>{errors.nachricht && <span className="form-error" role="alert">{errors.nachricht}</span>}</div>
-              <button type="submit" className="btn btn-primary contact-submit" disabled={busy} data-testid="contact-submit-btn">{busy ? <><span className="spinner"></span>WIRD GESENDET...</> : 'ANFRAGE SENDEN'}</button>
+              <button type="submit" className="btn btn-primary btn-glow contact-submit" disabled={busy} data-testid="contact-submit-btn">{busy ? <><span className="spinner"></span>WIRD GESENDET...</> : 'ANFRAGE SENDEN'}</button>
               {status && <div className={`form-status ${status.t}`} role="alert" data-testid="contact-status"><I n={status.t === 'success' ? 'check_circle' : 'error'} />{status.m}</div>}
             </form>
-          </div>
+          </motion.div>
         </div>
       </div>
-    </section>
+    </AnimSection>
   );
 };
 
-/* ═══════════ LIVE CHAT ═══════════ */
+/* ═══════════ LIVE CHAT (FUNCTIONALITY IDENTICAL) ═══════════ */
 const LiveChat = ({ isOpen, onClose, initialQ }) => {
   const [msgs, setMsgs] = useState([]);
   const [input, setInput] = useState('');
@@ -449,8 +482,7 @@ const LiveChat = ({ isOpen, onClose, initialQ }) => {
     setLoading(true);
     try {
       const r = await fetch(`${API}/api/chat/message`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session_id: sid, message: t })
       });
       const d = await r.json();
@@ -468,7 +500,7 @@ const LiveChat = ({ isOpen, onClose, initialQ }) => {
   if (!isOpen) return null;
   return (
     <div className="chat-overlay" onClick={e => e.target === e.currentTarget && onClose()} role="dialog" aria-modal="true" aria-labelledby="chat-t" data-testid="chat-modal">
-      <div className="chat-modal">
+      <motion.div className="chat-modal" initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.3 }}>
         <button className="chat-close" onClick={onClose} aria-label="Chat schließen" data-testid="chat-close"><I n="close" /></button>
         <div className="chat-layout">
           <div className="chat-sidebar">
@@ -479,16 +511,16 @@ const LiveChat = ({ isOpen, onClose, initialQ }) => {
                 <button key={i} className="chat-preset" onClick={() => { track('preset_click', { q: q.t }); send(q.t); }} data-testid={`chat-preset-${i}`}><I n={q.i} /><span>{q.t}</span></button>
               ))}
             </div>
-            <div className="chat-sidebar-cta"><button className="btn btn-primary" onClick={() => { track('chat_booking_click'); send('Ich möchte einen Termin für ein Strategiegespräch buchen.'); }} style={{ width: '100%' }} data-testid="chat-sidebar-book-btn">Termin buchen</button></div>
+            <div className="chat-sidebar-cta"><button className="btn btn-primary btn-glow" onClick={() => { track('chat_booking_click'); send('Ich möchte einen Termin für ein Strategiegespräch buchen.'); }} style={{ width: '100%' }} data-testid="chat-sidebar-book-btn">Termin buchen</button></div>
           </div>
           <div className="chat-main">
             <div className="chat-header"><div className="chat-status"><span className="status-dot on"></span>NeXifyAI Advisor</div>{qual.use_case && <span className="chat-topic">Thema: {qual.use_case}</span>}</div>
             <div className="chat-msgs" data-testid="chat-messages">
               {msgs.map((m, i) => (
-                <div key={i} className={`chat-msg ${m.role}`} data-testid={`chat-msg-${i}`}>
+                <motion.div key={i} className={`chat-msg ${m.role}`} data-testid={`chat-msg-${i}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
                   <div>{m.content}</div>
                   {m.actions && m.actions.length > 0 && <div className="chat-msg-actions">{m.actions.map((a, ai) => <button key={ai} className="btn btn-sm btn-primary" onClick={() => send('Ich möchte einen Termin buchen.')}>{a.label}</button>)}</div>}
-                </div>
+                </motion.div>
               ))}
               {loading && <div className="chat-msg assistant"><div className="chat-typing"><span></span><span></span><span></span></div></div>}
               <div ref={endRef} />
@@ -499,12 +531,12 @@ const LiveChat = ({ isOpen, onClose, initialQ }) => {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
 
-/* ═══════════ BOOKING MODAL ═══════════ */
+/* ═══════════ BOOKING MODAL (FUNCTIONALITY IDENTICAL) ═══════════ */
 const Booking = ({ isOpen, onClose }) => {
   const [step, setStep] = useState(1);
   const [date, setDate] = useState('');
@@ -529,10 +561,10 @@ const Booking = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
   return (
     <div className="booking-overlay" onClick={e => e.target === e.currentTarget && onClose()} role="dialog" aria-modal="true" aria-labelledby="book-t" data-testid="booking-modal">
-      <div className="booking-modal">
+      <motion.div className="booking-modal" initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.3 }}>
         <button className="booking-close" onClick={onClose} aria-label="Schließen" data-testid="booking-close"><I n="close" /></button>
         {ok ? (
-          <div className="booking-success" data-testid="booking-success"><I n="check_circle" c="booking-success-icon" /><h2>Termin bestätigt!</h2><p>Ihr Beratungsgespräch am <strong>{fmtDate(date)}</strong> um <strong>{time} Uhr</strong> ist gebucht.</p><p>Sie erhalten eine Bestätigung per E-Mail an {form.email}.</p><button className="btn btn-primary" onClick={onClose}>Schließen</button></div>
+          <div className="booking-success" data-testid="booking-success"><I n="check_circle" c="booking-success-icon" /><h2>Termin bestätigt!</h2><p>Ihr Beratungsgespräch am <strong>{fmtDate(date)}</strong> um <strong>{time} Uhr</strong> ist gebucht.</p><p>Sie erhalten eine Bestätigung per E-Mail an {form.email}.</p><button className="btn btn-primary btn-glow" onClick={onClose}>Schließen</button></div>
         ) : (
           <>
             <h2 id="book-t" className="booking-title">Strategiegespräch buchen</h2>
@@ -542,7 +574,7 @@ const Booking = ({ isOpen, onClose }) => {
                 <h3>Wählen Sie einen Termin</h3>
                 <div className="booking-dates">{dates.map(d => <button key={d} className={`booking-date ${date === d ? 'sel' : ''}`} onClick={() => setDate(d)} data-testid={`booking-date-${d}`}>{new Date(d).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'short' })}</button>)}</div>
                 {date && <><h3>Verfügbare Zeiten</h3><div className="booking-times">{slots.length > 0 ? slots.map(t => <button key={t} className={`booking-time ${time === t ? 'sel' : ''}`} onClick={() => setTime(t)} data-testid={`booking-time-${t}`}>{t} Uhr</button>) : <p style={{ color: 'var(--nx-muted)' }}>Keine Zeiten verfügbar</p>}</div></>}
-                <button className="btn btn-primary booking-next" disabled={!date || !time} onClick={() => setStep(2)} data-testid="booking-next">Weiter <I n="arrow_forward" /></button>
+                <button className="btn btn-primary btn-glow booking-next" disabled={!date || !time} onClick={() => setStep(2)} data-testid="booking-next">Weiter <I n="arrow_forward" /></button>
               </div>
             )}
             {step === 2 && (
@@ -561,13 +593,13 @@ const Booking = ({ isOpen, onClose }) => {
                   </div>
                   <div className="form-group"><label htmlFor="b-th" className="form-label">Worüber möchten Sie sprechen?</label><select id="b-th" className="form-input" value={form.thema} onChange={e => setForm({ ...form, thema: e.target.value })}><option value="">Bitte wählen...</option><option value="KI-Assistenz / Chatbot">KI-Assistenz / Chatbot</option><option value="CRM/ERP-Integration">CRM/ERP-Integration</option><option value="Prozessautomation">Prozessautomation</option><option value="Wissenssystem / RAG">Wissenssystem / RAG</option><option value="Web-App / Mobile-App">Web-App / Mobile-App</option><option value="Support-Automation">Support-Automation</option><option value="Allgemeine Beratung">Allgemeine Beratung</option></select></div>
                   {errors.submit && <div className="form-error">{errors.submit}</div>}
-                  <button className="btn btn-primary booking-submit" onClick={submit} disabled={busy} data-testid="booking-submit">{busy ? <><span className="spinner"></span>Wird gebucht...</> : 'Termin verbindlich buchen'}</button>
+                  <button className="btn btn-primary btn-glow booking-submit" onClick={submit} disabled={busy} data-testid="booking-submit">{busy ? <><span className="spinner"></span>Wird gebucht...</> : 'Termin verbindlich buchen'}</button>
                 </div>
               </div>
             )}
           </>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 };
@@ -591,21 +623,13 @@ const Ft = ({ onCookieSettings }) => (
         <nav className="footer-nav-col" aria-label="Navigation">
           <h3 className="footer-nav-title">Navigation</h3>
           <ul className="footer-links">
-            <li><a href="#loesungen">Leistungen</a></li>
-            <li><a href="#use-cases">Use Cases</a></li>
-            <li><a href="#app-dev">App-Entwicklung</a></li>
-            <li><a href="#integrationen">Integrationen</a></li>
-            <li><a href="#preise">Tarife</a></li>
-            <li><a href="#kontakt">Kontakt</a></li>
+            <li><a href="#loesungen">Leistungen</a></li><li><a href="#use-cases">Use Cases</a></li><li><a href="#app-dev">App-Entwicklung</a></li><li><a href="#integrationen">Integrationen</a></li><li><a href="#preise">Tarife</a></li><li><a href="#kontakt">Kontakt</a></li>
           </ul>
         </nav>
         <nav className="footer-nav-col" aria-label="Rechtliches">
           <h3 className="footer-nav-title">Rechtliches</h3>
           <ul className="footer-links">
-            <li><a href="/impressum">Impressum</a></li>
-            <li><a href="/datenschutz">Datenschutz</a></li>
-            <li><a href="/agb">AGB</a></li>
-            <li><a href="/ki-hinweise">KI-Hinweise</a></li>
+            <li><a href="/impressum">Impressum</a></li><li><a href="/datenschutz">Datenschutz</a></li><li><a href="/agb">AGB</a></li><li><a href="/ki-hinweise">KI-Hinweise</a></li>
             <li><button onClick={onCookieSettings} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Cookie-Einstellungen</button></li>
           </ul>
           <div className="footer-ids"><p>KvK: {COMPANY.kvk}</p><p>USt-ID: {COMPANY.vat}</p></div>
@@ -629,14 +653,17 @@ const Ft = ({ onCookieSettings }) => (
 
 /* ═══════════ CHAT TRIGGER ═══════════ */
 const ChatTrigger = ({ onClick }) => (
-  <button className="chat-trigger" onClick={onClick} aria-label="Beratung starten" data-testid="chat-trigger"><span className="chat-trigger-text">Beratung starten</span><span className="chat-trigger-icon"><I n="forum" /></span></button>
+  <motion.button className="chat-trigger" onClick={onClick} aria-label="Beratung starten" data-testid="chat-trigger" whileHover={{ y: -3, scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+    <span className="chat-trigger-text">Beratung starten</span>
+    <span className="chat-trigger-icon"><I n="forum" /></span>
+  </motion.button>
 );
 
 /* ═══════════ COOKIE CONSENT ═══════════ */
-const CookieConsent = ({ show, onAccept, onReject, onSettings }) => {
+const CookieConsent = ({ show, onAccept, onReject }) => {
   if (!show) return null;
   return (
-    <div className="cookie-banner" role="dialog" aria-label="Cookie-Einstellungen" data-testid="cookie-banner">
+    <motion.div className="cookie-banner" role="dialog" aria-label="Cookie-Einstellungen" data-testid="cookie-banner" initial={{ y: 100 }} animate={{ y: 0 }} transition={{ duration: 0.4 }}>
       <div className="cookie-inner">
         <div className="cookie-text">
           Wir verwenden technisch notwendige Cookies für den Betrieb dieser Website. Optionale Analyse-Cookies helfen uns, die Nutzererfahrung zu verbessern. Mehr dazu in unserer <a href="/datenschutz">Datenschutzerklärung</a>.
@@ -646,7 +673,7 @@ const CookieConsent = ({ show, onAccept, onReject, onSettings }) => {
           <button className="btn btn-sm btn-primary" onClick={onAccept} data-testid="cookie-accept">Alle akzeptieren</button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
