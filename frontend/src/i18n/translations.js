@@ -99,24 +99,26 @@ de: {
   },
   pricing: {
     label:'INVESTMENT', title:'Transparente Preisgestaltung',
-    subtitle:'Jedes Projekt ist individuell. Unsere Pakete bieten Orientierung — das finale Angebot erstellen wir nach Ihrem Briefing.',
+    subtitle:'Zwei leistungsstarke Tarife — 24 Monate Laufzeit, 30 % Aktivierungsanzahlung. Klar, ehrlich, B2B-stark.',
     plans: [
-      { name:'Starter', price:'ab 1.900', period:'€ / Monat', features:['1 KI-Agent','Bis zu 5 Integrationen','E-Mail-Support','Standard-SLA','Monatliches Reporting'], cta:'Gespräch buchen' },
-      { name:'Growth', price:'ab 4.500', period:'€ / Monat', badge:'EMPFOHLEN', features:['Bis zu 5 KI-Agenten','Unbegrenzte Integrationen','Priority Support','Premium-SLA (99.5%)','Wöchentliches Reporting','Dedizierter Ansprechpartner'], cta:'Gespräch buchen', hl:true },
-      { name:'Enterprise', price:'Individuell', period:'nach Anforderung', features:['Unbegrenzte Agenten','Custom Integrationen','24/7 Support','Enterprise-SLA (99.9%)','Echtzeit-Dashboard','Dedicated Success Manager','On-Premise Option'], cta:'Kontakt aufnehmen' }
+      { name:'Starter AI Agenten AG', price:'499', period:'EUR / Monat (netto)', features:['2 KI-Agenten','Shared Cloud Infrastructure','E-Mail-Support (48h)','Basis-Integrationen (REST API)','Standard-Monitoring','Monatliches Reporting','24 Monate Laufzeit','30 % Aktivierungsanzahlung: 3.592,80 EUR'], cta:'Angebot anfordern' },
+      { name:'Growth AI Agenten AG', price:'1.299', period:'EUR / Monat (netto)', badge:'EMPFOHLEN', features:['10 KI-Agenten','Private Cloud Infrastructure','Priority Support (24h)','CRM/ERP-Kit (SAP, HubSpot, Salesforce)','Advanced Monitoring & Analytics','Woechentliches Reporting','Dedizierter Onboarding-Manager','24 Monate Laufzeit','30 % Aktivierungsanzahlung: 9.352,80 EUR'], cta:'Angebot anfordern', hl:true }
     ]
   },
   faq: {
-    label:'FAQ', title:'Häufig gestellte Fragen',
-    subtitle:'Transparente Antworten auf die wichtigsten Fragen.',
+    label:'FAQ', title:'Haeufig gestellte Fragen',
+    subtitle:'Transparente Antworten auf die wichtigsten Fragen zu Tarifen, Zahlung und Vertrag.',
     items: [
-      { q:'Was genau ist ein KI-Agent?', a:'Ein KI-Agent ist ein autonomes System, das spezifische Geschäftsaufgaben selbstständig ausführt. Anders als einfache Chatbots können unsere Agenten komplexe Workflows orchestrieren, Entscheidungen treffen und mit mehreren Systemen gleichzeitig interagieren.' },
-      { q:'Wie lange dauert die Implementierung?', a:'Je nach Komplexität zwischen 2-8 Wochen. Ein einfacher Kundenservice-Agent kann in 2 Wochen produktiv sein, eine vollständige Enterprise-Integration benötigt typischerweise 6-8 Wochen.' },
-      { q:'Welche Systeme können integriert werden?', a:'Grundsätzlich jedes System mit einer API — und darüber hinaus. Wir haben über 400 vorgefertigte Integrationen und entwickeln bei Bedarf Custom-Konnektoren für proprietäre Systeme. Praktisch jede erdenkliche Anbindung ist realisierbar.' },
-      { q:'Wie sicher sind die KI-Agenten?', a:'Unsere Agenten laufen in isolierten Umgebungen mit Ende-zu-Ende-Verschlüsselung. Wir sind DSGVO-konform, erfüllen die Anforderungen des EU AI Act und hosten ausschließlich auf EU-Servern in Frankfurt und Amsterdam.' },
-      { q:'Was kostet eine Integration?', a:'Die Kosten hängen von der Komplexität ab. Standard-Integrationen (CRM, E-Mail, etc.) sind in allen Paketen enthalten. Custom-Integrationen werden individuell kalkuliert — sprechen Sie uns für ein detailliertes Angebot an.' },
-      { q:'Können bestehende Prozesse migriert werden?', a:'Ja. Wir analysieren Ihre bestehenden Workflows und migrieren sie schrittweise. Dabei stellen wir sicher, dass der laufende Betrieb nicht beeinträchtigt wird.' },
-      { q:'Gibt es eine Mindestvertragslaufzeit?', a:'Unsere Standardverträge haben eine Mindestlaufzeit von 3 Monaten. Enterprise-Verträge werden individuell gestaltet. Wir sind überzeugt, dass unsere Ergebnisse für sich sprechen.' }
+      { q:'Welche Tarife gibt es?', a:'Wir bieten zwei aktive Kern-Tarife an: Starter AI Agenten AG (499 EUR/Monat) mit 2 KI-Agenten und Growth AI Agenten AG (1.299 EUR/Monat) mit 10 KI-Agenten. Beide mit 24 Monaten Laufzeit.' },
+      { q:'Was bedeutet 24 Monate Laufzeit?', a:'Der Vertrag laeuft ueber 24 Monate ab Beauftragung. Dies ermoeglicht nachhaltige Implementierung, Optimierung und kontinuierliche Weiterentwicklung Ihrer KI-Agenten.' },
+      { q:'Wie funktioniert die 30-%-Aktivierungsanzahlung?', a:'Bei Beauftragung wird eine Aktivierungsanzahlung von 30 % des Gesamtvertragswerts faellig. Diese deckt Projektstart, Priorisierung, Setup, Kapazitaetsreservierung und Implementierungsfreigabe ab. Die Anzahlung ist Teil des Gesamtvertragswerts — keine zusaetzliche Gebuehr.' },
+      { q:'Was ist im Starter enthalten?', a:'2 KI-Agenten, Shared Cloud Infrastructure, E-Mail-Support (48h), Basis-Integrationen (REST API), Standard-Monitoring, monatliches Reporting. Gesamtvertragswert: 11.976 EUR (netto).' },
+      { q:'Was ist im Growth enthalten?', a:'10 KI-Agenten, Private Cloud, Priority Support (24h), CRM/ERP-Kit (SAP, HubSpot, Salesforce), Advanced Monitoring, woechentliches Reporting, dedizierter Onboarding-Manager. Gesamtvertragswert: 31.176 EUR (netto).' },
+      { q:'Wie wird abgerechnet?', a:'1. Aktivierungsanzahlung (30 %) — sofort faellig nach Angebotsannahme. 2. Monatliche Folgeraten — der Restbetrag in 24 gleichen Raten. Alle Rechnungen per E-Mail und im sicheren Kundencenter.' },
+      { q:'Wie erfolgt die Zahlung?', a:'Per sicherem Revolut Checkout (Karte, Bankueberweisung, Apple/Google Pay) oder klassische Bankueberweisung. IBAN: NL66 REVO 3601 4304 36, BIC: REVONL22.' },
+      { q:'Wie funktioniert die Angebotsannahme?', a:'Sie erhalten Ihr Angebot per E-Mail mit sicherem Zugangslink. Dort koennen Sie das Angebot annehmen, ablehnen oder eine Aenderung anfragen. Bei Annahme wird sofort die Anzahlungsrechnung erstellt.' },
+      { q:'Wie sicher sind die KI-Agenten?', a:'Unsere Agenten laufen in isolierten Umgebungen mit Ende-zu-Ende-Verschluesselung. Wir sind DSGVO-konform, erfuellen den EU AI Act und hosten ausschliesslich auf EU-Servern in Frankfurt und Amsterdam.' },
+      { q:'Wie werden Daten DSGVO-konform verarbeitet?', a:'Alle Daten in EU-Rechenzentren. Zeitlich begrenzte Zugriffslinks statt Passwoerter. Vollstaendige Audit-Logs. Verschluesselte Speicherung und Uebertragung.' }
     ]
   },
   contact: {
@@ -253,24 +255,22 @@ nl: {
   },
   pricing: {
     label:'INVESTERING', title:'Transparante prijzen',
-    subtitle:'Elk project is uniek. Onze pakketten bieden oriëntatie — het definitieve aanbod maken wij na uw briefing.',
+    subtitle:'Twee krachtige tarieven — 24 maanden looptijd, 30 % activeringsaanbetaling. Helder, eerlijk, B2B-sterk.',
     plans: [
-      { name:'Starter', price:'vanaf 1.900', period:'€ / maand', features:['1 AI-agent','Tot 5 integraties','E-mail support','Standaard SLA','Maandelijkse rapportage'], cta:'Gesprek boeken' },
-      { name:'Growth', price:'vanaf 4.500', period:'€ / maand', badge:'AANBEVOLEN', features:['Tot 5 AI-agenten','Onbeperkte integraties','Priority support','Premium SLA (99.5%)','Wekelijkse rapportage','Dedicated contactpersoon'], cta:'Gesprek boeken', hl:true },
-      { name:'Enterprise', price:'Op maat', period:'op aanvraag', features:['Onbeperkte agenten','Custom integraties','24/7 support','Enterprise SLA (99.9%)','Realtime dashboard','Dedicated Success Manager','On-premise optie'], cta:'Contact opnemen' }
+      { name:'Starter AI Agenten AG', price:'499', period:'EUR / maand (netto)', features:['2 AI-agenten','Shared Cloud Infrastructure','E-mail support (48u)','Basis-integraties (REST API)','Standaard monitoring','Maandelijkse rapportage','24 maanden looptijd','30 % activeringsaanbetaling: 3.592,80 EUR'], cta:'Offerte aanvragen' },
+      { name:'Growth AI Agenten AG', price:'1.299', period:'EUR / maand (netto)', badge:'AANBEVOLEN', features:['10 AI-agenten','Private Cloud Infrastructure','Priority support (24u)','CRM/ERP-kit (SAP, HubSpot, Salesforce)','Advanced monitoring & analytics','Wekelijkse rapportage','Dedicated onboarding manager','24 maanden looptijd','30 % activeringsaanbetaling: 9.352,80 EUR'], cta:'Offerte aanvragen', hl:true }
     ]
   },
   faq: {
     label:'FAQ', title:'Veelgestelde vragen',
-    subtitle:'Transparante antwoorden op de belangrijkste vragen.',
+    subtitle:'Transparante antwoorden op de belangrijkste vragen over tarieven, betaling en contract.',
     items: [
-      { q:'Wat is precies een AI-agent?', a:'Een AI-agent is een autonoom systeem dat specifieke bedrijfstaken zelfstandig uitvoert. Anders dan eenvoudige chatbots kunnen onze agenten complexe workflows orkestreren, beslissingen nemen en met meerdere systemen tegelijk communiceren.' },
-      { q:'Hoe lang duurt de implementatie?', a:'Afhankelijk van de complexiteit tussen 2-8 weken. Een eenvoudige klantenservice-agent kan in 2 weken productief zijn, een complete enterprise-integratie heeft doorgaans 6-8 weken nodig.' },
-      { q:'Welke systemen kunnen geïntegreerd worden?', a:'In principe elk systeem met een API — en daarbuiten. Wij hebben meer dan 400 kant-en-klare integraties en ontwikkelen op verzoek custom-connectors voor eigen systemen. Praktisch elke denkbare koppeling is realiseerbaar.' },
-      { q:'Hoe veilig zijn de AI-agenten?', a:'Onze agenten draaien in geïsoleerde omgevingen met end-to-end encryptie. Wij zijn AVG-conform, voldoen aan de eisen van de EU AI Act en hosten uitsluitend op EU-servers in Frankfurt en Amsterdam.' },
-      { q:'Wat kost een integratie?', a:'De kosten hangen af van de complexiteit. Standaard-integraties (CRM, e-mail, etc.) zijn in alle pakketten inbegrepen. Custom-integraties worden individueel berekend.' },
-      { q:'Kunnen bestaande processen gemigreerd worden?', a:'Ja. Wij analyseren uw bestaande workflows en migreren ze stapsgewijs, zonder verstoring van de lopende operatie.' },
-      { q:'Is er een minimale contractduur?', a:'Onze standaardcontracten hebben een minimale looptijd van 3 maanden. Enterprise-contracten worden op maat gemaakt.' }
+      { q:'Welke tarieven zijn er?', a:'Wij bieden twee actieve kerntarieven: Starter AI Agenten AG (499 EUR/maand) met 2 AI-agenten en Growth AI Agenten AG (1.299 EUR/maand) met 10 AI-agenten. Beide met 24 maanden looptijd.' },
+      { q:'Wat betekent 24 maanden looptijd?', a:'Het contract loopt 24 maanden vanaf opdracht. Dit maakt duurzame implementatie, optimalisatie en doorontwikkeling van uw AI-agenten mogelijk.' },
+      { q:'Hoe werkt de 30 % activeringsaanbetaling?', a:'Bij opdracht is een aanbetaling van 30 % van de totale contractwaarde verschuldigd. Deze dekt projectstart, prioritering, setup en capaciteitsreservering. De aanbetaling is onderdeel van de contractwaarde — geen extra kosten.' },
+      { q:'Hoe wordt er betaald?', a:'Via veilige Revolut Checkout of klassieke bankoverschrijving. IBAN: NL66 REVO 3601 4304 36, BIC: REVONL22.' },
+      { q:'Hoe werkt de offerte-aanvaarding?', a:'U ontvangt uw offerte per e-mail met een veilige toegangslink. Daar kunt u de offerte aanvaarden, afwijzen of een wijziging aanvragen.' },
+      { q:'Hoe veilig zijn de AI-agenten?', a:'Onze agenten draaien in geisoleerde omgevingen met end-to-end encryptie. AVG-conform, EU AI Act compliant, hosting uitsluitend op EU-servers.' }
     ]
   },
   contact: {
@@ -407,24 +407,22 @@ en: {
   },
   pricing: {
     label:'INVESTMENT', title:'Transparent pricing',
-    subtitle:'Every project is unique. Our packages provide guidance — the final offer is created after your briefing.',
+    subtitle:'Two powerful plans — 24-month term, 30 % activation deposit. Clear, honest, B2B-ready.',
     plans: [
-      { name:'Starter', price:'from 1,900', period:'€ / month', features:['1 AI agent','Up to 5 integrations','Email support','Standard SLA','Monthly reporting'], cta:'Book a Call' },
-      { name:'Growth', price:'from 4,500', period:'€ / month', badge:'RECOMMENDED', features:['Up to 5 AI agents','Unlimited integrations','Priority support','Premium SLA (99.5%)','Weekly reporting','Dedicated contact person'], cta:'Book a Call', hl:true },
-      { name:'Enterprise', price:'Custom', period:'on request', features:['Unlimited agents','Custom integrations','24/7 support','Enterprise SLA (99.9%)','Real-time dashboard','Dedicated Success Manager','On-premise option'], cta:'Contact Us' }
+      { name:'Starter AI Agenten AG', price:'499', period:'EUR / month (net)', features:['2 AI agents','Shared Cloud Infrastructure','Email support (48h)','Basic integrations (REST API)','Standard monitoring','Monthly reporting','24-month contract','30 % activation deposit: EUR 3,592.80'], cta:'Request a Quote' },
+      { name:'Growth AI Agenten AG', price:'1,299', period:'EUR / month (net)', badge:'RECOMMENDED', features:['10 AI agents','Private Cloud Infrastructure','Priority support (24h)','CRM/ERP kit (SAP, HubSpot, Salesforce)','Advanced monitoring & analytics','Weekly reporting','Dedicated onboarding manager','24-month contract','30 % activation deposit: EUR 9,352.80'], cta:'Request a Quote', hl:true }
     ]
   },
   faq: {
     label:'FAQ', title:'Frequently asked questions',
-    subtitle:'Transparent answers to the most important questions.',
+    subtitle:'Transparent answers about plans, payments, and contracts.',
     items: [
-      { q:'What exactly is an AI agent?', a:'An AI agent is an autonomous system that independently performs specific business tasks. Unlike simple chatbots, our agents can orchestrate complex workflows, make decisions, and interact with multiple systems simultaneously.' },
-      { q:'How long does implementation take?', a:'Depending on complexity, between 2-8 weeks. A simple customer service agent can be productive in 2 weeks, while a complete enterprise integration typically requires 6-8 weeks.' },
-      { q:'Which systems can be integrated?', a:'Essentially any system with an API — and beyond. We have over 400 pre-built integrations and develop custom connectors for proprietary systems on demand. Virtually any connection is achievable.' },
-      { q:'How secure are the AI agents?', a:'Our agents run in isolated environments with end-to-end encryption. We are GDPR-compliant, meet EU AI Act requirements, and host exclusively on EU servers in Frankfurt and Amsterdam.' },
-      { q:'What does an integration cost?', a:'Costs depend on complexity. Standard integrations (CRM, email, etc.) are included in all packages. Custom integrations are calculated individually.' },
-      { q:'Can existing processes be migrated?', a:'Yes. We analyze your existing workflows and migrate them step by step, ensuring ongoing operations are not disrupted.' },
-      { q:'Is there a minimum contract period?', a:'Our standard contracts have a minimum term of 3 months. Enterprise contracts are tailored individually.' }
+      { q:'What plans are available?', a:'We offer two core plans: Starter AI Agenten AG (EUR 499/month) with 2 AI agents, and Growth AI Agenten AG (EUR 1,299/month) with 10 AI agents. Both with 24-month terms.' },
+      { q:'What does the 24-month term mean?', a:'The contract runs for 24 months from commission. This enables sustainable implementation, optimization, and continuous development of your AI agents.' },
+      { q:'How does the 30 % activation deposit work?', a:'Upon commissioning, an activation deposit of 30 % of the total contract value is due. This covers project start, prioritization, setup, and capacity reservation. The deposit is part of the total contract value — no additional fees.' },
+      { q:'How do I pay?', a:'Via secure Revolut Checkout or traditional bank transfer. IBAN: NL66 REVO 3601 4304 36, BIC: REVONL22.' },
+      { q:'How does quote acceptance work?', a:'You receive your quote via email with a secure access link. There you can accept, decline, or request a revision.' },
+      { q:'How secure are the AI agents?', a:'Our agents run in isolated environments with end-to-end encryption. GDPR-compliant, EU AI Act compliant, hosted exclusively on EU servers.' }
     ]
   },
   contact: {

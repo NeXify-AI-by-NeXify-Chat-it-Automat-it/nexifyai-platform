@@ -524,7 +524,10 @@ const LiveChat = ({ isOpen, onClose, initialQ, t, lang }) => {
                   ) : (
                     <div>{m.content}</div>
                   )}
-                  {m.actions && m.actions.length > 0 && <div className="chat-msg-actions">{m.actions.map((a, ai) => <button key={ai} className="btn btn-sm btn-primary" onClick={() => send(t.booking.title)}>{a.label}</button>)}</div>}
+                  {m.actions && m.actions.length > 0 && <div className="chat-msg-actions">{m.actions.map((a, ai) => {
+                    if (a.type === 'offer_generated') return <a key={ai} href={`${API}${a.pdf_url}`} target="_blank" rel="noreferrer" className="btn btn-sm btn-primary" data-testid="offer-pdf-download">PDF-Angebot herunterladen</a>;
+                    return <button key={ai} className="btn btn-sm btn-primary" onClick={() => send(t.booking.title)}>{a.label}</button>;
+                  })}</div>}
                 </motion.div>
               ))}
               {loading && <div className="chat-msg assistant"><div className="chat-typing"><span></span><span></span><span></span></div></div>}

@@ -1,0 +1,115 @@
+{
+  "summary": "Commercial Engine v2.0 testing complete. All 23 backend API tests passed. Frontend verified: 2 tariffs (Starter 499 EUR/Mo, Growth 1.299 EUR/Mo) with correct pricing, 30% upfront, 24-month contracts. Admin Commercial Dashboard shows quotes/invoices tables, stats cards, and quote creation form. PDF generation works. Revolut webhook is idempotent. FAQ shows 15 entries with tariff info.",
+
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+
+  "passed_tests": [
+    "GET /api/product/tariffs — returns both tariffs (starter, growth) ✓",
+    "Starter tariff pricing: 499 EUR/mo, 11976 EUR total, 3592.80 EUR upfront ✓",
+    "Growth tariff pricing: 1299 EUR/mo, 31176 EUR total, 9352.80 EUR upfront ✓",
+    "Tariffs include company info (NeXify Automate, NeXifyAI) ✓",
+    "GET /api/product/faq — returns 15 FAQ entries ✓",
+    "FAQ contains tariff-related questions ✓",
+    "POST /api/admin/login — successful login returns JWT token ✓",
+    "POST /api/admin/login — invalid credentials return 401 ✓",
+    "POST /api/admin/quotes — creates starter quote with correct calculation ✓",
+    "POST /api/admin/quotes — creates growth quote with correct calculation ✓",
+    "GET /api/admin/quotes — lists quotes ✓",
+    "GET /api/admin/quotes/{id} — get quote details ✓",
+    "POST /api/admin/quotes/{id}/send — sends quote email ✓",
+    "GET /api/documents/quote/{id}/pdf — downloads valid PDF ✓",
+    "GET /api/admin/commercial/stats — returns commercial dashboard stats ✓",
+    "GET /api/admin/invoices — lists invoices ✓",
+    "POST /api/admin/invoices/{id}/mark-paid — returns 404 for nonexistent ✓",
+    "POST /api/webhooks/revolut — accepts webhook payload ✓",
+    "POST /api/webhooks/revolut — is idempotent ✓",
+    "POST /api/webhooks/revolut — rejects invalid JSON ✓",
+    "Protected endpoints require authentication ✓",
+    "Frontend: /de pricing section shows 2 tariffs with correct prices ✓",
+    "Frontend: /de FAQ section shows updated questions about tariffs ✓",
+    "Frontend: /admin Commercial tab shows quotes and invoices tables ✓",
+    "Frontend: Quote form shows correct tier options ✓"
+  ],
+
+  "pricing_verification": {
+    "starter": {
+      "reference_monthly_eur": 499.0,
+      "contract_months": 24,
+      "upfront_percent": 30,
+      "total_contract_eur": 11976.0,
+      "upfront_eur": 3592.80,
+      "agents": 2,
+      "verified": true
+    },
+    "growth": {
+      "reference_monthly_eur": 1299.0,
+      "contract_months": 24,
+      "upfront_percent": 30,
+      "total_contract_eur": 31176.0,
+      "upfront_eur": 9352.80,
+      "agents": 10,
+      "recommended": true,
+      "verified": true
+    }
+  },
+
+  "test_report_links": [
+    "/app/backend/tests/test_commercial_engine.py",
+    "/app/test_reports/pytest/pytest_commercial_engine.xml"
+  ],
+
+  "action_items": [],
+
+  "critical_code_review_comments": [],
+
+  "updated_files": [
+    "/app/backend/tests/test_commercial_engine.py"
+  ],
+
+  "success_rate": {
+    "backend": "100% - 23/23 tests passed",
+    "frontend": "100% - All UI features verified via Playwright"
+  },
+
+  "test_credentials": {
+    "admin_email": "p.courbois@icloud.com",
+    "admin_password": "NxAi#Secure2026!",
+    "note": "Password stored in backend/.env as ADMIN_PASSWORD"
+  },
+
+  "seed_data_creation": "Test quotes created during testing (prefixed with TEST_Commercial, TEST_PDF, TEST_Send, TEST_Detail)",
+
+  "retest_needed": false,
+
+  "should_main_agent_self_test": false,
+
+  "context_for_next_testing_agent": "Commercial Engine v2.0 fully tested. All pricing values verified: Starter (499/mo, 11976 total, 3592.80 upfront) and Growth (1299/mo, 31176 total, 9352.80 upfront). Admin Commercial tab working with quotes/invoices tables. PDF generation works. Revolut webhook is idempotent. FAQ has 15 entries. Cookie banner must be dismissed first when testing frontend.",
+
+  "mocked_apis": {
+    "has_mocked_apis": true,
+    "mocked_apis_list": ["Revolut Merchant API — keys are test placeholders, orders will fail gracefully with bank_transfer fallback"],
+    "note": "Revolut API returns fallback response as expected with test keys"
+  },
+
+  "features_verified": {
+    "tariffs_api": "GET /api/product/tariffs returns 2 active tariffs with correct pricing",
+    "faq_api": "GET /api/product/faq returns 15 FAQ entries derived from TARIFF_CONFIG",
+    "quote_crud": "Create, list, get detail, send quote all working",
+    "pdf_generation": "Quote PDF downloads with correct content-type and magic bytes",
+    "commercial_stats": "Dashboard stats endpoint returns quotes/invoices/revenue data",
+    "invoice_management": "List invoices, mark-paid endpoints working",
+    "revolut_webhook": "Idempotent webhook processing for ORDER_COMPLETED/ORDER_PAYMENT_FAILED",
+    "frontend_pricing": "2 plans displayed with correct prices (499, 1.299 EUR/Mo)",
+    "frontend_faq": "FAQ section shows tariff-related questions",
+    "admin_commercial": "Commercial tab with quotes/invoices tables and create form"
+  }
+}

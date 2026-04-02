@@ -7,6 +7,7 @@ const I = ({ n }) => <span className="material-symbols-outlined">{n}</span>;
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-';
 const fmtDateLong = (d) => d ? new Date(d).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }) : '-';
 const fmtTime = (d) => d ? new Date(d).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+const fmtEur = (v) => v != null ? new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(v) : '-';
 
 const STATUS_MAP = {
   neu: { label: 'Neu', color: '#3b82f6' }, kontaktiert: { label: 'Kontaktiert', color: '#f59e0b' },
@@ -45,6 +46,12 @@ const Admin = () => {
   const [blockForm, setBlockForm] = useState({ date: '', time: '', reason: '', all_day: false });
   const [showBlockForm, setShowBlockForm] = useState(false);
   const [bookingNote, setBookingNote] = useState('');
+  const [quotes, setQuotes] = useState([]);
+  const [invoices, setInvoices] = useState([]);
+  const [commStats, setCommStats] = useState(null);
+  const [quoteForm, setQuoteForm] = useState({ tier: 'starter', customer_name: '', customer_email: '', customer_company: '', use_case: '' });
+  const [showQuoteForm, setShowQuoteForm] = useState(false);
+  const [commBusy, setCommBusy] = useState('');
 
   const headers = useMemo(() => ({ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }), [token]);
 
@@ -89,6 +96,14 @@ const Admin = () => {
     const params = custSearch ? `?search=${encodeURIComponent(custSearch)}` : '';
     apiFetch(`/api/admin/customers${params}`).then(d => d && setCustomers(d.customers || []));
   }, [token, view, custSearch, apiFetch]);
+
+  /* Load commercial data */
+  useEffect(() => {
+    if (!token || view !== 'commercial') return;
+    apiFetch('/api/admin/quotes').then(d => d && setQuotes(d.quotes || []));
+    apiFetch('/api/admin/invoices').then(d => d && setInvoices(d.invoices || []));
+    apiFetch('/api/admin/commercial/stats').then(d => d && setCommStats(d));
+  }, [token, view, apiFetch]);
 
   /* ── Update lead status ── */
   const updateLead = async (id, status, notes) => {
@@ -459,9 +474,145 @@ const Admin = () => {
     </div>
   );
 
+  /* ══════════ COMMERCIAL VIEW ══════════ */
+  const createQuote = async (e) => {
+    e.preventDefault(); setCommBusy('create');
+    try {
+      await apiFetch('/api/admin/quotes', { method: 'POST', body: JSON.stringify(quoteForm) });
+      setShowQuoteForm(false); setQuoteForm({ tier: 'starter', customer_name: '', customer_email: '', customer_company: '', use_case: '' });
+      apiFetch('/api/admin/quotes').then(d => d && setQuotes(d.quotes || []));
+      apiFetch('/api/admin/commercial/stats').then(d => d && setCommStats(d));
+    } catch (e) { alert(e.message); } finally { setCommBusy(''); }
+  };
+
+  const sendQuote = async (qid) => {
+    setCommBusy(`send_${qid}`);
+    try {
+      await apiFetch(`/api/admin/quotes/${qid}/send`, { method: 'POST' });
+      apiFetch('/api/admin/quotes').then(d => d && setQuotes(d.quotes || []));
+    } catch (e) { alert(e.message); } finally { setCommBusy(''); }
+  };
+
+  const sendInvoice = async (iid) => {
+    setCommBusy(`send_inv_${iid}`);
+    try {
+      await apiFetch(`/api/admin/invoices/${iid}/send`, { method: 'POST' });
+      apiFetch('/api/admin/invoices').then(d => d && setInvoices(d.invoices || []));
+    } catch (e) { alert(e.message); } finally { setCommBusy(''); }
+  };
+
+  const markPaid = async (iid) => {
+    if (!window.confirm('Rechnung als bezahlt markieren?')) return;
+    setCommBusy(`pay_${iid}`);
+    try {
+      await apiFetch(`/api/admin/invoices/${iid}/mark-paid`, { method: 'POST' });
+      apiFetch('/api/admin/invoices').then(d => d && setInvoices(d.invoices || []));
+      apiFetch('/api/admin/commercial/stats').then(d => d && setCommStats(d));
+    } catch (e) { alert(e.message); } finally { setCommBusy(''); }
+  };
+
+  const QUOTE_STATUS = { draft: {l:'Entwurf',c:'#3b82f6'}, generated: {l:'Erstellt',c:'#8b5cf6'}, sent: {l:'Versendet',c:'#f59e0b'}, opened: {l:'Geoeffnet',c:'#06b6d4'}, accepted: {l:'Angenommen',c:'#10b981'}, declined: {l:'Abgelehnt',c:'#ef4444'}, revision_requested: {l:'Aenderung',c:'#f97316'} };
+  const INV_STATUS = { created: {l:'Erstellt',c:'#3b82f6'}, sent: {l:'Versendet',c:'#f59e0b'}, payment_completed: {l:'Bezahlt',c:'#10b981'}, payment_pending: {l:'Ausstehend',c:'#f59e0b'}, payment_failed: {l:'Fehlgeschlagen',c:'#ef4444'}, overdue: {l:'Ueberfaellig',c:'#dc2626'} };
+  const PAY_STATUS = { pending: {l:'Ausstehend',c:'#f59e0b'}, paid: {l:'Bezahlt',c:'#10b981'}, failed: {l:'Fehlgeschlagen',c:'#ef4444'} };
+
+  const CommercialView = () => (
+    <div className="adm-dashboard" data-testid="admin-commercial">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
+        <h2>Commercial</h2>
+        <button className="adm-btn-primary" onClick={() => setShowQuoteForm(true)} data-testid="create-quote-btn"><I n="add" /> Neues Angebot</button>
+      </div>
+
+      {commStats && (
+        <div className="adm-stat-grid" style={{marginBottom:'24px'}}>
+          <div className="adm-stat-card"><div className="adm-stat-icon"><I n="description" /></div><div className="adm-stat-val">{commStats.quotes?.total||0}</div><div className="adm-stat-label">Angebote</div></div>
+          <div className="adm-stat-card hl"><div className="adm-stat-icon"><I n="check_circle" /></div><div className="adm-stat-val">{commStats.quotes?.accepted||0}</div><div className="adm-stat-label">Angenommen</div></div>
+          <div className="adm-stat-card"><div className="adm-stat-icon"><I n="receipt_long" /></div><div className="adm-stat-val">{commStats.invoices?.total||0}</div><div className="adm-stat-label">Rechnungen</div></div>
+          <div className="adm-stat-card hl"><div className="adm-stat-icon"><I n="payments" /></div><div className="adm-stat-val">{fmtEur(commStats.revenue?.total_gross)}</div><div className="adm-stat-label">Umsatz (brutto)</div></div>
+        </div>
+      )}
+
+      {showQuoteForm && (
+        <div className="adm-card" style={{marginBottom:'24px',padding:'20px'}} data-testid="quote-form">
+          <h3 style={{margin:'0 0 16px',color:'#fff'}}>Neues Angebot erstellen</h3>
+          <form onSubmit={createQuote}>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+              <div className="adm-field"><label>Tarif</label><select value={quoteForm.tier} onChange={e=>setQuoteForm({...quoteForm,tier:e.target.value})} data-testid="quote-tier"><option value="starter">Starter AI Agenten AG (499 EUR/Mo)</option><option value="growth">Growth AI Agenten AG (1.299 EUR/Mo)</option></select></div>
+              <div className="adm-field"><label>Name</label><input value={quoteForm.customer_name} onChange={e=>setQuoteForm({...quoteForm,customer_name:e.target.value})} required data-testid="quote-name" /></div>
+              <div className="adm-field"><label>E-Mail</label><input type="email" value={quoteForm.customer_email} onChange={e=>setQuoteForm({...quoteForm,customer_email:e.target.value})} required data-testid="quote-email" /></div>
+              <div className="adm-field"><label>Unternehmen</label><input value={quoteForm.customer_company} onChange={e=>setQuoteForm({...quoteForm,customer_company:e.target.value})} data-testid="quote-company" /></div>
+            </div>
+            <div className="adm-field" style={{marginTop:'12px'}}><label>Use Case</label><input value={quoteForm.use_case} onChange={e=>setQuoteForm({...quoteForm,use_case:e.target.value})} data-testid="quote-usecase" /></div>
+            <div style={{display:'flex',gap:'8px',marginTop:'16px'}}>
+              <button type="submit" className="adm-btn-primary" disabled={commBusy==='create'} data-testid="submit-quote-btn">{commBusy==='create' ? 'Erstelle...' : 'Angebot erstellen'}</button>
+              <button type="button" className="adm-btn-secondary" onClick={()=>setShowQuoteForm(false)}>Abbrechen</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      <h3 style={{color:'#fff',margin:'0 0 12px'}}>Angebote</h3>
+      <div className="adm-table-wrap" style={{marginBottom:'32px'}}>
+        <table className="adm-table" data-testid="quotes-table">
+          <thead><tr><th>Nr.</th><th>Kunde</th><th>Tarif</th><th>Gesamt</th><th>Status</th><th>Datum</th><th>Aktionen</th></tr></thead>
+          <tbody>
+            {quotes.length === 0 && <tr><td colSpan={7} style={{textAlign:'center',color:'#666'}}>Keine Angebote</td></tr>}
+            {quotes.map(q => {
+              const qs = QUOTE_STATUS[q.status] || {l:q.status,c:'#666'};
+              return (
+                <tr key={q.quote_id}>
+                  <td style={{fontFamily:'monospace',fontSize:'12px'}}>{q.quote_number}</td>
+                  <td><div>{q.customer?.name}</div><div style={{fontSize:'11px',color:'#666'}}>{q.customer?.company}</div></td>
+                  <td>{q.tier === 'growth' ? 'Growth' : 'Starter'}</td>
+                  <td>{fmtEur(q.calculation?.total_contract_eur)}</td>
+                  <td><span className="adm-badge" style={{background:qs.c+'22',color:qs.c}}>{qs.l}</span></td>
+                  <td>{fmtDate(q.created_at)}</td>
+                  <td style={{display:'flex',gap:'4px'}}>
+                    {['draft','generated'].includes(q.status) && <button className="adm-btn-sm" onClick={()=>sendQuote(q.quote_id)} disabled={commBusy===`send_${q.quote_id}`} data-testid={`send-quote-${q.quote_id}`}><I n="send" /></button>}
+                    <a className="adm-btn-sm" href={`${API}/api/documents/quote/${q.quote_id}/pdf`} target="_blank" rel="noreferrer" data-testid={`pdf-quote-${q.quote_id}`}><I n="picture_as_pdf" /></a>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style={{color:'#fff',margin:'0 0 12px'}}>Rechnungen</h3>
+      <div className="adm-table-wrap">
+        <table className="adm-table" data-testid="invoices-table">
+          <thead><tr><th>Nr.</th><th>Kunde</th><th>Typ</th><th>Betrag</th><th>Status</th><th>Zahlung</th><th>Datum</th><th>Aktionen</th></tr></thead>
+          <tbody>
+            {invoices.length === 0 && <tr><td colSpan={8} style={{textAlign:'center',color:'#666'}}>Keine Rechnungen</td></tr>}
+            {invoices.map(inv => {
+              const is = INV_STATUS[inv.status] || {l:inv.status,c:'#666'};
+              const ps = PAY_STATUS[inv.payment_status] || {l:inv.payment_status||'—',c:'#666'};
+              return (
+                <tr key={inv.invoice_id}>
+                  <td style={{fontFamily:'monospace',fontSize:'12px'}}>{inv.invoice_number}</td>
+                  <td><div>{inv.customer?.name}</div><div style={{fontSize:'11px',color:'#666'}}>{inv.customer?.company}</div></td>
+                  <td>{inv.type === 'deposit' ? 'Anzahlung' : inv.type === 'monthly' ? 'Monatsrate' : inv.type}</td>
+                  <td>{fmtEur(inv.totals?.gross)}</td>
+                  <td><span className="adm-badge" style={{background:is.c+'22',color:is.c}}>{is.l}</span></td>
+                  <td><span className="adm-badge" style={{background:ps.c+'22',color:ps.c}}>{ps.l}</span></td>
+                  <td>{fmtDate(inv.created_at)}</td>
+                  <td style={{display:'flex',gap:'4px'}}>
+                    {inv.payment_status !== 'paid' && <button className="adm-btn-sm" onClick={()=>markPaid(inv.invoice_id)} disabled={!!commBusy} title="Als bezahlt markieren" data-testid={`pay-${inv.invoice_id}`}><I n="paid" /></button>}
+                    <button className="adm-btn-sm" onClick={()=>sendInvoice(inv.invoice_id)} disabled={!!commBusy} title="Per E-Mail senden" data-testid={`send-inv-${inv.invoice_id}`}><I n="send" /></button>
+                    <a className="adm-btn-sm" href={`${API}/api/documents/invoice/${inv.invoice_id}/pdf`} target="_blank" rel="noreferrer"><I n="picture_as_pdf" /></a>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
   /* ══════════ MAIN LAYOUT ══════════ */
   const navItems = [
     { id: 'dashboard', icon: 'dashboard', label: 'Dashboard' },
+    { id: 'commercial', icon: 'receipt_long', label: 'Commercial' },
     { id: 'leads', icon: 'people', label: 'Leads' },
     { id: 'calendar', icon: 'calendar_month', label: 'Kalender' },
     { id: 'customers', icon: 'person_search', label: 'Kunden' },
@@ -487,6 +638,7 @@ const Admin = () => {
         </header>
         <div className="adm-content">
           {view === 'dashboard' && <DashboardView />}
+          {view === 'commercial' && <CommercialView />}
           {view === 'leads' && <LeadsView />}
           {view === 'calendar' && <CalendarView />}
           {view === 'customers' && <CustomersView />}

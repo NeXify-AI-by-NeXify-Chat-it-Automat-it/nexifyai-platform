@@ -96,12 +96,56 @@ Custom-Modelle, On-Premise Deployments, dedizierte Infrastruktur, SLA-gesichert.
 **Web- & Mobile-App Entwicklung**
 Kundenportale, interne Tools, Workflow-Apps und KI-Ökosysteme — maßgeschneidert, DSGVO-konform, mit nativer KI-Integration.
 
-TARIFE:
-- **Starter** — ab 1.900 EUR/Mo: 2 KI-Agenten, Shared Infrastructure, E-Mail-Support
-- **Growth** — ab 4.500 EUR/Mo: 10 KI-Agenten, Private Cloud, Priority Support, CRM/ERP-Kit
-- **Enterprise** — individuell: Unlimitiert, On-Premise, Custom LLM Training, SLA
+TARIFE (FINALE PREISE — Single Source of Truth):
+
+1. **Starter AI Agenten AG** (NXA-SAA-24-499)
+   - Tarifpreis: 499 EUR/Monat (netto) bei 24 Monaten Laufzeit
+   - Gesamtvertragswert: 11.976 EUR (netto)
+   - Aktivierungsanzahlung (30 %): 3.592,80 EUR (netto), sofort fällig bei Beauftragung
+   - Monatliche Folgerate: 349,30 EUR (netto) über 24 Monate
+   - 2 KI-Agenten, Shared Cloud, E-Mail-Support (48h), REST-API-Integrationen
+
+2. **Growth AI Agenten AG** (NXA-GAA-24-1299)
+   - Tarifpreis: 1.299 EUR/Monat (netto) bei 24 Monaten Laufzeit
+   - Gesamtvertragswert: 31.176 EUR (netto)
+   - Aktivierungsanzahlung (30 %): 9.352,80 EUR (netto), sofort fällig bei Beauftragung
+   - Monatliche Folgerate: 909,30 EUR (netto) über 24 Monate
+   - 10 KI-Agenten, Private Cloud, Priority Support (24h), CRM/ERP-Kit (SAP, HubSpot, Salesforce), dedizierter Onboarding-Manager
+
+PREISKOMMUNIKATION:
+- Stelle die 30-%-Anzahlung immer als **Aktivierungsanzahlung** dar (strategischer Projektstart, Priorisierung, Setup, Kapazitätsreservierung)
+- Weise immer explizit aus: Die Anzahlung ist Teil des Gesamtvertragswerts — keine zusätzliche Gebühr
+- Alle Preise zzgl. gesetzlicher USt. (21 % NL / 19 % DE)
+- Keine versteckten Kosten. Keine irreführende Darstellung
 
 Das Erstgespräch ist immer unverbindlich und kostenfrei.
+
+ANGEBOTSANFRAGE / DISCOVERY FLOW:
+Wenn ein Interessent konkretes Interesse an einem Tarif zeigt oder ein Angebot anfordert, führe eine strukturierte Discovery durch.
+Sammle folgende Informationen — IMMER in einem natürlichen, dialogischen Fluss (keine Formularabfrage!):
+
+**Pflichtfelder:**
+1. Name (Vor- und Nachname)
+2. Unternehmen
+3. Geschäftliche E-Mail-Adresse
+4. Land
+5. Gewünschter Tarif (Starter oder Growth)
+6. Branche
+7. Use Case / Zielbild
+
+**Optionale Vertiefung:**
+8. Telefon
+9. Vorhandene Systeme/Tools (ERP, CRM, etc.)
+10. Gewünschte Automationen
+11. Gewünschte Kanäle (E-Mail, Chat, Voice, etc.)
+12. Datenschutz-/DSGVO-Relevanz
+13. Timeline
+14. Besondere Anforderungen
+
+Wenn alle Pflichtfelder gesammelt sind, gib EXAKT dieses Format aus (eingebettet in deine Antwort):
+[OFFER_REQUEST]{"name":"Vorname Nachname","company":"Firmenname","email":"email@domain.com","phone":"optional","country":"DE","industry":"Branche","tier":"starter oder growth","use_case":"Beschreibung","target_systems":"SAP, HubSpot etc","automations":"Vertrieb, Support etc","channels":"E-Mail, Chat etc","gdpr_relevant":true,"timeline":"Q2 2026","special_requirements":"optional"}[/OFFER_REQUEST]
+
+Danach bestätige: "Ich habe Ihr Angebot erstellt. Sie erhalten es in Kürze per E-Mail — inklusive PDF und sicherem Zugangslink zur Online-Annahme."
 
 GESPRÄCHSFÜHRUNG — PROAKTIV, EINLADEND, LEAD-ORIENTIERT:
 
@@ -657,6 +701,92 @@ async def chat_message(data: ChatMessage, request: Request):
                     logger.info(f"Chat booking created: {bk_id}")
                 except Exception as e:
                     logger.error(f"Chat booking error: {e}")
+
+            # Check for offer request in LLM response
+            offer_match = re.search(r'\[OFFER_REQUEST\](.*?)\[/OFFER_REQUEST\]', response_text, re.DOTALL)
+            if offer_match:
+                try:
+                    offer_data = json.loads(offer_match.group(1))
+                    tier = offer_data.get("tier", "starter")
+                    from commercial import calc_contract as cc, get_tariff as gt, get_next_number as gnn
+                    from commercial import generate_quote_pdf as gqpdf, generate_access_token as gat
+                    calc = cc(tier)
+                    if calc:
+                        qnum = await gnn(db, "quote")
+                        now_q = datetime.now(timezone.utc)
+                        tariff = gt(tier)
+                        quote_obj = {
+                            "quote_id": f"q_{secrets.token_hex(8)}",
+                            "quote_number": qnum,
+                            "status": "generated",
+                            "tier": tier,
+                            "tariff_number": tariff.get("tariff_number", ""),
+                            "customer": {
+                                "name": offer_data.get("name", ""),
+                                "email": offer_data.get("email", ""),
+                                "company": offer_data.get("company", ""),
+                                "phone": offer_data.get("phone", ""),
+                                "country": offer_data.get("country", ""),
+                                "industry": offer_data.get("industry", ""),
+                            },
+                            "discovery": {
+                                "session_id": data.session_id,
+                                "use_case": offer_data.get("use_case", ""),
+                                "target_systems": offer_data.get("target_systems", ""),
+                                "automations": offer_data.get("automations", ""),
+                                "channels": offer_data.get("channels", ""),
+                                "gdpr_relevant": offer_data.get("gdpr_relevant", True),
+                                "timeline": offer_data.get("timeline", ""),
+                                "special_requirements": offer_data.get("special_requirements", ""),
+                            },
+                            "calculation": calc,
+                            "date": now_q.strftime("%d.%m.%Y"),
+                            "valid_until": (now_q + timedelta(days=30)).isoformat(),
+                            "created_at": now_q.isoformat(),
+                            "created_by": "ai_advisor",
+                            "history": [{"action": "generated_from_chat", "at": now_q.isoformat(), "by": "ai_advisor", "session": data.session_id}],
+                        }
+                        await db.quotes.insert_one(quote_obj)
+                        quote_obj.pop("_id", None)
+                        pdf_bytes = gqpdf(quote_obj)
+                        await db.documents.insert_one({
+                            "doc_id": f"doc_{secrets.token_hex(8)}", "type": "quote",
+                            "ref_id": quote_obj["quote_id"], "number": qnum,
+                            "pdf_data": pdf_bytes, "created_at": now_q.isoformat(),
+                        })
+                        tok = gat(offer_data.get("email", ""), "quote")
+                        await db.access_links.insert_one({
+                            "token_hash": tok["token_hash"], "customer_email": offer_data.get("email", ""),
+                            "quote_id": quote_obj["quote_id"], "document_type": "quote",
+                            "expires_at": tok["expires_at"], "created_at": tok["created_at"], "created_by": "ai_advisor",
+                        })
+                        if RESEND_API_KEY:
+                            import base64, asyncio as aio
+                            pdf_b64 = base64.b64encode(pdf_bytes).decode()
+                            frontend_url = os.environ.get("FRONTEND_URL", "https://nexifyai.de")
+                            portal_link = f"{frontend_url}/angebot?token={tok['token']}&qid={quote_obj['quote_id']}"
+                            aio.create_task(send_email(
+                                [offer_data["email"]],
+                                f"Ihr Angebot von NeXifyAI — {calc.get('tier_name','')}",
+                                email_template("Ihr Angebot",
+                                    f'''<h1 style="color:#fff;font-size:22px;margin:0 0 16px;">Ihr persoenliches Angebot</h1>
+                                    <p>Sehr geehrte/r {offer_data.get("name","")},</p>
+                                    <p>basierend auf unserem Gespraech haben wir Ihr individuelles Angebot erstellt.</p>
+                                    <div style="background:#252a32;padding:20px;margin:20px 0;border-left:3px solid #ffb599;">
+                                    <p style="margin:0 0 4px;font-size:12px;color:#8f9095;">TARIF</p>
+                                    <p style="margin:0 0 8px;color:#ffb599;font-weight:600;">{calc.get("tier_name","")}</p>
+                                    <p style="margin:0 0 4px;font-size:12px;color:#8f9095;">GESAMTVERTRAGSWERT</p>
+                                    <p style="margin:0;color:#fff;font-weight:600;">{calc.get("total_contract_eur",0):,.2f} EUR</p>
+                                    </div>''',
+                                    portal_link, "Angebot oeffnen"
+                                ),
+                            ))
+                        qualification["offer_generated"] = quote_obj["quote_id"]
+                        actions.append({"type": "offer_generated", "quote_id": quote_obj["quote_id"], "quote_number": qnum, "pdf_url": f"/api/documents/quote/{quote_obj['quote_id']}/pdf"})
+                        logger.info(f"Chat offer created: {qnum}")
+                except Exception as e:
+                    logger.error(f"Chat offer generation error: {e}")
+                response_text = re.sub(r'\[OFFER_REQUEST\].*?\[/OFFER_REQUEST\]', '', response_text, flags=re.DOTALL).strip()
             
             # Detect qualification from message
             msg_lower = data.message.lower()
@@ -703,7 +833,7 @@ def generate_response_fallback(message: str, history: list, qual: dict) -> str:
     elif "termin" in msg or "buchen" in msg or "gespräch" in msg:
         return "Ich kann direkt hier einen **kostenlosen Beratungstermin** für Sie buchen. Dafür benötige ich:\n\n1. Ihren **Vornamen**\n2. Ihren **Nachnamen**\n3. Ihre **geschäftliche E-Mail-Adresse**\n\nDas Strategiegespräch dauert 30 Minuten und ist vollkommen unverbindlich. Wie heißen Sie?"
     elif "preis" in msg or "kosten" in msg or "tarif" in msg:
-        return "Unsere Tarife sind transparent strukturiert:\n\n- **Starter** — ab 1.900 EUR/Mo: 2 KI-Agenten, Shared Infrastructure\n- **Growth** — ab 4.500 EUR/Mo: 10 KI-Agenten, Private Cloud, CRM/ERP-Kit\n- **Enterprise** — individuell: Unlimitiert, On-Premise, Custom LLM Training\n\nDas Erstgespräch ist **immer unverbindlich und kostenfrei**. Soll ich einen Termin für Sie einrichten?"
+        return "Unsere Tarife im Ueberblick:\n\n- **Starter AI Agenten AG** — 499 EUR/Monat (netto): 2 KI-Agenten, Shared Cloud, E-Mail-Support (48h)\n- **Growth AI Agenten AG** — 1.299 EUR/Monat (netto): 10 KI-Agenten, Private Cloud, Priority Support, CRM/ERP-Kit\n\nBeide Tarife laufen ueber **24 Monate**. Bei Beauftragung wird eine **Aktivierungsanzahlung von 30 %** faellig — sie deckt Projektstart, Setup und Kapazitaetsreservierung.\n\nDas Erstgespraech ist **immer unverbindlich und kostenfrei**. Soll ich einen Termin oder direkt ein individuelles Angebot fuer Sie erstellen?"
     elif "daten" in msg or "dsgvo" in msg or "sicher" in msg:
         return "**Datenschutz und Sicherheit** sind bei NeXifyAI fundamental verankert:\n\n- **DSGVO/AVG-konform** — vollständige Compliance mit europäischem Datenschutzrecht\n- **Deutsche/EU-Rechenzentren** — keine Datenübertragung in Drittländer\n- **RBAC-Zugriffskontrolle** — granulare Berechtigungen auf Rollen- und Feldebene\n- **Vollständige Audit-Logs** — lückenlose Nachverfolgung aller Aktivitäten\n\nHaben Sie spezifische Compliance-Anforderungen, die wir berücksichtigen sollten?"
     else:
@@ -965,14 +1095,18 @@ async def admin_calendar_data(user = Depends(get_current_admin), month: str = No
     return {"bookings": bookings, "blocked_slots": blocked, "month": month}
 
 
+
 # ═══════════════════════════════════════════════════════════════════
-# COMMERCIAL ENGINE — Starter AI Agenten AG
+# COMMERCIAL ENGINE v2.0 — Source of Truth: commercial.py
 # ═══════════════════════════════════════════════════════════════════
+from io import BytesIO
 from commercial import (
-    COMPANY_DATA, STARTER_PRODUCT, calc_contract,
-    get_next_number, create_revolut_order, get_revolut_order,
+    COMPANY_DATA as COMM_COMPANY, TARIFF_CONFIG, VAT_RATE,
+    calc_contract, get_tariff, get_next_number,
+    create_revolut_order, get_revolut_order,
     generate_access_token, verify_access_token,
-    generate_quote_pdf, generate_invoice_pdf
+    generate_quote_pdf, generate_invoice_pdf,
+    get_commercial_faq,
 )
 from fastapi.responses import StreamingResponse
 
@@ -983,109 +1117,114 @@ class QuoteRequest(BaseModel):
     customer_email: EmailStr
     customer_company: str = ""
     customer_phone: str = ""
+    customer_country: str = ""
+    customer_industry: str = ""
+    use_case: str = ""
     notes: str = ""
-    custom_monthly_net: Optional[int] = None
 
 
-class InvoiceCreateRequest(BaseModel):
-    quote_id: str
-    type: str = "deposit"
+class OfferDiscoveryRequest(BaseModel):
+    """From AI chat discovery flow"""
+    session_id: str
+    tier: str
+    customer_name: str
+    customer_email: EmailStr
+    customer_company: str = ""
+    customer_phone: str = ""
+    customer_country: str = ""
+    customer_industry: str = ""
+    use_case: str = ""
+    target_systems: str = ""
+    automations: str = ""
+    channels: str = ""
+    gdpr_relevant: bool = True
+    timeline: str = ""
+    special_requirements: str = ""
 
 
 # --- Product Info (Public) ---
 
-@app.get("/api/product/starter")
-async def get_starter_product():
-    """Public endpoint: Starter AI Agenten AG product info"""
-    tiers = {}
-    for key, tier in STARTER_PRODUCT["tiers"].items():
-        t = {**tier}
-        if t.get("monthly_net"):
-            calc = calc_contract(key)
-            t["calculation"] = {k: v for k, v in calc.items() if k != "tier"}
-        tiers[key] = t
+@app.get("/api/product/tariffs")
+async def get_tariffs():
+    """Public endpoint: all active tariffs with calculations"""
+    tariffs = {}
+    for key, tariff in TARIFF_CONFIG.items():
+        if tariff.get("status") != "active":
+            continue
+        calc = calc_contract(key)
+        tariffs[key] = {
+            "tariff_number": tariff["tariff_number"],
+            "slug": tariff["slug"],
+            "name": tariff["name"],
+            "reference_monthly_eur": tariff["reference_monthly_eur"],
+            "contract_months": tariff["contract_months"],
+            "upfront_percent": tariff["upfront_percent"],
+            "agents": tariff["agents"],
+            "infrastructure": tariff["infrastructure"],
+            "support": tariff["support"],
+            "features": tariff["features"],
+            "recommended": tariff.get("recommended", False),
+            "calculation": calc,
+        }
     return {
-        "product": STARTER_PRODUCT["name"],
-        "contract_months": STARTER_PRODUCT["contract_months"],
-        "deposit_percent": STARTER_PRODUCT["deposit_percent"],
-        "tiers": tiers,
-        "company": COMPANY_DATA,
-        "currency": "EUR"
+        "tariffs": tariffs,
+        "company": {
+            "name": COMM_COMPANY["name"],
+            "brand": COMM_COMPANY["brand"],
+            "phone": COMM_COMPANY["phone"],
+            "email": COMM_COMPANY["email"],
+            "web": COMM_COMPANY["web"],
+        },
+        "currency": "EUR",
     }
 
 
 @app.get("/api/product/faq")
 async def get_product_faq():
-    """Public FAQ for Starter AI Agenten AG"""
-    return {"faq": [
-        {"q": "Was ist Starter AI Agenten AG?",
-         "a": "Starter AI Agenten AG ist das Kernprodukt von NeXifyAI — ein vollständig verwaltetes KI-Agenten-System, das Ihre Geschäftsprozesse automatisiert. Je nach Tarif erhalten Sie 2 bis unlimitierte KI-Agenten, die nahtlos in Ihre bestehenden Systeme integriert werden."},
-        {"q": "Für wen ist das Produkt geeignet?",
-         "a": "Für mittelständische Unternehmen und Konzerne im DACH- und Benelux-Raum, die repetitive Prozesse in Vertrieb, Kundenservice, HR, Finanzen oder Operations automatisieren möchten."},
-        {"q": "Welche Leistungen sind im Starter-Tarif enthalten?",
-         "a": "2 KI-Agenten, Shared Cloud Infrastructure, E-Mail-Support (48h), Basis-Integrationen (REST API), Standard-Monitoring und monatliches Reporting."},
-        {"q": "Wie funktioniert die 24-Monats-Laufzeit?",
-         "a": "Der Vertrag läuft über 24 Monate ab Beauftragung. Dies ermöglicht eine nachhaltige Implementierung, Optimierung und kontinuierliche Weiterentwicklung Ihrer KI-Agenten."},
-        {"q": "Wie funktioniert die 30-%-Anzahlung?",
-         "a": "Bei Beauftragung wird eine Anzahlung von 30 % des Gesamtvertragswerts fällig. Diese deckt die Initialisierung, Kapazitätsreservierung und das strategische Onboarding ab. Der Restbetrag wird in 23 gleichen monatlichen Raten abgerechnet."},
-        {"q": "Wann ist die Anzahlung fällig?",
-         "a": "Die Anzahlung ist sofort nach Angebotsannahme bzw. Beauftragung fällig. Sie erhalten umgehend eine Anzahlungsrechnung."},
-        {"q": "Wie erfolgt die Rechnungsstellung?",
-         "a": "Sie erhalten eine Anzahlungsrechnung bei Beauftragung und danach monatliche Rechnungen für den Restbetrag. Alle Rechnungen werden per E-Mail zugestellt und sind im Kundencenter abrufbar."},
-        {"q": "Kann per Überweisung bezahlt werden?",
-         "a": "Ja. Zusätzlich zur Online-Zahlung via Revolut akzeptieren wir klassische Banküberweisung."},
-        {"q": "Bankdaten für Zahlungen innerhalb des EWR",
-         "a": f"IBAN: {COMPANY_DATA['bank']['iban']}\nBIC: {COMPANY_DATA['bank']['bic']}\nKontoinhaber: {COMPANY_DATA['name']}"},
-        {"q": "Bankdaten für Zahlungen außerhalb des EWR",
-         "a": f"IBAN: {COMPANY_DATA['bank']['iban']}\nBIC: {COMPANY_DATA['bank']['bic']}\nBIC der zwischengeschalteten Bank: {COMPANY_DATA['bank']['intermediary_bic']}\nKontoinhaber: {COMPANY_DATA['name']}"},
-        {"q": "Wie funktioniert die Angebotsannahme?",
-         "a": "Nach dem Beratungsgespräch erhalten Sie ein individuelles Angebot per E-Mail. Dieses können Sie online annehmen oder per Rückbestätigung beauftragen. Nach Annahme wird die Anzahlungsrechnung erstellt."},
-        {"q": "Wie funktioniert die Zustellung von Angebot und Rechnung?",
-         "a": "Alle Dokumente werden digital per E-Mail zugestellt. Zusätzlich können Sie Ihre Dokumente jederzeit über einen sicheren, zeitlich begrenzten Zugangslink abrufen."},
-        {"q": "Wie erfolgt DSGVO-konformer Dokumentenzugriff?",
-         "a": "Über zeitlich begrenzte Magic-Links mit 24-Stunden-Gültigkeit. Es werden keine Passwörter per E-Mail versendet. Alle Zugriffe werden protokolliert."},
-        {"q": "Wie funktioniert Support?",
-         "a": f"Per E-Mail an {COMPANY_DATA['email']} oder telefonisch unter {COMPANY_DATA['phone']}. Im Growth-Tarif mit Priority-Response (24h), im Enterprise-Tarif mit SLA-gesichertem Support (4h)."},
-        {"q": "Was passiert nach Beauftragung?",
-         "a": "1. Anzahlungsrechnung wird erstellt und versendet\n2. Nach Zahlungseingang: Kickoff-Termin und Onboarding-Start\n3. Technische Integration und Agent-Konfiguration\n4. Testphase und Go-Live\n5. Laufende Optimierung und monatliches Reporting"}
-    ]}
+    """FAQ derived from central TARIFF_CONFIG"""
+    return {"faq": get_commercial_faq()}
 
 
 # --- Quote Management (Admin) ---
 
 @app.post("/api/admin/quotes")
 async def create_quote(req: QuoteRequest, current_user: dict = Depends(get_current_admin)):
-    """Create a new quote"""
-    calc = calc_contract(req.tier, req.custom_monthly_net)
-    if not calc or calc.get("requires_custom_quote"):
-        raise HTTPException(400, "Enterprise-Tarif erfordert individuelle Kalkulation")
+    """Create a new quote from admin"""
+    calc = calc_contract(req.tier)
+    if not calc:
+        raise HTTPException(400, "Ungueltiger Tarif")
 
     quote_number = await get_next_number(db, "quote")
     now = datetime.now(timezone.utc)
+    tariff = get_tariff(req.tier)
 
     quote = {
         "quote_id": f"q_{secrets.token_hex(8)}",
         "quote_number": quote_number,
         "status": "draft",
         "tier": req.tier,
+        "tariff_number": tariff.get("tariff_number", ""),
         "customer": {
             "name": req.customer_name,
             "email": req.customer_email,
             "company": req.customer_company,
-            "phone": req.customer_phone
+            "phone": req.customer_phone,
+            "country": req.customer_country,
+            "industry": req.customer_industry,
         },
+        "use_case": req.use_case,
         "calculation": calc,
         "notes": req.notes,
+        "date": now.strftime("%d.%m.%Y"),
         "valid_until": (now + timedelta(days=30)).isoformat(),
         "created_at": now.isoformat(),
         "created_by": current_user["email"],
-        "history": [{"action": "created", "at": now.isoformat(), "by": current_user["email"]}]
+        "history": [{"action": "created", "at": now.isoformat(), "by": current_user["email"]}],
     }
 
     await db.quotes.insert_one(quote)
-    del quote["_id"]
+    quote.pop("_id", None)
 
-    # Generate PDF
     pdf_bytes = generate_quote_pdf(quote)
     await db.documents.insert_one({
         "doc_id": f"doc_{secrets.token_hex(8)}",
@@ -1093,22 +1232,30 @@ async def create_quote(req: QuoteRequest, current_user: dict = Depends(get_curre
         "ref_id": quote["quote_id"],
         "number": quote_number,
         "pdf_data": pdf_bytes,
-        "created_at": now.isoformat()
+        "created_at": now.isoformat(),
     })
 
+    await _log_event(db, "offer_generated", quote["quote_id"], current_user["email"])
     return {"quote": quote, "pdf_available": True}
 
 
 @app.get("/api/admin/quotes")
 async def list_quotes(current_user: dict = Depends(get_current_admin)):
-    """List all quotes"""
     quotes = await db.quotes.find({}, {"_id": 0, "history": 0}).sort("created_at", -1).to_list(200)
     return {"quotes": quotes}
 
 
+@app.get("/api/admin/quotes/{quote_id}")
+async def get_quote_detail(quote_id: str, current_user: dict = Depends(get_current_admin)):
+    quote = await db.quotes.find_one({"quote_id": quote_id}, {"_id": 0})
+    if not quote:
+        raise HTTPException(404, "Angebot nicht gefunden")
+    return quote
+
+
 @app.post("/api/admin/quotes/{quote_id}/send")
 async def send_quote(quote_id: str, current_user: dict = Depends(get_current_admin)):
-    """Send quote to customer via email"""
+    """Send quote to customer via email with magic link"""
     quote = await db.quotes.find_one({"quote_id": quote_id}, {"_id": 0})
     if not quote:
         raise HTTPException(404, "Angebot nicht gefunden")
@@ -1121,32 +1268,50 @@ async def send_quote(quote_id: str, current_user: dict = Depends(get_current_adm
     customer_email = quote["customer"]["email"]
     customer_name = quote["customer"].get("name", "")
     calc = quote.get("calculation", {})
-    tier_name = calc.get("tier_name", "")
+
+    token_data = generate_access_token(customer_email, "quote")
+    await db.access_links.insert_one({
+        "token_hash": token_data["token_hash"],
+        "customer_email": customer_email,
+        "quote_id": quote_id,
+        "document_type": "quote",
+        "expires_at": token_data["expires_at"],
+        "created_at": token_data["created_at"],
+        "created_by": "system",
+    })
+
+    frontend_url = os.environ.get("FRONTEND_URL", "https://nexifyai.de")
+    portal_link = f"{frontend_url}/angebot?token={token_data['token']}&qid={quote_id}"
 
     if RESEND_API_KEY:
         try:
             import base64
             pdf_b64 = base64.b64encode(doc["pdf_data"]).decode()
             resend.Emails.send({
-                "from": SENDER_EMAIL,
+                "from": f"NeXifyAI <{SENDER_EMAIL}>",
                 "to": customer_email,
-                "subject": f"Ihr Angebot von NeXifyAI — Starter AI Agenten AG ({tier_name})",
-                "html": f"""
-                <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a2e;">
-                    <div style="border-bottom: 2px solid #ff9b7a; padding-bottom: 16px; margin-bottom: 24px;">
-                        <h1 style="margin: 0; font-size: 20px;">NeXify<span style="color: #ff9b7a;">AI</span></h1>
-                    </div>
+                "subject": f"Ihr Angebot von NeXifyAI — {calc.get('tier_name', '')}",
+                "html": email_template(
+                    "Ihr Angebot",
+                    f'''<h1 style="color:#fff;font-size:22px;margin:0 0 16px;">Ihr persoenliches Angebot</h1>
                     <p>Sehr geehrte/r {customer_name},</p>
-                    <p>vielen Dank für Ihr Interesse an <strong>NeXify<span style="color: #ff9b7a;">AI</span></strong>. Anbei erhalten Sie Ihr persönliches Angebot für das Produkt <strong>Starter AI Agenten AG</strong> im Tarif <strong>{tier_name}</strong>.</p>
-                    <p>Das Angebot ist 30 Tage gültig. Bei Fragen stehen wir Ihnen jederzeit zur Verfügung.</p>
-                    <p>Mit freundlichen Grüßen,<br/><strong>Pascal Courbois</strong><br/>Geschäftsführer, NeXifyAI<br/>{COMPANY_DATA['phone']}</p>
-                </div>
-                """,
+                    <p>vielen Dank fuer Ihr Interesse an <strong style="color:#ffb599;">NeXifyAI</strong>.</p>
+                    <p>Anbei erhalten Sie Ihr Angebot fuer <strong>{calc.get("tier_name", "")}</strong>:</p>
+                    <div style="background:#252a32;padding:20px;margin:20px 0;border-left:3px solid #ffb599;">
+                    <p style="margin:0 0 8px;font-size:13px;color:#8f9095;">ANGEBOT</p>
+                    <p style="margin:0 0 4px;color:#fff;font-weight:600;">{quote.get("quote_number", "")}</p>
+                    <p style="margin:8px 0 0;font-size:13px;color:#8f9095;">GESAMTVERTRAGSWERT</p>
+                    <p style="margin:0;color:#ffb599;font-weight:600;">{calc.get("total_contract_eur", 0):,.2f} EUR (netto)</p>
+                    </div>
+                    <p>Oeffnen Sie das Angebot ueber den sicheren Link:</p>''',
+                    portal_link,
+                    "Angebot oeffnen"
+                ),
                 "attachments": [{
                     "filename": f"Angebot_{quote['quote_number'].replace('.', '_')}.pdf",
                     "content": pdf_b64,
-                    "content_type": "application/pdf"
-                }]
+                    "content_type": "application/pdf",
+                }],
             })
             logger.info(f"Quote {quote_id} sent to {customer_email}")
         except Exception as e:
@@ -1156,45 +1321,104 @@ async def send_quote(quote_id: str, current_user: dict = Depends(get_current_adm
     await db.quotes.update_one(
         {"quote_id": quote_id},
         {"$set": {"status": "sent", "sent_at": now.isoformat()},
-         "$push": {"history": {"action": "sent", "at": now.isoformat(), "by": current_user["email"]}}}
+         "$push": {"history": {"action": "sent", "at": now.isoformat(), "by": current_user["email"]}}},
     )
+    await _log_event(db, "offer_sent", quote_id, current_user["email"])
     return {"sent": True, "to": customer_email}
 
 
-@app.post("/api/admin/quotes/{quote_id}/accept")
-async def accept_quote(quote_id: str, current_user: dict = Depends(get_current_admin)):
-    """Mark quote as accepted and create deposit invoice"""
+# --- Customer-Facing Offer Portal ---
+
+@app.get("/api/portal/quote/{quote_id}")
+async def portal_get_quote(quote_id: str, token: str):
+    """Customer access: view quote via magic link"""
+    link = await db.access_links.find_one({
+        "token_hash": hashlib.sha256(token.encode()).hexdigest(),
+        "quote_id": quote_id,
+    })
+    if not link:
+        raise HTTPException(403, "Zugangslink ungueltig")
+    if not verify_access_token(token, link["token_hash"], link["expires_at"]):
+        raise HTTPException(403, "Zugangslink abgelaufen")
+
+    quote = await db.quotes.find_one({"quote_id": quote_id}, {"_id": 0, "history": 0})
+    if not quote:
+        raise HTTPException(404, "Angebot nicht gefunden")
+
+    await _log_event(db, "offer_opened", quote_id, link.get("customer_email", "customer"))
+    await db.quotes.update_one(
+        {"quote_id": quote_id, "status": "sent"},
+        {"$set": {"status": "opened"},
+         "$push": {"history": {"action": "opened", "at": datetime.now(timezone.utc).isoformat(), "by": "customer"}}},
+    )
+
+    return {
+        "quote": quote,
+        "company": {
+            "name": COMM_COMPANY["name"],
+            "brand": COMM_COMPANY["brand"],
+            "phone": COMM_COMPANY["phone"],
+            "email": COMM_COMPANY["email"],
+        },
+    }
+
+
+@app.post("/api/portal/quote/{quote_id}/accept")
+async def portal_accept_quote(quote_id: str, token: str, request: Request):
+    """Customer accepts the quote — triggers invoice + payment"""
+    link = await db.access_links.find_one({
+        "token_hash": hashlib.sha256(token.encode()).hexdigest(),
+        "quote_id": quote_id,
+    })
+    if not link or not verify_access_token(token, link["token_hash"], link["expires_at"]):
+        raise HTTPException(403, "Zugangslink ungueltig oder abgelaufen")
+
     quote = await db.quotes.find_one({"quote_id": quote_id}, {"_id": 0})
     if not quote:
         raise HTTPException(404, "Angebot nicht gefunden")
+    if quote.get("status") in ("accepted", "declined"):
+        raise HTTPException(400, f"Angebot bereits {quote['status']}")
 
     now = datetime.now(timezone.utc)
     calc = quote.get("calculation", {})
 
-    # Create deposit invoice
+    audit = {
+        "action": "offer_accepted",
+        "quote_id": quote_id,
+        "quote_number": quote.get("quote_number"),
+        "customer_email": quote["customer"]["email"],
+        "ip": request.client.host if request.client else "unknown",
+        "user_agent": request.headers.get("user-agent", ""),
+        "timestamp": now.isoformat(),
+    }
+    await db.audit_log.insert_one(audit)
+
     invoice_number = await get_next_number(db, "invoice")
     due_date = (now + timedelta(days=14)).strftime("%d.%m.%Y")
-    deposit_net = calc.get("deposit_net", 0)
-    vat_rate = calc.get("vat_rate", 21)
-    deposit_vat = int(deposit_net * vat_rate / 100)
-    deposit_gross = deposit_net + deposit_vat
+    upfront_net = calc.get("upfront_eur", 0)
+    vat = round(upfront_net * VAT_RATE / 100, 2)
+    gross = round(upfront_net + vat, 2)
+
+    tariff = get_tariff(calc.get("tier", "starter"))
+    payment_product = tariff.get("payment_products", {}).get("activation", {})
 
     invoice = {
         "invoice_id": f"inv_{secrets.token_hex(8)}",
         "invoice_number": invoice_number,
         "type": "deposit",
-        "status": "open",
+        "product_code": payment_product.get("product_code", ""),
+        "status": "created",
         "quote_id": quote_id,
         "customer": quote["customer"],
         "items": [{
-            "description": f"Anzahlung (30 %) — Starter AI Agenten AG, Tarif {calc.get('tier_name', '')}",
-            "amount_net": deposit_net
+            "description": payment_product.get("description", f"Aktivierungsanzahlung (30 %) — {calc.get('tier_name', '')}"),
+            "amount_net": upfront_net,
         }],
         "totals": {
-            "net": deposit_net,
-            "vat_rate": vat_rate,
-            "vat": deposit_vat,
-            "gross": deposit_gross
+            "net": upfront_net,
+            "vat_rate": VAT_RATE,
+            "vat": vat,
+            "gross": gross,
         },
         "date": now.strftime("%d.%m.%Y"),
         "due_date": due_date,
@@ -1202,60 +1426,296 @@ async def accept_quote(quote_id: str, current_user: dict = Depends(get_current_a
         "payment_status": "pending",
         "revolut_order_id": None,
         "created_at": now.isoformat(),
-        "history": [{"action": "created", "at": now.isoformat(), "by": current_user["email"]}]
+        "history": [{"action": "created", "at": now.isoformat(), "by": "customer_acceptance"}],
     }
 
-    # Generate invoice PDF
     pdf_bytes = generate_invoice_pdf(invoice)
     await db.invoices.insert_one(invoice)
+    invoice.pop("_id", None)
+
     await db.documents.insert_one({
         "doc_id": f"doc_{secrets.token_hex(8)}",
         "type": "invoice",
         "ref_id": invoice["invoice_id"],
         "number": invoice_number,
         "pdf_data": pdf_bytes,
-        "created_at": now.isoformat()
+        "created_at": now.isoformat(),
     })
 
-    # Update quote status
     await db.quotes.update_one(
         {"quote_id": quote_id},
         {"$set": {"status": "accepted", "accepted_at": now.isoformat(), "invoice_id": invoice["invoice_id"]},
-         "$push": {"history": {"action": "accepted", "at": now.isoformat(), "by": current_user["email"]}}}
+         "$push": {"history": {"action": "accepted", "at": now.isoformat(), "by": "customer"}}},
     )
 
-    # Create Revolut payment order
+    amount_cents = int(gross * 100)
     revolut_result = await create_revolut_order(
-        amount_cents=deposit_gross,
+        amount_cents=amount_cents,
         currency="EUR",
         customer_email=quote["customer"]["email"],
-        description=f"NeXifyAI Anzahlung — {calc.get('tier_name', '')} ({invoice_number})",
-        merchant_order_id=invoice["invoice_id"]
+        description=f"NeXifyAI Aktivierungsanzahlung — {calc.get('tier_name', '')} ({invoice_number})",
+        merchant_order_id=invoice["invoice_id"],
     )
 
+    checkout_url = None
     if revolut_result.get("order_id"):
+        checkout_url = revolut_result.get("checkout_url")
         await db.invoices.update_one(
             {"invoice_id": invoice["invoice_id"]},
             {"$set": {
                 "revolut_order_id": revolut_result["order_id"],
                 "revolut_token": revolut_result.get("token"),
-                "checkout_url": revolut_result.get("checkout_url")
-            }}
+                "checkout_url": checkout_url,
+            }},
         )
-        invoice["revolut_order_id"] = revolut_result["order_id"]
-        invoice["checkout_url"] = revolut_result.get("checkout_url")
 
-    del invoice["_id"]
-    return {"invoice": invoice, "revolut": revolut_result, "pdf_available": True}
+    if RESEND_API_KEY:
+        try:
+            import base64
+            pdf_b64 = base64.b64encode(pdf_bytes).decode()
+            payment_cta = ""
+            if checkout_url:
+                payment_cta = f'<a href="{checkout_url}" style="display:inline-block;background:#ffb599;color:#5a1c00;padding:14px 28px;font-weight:700;text-decoration:none;margin:24px 0;">Jetzt online bezahlen</a>'
+
+            import asyncio
+            asyncio.create_task(send_email(
+                [quote["customer"]["email"]],
+                f"Angebotsannahme bestaetigt — Ihre Anzahlungsrechnung {invoice_number}",
+                email_template(
+                    "Angebotsannahme bestaetigt",
+                    f'''<h1 style="color:#fff;font-size:22px;margin:0 0 16px;">Vielen Dank fuer Ihre Beauftragung</h1>
+                    <p>Ihr Angebot <strong>{quote.get("quote_number", "")}</strong> wurde angenommen.</p>
+                    <div style="background:#252a32;padding:20px;margin:20px 0;border-left:3px solid #ffb599;">
+                    <p style="margin:0 0 4px;font-size:12px;color:#8f9095;">RECHNUNG</p>
+                    <p style="margin:0 0 8px;color:#fff;font-weight:600;">{invoice_number}</p>
+                    <p style="margin:0 0 4px;font-size:12px;color:#8f9095;">BETRAG (BRUTTO)</p>
+                    <p style="margin:0;color:#ffb599;font-weight:600;">{gross:,.2f} EUR</p>
+                    </div>
+                    {payment_cta}
+                    <p>Alternativ per Bankueberweisung:<br/>
+                    IBAN: {COMM_COMPANY["bank"]["iban"]}<br/>
+                    BIC: {COMM_COMPANY["bank"]["bic"]}<br/>
+                    Verwendungszweck: {invoice_number}</p>''',
+                ),
+            ))
+        except Exception as e:
+            logger.error(f"Acceptance email error: {e}")
+
+    await _log_event(db, "offer_accepted", quote_id, quote["customer"]["email"])
+
+    return {
+        "accepted": True,
+        "invoice_number": invoice_number,
+        "amount_gross": gross,
+        "due_date": due_date,
+        "checkout_url": checkout_url,
+        "bank_transfer": {
+            "iban": COMM_COMPANY["bank"]["iban"],
+            "bic": COMM_COMPANY["bank"]["bic"],
+            "reference": invoice_number,
+        },
+    }
+
+
+@app.post("/api/portal/quote/{quote_id}/decline")
+async def portal_decline_quote(quote_id: str, token: str, request: Request):
+    """Customer declines the quote"""
+    link = await db.access_links.find_one({
+        "token_hash": hashlib.sha256(token.encode()).hexdigest(),
+        "quote_id": quote_id,
+    })
+    if not link or not verify_access_token(token, link["token_hash"], link["expires_at"]):
+        raise HTTPException(403, "Zugangslink ungueltig oder abgelaufen")
+
+    body = {}
+    try:
+        body = await request.json()
+    except Exception:
+        pass
+
+    now = datetime.now(timezone.utc)
+    reason = body.get("reason", "")
+
+    await db.quotes.update_one(
+        {"quote_id": quote_id},
+        {"$set": {"status": "declined", "declined_at": now.isoformat(), "decline_reason": reason},
+         "$push": {"history": {"action": "declined", "at": now.isoformat(), "by": "customer", "reason": reason}}},
+    )
+    await _log_event(db, "offer_declined", quote_id, "customer")
+    return {"declined": True}
+
+
+@app.post("/api/portal/quote/{quote_id}/revision")
+async def portal_request_revision(quote_id: str, token: str, request: Request):
+    """Customer requests a revision"""
+    link = await db.access_links.find_one({
+        "token_hash": hashlib.sha256(token.encode()).hexdigest(),
+        "quote_id": quote_id,
+    })
+    if not link or not verify_access_token(token, link["token_hash"], link["expires_at"]):
+        raise HTTPException(403, "Zugangslink ungueltig oder abgelaufen")
+
+    body = {}
+    try:
+        body = await request.json()
+    except Exception:
+        pass
+
+    now = datetime.now(timezone.utc)
+    feedback = body.get("feedback", "")
+
+    await db.quotes.update_one(
+        {"quote_id": quote_id},
+        {"$set": {"status": "revision_requested", "revision_feedback": feedback},
+         "$push": {"history": {"action": "revision_requested", "at": now.isoformat(), "by": "customer", "feedback": feedback}}},
+    )
+    await _log_event(db, "offer_revision_requested", quote_id, "customer")
+
+    if RESEND_API_KEY:
+        quote = await db.quotes.find_one({"quote_id": quote_id}, {"_id": 0})
+        if quote:
+            import asyncio
+            asyncio.create_task(send_email(
+                NOTIFICATION_EMAILS,
+                f"[NeXifyAI] Aenderungswunsch: {quote.get('quote_number', '')}",
+                email_template("Aenderungswunsch",
+                    f'''<h1 style="color:#fff;font-size:20px;">Aenderungswunsch zum Angebot</h1>
+                    <p>Angebot: {quote.get("quote_number","")}</p>
+                    <p>Kunde: {quote["customer"].get("name","")}</p>
+                    <div style="background:#252a32;padding:16px;margin:16px 0;color:#c5c6cb;white-space:pre-wrap;">{feedback}</div>'''
+                ),
+            ))
+
+    return {"revision_requested": True}
+
+
+# --- AI Chat Discovery → Offer Generation ---
+
+@app.post("/api/chat/generate-offer")
+async def chat_generate_offer(data: OfferDiscoveryRequest, request: Request):
+    """Generate an offer from chat discovery data"""
+    await check_rate_limit(request, limit=5, window=60)
+
+    calc = calc_contract(data.tier)
+    if not calc:
+        raise HTTPException(400, "Ungueltiger Tarif")
+
+    quote_number = await get_next_number(db, "quote")
+    now = datetime.now(timezone.utc)
+    tariff = get_tariff(data.tier)
+
+    quote = {
+        "quote_id": f"q_{secrets.token_hex(8)}",
+        "quote_number": quote_number,
+        "status": "generated",
+        "tier": data.tier,
+        "tariff_number": tariff.get("tariff_number", ""),
+        "customer": {
+            "name": data.customer_name,
+            "email": data.customer_email,
+            "company": data.customer_company,
+            "phone": data.customer_phone,
+            "country": data.customer_country,
+            "industry": data.customer_industry,
+        },
+        "discovery": {
+            "session_id": data.session_id,
+            "use_case": data.use_case,
+            "target_systems": data.target_systems,
+            "automations": data.automations,
+            "channels": data.channels,
+            "gdpr_relevant": data.gdpr_relevant,
+            "timeline": data.timeline,
+            "special_requirements": data.special_requirements,
+        },
+        "calculation": calc,
+        "date": now.strftime("%d.%m.%Y"),
+        "valid_until": (now + timedelta(days=30)).isoformat(),
+        "created_at": now.isoformat(),
+        "created_by": "ai_advisor",
+        "history": [{"action": "generated_from_chat", "at": now.isoformat(), "by": "ai_advisor", "session": data.session_id}],
+    }
+
+    await db.quotes.insert_one(quote)
+    quote.pop("_id", None)
+
+    pdf_bytes = generate_quote_pdf(quote)
+    await db.documents.insert_one({
+        "doc_id": f"doc_{secrets.token_hex(8)}",
+        "type": "quote",
+        "ref_id": quote["quote_id"],
+        "number": quote_number,
+        "pdf_data": pdf_bytes,
+        "created_at": now.isoformat(),
+    })
+
+    await _log_event(db, "offer_generated", quote["quote_id"], "ai_advisor")
+
+    token_data = generate_access_token(data.customer_email, "quote")
+    await db.access_links.insert_one({
+        "token_hash": token_data["token_hash"],
+        "customer_email": data.customer_email,
+        "quote_id": quote["quote_id"],
+        "document_type": "quote",
+        "expires_at": token_data["expires_at"],
+        "created_at": token_data["created_at"],
+        "created_by": "ai_advisor",
+    })
+
+    frontend_url = os.environ.get("FRONTEND_URL", "https://nexifyai.de")
+    portal_link = f"{frontend_url}/angebot?token={token_data['token']}&qid={quote['quote_id']}"
+
+    if RESEND_API_KEY:
+        try:
+            import base64
+            pdf_b64 = base64.b64encode(pdf_bytes).decode()
+            import asyncio
+            asyncio.create_task(send_email(
+                [data.customer_email],
+                f"Ihr Angebot von NeXifyAI — {calc.get('tier_name', '')}",
+                email_template("Ihr Angebot",
+                    f'''<h1 style="color:#fff;font-size:22px;margin:0 0 16px;">Ihr persoenliches Angebot</h1>
+                    <p>Sehr geehrte/r {data.customer_name},</p>
+                    <p>basierend auf unserem Gespraech haben wir Ihr individuelles Angebot erstellt.</p>
+                    <div style="background:#252a32;padding:20px;margin:20px 0;border-left:3px solid #ffb599;">
+                    <p style="margin:0 0 4px;font-size:12px;color:#8f9095;">TARIF</p>
+                    <p style="margin:0 0 8px;color:#ffb599;font-weight:600;">{calc.get("tier_name","")}</p>
+                    <p style="margin:0 0 4px;font-size:12px;color:#8f9095;">GESAMTVERTRAGSWERT</p>
+                    <p style="margin:0;color:#fff;font-weight:600;">{calc.get("total_contract_eur",0):,.2f} EUR</p>
+                    </div>''',
+                    portal_link,
+                    "Angebot oeffnen"
+                ),
+            ))
+        except Exception as e:
+            logger.error(f"Chat offer email error: {e}")
+
+    return {
+        "quote_id": quote["quote_id"],
+        "quote_number": quote_number,
+        "tier_name": calc.get("tier_name", ""),
+        "total_contract_eur": calc.get("total_contract_eur", 0),
+        "upfront_gross": calc.get("upfront_gross", 0),
+        "pdf_download_url": f"/api/documents/quote/{quote['quote_id']}/pdf",
+        "portal_link": portal_link,
+        "sent_to": data.customer_email,
+    }
 
 
 # --- Invoice Management (Admin) ---
 
 @app.get("/api/admin/invoices")
 async def list_invoices(current_user: dict = Depends(get_current_admin)):
-    """List all invoices"""
     invoices = await db.invoices.find({}, {"_id": 0, "history": 0}).sort("created_at", -1).to_list(200)
     return {"invoices": invoices}
+
+
+@app.get("/api/admin/invoices/{invoice_id}")
+async def get_invoice_detail(invoice_id: str, current_user: dict = Depends(get_current_admin)):
+    invoice = await db.invoices.find_one({"invoice_id": invoice_id}, {"_id": 0})
+    if not invoice:
+        raise HTTPException(404, "Rechnung nicht gefunden")
+    return invoice
 
 
 @app.post("/api/admin/invoices/{invoice_id}/send")
@@ -1273,7 +1733,7 @@ async def send_invoice(invoice_id: str, current_user: dict = Depends(get_current
     customer_email = invoice["customer"]["email"]
     customer_name = invoice["customer"].get("name", "")
 
-    type_labels = {"deposit": "Anzahlungsrechnung", "monthly": "Monatsrechnung", "final": "Schlussrechnung"}
+    type_labels = {"deposit": "Aktivierungsanzahlung", "monthly": "Monatsrechnung", "final": "Schlussrechnung"}
     inv_label = type_labels.get(invoice.get("type", "deposit"), "Rechnung")
 
     if RESEND_API_KEY:
@@ -1283,34 +1743,38 @@ async def send_invoice(invoice_id: str, current_user: dict = Depends(get_current
             checkout_url = invoice.get("checkout_url", "")
             payment_html = ""
             if checkout_url:
-                payment_html = f'<p><a href="{checkout_url}" style="display:inline-block;padding:12px 24px;background:#ff9b7a;color:#0c1117;text-decoration:none;font-weight:bold;border-radius:6px;">Jetzt online bezahlen</a></p>'
+                payment_html = f'<a href="{checkout_url}" style="display:inline-block;padding:12px 24px;background:#ffb599;color:#0c1117;text-decoration:none;font-weight:bold;border-radius:6px;">Jetzt online bezahlen</a>'
+
+            totals = invoice.get("totals", {})
+            gross_val = totals.get("gross", 0)
+            gross_str = f"{gross_val:,.2f} EUR" if isinstance(gross_val, (int, float)) else str(gross_val)
 
             resend.Emails.send({
-                "from": SENDER_EMAIL,
+                "from": f"NeXifyAI <{SENDER_EMAIL}>",
                 "to": customer_email,
                 "subject": f"{inv_label} {invoice['invoice_number']} — NeXifyAI",
-                "html": f"""
-                <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a2e;">
-                    <div style="border-bottom: 2px solid #ff9b7a; padding-bottom: 16px; margin-bottom: 24px;">
-                        <h1 style="margin: 0; font-size: 20px;">NeXify<span style="color: #ff9b7a;">AI</span></h1>
-                    </div>
+                "html": email_template(
+                    inv_label,
+                    f'''<h1 style="color:#fff;font-size:22px;margin:0 0 16px;">{inv_label}</h1>
                     <p>Sehr geehrte/r {customer_name},</p>
-                    <p>anbei erhalten Sie Ihre <strong>{inv_label}</strong> Nr. <strong>{invoice['invoice_number']}</strong>.</p>
-                    <p><strong>Betrag:</strong> {invoice['totals']['gross'] / 100:,.2f} EUR (brutto)<br/>
-                    <strong>Fällig am:</strong> {invoice.get('due_date', '—')}</p>
+                    <p>anbei erhalten Sie Ihre {inv_label} Nr. {invoice["invoice_number"]}.</p>
+                    <div style="background:#252a32;padding:20px;margin:20px 0;border-left:3px solid #ffb599;">
+                    <p style="margin:0 0 4px;font-size:12px;color:#8f9095;">BETRAG (BRUTTO)</p>
+                    <p style="margin:0 0 8px;color:#ffb599;font-weight:600;">{gross_str}</p>
+                    <p style="margin:0 0 4px;font-size:12px;color:#8f9095;">FAELLIG AM</p>
+                    <p style="margin:0;color:#fff;">{invoice.get("due_date","---")}</p>
+                    </div>
                     {payment_html}
-                    <p>Alternativ per Überweisung:<br/>
-                    IBAN: {COMPANY_DATA['bank']['iban']}<br/>
-                    BIC: {COMPANY_DATA['bank']['bic']}<br/>
-                    Verwendungszweck: {invoice['invoice_number']}</p>
-                    <p>Mit freundlichen Grüßen,<br/><strong>NeXifyAI</strong></p>
-                </div>
-                """,
+                    <p>Alternativ per Bankueberweisung:<br/>
+                    IBAN: {COMM_COMPANY["bank"]["iban"]}<br/>
+                    BIC: {COMM_COMPANY["bank"]["bic"]}<br/>
+                    Verwendungszweck: {invoice["invoice_number"]}</p>''',
+                ),
                 "attachments": [{
                     "filename": f"Rechnung_{invoice['invoice_number'].replace('.', '_')}.pdf",
                     "content": pdf_b64,
-                    "content_type": "application/pdf"
-                }]
+                    "content_type": "application/pdf",
+                }],
             })
         except Exception as e:
             logger.error(f"Invoice email error: {e}")
@@ -1319,8 +1783,9 @@ async def send_invoice(invoice_id: str, current_user: dict = Depends(get_current
     await db.invoices.update_one(
         {"invoice_id": invoice_id},
         {"$set": {"status": "sent", "sent_at": now.isoformat()},
-         "$push": {"history": {"action": "sent", "at": now.isoformat(), "by": current_user["email"]}}}
+         "$push": {"history": {"action": "sent", "at": now.isoformat(), "by": current_user["email"]}}},
     )
+    await _log_event(db, "invoice_sent", invoice_id, current_user["email"])
     return {"sent": True, "to": customer_email}
 
 
@@ -1330,21 +1795,20 @@ async def mark_invoice_paid(invoice_id: str, current_user: dict = Depends(get_cu
     now = datetime.now(timezone.utc)
     result = await db.invoices.update_one(
         {"invoice_id": invoice_id},
-        {"$set": {"payment_status": "paid", "paid_at": now.isoformat(), "status": "paid"},
-         "$push": {"history": {"action": "marked_paid", "at": now.isoformat(), "by": current_user["email"]}}}
+        {"$set": {"payment_status": "paid", "paid_at": now.isoformat(), "status": "payment_completed"},
+         "$push": {"history": {"action": "marked_paid", "at": now.isoformat(), "by": current_user["email"]}}},
     )
     if result.modified_count == 0:
         raise HTTPException(404, "Rechnung nicht gefunden")
 
-    # Update related quote
     invoice = await db.invoices.find_one({"invoice_id": invoice_id})
     if invoice and invoice.get("quote_id"):
         await db.quotes.update_one(
             {"quote_id": invoice["quote_id"]},
             {"$set": {"payment_status": "deposit_paid"},
-             "$push": {"history": {"action": "deposit_paid", "at": now.isoformat(), "by": current_user["email"]}}}
+             "$push": {"history": {"action": "deposit_paid", "at": now.isoformat(), "by": current_user["email"]}}},
         )
-
+    await _log_event(db, "payment_completed", invoice_id, current_user["email"])
     return {"paid": True}
 
 
@@ -1357,25 +1821,17 @@ async def download_document(doc_type: str, ref_id: str, token: str = None):
     if not doc:
         raise HTTPException(404, "Dokument nicht gefunden")
 
-    # Access control: either admin token or magic link
     if token:
         link = await db.access_links.find_one({"token_hash": hashlib.sha256(token.encode()).hexdigest()})
         if not link or not verify_access_token(token, link["token_hash"], link["expires_at"]):
-            raise HTTPException(403, "Zugangslink ungültig oder abgelaufen")
-        # Log access
-        await db.audit_log.insert_one({
-            "event": "document_access",
-            "doc_type": doc_type,
-            "ref_id": ref_id,
-            "method": "magic_link",
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        })
+            raise HTTPException(403, "Zugangslink ungueltig oder abgelaufen")
+        await _log_event(db, "document_accessed", ref_id, "magic_link")
 
     filename = f"{doc_type}_{doc.get('number', ref_id).replace('.', '_')}.pdf"
     return StreamingResponse(
         BytesIO(doc["pdf_data"]),
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 
 
@@ -1383,14 +1839,13 @@ async def download_document(doc_type: str, ref_id: str, token: str = None):
 
 @app.post("/api/admin/access-link")
 async def create_access_link(customer_email: str = "", current_user: dict = Depends(get_current_admin)):
-    """Generate a magic link for customer document access"""
     token_data = generate_access_token(customer_email)
     await db.access_links.insert_one({
         "token_hash": token_data["token_hash"],
         "customer_email": customer_email,
         "expires_at": token_data["expires_at"],
         "created_at": token_data["created_at"],
-        "created_by": current_user["email"]
+        "created_by": current_user["email"],
     })
     return {"magic_link_token": token_data["token"], "expires_at": token_data["expires_at"]}
 
@@ -1399,11 +1854,9 @@ async def create_access_link(customer_email: str = "", current_user: dict = Depe
 
 @app.post("/api/webhooks/revolut")
 async def revolut_webhook(request: Request):
-    """Handle Revolut payment webhooks"""
+    """Handle Revolut payment webhooks — idempotent"""
     body = await request.body()
     raw_body = body.decode("utf-8")
-    timestamp = request.headers.get("Revolut-Request-Timestamp", "")
-    signature = request.headers.get("Revolut-Signature", "")
 
     try:
         data = json.loads(raw_body)
@@ -1415,7 +1868,6 @@ async def revolut_webhook(request: Request):
 
     logger.info(f"Revolut webhook: {event} for order {order_id}")
 
-    # Store webhook event (idempotency check)
     existing = await db.webhook_events.find_one({"order_id": order_id, "event": event})
     if existing:
         return {"status": "already_processed"}
@@ -1424,26 +1876,26 @@ async def revolut_webhook(request: Request):
         "order_id": order_id,
         "event": event,
         "data": data,
-        "processed_at": datetime.now(timezone.utc).isoformat()
+        "processed_at": datetime.now(timezone.utc).isoformat(),
     })
+    await _log_event(db, "webhook_received", order_id, "revolut")
 
     if event == "ORDER_COMPLETED":
-        # Find invoice by revolut order ID
         invoice = await db.invoices.find_one({"revolut_order_id": order_id})
         if invoice:
             now = datetime.now(timezone.utc)
             await db.invoices.update_one(
                 {"invoice_id": invoice["invoice_id"]},
-                {"$set": {"payment_status": "paid", "paid_at": now.isoformat(), "status": "paid"},
-                 "$push": {"history": {"action": "payment_received_revolut", "at": now.isoformat(), "by": "system"}}}
+                {"$set": {"payment_status": "paid", "paid_at": now.isoformat(), "status": "payment_completed"},
+                 "$push": {"history": {"action": "payment_received_revolut", "at": now.isoformat(), "by": "system"}}},
             )
-            # Update related quote
             if invoice.get("quote_id"):
                 await db.quotes.update_one(
                     {"quote_id": invoice["quote_id"]},
                     {"$set": {"payment_status": "deposit_paid"},
-                     "$push": {"history": {"action": "deposit_paid_revolut", "at": now.isoformat(), "by": "system"}}}
+                     "$push": {"history": {"action": "deposit_paid_revolut", "at": now.isoformat(), "by": "system"}}},
                 )
+            await _log_event(db, "payment_completed", invoice["invoice_id"], "revolut_webhook")
             logger.info(f"Invoice {invoice['invoice_id']} marked as paid via Revolut")
 
     elif event == "ORDER_PAYMENT_FAILED":
@@ -1452,10 +1904,52 @@ async def revolut_webhook(request: Request):
             await db.invoices.update_one(
                 {"invoice_id": invoice["invoice_id"]},
                 {"$set": {"payment_status": "failed"},
-                 "$push": {"history": {"action": "payment_failed", "at": datetime.now(timezone.utc).isoformat(), "by": "system"}}}
+                 "$push": {"history": {"action": "payment_failed", "at": datetime.now(timezone.utc).isoformat(), "by": "system"}}},
             )
+            await _log_event(db, "payment_failed", invoice["invoice_id"], "revolut_webhook")
 
+    await _log_event(db, "webhook_processed", order_id, "system")
     return {"status": "ok"}
+
+
+# --- Commercial Stats (Admin) ---
+
+@app.get("/api/admin/commercial/stats")
+async def commercial_stats(current_user: dict = Depends(get_current_admin)):
+    """Commercial dashboard stats"""
+    total_quotes = await db.quotes.count_documents({})
+    sent_quotes = await db.quotes.count_documents({"status": "sent"})
+    accepted_quotes = await db.quotes.count_documents({"status": "accepted"})
+    declined_quotes = await db.quotes.count_documents({"status": "declined"})
+    total_invoices = await db.invoices.count_documents({})
+    paid_invoices = await db.invoices.count_documents({"payment_status": "paid"})
+    pending_invoices = await db.invoices.count_documents({"payment_status": "pending"})
+
+    pipeline = [
+        {"$match": {"payment_status": "paid"}},
+        {"$group": {"_id": None, "total": {"$sum": "$totals.gross"}}},
+    ]
+    revenue_agg = await db.invoices.aggregate(pipeline).to_list(1)
+    total_revenue = revenue_agg[0]["total"] if revenue_agg else 0
+
+    return {
+        "quotes": {"total": total_quotes, "sent": sent_quotes, "accepted": accepted_quotes, "declined": declined_quotes},
+        "invoices": {"total": total_invoices, "paid": paid_invoices, "pending": pending_invoices},
+        "revenue": {"total_gross": total_revenue, "currency": "EUR"},
+    }
+
+
+# --- Event Logger ---
+
+async def _log_event(database, event: str, ref_id: str, actor: str, details: dict = None):
+    """Audit-log all commercial events"""
+    await database.commercial_events.insert_one({
+        "event": event,
+        "ref_id": ref_id,
+        "actor": actor,
+        "details": details or {},
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    })
 
 
 if __name__ == "__main__":

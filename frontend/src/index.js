@@ -7,6 +7,7 @@ import './index.css';
 import App from './App';
 import Admin from './pages/Admin';
 import LegalPage from './pages/LegalPages';
+import QuotePortal from './pages/QuotePortal';
 
 /* Language-aware redirect: / → /<detected lang> */
 function LangRedirect() {
@@ -42,6 +43,9 @@ root.render(
 
             {/* Admin (no language prefix) */}
             <Route path="/admin" element={<Admin />} />
+
+            {/* Customer Offer Portal */}
+            <Route path="/angebot" element={<QuotePortal />} />
 
             {/* Backward compatibility: old routes without lang prefix */}
             <Route path="/impressum" element={<LegacyRedirect slug="impressum" />} />
