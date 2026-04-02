@@ -124,8 +124,8 @@ de: {
     subtitle:'Beschreiben Sie Ihre Herausforderung — wir melden uns innerhalb von 24 Stunden.',
     benefits:['Kostenlose Erstberatung (30 Min.)','Individuelles Konzept','Keine versteckten Kosten'],
     ctaBtn:'Oder direkt Termin buchen',
-    form: { name:'Name', email:'E-Mail', company:'Unternehmen', message:'Ihre Nachricht', submit:'Nachricht senden', sending:'Wird gesendet...', success:'Ihre Nachricht wurde erfolgreich gesendet. Wir melden uns innerhalb von 24 Stunden.', error:'Es gab einen Fehler. Bitte versuchen Sie es erneut oder kontaktieren Sie uns direkt.' },
-    validation: { name:'Bitte geben Sie Ihren Namen ein', email:'Bitte geben Sie eine gültige E-Mail ein', company:'Bitte geben Sie Ihr Unternehmen ein', message:'Bitte beschreiben Sie Ihre Anfrage' }
+    form: { firstName:'Vorname', lastName:'Nachname', email:'E-Mail', phone:'Telefon', company:'Unternehmen', message:'Ihre Nachricht', submit:'Nachricht senden', sending:'Wird gesendet...', success:'Ihre Nachricht wurde erfolgreich gesendet. Wir melden uns innerhalb von 24 Stunden.', error:'Es gab einen Fehler. Bitte versuchen Sie es erneut oder kontaktieren Sie uns direkt.' },
+    validation: { firstName:'Bitte geben Sie Ihren Vornamen ein', lastName:'Bitte geben Sie Ihren Nachnamen ein', email:'Bitte geben Sie eine gültige E-Mail ein', company:'Bitte geben Sie Ihr Unternehmen ein', message:'Bitte beschreiben Sie Ihre Anfrage' }
   },
   footer: {
     tagline:'Chat it. Automate it.',
@@ -146,9 +146,9 @@ de: {
     steps:['Datum','Uhrzeit','Details'],
     selectDate:'Datum auswählen', selectTime:'Uhrzeit auswählen', noTimes:'Keine Termine verfügbar',
     next:'Weiter', back:'Zurück', submit:'Termin bestätigen',
-    name:'Name', email:'E-Mail', company:'Unternehmen', message:'Anliegen (optional)',
+    firstName:'Vorname', lastName:'Nachname', email:'E-Mail', phone:'Telefon', company:'Unternehmen', message:'Anliegen (optional)',
     successTitle:'Termin bestätigt', successText:'Wir haben Ihnen eine Bestätigung an {email} gesendet.', close:'Schließen',
-    validation: { name:'Name ist erforderlich', email:'Gültige E-Mail erforderlich' }
+    validation: { firstName:'Vorname ist erforderlich', lastName:'Nachname ist erforderlich', email:'Gültige E-Mail erforderlich' }
   },
   cookie: {
     text:'Wir verwenden Cookies für Analyse und Funktionalität. Details in unserer',
@@ -278,8 +278,8 @@ nl: {
     subtitle:'Beschrijf uw uitdaging — wij reageren binnen 24 uur.',
     benefits:['Gratis eerste advies (30 min.)','Individueel concept','Geen verborgen kosten'],
     ctaBtn:'Of direct een afspraak boeken',
-    form: { name:'Naam', email:'E-mail', company:'Bedrijf', message:'Uw bericht', submit:'Bericht versturen', sending:'Wordt verzonden...', success:'Uw bericht is succesvol verzonden. Wij reageren binnen 24 uur.', error:'Er is een fout opgetreden. Probeer het opnieuw of neem direct contact met ons op.' },
-    validation: { name:'Vul uw naam in', email:'Vul een geldig e-mailadres in', company:'Vul uw bedrijf in', message:'Beschrijf uw aanvraag' }
+    form: { firstName:'Voornaam', lastName:'Achternaam', email:'E-mail', phone:'Telefoon', company:'Bedrijf', message:'Uw bericht', submit:'Bericht versturen', sending:'Wordt verzonden...', success:'Uw bericht is succesvol verzonden. Wij reageren binnen 24 uur.', error:'Er is een fout opgetreden. Probeer het opnieuw of neem direct contact met ons op.' },
+    validation: { firstName:'Vul uw voornaam in', lastName:'Vul uw achternaam in', email:'Vul een geldig e-mailadres in', company:'Vul uw bedrijf in', message:'Beschrijf uw aanvraag' }
   },
   footer: {
     tagline:'Chat it. Automate it.',
@@ -300,9 +300,9 @@ nl: {
     steps:['Datum','Tijd','Details'],
     selectDate:'Datum kiezen', selectTime:'Tijd kiezen', noTimes:'Geen tijden beschikbaar',
     next:'Verder', back:'Terug', submit:'Afspraak bevestigen',
-    name:'Naam', email:'E-mail', company:'Bedrijf', message:'Onderwerp (optioneel)',
+    firstName:'Voornaam', lastName:'Achternaam', email:'E-mail', phone:'Telefoon', company:'Bedrijf', message:'Onderwerp (optioneel)',
     successTitle:'Afspraak bevestigd', successText:'Wij hebben een bevestiging naar {email} gestuurd.', close:'Sluiten',
-    validation: { name:'Naam is vereist', email:'Geldig e-mailadres vereist' }
+    validation: { firstName:'Voornaam is vereist', lastName:'Achternaam is vereist', email:'Geldig e-mailadres vereist' }
   },
   cookie: {
     text:'Wij gebruiken cookies voor analyse en functionaliteit. Details in ons',
@@ -432,8 +432,8 @@ en: {
     subtitle:'Describe your challenge — we\'ll get back to you within 24 hours.',
     benefits:['Free initial consultation (30 min.)','Individual concept','No hidden costs'],
     ctaBtn:'Or book a call directly',
-    form: { name:'Name', email:'Email', company:'Company', message:'Your message', submit:'Send message', sending:'Sending...', success:'Your message has been sent successfully. We\'ll get back to you within 24 hours.', error:'An error occurred. Please try again or contact us directly.' },
-    validation: { name:'Please enter your name', email:'Please enter a valid email', company:'Please enter your company', message:'Please describe your inquiry' }
+    form: { firstName:'First Name', lastName:'Last Name', email:'Email', phone:'Phone', company:'Company', message:'Your message', submit:'Send message', sending:'Sending...', success:'Your message has been sent successfully. We\'ll get back to you within 24 hours.', error:'An error occurred. Please try again or contact us directly.' },
+    validation: { firstName:'Please enter your first name', lastName:'Please enter your last name', email:'Please enter a valid email', company:'Please enter your company', message:'Please describe your inquiry' }
   },
   footer: {
     tagline:'Chat it. Automate it.',
@@ -454,9 +454,9 @@ en: {
     steps:['Date','Time','Details'],
     selectDate:'Select date', selectTime:'Select time', noTimes:'No times available',
     next:'Continue', back:'Back', submit:'Confirm appointment',
-    name:'Name', email:'Email', company:'Company', message:'Topic (optional)',
+    firstName:'First Name', lastName:'Last Name', email:'Email', phone:'Phone', company:'Company', message:'Topic (optional)',
     successTitle:'Appointment confirmed', successText:'We\'ve sent a confirmation to {email}.', close:'Close',
-    validation: { name:'Name is required', email:'Valid email required' }
+    validation: { firstName:'First name is required', lastName:'Last name is required', email:'Valid email required' }
   },
   cookie: {
     text:'We use cookies for analytics and functionality. Details in our',

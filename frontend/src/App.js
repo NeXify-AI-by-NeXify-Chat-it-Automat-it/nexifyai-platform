@@ -386,7 +386,7 @@ const Contact = ({ onBook, t }) => {
   const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState(null);
-  const v = () => { const e = {}; if (form.vorname.trim().length < 2) e.vorname = t.contact.validation.name; if (form.nachname.trim().length < 2) e.nachname = t.contact.validation.name; if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = t.contact.validation.email; if (form.nachricht.trim().length < 10) e.nachricht = t.contact.validation.message; setErrors(e); return !Object.keys(e).length; };
+  const v = () => { const e = {}; if (form.vorname.trim().length < 2) e.vorname = t.contact.validation.firstName; if (form.nachname.trim().length < 2) e.nachname = t.contact.validation.lastName; if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = t.contact.validation.email; if (form.nachricht.trim().length < 10) e.nachricht = t.contact.validation.message; setErrors(e); return !Object.keys(e).length; };
   const submit = async (e) => {
     e.preventDefault(); if (!v()) return; setBusy(true); track('form_submit', { form: 'contact' });
     try {
@@ -414,12 +414,12 @@ const Contact = ({ onBook, t }) => {
             <form onSubmit={submit} className="contact-form" noValidate data-testid="contact-form">
               <input type="text" name="_hp" value={form._hp} onChange={e => setForm({ ...form, _hp: e.target.value })} style={{ display: 'none' }} tabIndex={-1} autoComplete="off" />
               <div className="form-row">
-                <div className="form-group"><label htmlFor="vorname" className="form-label">{t.contact.form.name} *</label><input type="text" id="vorname" className={`form-input ${errors.vorname ? 'error' : ''}`} value={form.vorname} onChange={e => setForm({ ...form, vorname: e.target.value })} disabled={busy} required data-testid="input-vorname" />{errors.vorname && <span className="form-error" role="alert">{errors.vorname}</span>}</div>
-                <div className="form-group"><label htmlFor="nachname" className="form-label">{t.contact.form.name} *</label><input type="text" id="nachname" className={`form-input ${errors.nachname ? 'error' : ''}`} value={form.nachname} onChange={e => setForm({ ...form, nachname: e.target.value })} disabled={busy} required data-testid="input-nachname" />{errors.nachname && <span className="form-error" role="alert">{errors.nachname}</span>}</div>
+                <div className="form-group"><label htmlFor="vorname" className="form-label">{t.contact.form.firstName} *</label><input type="text" id="vorname" className={`form-input ${errors.vorname ? 'error' : ''}`} value={form.vorname} onChange={e => setForm({ ...form, vorname: e.target.value })} disabled={busy} required data-testid="input-vorname" />{errors.vorname && <span className="form-error" role="alert">{errors.vorname}</span>}</div>
+                <div className="form-group"><label htmlFor="nachname" className="form-label">{t.contact.form.lastName} *</label><input type="text" id="nachname" className={`form-input ${errors.nachname ? 'error' : ''}`} value={form.nachname} onChange={e => setForm({ ...form, nachname: e.target.value })} disabled={busy} required data-testid="input-nachname" />{errors.nachname && <span className="form-error" role="alert">{errors.nachname}</span>}</div>
               </div>
               <div className="form-row">
                 <div className="form-group"><label htmlFor="email" className="form-label">{t.contact.form.email} *</label><input type="email" id="email" className={`form-input ${errors.email ? 'error' : ''}`} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} disabled={busy} required data-testid="input-email" />{errors.email && <span className="form-error" role="alert">{errors.email}</span>}</div>
-                <div className="form-group"><label htmlFor="telefon" className="form-label">Telefon</label><input type="tel" id="telefon" className="form-input" value={form.telefon} onChange={e => setForm({ ...form, telefon: e.target.value })} disabled={busy} /></div>
+                <div className="form-group"><label htmlFor="telefon" className="form-label">{t.contact.form.phone}</label><input type="tel" id="telefon" className="form-input" value={form.telefon} onChange={e => setForm({ ...form, telefon: e.target.value })} disabled={busy} /></div>
               </div>
               <div className="form-group"><label htmlFor="unternehmen" className="form-label">{t.contact.form.company}</label><input type="text" id="unternehmen" className="form-input" value={form.unternehmen} onChange={e => setForm({ ...form, unternehmen: e.target.value })} disabled={busy} /></div>
               <div className="form-group"><label htmlFor="nachricht" className="form-label">{t.contact.form.message} *</label><textarea id="nachricht" rows="4" className={`form-textarea ${errors.nachricht ? 'error' : ''}`} value={form.nachricht} onChange={e => setForm({ ...form, nachricht: e.target.value })} disabled={busy} required data-testid="input-nachricht"></textarea>{errors.nachricht && <span className="form-error" role="alert">{errors.nachricht}</span>}</div>
@@ -555,7 +555,7 @@ const Booking = ({ isOpen, onClose, t, lang }) => {
   const dates = useMemo(() => { const d = []; const now = new Date(); for (let i = 1; i <= 14; i++) { const x = new Date(now); x.setDate(now.getDate() + i); if (x.getDay() !== 0 && x.getDay() !== 6) d.push(x.toISOString().split('T')[0]); } return d; }, []);
   useEffect(() => { if (date) { fetch(`${API}/api/booking/slots?date=${date}`).then(r => r.json()).then(d => setSlots(d.slots || [])).catch(() => setSlots(['09:00','10:00','11:00','14:00','15:00','16:00'])); } }, [date]);
   useEffect(() => { if (isOpen) { document.body.style.overflow = 'hidden'; track('booking_modal_opened'); } return () => { document.body.style.overflow = ''; }; }, [isOpen]);
-  const v = () => { const e = {}; if (form.vorname.trim().length < 2) e.vorname = t.booking.validation.name; if (form.nachname.trim().length < 2) e.nachname = t.booking.validation.name; if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = t.booking.validation.email; setErrors(e); return !Object.keys(e).length; };
+  const v = () => { const e = {}; if (form.vorname.trim().length < 2) e.vorname = t.booking.validation.firstName; if (form.nachname.trim().length < 2) e.nachname = t.booking.validation.lastName; if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = t.booking.validation.email; setErrors(e); return !Object.keys(e).length; };
   const submit = async () => {
     if (!v()) return; setBusy(true); track('booking_submit', { date, time });
     try {
@@ -589,12 +589,12 @@ const Booking = ({ isOpen, onClose, t, lang }) => {
                 <div className="booking-selected"><I n="event" /><span>{fmtDate(date)} — {time}</span></div>
                 <div className="booking-form">
                   <div className="form-row">
-                    <div className="form-group"><label htmlFor="b-vn" className="form-label">{t.booking.name} *</label><input type="text" id="b-vn" className={`form-input ${errors.vorname ? 'error' : ''}`} value={form.vorname} onChange={e => setForm({ ...form, vorname: e.target.value })} data-testid="booking-vorname" /></div>
-                    <div className="form-group"><label htmlFor="b-nn" className="form-label">{t.booking.name} *</label><input type="text" id="b-nn" className={`form-input ${errors.nachname ? 'error' : ''}`} value={form.nachname} onChange={e => setForm({ ...form, nachname: e.target.value })} data-testid="booking-nachname" /></div>
+                    <div className="form-group"><label htmlFor="b-vn" className="form-label">{t.booking.firstName} *</label><input type="text" id="b-vn" className={`form-input ${errors.vorname ? 'error' : ''}`} value={form.vorname} onChange={e => setForm({ ...form, vorname: e.target.value })} data-testid="booking-vorname" /></div>
+                    <div className="form-group"><label htmlFor="b-nn" className="form-label">{t.booking.lastName} *</label><input type="text" id="b-nn" className={`form-input ${errors.nachname ? 'error' : ''}`} value={form.nachname} onChange={e => setForm({ ...form, nachname: e.target.value })} data-testid="booking-nachname" /></div>
                   </div>
                   <div className="form-group"><label htmlFor="b-em" className="form-label">{t.booking.email} *</label><input type="email" id="b-em" className={`form-input ${errors.email ? 'error' : ''}`} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} data-testid="booking-email" /></div>
                   <div className="form-row">
-                    <div className="form-group"><label htmlFor="b-tel" className="form-label">Telefon</label><input type="tel" id="b-tel" className="form-input" value={form.telefon} onChange={e => setForm({ ...form, telefon: e.target.value })} /></div>
+                    <div className="form-group"><label htmlFor="b-tel" className="form-label">{t.booking.phone}</label><input type="tel" id="b-tel" className="form-input" value={form.telefon} onChange={e => setForm({ ...form, telefon: e.target.value })} /></div>
                     <div className="form-group"><label htmlFor="b-co" className="form-label">{t.booking.company}</label><input type="text" id="b-co" className="form-input" value={form.unternehmen} onChange={e => setForm({ ...form, unternehmen: e.target.value })} /></div>
                   </div>
                   <div className="form-group"><label htmlFor="b-th" className="form-label">{t.booking.message}</label><input type="text" id="b-th" className="form-input" value={form.thema} onChange={e => setForm({ ...form, thema: e.target.value })} /></div>
