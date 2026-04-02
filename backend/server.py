@@ -22,6 +22,9 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from jose import JWTError, jwt
 from dotenv import load_dotenv
 import resend
+import re
+import json
+from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 # Password hashing with Argon2 (fallback to bcrypt if pwdlib unavailable)
 try:
@@ -53,6 +56,66 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 NOTIFICATION_EMAILS = ["support@nexify-automate.com", "nexifyai@nexifyai.de"]
+EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
+
+# LLM Chat sessions store
+llm_sessions = {}
+
+ADVISOR_SYSTEM_PROMPT = """Du bist der NeXifyAI Advisor — ein professioneller, KI-gestützter Berater der Firma NeXifyAI by NeXify.
+
+UNTERNEHMEN:
+NeXifyAI ist ein Produkt von NeXify Automate (KvK: 90483944, USt-ID: NL865786276B01).
+Geschäftsführer: Pascal Courbois. Standorte: NL (Venlo) und DE (Nettetal-Kaldenkirchen).
+Kontakt: +31 6 133 188 56, support@nexify-automate.com
+
+LEISTUNGEN:
+1. KI-Assistenz: Kontextbewusste Co-Piloten für Fachabteilungen, integriert in bestehende Tools
+2. Automationen: End-to-End Workflow-Automatisierung durch agentische KI-Systeme
+3. Integrationen: 64+ native Konnektoren (SAP S/4HANA, SAP Business One, HubSpot, Salesforce, Microsoft Dynamics, DATEV, Lexware, Zendesk, Microsoft 365, etc.)
+4. Wissenssysteme: RAG-Architekturen für sofortigen Zugriff auf Firmenwissen
+5. Dokumentenautomation: KI-gestützte Extraktion und Validierung (Verträge, Rechnungen)
+6. Enterprise Solutions: Custom-Modelle, On-Premise Deployments
+7. Web-App & Mobile-App Entwicklung: Kundenportale, interne Tools, Workflow-Apps, KI-Ökosysteme
+
+TARIFE:
+- Starter: ab 1.900 EUR/Mo (2 KI-Agenten, Shared Infrastructure, E-Mail-Support)
+- Growth: ab 4.500 EUR/Mo (10 KI-Agenten, Private Cloud, Priority Support, CRM/ERP-Kit) — EMPFEHLUNG
+- Enterprise: Individuell (Unlimitiert, On-Premise, Custom LLM Training, SLA)
+Erstgespräch ist immer unverbindlich und kostenfrei.
+
+DEINE AUFGABE:
+1. Beraten: Identifiziere den konkreten Anwendungsfall des Kunden
+2. Qualifizieren: Erfasse Branche, Unternehmensgröße, aktuelle Herausforderungen
+3. Vertrauen aufbauen: Nenne konkrete Beispiele und Ergebniszahlen (z.B. 40-60% weniger manuelle Arbeit)
+4. Zum Termin führen: Ziel ist IMMER ein Strategiegespräch (30 Min, unverbindlich, kostenfrei)
+5. Termine buchen: Wenn der Kunde einen Termin möchte, sammle die nötigen Daten
+
+TERMINBUCHUNG:
+Wenn ein Kunde einen Termin buchen möchte:
+1. Frage nacheinander: Vorname, Nachname, geschäftliche E-Mail-Adresse
+2. Schlage einen konkreten Termin vor (Mo-Fr, nächste 2 Wochen, 09:00-17:00 in 30-Min-Slots)
+3. Wenn der Kunde alle Daten bestätigt hat und einen Termin gewählt hat, gib EXAKT dieses Format aus (eingebettet in deine Antwort):
+[BOOKING_REQUEST]{"vorname":"...","nachname":"...","email":"...@...","date":"YYYY-MM-DD","time":"HH:MM"}[/BOOKING_REQUEST]
+4. Danach bestätige den Termin freundlich und erwähne, dass eine Bestätigungs-E-Mail kommt.
+
+STIL:
+- Professionell, präzise, DACH-Business-Niveau
+- Deutsch (Sie-Form), sachlich aber freundlich
+- Kurze, klare Antworten (2-4 Sätze pro Nachricht, nicht mehr)
+- Keine Marketing-Floskeln, keine Emojis
+- Kein "natürlich", "gerne", "selbstverständlich" am Anfang jeder Nachricht — variiere den Einstieg
+
+VERBOTEN:
+- Behaupte KEINE ISO-/SOC-Zertifizierungen (nur "angestrebt")
+- Nenne KEINE konkreten Kundennamen ohne Genehmigung
+- Mache KEINE Garantieversprechen
+- Sage NIE "kostenlose Testversion" oder "Free Trial"
+"""
+
+def get_system_prompt():
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    weekday_de = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"][datetime.now(timezone.utc).weekday()]
+    return ADVISOR_SYSTEM_PROMPT + f"\n\nWICHTIG: Das heutige Datum ist {today} ({weekday_de}). Alle Terminvorschläge müssen in der Zukunft liegen (frühestens ab morgen). Verwende ausschließlich Daten im Format YYYY-MM-DD. Schlage nur Werktage (Mo-Fr) vor, keine Wochenenden."
 
 if RESEND_API_KEY:
     resend.api_key = RESEND_API_KEY
@@ -454,90 +517,138 @@ async def chat_message(data: ChatMessage, request: Request):
         }
         await db.chat_sessions.insert_one(session)
     
-    # Add user message
     user_msg = {"role": "user", "content": data.message, "ts": datetime.now(timezone.utc).isoformat()}
     
-    # Generate response
-    response = generate_response(data.message, session.get("messages", []), session.get("qualification", {}))
+    # LLM-powered response
+    response_text = ""
+    qualification = session.get("qualification", {})
+    actions = []
+    should_escalate = False
     
-    assistant_msg = {"role": "assistant", "content": response["message"], "ts": datetime.now(timezone.utc).isoformat()}
+    try:
+        if EMERGENT_LLM_KEY:
+            if data.session_id not in llm_sessions:
+                chat = LlmChat(
+                    api_key=EMERGENT_LLM_KEY,
+                    session_id=data.session_id,
+                    system_message=get_system_prompt()
+                )
+                chat.with_model("openai", "gpt-4o-mini")
+                llm_sessions[data.session_id] = chat
+            
+            llm_chat = llm_sessions[data.session_id]
+            user_message = UserMessage(text=data.message)
+            response_text = await llm_chat.send_message(user_message)
+            
+            # Check for booking request in LLM response
+            booking_match = re.search(r'\[BOOKING_REQUEST\](.*?)\[/BOOKING_REQUEST\]', response_text, re.DOTALL)
+            if booking_match:
+                try:
+                    booking_data = json.loads(booking_match.group(1))
+                    bk_id = f"BK-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}-{secrets.token_hex(3).upper()}"
+                    lead_id = f"LEAD-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}-{secrets.token_hex(4).upper()}"
+                    
+                    await db.leads.insert_one({
+                        "lead_id": lead_id, "vorname": booking_data.get("vorname", ""),
+                        "nachname": booking_data.get("nachname", ""), "email": booking_data.get("email", "").lower(),
+                        "source": "chat_booking", "status": "termin_gebucht", "notes": [],
+                        "created_at": datetime.now(timezone.utc), "updated_at": datetime.now(timezone.utc)
+                    })
+                    
+                    await db.bookings.insert_one({
+                        "booking_id": bk_id, "lead_id": lead_id,
+                        "vorname": booking_data.get("vorname", ""), "nachname": booking_data.get("nachname", ""),
+                        "email": booking_data.get("email", "").lower(),
+                        "date": booking_data.get("date", ""), "time": booking_data.get("time", ""),
+                        "thema": "Strategiegespräch (via Chat)", "status": "confirmed",
+                        "created_at": datetime.now(timezone.utc)
+                    })
+                    
+                    date_fmt = datetime.strptime(booking_data["date"], "%Y-%m-%d").strftime("%d.%m.%Y")
+                    import asyncio
+                    asyncio.create_task(send_email(
+                        [booking_data["email"]],
+                        f"Ihr Beratungstermin am {date_fmt} ist bestätigt",
+                        email_template("Termin bestätigt",
+                            f'''<h1 style="color:#fff;font-size:22px;margin:0 0 16px;">Ihr Strategiegespräch ist bestätigt</h1>
+                            <p>Guten Tag {booking_data["vorname"]} {booking_data["nachname"]},</p>
+                            <p>Ihr Termin wurde erfolgreich über unseren KI-Advisor gebucht.</p>
+                            <div style="background:#252a32;padding:24px;margin:24px 0;border-left:3px solid #ffb599;">
+                            <p style="margin:0 0 4px;font-size:12px;color:#8f9095;">TERMIN</p>
+                            <p style="margin:0;font-size:20px;color:#ffb599;font-weight:700;">{date_fmt} um {booking_data["time"]} Uhr</p>
+                            <p style="margin:16px 0 0;font-size:12px;color:#8f9095;">BUCHUNGS-NR.</p>
+                            <p style="margin:4px 0 0;color:#fff;">{bk_id}</p></div>
+                            <p>Sie erhalten rechtzeitig einen Link zum virtuellen Meetingraum.</p>
+                            <p>Mit freundlichen Grüßen,<br>Pascal Courbois<br>Geschäftsführer, NeXify Automate</p>''')
+                    ))
+                    asyncio.create_task(send_email(
+                        NOTIFICATION_EMAILS,
+                        f"[NeXifyAI] Chat-Buchung: {date_fmt} {booking_data['time']} - {booking_data['vorname']} {booking_data['nachname']}",
+                        email_template("Chat-Buchung",
+                            f'''<h1 style="color:#fff;font-size:20px;margin:0 0 16px;">Neue Terminbuchung via Chat</h1>
+                            <div style="background:#252a32;padding:24px;margin:16px 0;">
+                            <p style="margin:0 0 16px;font-size:20px;color:#ffb599;font-weight:700;">{date_fmt} um {booking_data["time"]} Uhr</p>
+                            <p style="margin:0 0 8px;"><strong style="color:#fff;">{booking_data["vorname"]} {booking_data["nachname"]}</strong></p>
+                            <p style="margin:0;"><a href="mailto:{booking_data["email"]}" style="color:#ffb599;">{booking_data["email"]}</a></p></div>''',
+                            "https://nexifyai.de/admin", "Im Admin öffnen")
+                    ))
+                    
+                    response_text = re.sub(r'\[BOOKING_REQUEST\].*?\[/BOOKING_REQUEST\]', '', response_text, flags=re.DOTALL).strip()
+                    qualification["booking_confirmed"] = bk_id
+                    logger.info(f"Chat booking created: {bk_id}")
+                except Exception as e:
+                    logger.error(f"Chat booking error: {e}")
+            
+            # Detect qualification from message
+            msg_lower = data.message.lower()
+            kw_map = {"vertrieb": "Vertriebsautomation", "sales": "Vertriebsautomation", "crm": "CRM-Integration",
+                       "erp": "ERP-Integration", "sap": "SAP-Integration", "wissen": "Wissenssystem",
+                       "support": "Support-Automation", "app": "App-Entwicklung", "mobile": "Mobile-App",
+                       "portal": "Kundenportal", "prozess": "Prozessautomation", "termin": "Terminbuchung"}
+            for kw, uc in kw_map.items():
+                if kw in msg_lower:
+                    qualification["use_case"] = uc
+                    break
+            
+            if any(kw in msg_lower for kw in ["termin", "buchen", "gespräch", "beraten"]):
+                should_escalate = True
+        else:
+            response_text = generate_response_fallback(data.message, session.get("messages", []), qualification)
+    except Exception as e:
+        logger.error(f"LLM error: {e}")
+        response_text = generate_response_fallback(data.message, session.get("messages", []), qualification)
+    
+    assistant_msg = {"role": "assistant", "content": response_text, "ts": datetime.now(timezone.utc).isoformat()}
     
     await db.chat_sessions.update_one(
         {"session_id": data.session_id},
-        {
-            "$push": {"messages": {"$each": [user_msg, assistant_msg]}},
-            "$set": {"qualification": response.get("qualification", {}), "updated_at": datetime.now(timezone.utc)}
-        }
+        {"$push": {"messages": {"$each": [user_msg, assistant_msg]}},
+         "$set": {"qualification": qualification, "updated_at": datetime.now(timezone.utc)}}
     )
     
-    return {
-        "message": response["message"],
-        "qualification": response.get("qualification", {}),
-        "actions": response.get("actions", []),
-        "should_escalate": response.get("should_escalate", False)
-    }
+    return {"message": response_text, "qualification": qualification, "actions": actions, "should_escalate": should_escalate}
 
-def generate_response(message: str, history: list, qual: dict) -> dict:
+def generate_response_fallback(message: str, history: list, qual: dict) -> str:
+    """Fallback when LLM is unavailable"""
     msg = message.lower()
-    new_qual = {**qual}
-    
-    # Keywords für Qualifizierung
-    keywords = {
-        "vertrieb": {"interest": "vertrieb", "use_case": "Vertriebsautomation & Lead-Qualifizierung"},
-        "sales": {"interest": "vertrieb", "use_case": "Vertriebsautomation & Lead-Qualifizierung"},
-        "crm": {"interest": "integration", "use_case": "CRM/ERP-Integration"},
-        "erp": {"interest": "integration", "use_case": "CRM/ERP-Integration"},
-        "sap": {"interest": "integration", "use_case": "SAP-Integration"},
-        "hubspot": {"interest": "integration", "use_case": "HubSpot-Integration"},
-        "salesforce": {"interest": "integration", "use_case": "Salesforce-Integration"},
-        "wissen": {"interest": "knowledge", "use_case": "Internes Wissenssystem"},
-        "dokument": {"interest": "knowledge", "use_case": "Dokumentenautomation"},
-        "rag": {"interest": "knowledge", "use_case": "RAG-System"},
-        "support": {"interest": "support", "use_case": "Support-Automation"},
-        "ticket": {"interest": "support", "use_case": "Ticket-Automation"},
-        "prozess": {"interest": "automation", "use_case": "Prozessautomation"},
-        "workflow": {"interest": "automation", "use_case": "Workflow-Automation"},
-        "datenschutz": {"interest": "compliance", "use_case": "Governance & Compliance"},
-        "dsgvo": {"interest": "compliance", "use_case": "DSGVO-Konformität"},
-        "app": {"interest": "apps", "use_case": "Web- oder Mobile-App"},
-        "mobile": {"interest": "apps", "use_case": "Mobile App-Entwicklung"},
-        "portal": {"interest": "apps", "use_case": "Kundenportal"},
-    }
-    
-    for kw, data in keywords.items():
-        if kw in msg:
-            new_qual.update(data)
-            break
-    
-    # Antworten
-    responses = {
-        "vertrieb": "Vertriebsautomation ist einer der schnellsten Wege zu messbarem ROI. Unsere KI-Agenten können eingehende Anfragen automatisch qualifizieren, mit Ihrem CRM abgleichen und Termine koordinieren. Typische Ergebnisse: 40-60% weniger manuelle Arbeit im Vertrieb. Nutzen Sie aktuell HubSpot, Salesforce oder ein anderes CRM?",
-        "integration": "CRM- und ERP-Integrationen sind unser Kerngeschäft. Wir haben native Konnektoren für SAP S/4HANA, HubSpot, Salesforce, Microsoft Dynamics und 50+ weitere Systeme. Die KI orchestriert Datenflüsse intelligent zwischen Ihren Systemen. Welches System ist für Sie am wichtigsten?",
-        "knowledge": "Interne Wissenssysteme mit RAG-Architektur machen Ihr gesamtes Firmenwissen sofort durchsuchbar. Ihre Mitarbeiter finden Antworten aus Handbüchern, Tickets und Dokumenten in Sekunden statt Stunden. Wie groß ist Ihre aktuelle Wissensbasis?",
-        "support": "Support-Automation kann Ihr Team erheblich entlasten. Von intelligenter Ticket-Klassifizierung bis hin zu automatisierten Erstantworten – wir implementieren Lösungen, die Ihre Support-Qualität verbessern und gleichzeitig Kosten senken.",
-        "automation": "Prozessautomation bringt den größten operativen Hebel. Wir identifizieren repetitive Abläufe und automatisieren sie mit KI-Agenten – ohne Medienbrüche. Welche Prozesse kosten Sie aktuell am meisten Zeit?",
-        "compliance": "Datenschutz und Governance sind bei uns von Anfang an eingebaut. Wir arbeiten DSGVO-konform mit deutschen Rechenzentren, RBAC-Zugriffskontrolle und vollständigen Audit-Logs. Haben Sie spezifische Compliance-Anforderungen?",
-        "apps": "Wir entwickeln maßgeschneiderte Web-Apps, Mobile-Apps und Kundenportale, die nahtlos mit Ihren KI-Workflows integriert sind. Von internen Tools bis zu kundenorientierten Anwendungen – alles aus einer Hand."
-    }
-    
-    interest = new_qual.get("interest", "")
-    should_escalate = any(kw in msg for kw in ["termin", "gespräch", "beraten", "buchen", "anruf", "meeting"])
-    
-    if interest and interest in responses:
-        text = responses[interest]
-    elif len(history) == 0:
-        text = "Willkommen! Ich bin der NeXifyAI Advisor. Ich helfe Ihnen, das richtige KI-Szenario für Ihr Unternehmen zu identifizieren. Welche Herausforderung möchten Sie lösen?"
-    elif should_escalate:
-        text = "Sehr gut. Lassen Sie uns das in einem persönlichen Gespräch vertiefen. In einem 30-minütigen Beratungsgespräch können wir Ihre Situation analysieren und erste konkrete Handlungsempfehlungen erarbeiten. Soll ich Ihnen einen Termin vorschlagen?"
+    if "vertrieb" in msg or "sales" in msg:
+        return "Vertriebsautomation ist einer der schnellsten Wege zu messbarem ROI. Unsere KI-Agenten qualifizieren Anfragen automatisch und koordinieren Termine. Typisch: 40-60% weniger manuelle Arbeit. Nutzen Sie aktuell ein CRM-System?"
+    elif "crm" in msg or "erp" in msg or "sap" in msg:
+        return "Wir haben native Konnektoren für SAP, HubSpot, Salesforce und 60+ weitere Systeme. Die KI orchestriert Datenflüsse intelligent zwischen Ihren Systemen. Welches System ist für Sie am wichtigsten?"
+    elif "wissen" in msg or "rag" in msg or "dokument" in msg:
+        return "RAG-Architekturen machen Ihr Firmenwissen sofort durchsuchbar. Mitarbeiter finden Antworten aus Handbüchern und Dokumenten in Sekunden. Wie groß ist Ihre aktuelle Wissensbasis?"
+    elif "support" in msg or "ticket" in msg:
+        return "Von intelligenter Ticket-Klassifizierung bis zu automatisierten Erstantworten — wir verbessern Ihre Support-Qualität und senken gleichzeitig Kosten. Welches Ticketsystem nutzen Sie aktuell?"
+    elif "app" in msg or "mobile" in msg or "portal" in msg:
+        return "Wir entwickeln maßgeschneiderte Web-Apps, Mobile-Apps und Kundenportale mit nativer KI-Integration. Von internen Tools bis kundenorientierten Anwendungen — alles aus einer Hand und DSGVO-konform."
+    elif "termin" in msg or "buchen" in msg or "gespräch" in msg:
+        return "Ich kann direkt hier einen Termin für Sie buchen. Dafür benötige ich Ihren Vornamen, Nachnamen und Ihre geschäftliche E-Mail-Adresse. Wie heißen Sie?"
+    elif "preis" in msg or "kosten" in msg or "tarif" in msg:
+        return "Unsere Tarife beginnen bei 1.900 EUR/Mo (Starter) und 4.500 EUR/Mo (Growth). Enterprise-Projekte kalkulieren wir individuell. Das Erstgespräch ist immer unverbindlich und kostenfrei."
+    elif "daten" in msg or "dsgvo" in msg or "sicher" in msg:
+        return "Datenschutz ist bei uns fundamental. DSGVO-konform, deutsche Rechenzentren, RBAC-Zugriffskontrolle und vollständige Audit-Logs. Haben Sie spezifische Compliance-Anforderungen?"
     else:
-        text = "Verstanden. Um Ihnen optimal weiterzuhelfen: Wir könnten in einem kurzen Strategiegespräch Ihre Situation analysieren und konkrete Empfehlungen erarbeiten. Das Gespräch ist unverbindlich und dauert etwa 30 Minuten."
-        should_escalate = True
-    
-    actions = []
-    if should_escalate:
-        actions = [{"type": "booking", "label": "Beratungstermin buchen"}]
-    
-    return {"message": text, "qualification": new_qual, "actions": actions, "should_escalate": should_escalate}
+        return "Um Ihnen gezielt weiterzuhelfen: In einem 30-minütigen Strategiegespräch analysieren wir Ihre aktuelle Situation und erarbeiten konkrete Empfehlungen. Soll ich einen Termin für Sie buchen?"
 
 @app.post("/api/analytics/track")
 async def track_event(event: AnalyticsEvent, request: Request):
@@ -554,7 +665,7 @@ async def track_event(event: AnalyticsEvent, request: Request):
 @app.post("/api/admin/login")
 async def admin_login(form_data: OAuth2PasswordRequestForm = Depends(), request: Request = None):
     if request:
-        await check_rate_limit(request, limit=5, window=300)
+        await check_rate_limit(request, limit=20, window=300)
     
     user = await db.admin_users.find_one({"email": form_data.username.lower()})
     if not user or not verify_password(form_data.password, user["password_hash"]):

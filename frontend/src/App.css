@@ -49,6 +49,11 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 a{color:inherit;text-decoration:none}
 ul,ol{list-style:none}
 input,textarea,select{font-family:inherit}
+/* Invisible scrollbars — scroll works but no visible bar */
+*{scrollbar-width:none}
+*::-webkit-scrollbar{width:0;height:0;display:none}
+html{scrollbar-width:thin;scrollbar-color:transparent transparent}
+html::-webkit-scrollbar{width:0;background:transparent}
 
 /* ── 3. SKIP LINK ── */
 .skip-link{position:absolute;top:-100%;left:var(--pad);background:var(--nx-accent);color:#1a1a2e;padding:8px 16px;z-index:1000;font-weight:600;font-size:.875rem}
@@ -115,8 +120,8 @@ h3{font-size:1.125rem;font-weight:700}
 .hero-label{display:block;margin-bottom:20px}
 .hero-title{margin-bottom:24px}
 .hero-desc{font-size:1.0625rem;color:var(--nx-muted);max-width:520px;margin-bottom:32px;line-height:1.75}
-.hero-actions{display:flex;flex-wrap:wrap;gap:12px}
-.hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:48px}
+.hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px}
+.hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:48px;padding-top:32px;border-top:1px solid var(--nx-border)}
 @media(min-width:640px){.hero-stats{grid-template-columns:repeat(4,1fr)}}
 .hero-stat{border-left:2px solid var(--nx-accent-b);padding-left:12px}
 .hero-stat-title{font-family:var(--f-display);font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;margin-bottom:2px}
@@ -292,9 +297,9 @@ h3{font-size:1.125rem;font-weight:700}
 /* ── 21. CHAT OVERLAY ── */
 .chat-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;padding:var(--pad);animation:fadeIn .2s var(--ease)}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.chat-modal{background:var(--nx-s2);border:1px solid var(--nx-border-h);width:100%;max-width:900px;max-height:90vh;display:flex;flex-direction:column;position:relative;animation:slideUp .25s var(--ease)}
+.chat-modal{background:var(--nx-s2);border:1px solid var(--nx-border-h);width:100%;max-width:900px;max-height:85vh;display:flex;flex-direction:column;position:relative;animation:slideUp .25s var(--ease);overflow:hidden}
 @keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-.chat-close{position:absolute;top:12px;right:12px;background:var(--nx-s4);border:1px solid var(--nx-border-h);color:#fff;width:40px;height:40px;display:flex;align-items:center;justify-content:center;z-index:10;transition:border-color var(--dur) var(--ease)}
+.chat-close{position:absolute;top:12px;right:12px;background:var(--nx-s4);border:1px solid var(--nx-border-h);color:#fff;width:36px;height:36px;display:flex;align-items:center;justify-content:center;z-index:20;transition:border-color var(--dur) var(--ease)}
 .chat-close:hover{border-color:var(--nx-accent)}
 .chat-layout{display:grid;grid-template-columns:1fr;height:100%;max-height:85vh}
 @media(min-width:768px){.chat-layout{grid-template-columns:280px 1fr}}
@@ -308,7 +313,7 @@ h3{font-size:1.125rem;font-weight:700}
 .chat-preset .material-symbols-outlined{color:var(--nx-accent);font-size:1rem;flex-shrink:0}
 .chat-sidebar-cta{margin-top:24px}
 .chat-main{display:flex;flex-direction:column;height:100%;min-height:400px;max-height:85vh}
-.chat-header{padding:12px 20px;border-bottom:1px solid var(--nx-border-h);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.chat-header{padding:14px 56px 14px 20px;border-bottom:1px solid var(--nx-border-h);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;min-height:48px}
 .chat-status{display:flex;align-items:center;gap:8px;font-size:.875rem;font-weight:600}
 .status-dot{width:8px;height:8px;border-radius:50%;background:var(--nx-dim)}
 .status-dot.on{background:var(--nx-ok)}
@@ -367,12 +372,12 @@ h3{font-size:1.125rem;font-weight:700}
 .chat-trigger-icon .material-symbols-outlined{color:#1a1a2e}
 
 /* ── 24. COOKIE CONSENT ── */
-.cookie-banner{position:fixed;bottom:0;left:0;right:0;z-index:300;background:var(--nx-s2);border-top:1px solid var(--nx-border-h);padding:20px var(--pad);animation:slideUp .3s var(--ease)}
+.cookie-banner{position:fixed;bottom:0;left:0;right:0;z-index:300;background:var(--nx-s2);border-top:1px solid var(--nx-border-h);padding:24px var(--pad);animation:slideUp .3s var(--ease)}
 .cookie-inner{max-width:var(--max-w);margin:0 auto;display:flex;flex-direction:column;gap:16px}
 @media(min-width:768px){.cookie-inner{flex-direction:row;align-items:center}}
-.cookie-text{flex:1;font-size:.875rem;color:var(--nx-muted);line-height:1.6}
+.cookie-text{flex:1;font-size:.8125rem;color:var(--nx-muted);line-height:1.6}
 .cookie-text a{color:var(--nx-accent);text-decoration:underline}
-.cookie-actions{display:flex;gap:8px;flex-shrink:0}
+.cookie-actions{display:flex;gap:8px;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom,0)}
 
 /* ── 25. FOOTER ── */
 .footer{background:var(--nx-s1);border-top:1px solid var(--nx-border);padding:64px 0 32px}

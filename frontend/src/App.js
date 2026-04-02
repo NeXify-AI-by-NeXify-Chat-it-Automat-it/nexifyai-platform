@@ -479,7 +479,7 @@ const LiveChat = ({ isOpen, onClose, initialQ }) => {
                 <button key={i} className="chat-preset" onClick={() => { track('preset_click', { q: q.t }); send(q.t); }} data-testid={`chat-preset-${i}`}><I n={q.i} /><span>{q.t}</span></button>
               ))}
             </div>
-            <div className="chat-sidebar-cta"><a href="#kontakt" className="btn btn-primary" onClick={onClose} style={{ width: '100%' }}>Direkt Termin buchen</a></div>
+            <div className="chat-sidebar-cta"><button className="btn btn-primary" onClick={() => { track('chat_booking_click'); send('Ich möchte einen Termin für ein Strategiegespräch buchen.'); }} style={{ width: '100%' }} data-testid="chat-sidebar-book-btn">Termin buchen</button></div>
           </div>
           <div className="chat-main">
             <div className="chat-header"><div className="chat-status"><span className="status-dot on"></span>NeXifyAI Advisor</div>{qual.use_case && <span className="chat-topic">Thema: {qual.use_case}</span>}</div>
@@ -487,7 +487,7 @@ const LiveChat = ({ isOpen, onClose, initialQ }) => {
               {msgs.map((m, i) => (
                 <div key={i} className={`chat-msg ${m.role}`} data-testid={`chat-msg-${i}`}>
                   <div>{m.content}</div>
-                  {m.actions && m.actions.length > 0 && <div className="chat-msg-actions">{m.actions.map((a, ai) => <a key={ai} href="#kontakt" className="btn btn-sm btn-primary" onClick={onClose}>{a.label}</a>)}</div>}
+                  {m.actions && m.actions.length > 0 && <div className="chat-msg-actions">{m.actions.map((a, ai) => <button key={ai} className="btn btn-sm btn-primary" onClick={() => send('Ich möchte einen Termin buchen.')}>{a.label}</button>)}</div>}
                 </div>
               ))}
               {loading && <div className="chat-msg assistant"><div className="chat-typing"><span></span><span></span><span></span></div></div>}
