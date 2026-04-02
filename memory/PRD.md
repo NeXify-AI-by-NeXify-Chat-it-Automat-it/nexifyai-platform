@@ -1,54 +1,132 @@
-# NeXifyAI Landing Page — Product Requirements Document
+# NeXifyAI — Product Requirements Document
 
-## Original Problem Statement
-Premium DACH B2B landing page for "NeXifyAI by NeXify" — enterprise AI automation. Core claim: "Chat it. Automate it." Primary goal: generate qualified B2B strategy calls. Target: DACH + NL + Global. Real 3D animated web experience with full multilingual support.
+## Product Vision
+NeXifyAI by NeXify Automate: B2B-first KI-Agenten-Platform fuer DACH/Benelux. 
+Landing Page + CRM + Commercial Engine + AI Chat Discovery.
 
-## Brand Identity
-- **Name**: NeXify**AI** — "AI" ALWAYS highlighted in CI accent color (#ff9b7a)
-- **Entity**: NeXify Automate (NL, KvK: 90483944)
-- **CSS class**: `.brand-ai` for consistent accent highlighting
-- **LLM fallback**: NeXify**AI** (bold markdown)
-
-## Architecture
-- Frontend: React 18, @react-three/fiber v8, react-markdown, remark-gfm
-- Backend: FastAPI, MongoDB (motor), JWT+Argon2 auth
-- LLM: GPT-4o-mini via Emergent LLM Key
-- Email: Resend API
-- i18n: Custom React Context (DE/NL/EN)
-
-## Implemented Features (All Verified)
-
-### CI-konforme Markenhervorhebung — Iteration 12 (April 2026)
-- BrandName component for consistent rendering across app
-- .brand-ai CSS class for accent color highlighting
-- Applied: Nav logo, Hero label, Chat sidebar, Footer
-- System prompt instructs LLM to write NeXify**AI**
-
-### Lead-orientierter Chat — Iteration 12
-- System prompt: GESPRÄCHSFÜHRUNG section (proactive, inviting, trust-building)
-- Welcome: structured 3-point menu (Prozessanalyse, Systemintegration, Use Cases)
-- Presets: Lead-oriented ("Was kann KI in meiner Branche leisten?")
-- CTA: "Kostenloses Strategiegespräch"
-
-### UI Polish — Iteration 11
-- All buttons rounded (6-8px), modals (12px), chat trigger (50px pill)
-- Language switcher: premium pill with active glow
-- Form alignment, enhanced 3D, JetBrains Mono typography
-
-### Earlier Iterations (7-10)
-- Admin CRM + Calendar, Chat markdown, Form labels, SVG icons
-
-## Testing History
-- Iteration 7: 28/28 | 8: 40/40 | 9: 40/40 | 10: 40/40 | 11: 100% | 12: 100% (14/14 backend + all frontend)
-
-## Upcoming Tasks
-- P1: Automated email sequences (booking confirmation, 24h reminder, 48h follow-up)
-- P1: Lighthouse Performance Optimization
-- P2: Analytics Dashboard in Admin
-- P2: App.js Refactoring (>740 lines)
-
-## Backlog
-- Cookie settings granular page, Admin CSV export, MFA, A/B testing
+## Core Requirements
+- **Brand**: NeXifyAI (AI in CI-Farbe)
+- **Languages**: DE (primary), NL, EN
+- **Target**: Mittelstand B2B, DACH/Benelux
+- **Authentication**: JWT Admin Login
+- **3D UI**: Three.js Hero, Integrations Globe, Process Scene
 
 ---
-*Last updated: 02.04.2026 — CI-brand highlighting, lead-oriented chat, system prompt v3. Iteration 12: 100% tests PASSED.*
+
+## TARIFF MODEL (Single Source of Truth)
+
+### 1. Starter AI Agenten AG (NXA-SAA-24-499)
+- Tarifpreis: 499 EUR/Monat (netto)
+- Vertragslaufzeit: 24 Monate
+- Gesamtvertragswert: 11.976 EUR
+- Aktivierungsanzahlung (30%): 3.592,80 EUR
+- Monatliche Folgerate: 349,30 EUR (24 Raten)
+- 2 KI-Agenten, Shared Cloud, E-Mail-Support (48h)
+
+### 2. Growth AI Agenten AG (NXA-GAA-24-1299)
+- Tarifpreis: 1.299 EUR/Monat (netto)
+- Vertragslaufzeit: 24 Monate
+- Gesamtvertragswert: 31.176 EUR
+- Aktivierungsanzahlung (30%): 9.352,80 EUR
+- Monatliche Folgerate: 909,30 EUR (24 Raten)
+- 10 KI-Agenten, Private Cloud, Priority Support (24h), CRM/ERP-Kit
+
+---
+
+## Company Data
+- Name: NeXify Automate
+- KvK: 90483944
+- USt-ID: NL865786276B01
+- IBAN: NL66 REVO 3601 4304 36
+- BIC: REVONL22
+- Intermediary BIC: CHASDEFX
+
+---
+
+## Architecture
+```
+/app/
+├── backend/
+│   ├── server.py (FastAPI, MongoDB, JWT, LLM Chat, Admin, Commercial Routes)
+│   ├── commercial.py (Tariff Config, PDF Engine, Revolut API, Magic Links, FAQ)
+│   ├── requirements.txt
+│   └── .env
+├── frontend/
+│   ├── src/
+│   │   ├── App.js (Landing Page, 3D, Chat with AI Discovery)
+│   │   ├── App.css
+│   │   ├── index.js (Routing: /, /de, /nl, /en, /admin, /angebot)
+│   │   ├── i18n/ (LanguageContext.js, translations.js)
+│   │   └── pages/ (Admin.js, LegalPages.js, QuotePortal.js)
+│   └── package.json
+└── memory/ (PRD.md, test_credentials.md)
+```
+
+---
+
+## Implemented Features
+
+### Phase 1: Landing Page & Brand (DONE)
+- 3D Hero, Integrations Globe, Process Scene
+- Multi-language (DE/NL/EN)
+- Responsive Design, SEO, Cookie Consent
+- Legal Pages (Impressum, Datenschutz, AGB, KI-Hinweise)
+
+### Phase 2: AI Chat & Lead System (DONE)
+- Emergent LLM Chat with booking flow
+- Lead capture, qualification, analytics tracking
+- Contact form with validation
+- Email notifications via Resend
+
+### Phase 3: Admin CRM (DONE)
+- Admin login (JWT)
+- Dashboard with stats
+- Leads management (CRUD, status updates)
+- Calendar (bookings, blocked slots)
+- Customer database
+
+### Phase 4: Commercial Engine v2.0 (DONE — Current Session)
+- Central Tariff Config (Single Source of Truth)
+- Quote management (create, send, PDF, magic links)
+- Invoice engine (deposit, monthly, PDF generation)
+- Customer Quote Portal (/angebot) with accept/decline/revision
+- AI Chat Discovery flow (auto-generates quotes)
+- Revolut integration (orders, webhooks, fallback to bank transfer)
+- Admin Commercial Dashboard (quotes, invoices, stats, revenue)
+- FAQ with 15 entries (tariffs, payment, bank details, DSGVO)
+- All translations updated (DE/NL/EN)
+- 100% test coverage (23/23 backend, all frontend verified)
+
+---
+
+## Pending / Backlog
+
+### P1 — Upcoming
+- E-Mail delivery: Connect Resend to all commercial events (currently backend-ready, needs live Resend key)
+- Secure Customer Portal refinement: add document list view, invoice download
+- SMTP fallback (Hostinger: nexifyai@nexifyai.de)
+
+### P2 — Future
+- DeepSeek/Mem0 integration for persistent chat memory
+- Monthly recurring invoice auto-generation (cron/scheduler)
+- Revolut Subscription API for recurring payments
+- Admin CSV export
+- App.js refactoring (>740 lines)
+- Lighthouse performance optimization
+- A/B testing framework
+
+---
+
+## 3rd Party Integrations
+| Service | Status | Key Location |
+|---------|--------|-------------|
+| Emergent LLM | Active | backend/.env |
+| Resend | Active | backend/.env |
+| Revolut Merchant API | Test keys | backend/.env |
+| MongoDB | Active | backend/.env |
+
+---
+
+## Test Reports
+- Iteration 13: 100% tests PASSED (23/23 backend, all frontend verified)
+- Test file: /app/backend/tests/test_commercial_engine.py
