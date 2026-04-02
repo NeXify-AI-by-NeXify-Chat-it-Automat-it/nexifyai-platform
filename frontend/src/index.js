@@ -8,6 +8,7 @@ import App from './App';
 import Admin from './pages/Admin';
 import LegalPage from './pages/LegalPages';
 import QuotePortal from './pages/QuotePortal';
+import IntegrationDetail from './pages/IntegrationDetail';
 
 /* Language-aware redirect: / → /<detected lang> */
 function LangRedirect() {
@@ -43,6 +44,9 @@ root.render(
 
             {/* Admin (no language prefix) */}
             <Route path="/admin" element={<Admin />} />
+
+            {/* Integration SEO Pages */}
+            <Route path="/integrationen/:slug" element={<IntegrationDetail />} />
 
             {/* Customer Offer Portal */}
             <Route path="/angebot" element={<QuotePortal />} />

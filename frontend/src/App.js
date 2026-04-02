@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { HeroScene, IntegrationsGlobe, ProcessScene } from './components/Scene3D';
 import { useLanguage } from './i18n/LanguageContext';
+import { INTEGRATION_CATEGORIES, getFeaturedDetail } from './data/integrations';
+import { SEO_PRODUCT, BUNDLES, FULL_SERVICES } from './data/products';
 import T from './i18n/translations';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import SEOHead from './components/SEOHead';
@@ -79,7 +82,7 @@ const Nav = ({ onBook, t }) => {
   const links = [
     { l: t.nav.leistungen, h: '#loesungen' }, { l: t.nav.usecases, h: '#use-cases' },
     { l: t.nav.appdev, h: '#app-dev' }, { l: t.nav.integrationen, h: '#integrationen' },
-    { l: t.nav.tarife, h: '#preise' }, { l: t.lang === 'en' ? 'Services' : t.lang === 'nl' ? 'Diensten' : 'Services', h: '#services' }, { l: t.nav.faq, h: '#faq' }
+    { l: t.nav.tarife, h: '#preise' }, { l: t.lang === 'en' ? 'SEO' : 'KI-SEO', h: '#ki-seo' }, { l: t.lang === 'en' ? 'Services' : t.lang === 'nl' ? 'Diensten' : 'Services', h: '#services' }, { l: t.nav.faq, h: '#faq' }
   ];
   const go = (h) => { setMob(false); track('nav_click', { target: h }); };
   return (
@@ -264,39 +267,121 @@ const Process = ({ t }) => (
   </AnimSection>
 );
 
-/* ═══════════ INTEGRATIONS (400+) ═══════════ */
-const Integrations = ({ t }) => (
-  <AnimSection id="integrationen" className="section bg-s1" aria-labelledby="integ-t" data-testid="integrations-section">
-    <div className="container">
-      <div className="integ-layout">
-        <div className="integ-left">
-          <motion.div variants={fadeUp}>
+/* ═══════════ INTEGRATIONS — Premium Categorized Layout ═══════════ */
+const Integrations = ({ onBook, t }) => {
+  const { lang } = useLanguage();
+  const popularSlugs = ['salesforce', 'hubspot', 'sap', 'datev', 'slack', 'aws', 'shopify', 'openai', 'stripe'];
+  const popularItems = popularSlugs.map(s => {
+    const f = getFeaturedDetail(s);
+    for (const cat of INTEGRATION_CATEGORIES) {
+      const item = cat.items.find(i => i.slug === s);
+      if (item) return { ...item, category: cat, featured: f };
+    }
+    return null;
+  }).filter(Boolean);
+
+  const l = {
+    de: { popular: 'Beliebte Integrationen', allCats: 'Alle Kategorien', checkCta: 'Details ansehen', protocols: 'Unterstuetzte Protokolle', requestCta: 'Anbindung anfragen', exploreCta: 'Alle Integrationen erkunden', customTitle: 'Ihre Wunsch-Integration nicht dabei?', customDesc: 'Kein Problem — wir realisieren jede erdenkliche Systemanbindung. Sprechen Sie mit uns ueber Ihre Anforderungen.', customCta: 'Integration besprechen', totalLabel: 'Verfuegbare Systemintegrationen', totalDesc: 'Ueber REST API, GraphQL, Webhooks, OAuth 2.0, SAML und gRPC — nahtlos integriert in Ihre bestehende Infrastruktur.' },
+    nl: { popular: 'Populaire integraties', allCats: 'Alle categorieen', checkCta: 'Details bekijken', protocols: 'Ondersteunde protocollen', requestCta: 'Koppeling aanvragen', exploreCta: 'Alle integraties verkennen', customTitle: 'Uw gewenste integratie niet gevonden?', customDesc: 'Geen probleem — wij realiseren elke denkbare systeemkoppeling. Bespreek uw vereisten met ons.', customCta: 'Integratie bespreken', totalLabel: 'Beschikbare systeemintegraties', totalDesc: 'Via REST API, GraphQL, Webhooks, OAuth 2.0, SAML en gRPC — naadloos geintegreerd in uw bestaande infrastructuur.' },
+    en: { popular: 'Popular Integrations', allCats: 'All Categories', checkCta: 'View details', protocols: 'Supported protocols', requestCta: 'Request integration', exploreCta: 'Explore all integrations', customTitle: 'Don\'t see your integration?', customDesc: 'No problem — we can build any system connection you need. Talk to us about your requirements.', customCta: 'Discuss integration', totalLabel: 'Available system integrations', totalDesc: 'Via REST API, GraphQL, Webhooks, OAuth 2.0, SAML, and gRPC — seamlessly integrated into your existing infrastructure.' },
+  };
+  const lb = l[lang] || l.de;
+
+  return (
+    <AnimSection id="integrationen" className="section bg-s1" aria-labelledby="integ-t" data-testid="integrations-section">
+      <div className="container">
+        {/* Header with counter */}
+        <div className="integ-header-row">
+          <motion.div className="integ-header-left" variants={fadeUp}>
             <span className="label">{t.integrations.label}</span>
             <h2 id="integ-t" style={{ marginTop: 8 }}>{t.integrations.title}</h2>
-            <p className="section-subtitle">{t.integrations.subtitle}</p>
+            <p className="section-subtitle" style={{ maxWidth: 520 }}>{t.integrations.subtitle}</p>
           </motion.div>
-          <motion.div className="integ-counter" variants={fadeUp}>
-            <div className="integ-count">{t.integrations.counter}</div>
-            <div className="integ-count-label">{t.integrations.counterLabel}</div>
-            <div className="integ-badges" style={{ marginTop: 12 }}>
-              {t.integrations.badges.map(b => <span key={b} className="integ-badge">{b}</span>)}
+          <motion.div className="integ-header-right" variants={fadeUp}>
+            <div className="integ-count-box">
+              <div className="integ-count">400+</div>
+              <div className="integ-count-label">{lb.totalLabel}</div>
+            </div>
+            <p className="integ-count-desc">{lb.totalDesc}</p>
+            <div className="integ-badges">
+              {['REST API','GraphQL','Webhooks','OAuth 2.0','SAML','gRPC'].map(b => (
+                <span key={b} className="integ-badge">{b}</span>
+              ))}
             </div>
           </motion.div>
-          <IntegrationsGlobe />
-          <motion.p variants={fadeUp} style={{ fontSize: '.8125rem', color: 'var(--nx-accent)', marginTop: 16, fontWeight: 600 }}>{t.integrations.customNote}</motion.p>
         </div>
-        <motion.div className="integ-cats" data-testid="integrations-list" variants={stagger}>
-          {t.integrations.cats.map((cat, ci) => (
-            <motion.div key={ci} variants={fadeUp}>
-              <div className="integ-cat-name">{cat.name}</div>
-              <div className="integ-cat-items">{cat.items.map((item, ii) => <span key={ii} className="integ-item">{item}</span>)}</div>
-            </motion.div>
-          ))}
+
+        {/* Popular Integrations */}
+        <motion.div className="integ-popular" variants={stagger}>
+          <h3 className="integ-section-label"><I n="star" c="integ-section-label-icon" /> {lb.popular}</h3>
+          <div className="integ-popular-grid" data-testid="integrations-popular">
+            {popularItems.map((item) => (
+              <motion.div key={item.slug} variants={scaleIn} whileHover={{ y: -6, transition: { duration: 0.25 } }}>
+                <Link to={`/integrationen/${item.slug}`} className="integ-popular-card" data-testid={`integ-popular-${item.slug}`}>
+                  <div className="integ-popular-icon" style={{ borderColor: item.featured?.color ? `${item.featured.color}25` : 'rgba(255,155,122,0.12)' }}>
+                    <I n={item.featured?.logo || item.category.icon} />
+                  </div>
+                  <div className="integ-popular-info">
+                    <div className="integ-popular-name">{item.name}</div>
+                    <div className="integ-popular-cat">{item.category.name[lang] || item.category.name.de}</div>
+                  </div>
+                  <I n="arrow_forward" c="integ-popular-arrow" />
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* All Categories */}
+        <motion.div className="integ-all-cats" variants={stagger}>
+          <h3 className="integ-section-label"><I n="category" c="integ-section-label-icon" /> {lb.allCats}</h3>
+          <div className="integ-cats-grid" data-testid="integrations-categories">
+            {INTEGRATION_CATEGORIES.map((cat, ci) => (
+              <motion.div key={cat.key} className="integ-cat-card" variants={fadeUp} whileHover={{ borderColor: 'rgba(255,155,122,0.15)' }}>
+                <div className="integ-cat-header">
+                  <div className="integ-cat-icon-wrap"><I n={cat.icon} c="integ-cat-icon" /></div>
+                  <div>
+                    <div className="integ-cat-name-v2">{cat.name[lang] || cat.name.de}</div>
+                    <div className="integ-cat-count">{cat.items.length} {lang === 'en' ? 'integrations' : lang === 'nl' ? 'integraties' : 'Integrationen'}</div>
+                  </div>
+                </div>
+                <p className="integ-cat-desc">{cat.desc[lang] || cat.desc.de}</p>
+                <div className="integ-cat-items-v2">
+                  {cat.items.map((item) => {
+                    const hasFeatured = getFeaturedDetail(item.slug);
+                    return hasFeatured ? (
+                      <Link key={item.slug} to={`/integrationen/${item.slug}`} className={`integ-item-v2 ${item.popular ? 'popular' : ''}`} data-testid={`integ-item-${item.slug}`}>
+                        {item.name}
+                        {item.popular && <span className="integ-item-dot"></span>}
+                      </Link>
+                    ) : (
+                      <span key={item.slug} className="integ-item-v2" data-testid={`integ-item-${item.slug}`}>
+                        {item.name}
+                      </span>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Custom Integration CTA */}
+        <motion.div className="integ-custom-cta" variants={fadeUp}>
+          <div className="integ-custom-inner">
+            <div>
+              <h3>{lb.customTitle}</h3>
+              <p>{lb.customDesc}</p>
+            </div>
+            <button className="btn btn-primary btn-glow" onClick={() => { onBook(); track('cta_click', { loc: 'integrations_custom' }); }} data-testid="integ-custom-cta-btn">
+              {lb.customCta} <I n="arrow_forward" />
+            </button>
+          </div>
         </motion.div>
       </div>
-    </div>
-  </AnimSection>
-);
+    </AnimSection>
+  );
+};
 
 /* ═══════════ GOVERNANCE ═══════════ */
 const Governance = ({ t }) => (
@@ -408,6 +493,22 @@ const TrustSection = ({ t }) => (
           </motion.div>
         ))}
       </div>
+      <div className="trust-ops-grid" data-testid="trust-ops">
+        {[
+          { icon: 'link', title: t.lang === 'en' ? 'Secure Document Access' : 'Sichere Dokumentenzugriffe', desc: t.lang === 'en' ? 'Time-limited Magic Links instead of passwords. Single-use tokens with automatic expiration.' : 'Zeitbegrenzte Magic Links statt Passwoerter. Einmal-Tokens mit automatischer Ablaufzeit.' },
+          { icon: 'history', title: 'Audit Trail', desc: t.lang === 'en' ? 'Complete audit logging of all commercial transactions, document access and system changes.' : 'Lueckenlose Protokollierung aller kommerziellen Transaktionen, Dokumentenzugriffe und Systemeingriffe.' },
+          { icon: 'auto_delete', title: t.lang === 'en' ? 'Data Lifecycle' : 'Daten-Lebenszyklus', desc: t.lang === 'en' ? 'Defined retention and deletion periods per data category. Automated cleanup processes.' : 'Definierte Aufbewahrungs- und Loeschfristen pro Datenkategorie. Automatisierte Bereinigungsprozesse.' },
+          { icon: 'admin_panel_settings', title: 'RBAC', desc: t.lang === 'en' ? 'Role-based access control with principle of least privilege across all systems.' : 'Rollenbasierte Zugriffskontrolle mit Minimal-Rechte-Prinzip ueber alle Systeme.' },
+        ].map((item, i) => (
+          <motion.div key={i} className="trust-ops-card" role="listitem" variants={fadeUp}>
+            <I n={item.icon} c="trust-ops-icon" />
+            <div>
+              <h4>{item.title}</h4>
+              <p>{item.desc}</p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
       <motion.div className="trust-eu-note" variants={fadeUp}>
         <div className="eu-emblem-row">
           <svg viewBox="0 0 810 540" width="48" height="32" className="eu-flag-svg" aria-label="EU Flag">
@@ -426,54 +527,156 @@ const TrustSection = ({ t }) => (
   </AnimSection>
 );
 
-/* ═══════════ SERVICES (Apps, Websites) ═══════════ */
-const Services = ({ onBook, t }) => (
-  <AnimSection id="services" className="section bg-s1" data-testid="services-section">
-    <div className="container">
-      <motion.header className="section-header centered" variants={fadeUp}>
-        <span className="label">{t.lang === 'en' ? 'SERVICES' : t.lang === 'nl' ? 'DIENSTEN' : 'LEISTUNGEN'}</span>
-        <h2>{t.lang === 'en' ? 'Websites, Apps & AI Solutions' : t.lang === 'nl' ? 'Websites, Apps & AI-oplossingen' : 'Websites, Apps & KI-Loesungen'}</h2>
-        <p className="section-subtitle">{t.lang === 'en' ? 'End-to-end digital solutions — from website to AI-powered automation.' : t.lang === 'nl' ? 'End-to-end digitale oplossingen — van website tot AI-aangedreven automatisering.' : 'End-to-End digitale Loesungen — von der Website bis zur KI-Automation.'}</p>
-      </motion.header>
-      <div className="services-grid" role="list">
-        {[
-          { cat: t.lang === 'en' ? 'WEBSITES' : 'WEBSITES', items: [
-            { name: 'Website Starter', price: '2.990 EUR', desc: t.lang === 'en' ? 'Up to 5 pages, responsive, SEO basics' : 'Bis 5 Seiten, responsive, SEO-Basis', time: t.lang === 'en' ? '3 weeks' : '3 Wochen' },
-            { name: 'Website Professional', price: '7.490 EUR', desc: t.lang === 'en' ? 'Up to 15 pages, animations, blog, analytics' : 'Bis 15 Seiten, Animationen, Blog, Analytics', time: t.lang === 'en' ? '5 weeks' : '5 Wochen', hl: true },
-            { name: 'Website Enterprise', price: '14.900 EUR', desc: t.lang === 'en' ? 'Unlimited, headless CMS, e-commerce, WCAG' : 'Unbegrenzt, Headless CMS, E-Commerce, WCAG', time: t.lang === 'en' ? '8 weeks' : '8 Wochen' },
-          ]},
-          { cat: 'APPS', items: [
-            { name: 'App MVP', price: '9.900 EUR', desc: t.lang === 'en' ? 'iOS + Android, 5 core features, auth, push' : 'iOS + Android, 5 Kernfeatures, Auth, Push', time: t.lang === 'en' ? '8 weeks' : '8 Wochen' },
-            { name: 'App Professional', price: '24.900 EUR', desc: t.lang === 'en' ? 'Full-stack, admin dashboard, payment, CRM' : 'Full-Stack, Admin-Dashboard, Payment, CRM', time: t.lang === 'en' ? '14 weeks' : '14 Wochen', hl: true },
-          ]},
-          { cat: t.lang === 'en' ? 'AI ADD-ONS' : 'KI ADD-ONS', items: [
-            { name: t.lang === 'en' ? 'AI Chatbot' : 'KI-Chatbot', price: t.lang === 'en' ? '249 EUR/mo' : '249 EUR/Mo.', desc: t.lang === 'en' ? 'Website chatbot, lead qualification, booking' : 'Website-Chatbot, Lead-Qualifizierung, Buchung' },
-            { name: t.lang === 'en' ? 'AI Automation' : 'KI-Automation', price: t.lang === 'en' ? '499 EUR/mo' : '499 EUR/Mo.', desc: t.lang === 'en' ? 'Workflow automation, email, CRM sync' : 'Workflow-Automation, E-Mail, CRM-Sync', hl: true },
-          ]},
-        ].map((group, gi) => (
-          <motion.div key={gi} className="service-group" variants={fadeUp}>
-            <h3 className="service-cat">{group.cat}</h3>
-            <div className="service-items">
-              {group.items.map((s, si) => (
-                <div key={si} className={`service-item ${s.hl ? 'hl' : ''}`} data-testid={`service-${s.name.toLowerCase().replace(/\s/g,'-')}`}>
-                  <div className="service-name">{s.name}</div>
-                  <div className="service-price">{s.price}</div>
-                  <div className="service-desc">{s.desc}</div>
-                  {s.time && <div className="service-time"><I n="schedule" c="service-time-icon" /> {s.time}</div>}
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        ))}
+/* ═══════════ KI-GESTEUERTES SEO — Produkt ═══════════ */
+const SEOProductSection = ({ onBook }) => {
+  const { lang } = useLanguage();
+  const [faqOpen, setFaqOpen] = useState(0);
+  const d = SEO_PRODUCT;
+  const benefits = d.benefits[lang] || d.benefits.de;
+  const process = d.process[lang] || d.process.de;
+  const tiers = d.tiers[lang] || d.tiers.de;
+  const faq = d.faq[lang] || d.faq.de;
+  return (
+    <AnimSection id="ki-seo" className="section bg-s1" data-testid="seo-product-section">
+      <div className="container">
+        <motion.header className="section-header centered" variants={fadeUp}>
+          <span className="label">{d.title[lang] || d.title.de}</span>
+          <h2>{d.subtitle[lang] || d.subtitle.de}</h2>
+          <p className="section-subtitle">{d.desc[lang] || d.desc.de}</p>
+          <p className="seo-forwhom"><I n="groups" c="seo-forwhom-icon" /> {d.forWhom[lang] || d.forWhom.de}</p>
+        </motion.header>
+        <div className="seo-benefits-grid" data-testid="seo-benefits">
+          {benefits.map((b, i) => (
+            <motion.div key={i} className="seo-benefit-card" variants={fadeUp} whileHover={{ y: -4 }}>
+              <I n={b.icon} c="seo-benefit-icon" />
+              <h3>{b.title}</h3>
+              <p>{b.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+        <motion.h3 className="seo-sub-title" variants={fadeUp}>
+          <I n="route" c="seo-sub-icon" /> {lang === 'en' ? 'How it works' : lang === 'nl' ? 'Hoe het werkt' : 'So funktioniert es'}
+        </motion.h3>
+        <div className="seo-process-grid">
+          {process.map((s, i) => (
+            <motion.div key={i} className="seo-process-card" variants={fadeUp}>
+              <div className="seo-process-num">{s.num}</div>
+              <h4>{s.title}</h4>
+              <p>{s.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+        <motion.h3 className="seo-sub-title" variants={fadeUp}>
+          <I n="payments" c="seo-sub-icon" /> {lang === 'en' ? 'SEO Pricing' : lang === 'nl' ? 'SEO Tarieven' : 'SEO Tarife'}
+        </motion.h3>
+        <div className="pricing-grid" data-testid="seo-pricing">
+          {tiers.map((pl, i) => (
+            <motion.div key={i} className={`price-card ${pl.hl ? 'hl' : ''}`} variants={scaleIn} whileHover={{ y: -8, transition: { duration: 0.25 } }}>
+              {pl.badge && <span className="price-badge">{pl.badge}</span>}
+              <div className="price-name">{pl.name}</div>
+              <div className="price-val">{pl.price}<span className="price-period"> {pl.period}</span></div>
+              <ul className="price-features">{pl.features.map((f, fi) => <li key={fi} className="price-feat"><I n="check_circle" c="price-check" />{f}</li>)}</ul>
+              {pl.time && <div className="seo-tier-time"><I n="schedule" /> {pl.time}</div>}
+              <button className={`btn ${pl.hl ? 'btn-primary btn-glow' : 'btn-secondary'} price-cta`} onClick={() => { onBook(); track('seo_pricing_click', { plan: pl.name }); }} data-testid={`seo-price-cta-${pl.id}`}>{lang === 'en' ? 'Request quote' : lang === 'nl' ? 'Offerte aanvragen' : 'Angebot anfordern'}</button>
+            </motion.div>
+          ))}
+        </div>
+        <motion.h3 className="seo-sub-title" style={{ marginTop: 56 }} variants={fadeUp}>
+          <I n="help" c="seo-sub-icon" /> FAQ
+        </motion.h3>
+        <div className="faq-list seo-faq" data-testid="seo-faq">
+          {faq.map((f, i) => (
+            <motion.div key={i} className={`faq-item ${faqOpen === i ? 'open' : ''}`} variants={fadeUp}>
+              <button type="button" className="faq-q" onClick={() => setFaqOpen(faqOpen === i ? -1 : i)} data-testid={`seo-faq-q-${i}`}><span>{f.q}</span><I n={faqOpen === i ? 'expand_less' : 'expand_more'} /></button>
+              <AnimatePresence>
+                {faqOpen === i && (
+                  <motion.div className="faq-a" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }}>
+                    <div className="faq-a-inner">{f.a}</div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          ))}
+        </div>
       </div>
-      <motion.div style={{textAlign:'center',marginTop:'40px'}} variants={fadeUp}>
-        <button className="btn btn-primary btn-glow" onClick={() => { onBook(); track('services_cta', {}); }} data-testid="services-cta">
-          {t.lang === 'en' ? 'Request a Quote' : t.lang === 'nl' ? 'Offerte aanvragen' : 'Angebot anfordern'}
-        </button>
-      </motion.div>
-    </div>
-  </AnimSection>
-);
+    </AnimSection>
+  );
+};
+
+/* ═══════════ FULL SERVICES + BUNDLES ═══════════ */
+const ServicesAll = ({ onBook }) => {
+  const { lang } = useLanguage();
+  const cats = FULL_SERVICES.categories[lang] || FULL_SERVICES.categories.de;
+  const bundleItems = BUNDLES.items[lang] || BUNDLES.items.de;
+  return (
+    <AnimSection id="services" className="section bg-dark" data-testid="services-section">
+      <div className="container">
+        <motion.header className="section-header centered" variants={fadeUp}>
+          <span className="label">{FULL_SERVICES.title[lang] || FULL_SERVICES.title.de}</span>
+          <h2>{lang === 'en' ? 'Websites, Apps, SEO & AI Solutions' : lang === 'nl' ? 'Websites, Apps, SEO & AI-oplossingen' : 'Websites, Apps, SEO & KI-Loesungen'}</h2>
+          <p className="section-subtitle">{FULL_SERVICES.subtitle[lang] || FULL_SERVICES.subtitle.de}</p>
+        </motion.header>
+        <div className="services-cat-grid" data-testid="services-categories">
+          {cats.map((group, gi) => (
+            <motion.div key={gi} className="svc-group" variants={fadeUp}>
+              <h3 className="svc-group-title"><I n={group.icon} c="svc-group-icon" /> {group.name}</h3>
+              <div className="svc-items">
+                {group.items.map((s, si) => (
+                  <div key={si} className={`svc-card ${s.hl ? 'hl' : ''}`} data-testid={`svc-${s.name.toLowerCase().replace(/\s/g,'-')}`}>
+                    <div className="svc-card-top">
+                      <div className="svc-name">{s.name}</div>
+                      <div className="svc-price">{s.price}</div>
+                    </div>
+                    <div className="svc-desc">{s.desc}</div>
+                    {s.time && <div className="svc-time"><I n="schedule" /> {s.time}</div>}
+                    <ul className="svc-features">
+                      {s.features.map((f, fi) => <li key={fi}><I n="check" c="svc-check" />{f}</li>)}
+                    </ul>
+                    <button className={`btn ${s.hl ? 'btn-primary' : 'btn-secondary'} svc-cta`} onClick={() => { onBook(); track('service_click', { service: s.name }); }}>{lang === 'en' ? 'Request quote' : lang === 'nl' ? 'Offerte aanvragen' : 'Angebot anfordern'}</button>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+        {/* Bundles */}
+        <motion.div className="bundles-wrap" variants={fadeUp} data-testid="bundles-section">
+          <div className="section-header centered" style={{ marginTop: 72, marginBottom: 36 }}>
+            <span className="label">{BUNDLES.title[lang] || BUNDLES.title.de}</span>
+            <h2>{BUNDLES.subtitle[lang] || BUNDLES.subtitle.de}</h2>
+          </div>
+          <div className="bundles-grid">
+            {bundleItems.map((b, i) => (
+              <motion.div key={i} className={`bundle-card ${b.hl ? 'hl' : ''}`} variants={scaleIn} whileHover={{ y: -6 }}>
+                {b.badge && <span className="price-badge">{b.badge}</span>}
+                <div className="bundle-name">{b.name}</div>
+                <div className="bundle-price">{b.price}</div>
+                {b.saving && <div className="bundle-saving">{b.saving}</div>}
+                <div className="bundle-desc">{b.desc}</div>
+                <ul className="bundle-features">
+                  {b.features.map((f, fi) => <li key={fi}><I n="check_circle" c="price-check" />{f}</li>)}
+                </ul>
+                <button className={`btn ${b.hl ? 'btn-primary btn-glow' : 'btn-secondary'} price-cta`} onClick={() => { onBook(); track('bundle_click', { bundle: b.name }); }} data-testid={`bundle-cta-${b.id}`}>{b.cta}</button>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+        {/* PDF Download CTA */}
+        <motion.div className="tariff-download-bar" variants={fadeUp}>
+          <div className="tariff-download-inner">
+            <div>
+              <h4>{lang === 'en' ? 'Complete tariff overview as PDF' : lang === 'nl' ? 'Volledig tariefoverzicht als PDF' : 'Komplette Tarifuebersicht als PDF'}</h4>
+              <p>{lang === 'en' ? 'All products, prices, features and bundles — printable, shareable, clear.' : lang === 'nl' ? 'Alle producten, prijzen, features en bundels — printbaar, deelbaar, overzichtelijk.' : 'Alle Produkte, Preise, Features und Bundles — druckbar, teilbar, uebersichtlich.'}</p>
+            </div>
+            <a href={`${API}/api/product/tariff-sheet?category=all`} className="btn btn-secondary" target="_blank" rel="noopener noreferrer" data-testid="tariff-pdf-download">
+              <I n="picture_as_pdf" /> {lang === 'en' ? 'Download PDF' : 'PDF herunterladen'}
+            </a>
+          </div>
+        </motion.div>
+      </div>
+    </AnimSection>
+  );
+};
 
 /* ═══════════ CONTACT ═══════════ */
 const Contact = ({ onBook, t }) => {
@@ -731,7 +934,7 @@ const Ft = ({ onCookieSettings, t, lang }) => {
             <ul className="footer-links">
               <li><a href="#loesungen">{t.nav.leistungen}</a></li><li><a href="#use-cases">{t.nav.usecases}</a></li>
               <li><a href="#app-dev">{t.nav.appdev}</a></li><li><a href="#integrationen">{t.nav.integrationen}</a></li>
-              <li><a href="#preise">{t.nav.tarife}</a></li><li><a href="#services">{t.lang === 'en' ? 'Services' : t.lang === 'nl' ? 'Diensten' : 'Services'}</a></li>
+              <li><a href="#preise">{t.nav.tarife}</a></li><li><a href="#ki-seo">{t.lang === 'en' ? 'SEO' : 'KI-SEO'}</a></li><li><a href="#services">{t.lang === 'en' ? 'Services' : t.lang === 'nl' ? 'Diensten' : 'Services'}</a></li>
               <li><a href="#trust">{t.lang === 'en' ? 'Trust' : t.lang === 'nl' ? 'Vertrouwen' : 'Vertrauen'}</a></li><li><a href="#kontakt">{t.footer.kontakt}</a></li>
             </ul>
           </nav>
@@ -824,10 +1027,11 @@ function App() {
         <UseCases t={t} />
         <AppDev onBook={() => setBookOpen(true)} t={t} />
         <Process t={t} />
-        <Integrations t={t} />
+        <Integrations onBook={() => setBookOpen(true)} t={t} />
         <Governance t={t} />
         <Pricing onBook={() => setBookOpen(true)} t={t} />
-        <Services onBook={() => setBookOpen(true)} t={t} />
+        <SEOProductSection onBook={() => setBookOpen(true)} />
+        <ServicesAll onBook={() => setBookOpen(true)} />
         <TrustSection t={t} />
         <FAQ t={t} />
         <Contact onBook={() => setBookOpen(true)} t={t} />

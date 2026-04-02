@@ -290,6 +290,66 @@ SERVICE_CATALOG = {
         "target": "KMU, Mittelstand",
         "status": "active",
     },
+    "seo_starter": {
+        "tariff_number": "NXA-SEO-S-799",
+        "slug": "seo-starter",
+        "name": "SEO Starter",
+        "category": "seo",
+        "price_monthly_eur": 799.00,
+        "billing_mode": "monthly",
+        "min_months": 6,
+        "features": [
+            "Keyword-Recherche (50 Keywords)",
+            "On-Page-Optimierung (5 Seiten/Mo.)",
+            "Monatlicher SEO-Report",
+            "Core Web Vitals Monitoring",
+            "Google Search Console Setup & Management",
+            "Technisches SEO-Audit (quartalsweise)",
+        ],
+        "target": "KMU, Startups",
+        "status": "active",
+    },
+    "seo_growth": {
+        "tariff_number": "NXA-SEO-G-1499",
+        "slug": "seo-growth",
+        "name": "SEO Growth",
+        "category": "seo",
+        "price_monthly_eur": 1499.00,
+        "billing_mode": "monthly",
+        "min_months": 6,
+        "recommended": True,
+        "features": [
+            "Keyword-Recherche (200 Keywords)",
+            "On-Page-Optimierung (15 Seiten/Mo.)",
+            "Woechentlicher SEO-Report",
+            "Content-Strategie & KI-Briefings",
+            "Technisches SEO (monatlich)",
+            "Linkbuilding-Strategie",
+            "Wettbewerberanalyse",
+            "Multilingual SEO (DE/NL/EN)",
+        ],
+        "target": "Mittelstand, Scale-ups",
+        "status": "active",
+    },
+    "seo_enterprise": {
+        "tariff_number": "NXA-SEO-E-IND",
+        "slug": "seo-enterprise",
+        "name": "SEO Enterprise",
+        "category": "seo",
+        "price_monthly_eur": 0,
+        "billing_mode": "custom",
+        "features": [
+            "Unbegrenzte Keywords",
+            "Tagesaktuelle Reports & Dashboards",
+            "Vollstaendige Content-Produktion",
+            "Dediziertes SEO-Team",
+            "International SEO (5+ Maerkte)",
+            "API-Zugang & Custom Reporting",
+            "Executive Quarterly Reviews",
+        ],
+        "target": "Enterprise, Konzerne",
+        "status": "active",
+    },
 }
 
 BUNDLE_CATALOG = {
@@ -910,8 +970,233 @@ def generate_invoice_pdf(invoice_data: dict) -> bytes:
 
 
 # ═══════════════════════════════════════════════════
-# FAQ — Single Source of Truth
+# TARIFF COMPARISON SHEET PDF
 # ═══════════════════════════════════════════════════
+
+def generate_tariff_sheet_pdf(category: str = "all") -> bytes:
+    """Generate a premium CI-branded tariff comparison PDF"""
+    buf = BytesIO()
+    doc = SimpleDocTemplate(
+        buf, pagesize=A4, topMargin=28 * mm, bottomMargin=28 * mm,
+        leftMargin=15 * mm, rightMargin=15 * mm,
+    )
+    styles = _build_styles()
+    styles.add(ParagraphStyle(
+        "SheetTitle", parent=styles["BrandTitle"], fontSize=22, spaceAfter=4,
+    ))
+    styles.add(ParagraphStyle(
+        "SheetSub", parent=styles["BrandSub"], fontSize=9, spaceAfter=8,
+    ))
+    styles.add(ParagraphStyle(
+        "CatTitle", parent=styles["SectionHead"], fontSize=13, spaceBefore=20, spaceAfter=10,
+        textColor=CI_ORANGE,
+    ))
+    styles.add(ParagraphStyle(
+        "CellText", parent=styles["BodyText2"], fontSize=7.5, leading=10,
+    ))
+    styles.add(ParagraphStyle(
+        "CellBold", parent=styles["BodyText2"], fontName="Helvetica-Bold", fontSize=8, leading=11,
+    ))
+    styles.add(ParagraphStyle(
+        "FootNote", parent=styles["SmallGray"], fontSize=6.5, leading=9,
+    ))
+    elements = []
+
+    now_str = datetime.now(timezone.utc).strftime("%d.%m.%Y")
+
+    # Title
+    elements.append(Spacer(1, 6 * mm))
+    elements.append(Paragraph("Tarif- und Leistungsuebersicht", styles["SheetTitle"]))
+    elements.append(Paragraph(
+        f"NeXifyAI | Stand: {now_str} | Alle Preise in EUR, zzgl. gesetzlicher USt.",
+        styles["SheetSub"],
+    ))
+    elements.append(HRFlowable(width="100%", thickness=1, color=CI_ORANGE, spaceBefore=2, spaceAfter=12))
+
+    # --- KI Agenten ---
+    if category in ("all", "agents"):
+        elements.append(Paragraph("KI-Agenten-Tarife", styles["CatTitle"]))
+        agent_header = [
+            Paragraph("<b>Merkmal</b>", styles["CellBold"]),
+            Paragraph("<b>Starter AI Agenten AG</b>", styles["CellBold"]),
+            Paragraph("<b>Growth AI Agenten AG</b>", styles["CellBold"]),
+        ]
+        st = TARIFF_CONFIG["starter"]
+        gr = TARIFF_CONFIG["growth"]
+        agent_rows = [agent_header]
+        comparisons = [
+            ("Tarif-Nr.", st["tariff_number"], gr["tariff_number"]),
+            ("Monatspreis (Referenz)", f'{st["reference_monthly_eur"]:.2f} EUR', f'{gr["reference_monthly_eur"]:.2f} EUR'),
+            ("KI-Agenten", str(st["agents"]), str(gr["agents"])),
+            ("Infrastruktur", st["infrastructure"], gr["infrastructure"]),
+            ("Support", st["support"], gr["support"]),
+            ("Laufzeit", f'{st["contract_months"]} Monate', f'{gr["contract_months"]} Monate'),
+            ("Anzahlung", f'{st["upfront_percent"]} %', f'{gr["upfront_percent"]} %'),
+            ("Gesamtvertragswert", _fmt_eur(st["total_contract_eur"]), _fmt_eur(gr["total_contract_eur"])),
+            ("Anzahlung (netto)", _fmt_eur(st["upfront_eur"]), _fmt_eur(gr["upfront_eur"])),
+            ("Monatsrate (netto)", _fmt_eur(st["recurring_eur"]), _fmt_eur(gr["recurring_eur"])),
+        ]
+        for feat in st.get("features", []):
+            comparisons.append((feat, "Inkl.", "Inkl."))
+        for feat in gr.get("features", []):
+            if feat not in [f for f in st.get("features", [])]:
+                comparisons.append((feat, "—", "Inkl."))
+        for row in comparisons:
+            agent_rows.append([
+                Paragraph(row[0], styles["CellText"]),
+                Paragraph(row[1], styles["CellText"]),
+                Paragraph(row[2], styles["CellText"]),
+            ])
+        w = doc.width
+        t = Table(agent_rows, colWidths=[w * 0.40, w * 0.30, w * 0.30])
+        t.setStyle(TableStyle([
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ("LINEBELOW", (0, 0), (-1, 0), 0.8, CI_DARK),
+            ("LINEBELOW", (0, -1), (-1, -1), 0.5, CI_GRAY),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.Color(255/255, 155/255, 122/255, 0.08)),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.Color(0.97, 0.97, 0.97)]),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.Color(0.85, 0.85, 0.85)),
+        ]))
+        elements.append(t)
+        elements.append(Spacer(1, 6 * mm))
+
+    # --- Websites ---
+    if category in ("all", "websites"):
+        elements.append(Paragraph("Website-Tarife", styles["CatTitle"]))
+        web_header = [
+            Paragraph("<b>Merkmal</b>", styles["CellBold"]),
+            Paragraph("<b>Starter</b>", styles["CellBold"]),
+            Paragraph("<b>Professional</b>", styles["CellBold"]),
+            Paragraph("<b>Enterprise</b>", styles["CellBold"]),
+        ]
+        ws = SERVICE_CATALOG["web_starter"]
+        wp = SERVICE_CATALOG["web_professional"]
+        we = SERVICE_CATALOG["web_enterprise"]
+        web_rows = [web_header]
+        web_rows.append([Paragraph("Tarif-Nr.", styles["CellText"]), Paragraph(ws["tariff_number"], styles["CellText"]), Paragraph(wp["tariff_number"], styles["CellText"]), Paragraph(we["tariff_number"], styles["CellText"])])
+        web_rows.append([Paragraph("Preis (netto)", styles["CellText"]), Paragraph(_fmt_eur(ws["price_eur"]), styles["CellText"]), Paragraph(_fmt_eur(wp["price_eur"]), styles["CellText"]), Paragraph(_fmt_eur(we["price_eur"]), styles["CellText"])])
+        web_rows.append([Paragraph("Lieferzeit", styles["CellText"]), Paragraph(f'{ws["delivery_weeks"]} Wochen', styles["CellText"]), Paragraph(f'{wp["delivery_weeks"]} Wochen', styles["CellText"]), Paragraph(f'{we["delivery_weeks"]} Wochen', styles["CellText"])])
+        all_feats = set()
+        for s in [ws, wp, we]:
+            all_feats.update(s["features"])
+        for f in sorted(all_feats):
+            web_rows.append([
+                Paragraph(f[:50], styles["CellText"]),
+                Paragraph("Inkl." if f in ws["features"] else "—", styles["CellText"]),
+                Paragraph("Inkl." if f in wp["features"] else "—", styles["CellText"]),
+                Paragraph("Inkl." if f in we["features"] else "—", styles["CellText"]),
+            ])
+        w = doc.width
+        t = Table(web_rows, colWidths=[w * 0.34, w * 0.22, w * 0.22, w * 0.22])
+        t.setStyle(TableStyle([
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+            ("LINEBELOW", (0, 0), (-1, 0), 0.8, CI_DARK),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.Color(255/255, 155/255, 122/255, 0.08)),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.Color(0.97, 0.97, 0.97)]),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.Color(0.85, 0.85, 0.85)),
+        ]))
+        elements.append(t)
+        elements.append(Spacer(1, 6 * mm))
+
+    # --- SEO ---
+    if category in ("all", "seo"):
+        elements.append(Paragraph("KI-gesteuertes SEO", styles["CatTitle"]))
+        seo_header = [
+            Paragraph("<b>Merkmal</b>", styles["CellBold"]),
+            Paragraph("<b>SEO Starter</b>", styles["CellBold"]),
+            Paragraph("<b>SEO Growth</b>", styles["CellBold"]),
+            Paragraph("<b>SEO Enterprise</b>", styles["CellBold"]),
+        ]
+        ss = SERVICE_CATALOG["seo_starter"]
+        sg = SERVICE_CATALOG["seo_growth"]
+        se = SERVICE_CATALOG["seo_enterprise"]
+        seo_rows = [seo_header]
+        seo_rows.append([Paragraph("Tarif-Nr.", styles["CellText"]), Paragraph(ss["tariff_number"], styles["CellText"]), Paragraph(sg["tariff_number"], styles["CellText"]), Paragraph(se["tariff_number"], styles["CellText"])])
+        seo_rows.append([Paragraph("Preis (netto/Mo.)", styles["CellText"]), Paragraph(f'{ss["price_monthly_eur"]:.2f} EUR', styles["CellText"]), Paragraph(f'{sg["price_monthly_eur"]:.2f} EUR', styles["CellText"]), Paragraph("Individuell", styles["CellText"])])
+        seo_rows.append([Paragraph("Mindestlaufzeit", styles["CellText"]), Paragraph(f'{ss.get("min_months",6)} Monate', styles["CellText"]), Paragraph(f'{sg.get("min_months",6)} Monate', styles["CellText"]), Paragraph("Individuell", styles["CellText"])])
+        all_seo = set()
+        for s in [ss, sg, se]:
+            all_seo.update(s["features"])
+        for f in sorted(all_seo):
+            seo_rows.append([
+                Paragraph(f[:50], styles["CellText"]),
+                Paragraph("Inkl." if f in ss["features"] else "—", styles["CellText"]),
+                Paragraph("Inkl." if f in sg["features"] else "—", styles["CellText"]),
+                Paragraph("Inkl." if f in se["features"] else "—", styles["CellText"]),
+            ])
+        w = doc.width
+        t = Table(seo_rows, colWidths=[w * 0.34, w * 0.22, w * 0.22, w * 0.22])
+        t.setStyle(TableStyle([
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+            ("LINEBELOW", (0, 0), (-1, 0), 0.8, CI_DARK),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.Color(255/255, 155/255, 122/255, 0.08)),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.Color(0.97, 0.97, 0.97)]),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.Color(0.85, 0.85, 0.85)),
+        ]))
+        elements.append(t)
+        elements.append(Spacer(1, 6 * mm))
+
+    # --- Bundles ---
+    if category in ("all", "bundles"):
+        elements.append(Paragraph("Bundles & Kombiangebote", styles["CatTitle"]))
+        for bkey, b in BUNDLE_CATALOG.items():
+            elements.append(Paragraph(f"<b>{b['name']}</b> (Tarif-Nr. {b['tariff_number']})", styles["CellBold"]))
+            elements.append(Paragraph(f"{b['description']} | Bundle-Preis: {_fmt_eur(b['bundle_price_eur'])} | Ersparnis: {_fmt_eur(b.get('savings_eur', 0))}", styles["CellText"]))
+            elements.append(Spacer(1, 3 * mm))
+
+    # Footnotes
+    elements.append(Spacer(1, 8 * mm))
+    elements.append(HRFlowable(width="100%", thickness=0.5, color=CI_GRAY, spaceBefore=4, spaceAfter=6))
+    elements.append(Paragraph(
+        f"<b>Rechtliche Hinweise:</b><br/>"
+        f"Alle Preise in EUR, zzgl. der gesetzlichen Umsatzsteuer (21 % NL / 19 % DE).<br/>"
+        f"Preise gueltig ab {now_str}. Aenderungen vorbehalten.<br/>"
+        f"Individuelle Konditionen und Sondervereinbarungen auf Anfrage.<br/>"
+        f"Es gelten die AGB der {COMPANY_DATA['name']}.<br/><br/>"
+        f"<b>Kontakt:</b> {COMPANY_DATA['email']} | {COMPANY_DATA['phone']}<br/>"
+        f"<b>Web:</b> {COMPANY_DATA['web']}",
+        styles["FootNote"],
+    ))
+    elements.append(Spacer(1, 4 * mm))
+    elements.append(Paragraph(
+        "Datenschutzorientiert fuer den europaeischen Rechtsraum entwickelt. "
+        "DSGVO (EU) 2016/679 | EU AI Act (EU) 2024/1689 | EU-Hosting (Frankfurt, Amsterdam)",
+        styles["FootNote"],
+    ))
+
+    def header_fn(canvas, doc):
+        canvas.saveState()
+        canvas.setStrokeColor(CI_ORANGE)
+        canvas.setLineWidth(2)
+        canvas.line(15 * mm, A4[1] - 18 * mm, A4[0] - 15 * mm, A4[1] - 18 * mm)
+        canvas.setFont("Helvetica-Bold", 14)
+        canvas.setFillColor(CI_DARK)
+        canvas.drawString(15 * mm, A4[1] - 14 * mm, "NeXify")
+        canvas.setFillColor(CI_ORANGE)
+        w = canvas.stringWidth("NeXify", "Helvetica-Bold", 14)
+        canvas.drawString(15 * mm + w, A4[1] - 14 * mm, "AI")
+        canvas.setFont("Helvetica", 7)
+        canvas.setFillColor(CI_GRAY)
+        canvas.drawRightString(A4[0] - 15 * mm, A4[1] - 12 * mm, f"Tarif- und Leistungsuebersicht")
+        canvas.drawRightString(A4[0] - 15 * mm, A4[1] - 16 * mm, f"Stand: {now_str}")
+        canvas.setStrokeColor(CI_GRAY)
+        canvas.setLineWidth(0.5)
+        canvas.line(15 * mm, 18 * mm, A4[0] - 15 * mm, 18 * mm)
+        canvas.setFont("Helvetica", 6)
+        canvas.drawString(15 * mm, 14 * mm,
+            f"{COMPANY_DATA['name']} | {COMPANY_DATA['address_nl']['street']}, "
+            f"{COMPANY_DATA['address_nl']['city']} | KvK: {COMPANY_DATA['kvk']} | USt-ID: {COMPANY_DATA['vat_id']}")
+        canvas.drawRightString(A4[0] - 15 * mm, 14 * mm, f"Seite {doc.page}")
+        canvas.restoreState()
+
+    doc.build(elements, onFirstPage=header_fn, onLaterPages=header_fn)
+    return buf.getvalue()
 
 def get_commercial_faq() -> list:
     """Return FAQ derived from TARIFF_CONFIG — no duplicate sources"""

@@ -130,7 +130,7 @@ Sammle folgende Informationen — IMMER in einem natürlichen, dialogischen Flus
 2. Unternehmen
 3. Geschäftliche E-Mail-Adresse
 4. Land
-5. Gewünschter Tarif (Starter oder Growth)
+5. Gewünschter Tarif (Starter oder Growth — bzw. für SEO: SEO Starter, SEO Growth, SEO Enterprise — oder Bundle)
 6. Branche
 7. Use Case / Zielbild
 
@@ -156,9 +156,26 @@ ZUSÄTZLICHE SERVICES (Websites, Apps, Add-ons):
 - **App Professional**: 24.900 EUR (einmalig), Full-Stack, Admin, Payment, CRM, 14 Wochen
 - **KI-Chatbot Add-on**: 249 EUR/Monat
 - **KI-Automation Add-on**: 499 EUR/Monat
-- **Bundles**: Digital Starter (3.990 EUR), Growth Digital (17.490 EUR), Enterprise Digital (39.900 EUR)
 
-Wenn ein Nutzer nach Website, App oder Add-on fragt, nenne die konkreten Preise und empfehle passende Bundles.
+**KI-GESTEUERTES SEO** (eigenständiges Produkt):
+- **SEO Starter**: 799 EUR/Monat (netto), 50 Keywords, On-Page (5 Seiten/Mo.), quartalsweiser Tech-Audit, Mindestlaufzeit 6 Monate
+- **SEO Growth**: 1.499 EUR/Monat (netto), 200 Keywords, On-Page (15 Seiten/Mo.), Content-Strategie, Linkbuilding, Multilingual (DE/NL/EN), Mindestlaufzeit 6 Monate — EMPFOHLEN
+- **SEO Enterprise**: Individuell, unbegrenzte Keywords, tagesaktuelle Reports, dediziertes SEO-Team, International SEO (5+ Märkte)
+
+**BUNDLES & KOMBIANGEBOTE** (Cross-Sell-Rabatte bis 15 %):
+- **Digital Starter**: 3.990 EUR — Website Starter + SEO Starter (3 Monate). Statt 4.289 EUR
+- **Growth Digital**: 17.490 EUR — Website Professional + SEO Growth (6 Monate) + KI-Chatbot. Statt 19.467 EUR. 15 % Bundle-Rabatt. BELIEBT
+- **Enterprise Digital**: ab 39.900 EUR — Website Enterprise + App + SEO Enterprise + KI-Agenten (Growth) + dediziertes Projektteam
+
+PRODUKTBERATUNGSLOGIK:
+- Wenn jemand nach SEO fragt → Erkläre KI-gesteuertes SEO, nenne Tarife, empfehle Growth
+- Wenn jemand Website + SEO will → Empfehle passendes Bundle (Digital Starter oder Growth Digital)
+- Wenn jemand App + KI-Agenten will → Empfehle App Professional + Growth AI Agenten AG
+- Wenn jemand alles braucht → Enterprise Digital Bundle
+- Verknüpfe immer Services mit Integrationen: "Für Ihre Salesforce-Anbindung empfehle ich ..."
+- Frage aktiv: "Haben Sie auch Bedarf an Suchmaschinenoptimierung? Unser KI-gesteuertes SEO ..."
+
+Wenn ein Nutzer nach Website, App, SEO oder Add-on fragt, nenne die konkreten Preise und empfehle passende Bundles.
 
 GESPRÄCHSFÜHRUNG — PROAKTIV, EINLADEND, LEAD-ORIENTIERT:
 
@@ -1138,6 +1155,7 @@ from commercial import (
     create_revolut_order, get_revolut_order,
     generate_access_token, verify_access_token,
     generate_quote_pdf, generate_invoice_pdf,
+    generate_tariff_sheet_pdf,
     get_commercial_faq,
     SERVICE_CATALOG, BUNDLE_CATALOG,
     COMPLIANCE_STATUS, ISO_GAP_ANALYSIS,
@@ -1261,6 +1279,24 @@ async def get_compliance():
             "hosting": "EU (Frankfurt, Amsterdam)",
         },
     }
+
+
+
+# --- Tariff Sheet PDF Download ---
+
+@app.get("/api/product/tariff-sheet")
+async def download_tariff_sheet(category: str = "all"):
+    """Download a CI-branded tariff comparison PDF"""
+    valid = ("all", "agents", "websites", "seo", "bundles")
+    if category not in valid:
+        raise HTTPException(400, f"Ungueltige Kategorie. Erlaubt: {', '.join(valid)}")
+    pdf_bytes = generate_tariff_sheet_pdf(category)
+    filename = f"NeXifyAI_Tarife_{category}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.pdf"
+    return StreamingResponse(
+        iter([pdf_bytes]),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
 
 
 # --- Quote Management (Admin) ---
