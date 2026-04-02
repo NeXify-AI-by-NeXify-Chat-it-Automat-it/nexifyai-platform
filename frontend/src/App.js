@@ -731,7 +731,8 @@ const Ft = ({ onCookieSettings, t, lang }) => {
             <ul className="footer-links">
               <li><a href="#loesungen">{t.nav.leistungen}</a></li><li><a href="#use-cases">{t.nav.usecases}</a></li>
               <li><a href="#app-dev">{t.nav.appdev}</a></li><li><a href="#integrationen">{t.nav.integrationen}</a></li>
-              <li><a href="#preise">{t.nav.tarife}</a></li><li><a href="#kontakt">{t.footer.kontakt}</a></li>
+              <li><a href="#preise">{t.nav.tarife}</a></li><li><a href="#services">{t.lang === 'en' ? 'Services' : t.lang === 'nl' ? 'Diensten' : 'Services'}</a></li>
+              <li><a href="#trust">{t.lang === 'en' ? 'Trust' : t.lang === 'nl' ? 'Vertrouwen' : 'Vertrauen'}</a></li><li><a href="#kontakt">{t.footer.kontakt}</a></li>
             </ul>
           </nav>
           <nav className="footer-nav-col">
@@ -743,7 +744,7 @@ const Ft = ({ onCookieSettings, t, lang }) => {
               <li><a href={lp.ki}>{t.footer.ki}</a></li>
               <li><button onClick={onCookieSettings} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>{t.footer.cookie}</button></li>
             </ul>
-            <div className="footer-ids"><p>KvK: {COMPANY.kvk}</p><p>USt-ID: {COMPANY.vat}</p></div>
+            <div className="footer-ids"><p>KvK: {COMPANY.kvk}</p><p>USt-ID: {COMPANY.vat}</p><p style={{fontSize:'11px',marginTop:'8px',color:'#555'}}>IBAN: NL66 REVO 3601 4304 36</p></div>
           </nav>
           <div>
             <h3 className="footer-nav-title">{t.footer.kontakt}</h3>

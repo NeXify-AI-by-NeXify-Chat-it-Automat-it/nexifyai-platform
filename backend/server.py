@@ -10,6 +10,7 @@ Complete rewrite with:
 import os
 import secrets
 import logging
+import hashlib
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List
 from contextlib import asynccontextmanager
@@ -411,26 +412,25 @@ async def log_audit(action: str, user: str, details: dict = None):
 # ============== EMAIL TEMPLATES ==============
 
 def email_template(title: str, content: str, cta_url: str = None, cta_text: str = None) -> str:
-    cta_html = f'<a href="{cta_url}" style="display:inline-block;background:#ffb599;color:#5a1c00;padding:14px 28px;font-weight:700;text-decoration:none;margin:24px 0;">{cta_text}</a>' if cta_url else ''
+    cta_html = f'<div style="text-align:center;margin:24px 0;"><a href="{cta_url}" style="display:inline-block;background:#ff9b7a;color:#0c1117;padding:14px 32px;font-weight:700;text-decoration:none;border-radius:6px;font-size:15px;">{cta_text}</a></div>' if cta_url else ''
     
     return f'''<!DOCTYPE html>
 <html lang="de">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>{title}</title></head>
-<body style="margin:0;padding:0;background:#0e141b;font-family:system-ui,-apple-system,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#1b2028;">
-<tr><td style="background:#0e141b;padding:32px;text-align:center;border-bottom:2px solid #ffb599;">
-<span style="color:#fff;font-size:22px;font-weight:700;">NeXifyAI</span>
+<body style="margin:0;padding:0;background:#0a0f14;font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:620px;margin:0 auto;background:#12171e;border-radius:8px;overflow:hidden;">
+<tr><td style="background:#0c1117;padding:28px 32px;border-bottom:2px solid #ff9b7a;">
+<span style="color:#fff;font-size:20px;font-weight:700;">NeXify</span><span style="color:#ff9b7a;font-size:20px;font-weight:700;">AI</span>
 </td></tr>
-<tr><td style="padding:40px 32px;color:#dee3ed;font-size:15px;line-height:1.7;">
+<tr><td style="padding:36px 32px;color:#c5c9d2;font-size:14px;line-height:1.75;">
 {content}
 {cta_html}
 </td></tr>
-<tr><td style="background:#090f16;padding:32px;text-align:center;color:#64748b;font-size:12px;line-height:1.8;">
-<p style="margin:0 0 8px;"><strong>NeXifyAI by NeXify</strong> | Ein Produkt von NeXify Automate</p>
-<p style="margin:0 0 8px;">NL: Graaf van Loonstraat 1E, 5921 JA Venlo</p>
-<p style="margin:0 0 8px;">DE: Wallstraße 9, 41334 Nettetal-Kaldenkirchen</p>
-<p style="margin:0 0 8px;">Tel: +31 6 133 188 56 | support@nexify-automate.com</p>
-<p style="margin:16px 0 0;font-size:11px;">KvK: 90483944 | USt-ID: NL865786276B01</p>
+<tr><td style="background:#0a0f14;padding:28px 32px;text-align:center;color:#555;font-size:11px;line-height:1.8;">
+<p style="margin:0 0 6px;"><strong style="color:#78829a;">NeXify Automate</strong> — Graaf van Loonstraat 1E, 5921 JA Venlo, NL</p>
+<p style="margin:0 0 6px;">Tel: +31 6 133 188 56 | support@nexify-automate.com</p>
+<p style="margin:0 0 6px;">KvK: 90483944 | USt-ID: NL865786276B01</p>
+<p style="margin:12px 0 0;font-size:10px;color:#444;">Datenschutzorientiert fuer den europaeischen Rechtsraum entwickelt. DSGVO (EU) 2016/679.</p>
 </td></tr>
 </table>
 </body>
@@ -821,7 +821,9 @@ async def chat_message(data: ChatMessage, request: Request):
             kw_map = {"vertrieb": "Vertriebsautomation", "sales": "Vertriebsautomation", "crm": "CRM-Integration",
                        "erp": "ERP-Integration", "sap": "SAP-Integration", "wissen": "Wissenssystem",
                        "support": "Support-Automation", "app": "App-Entwicklung", "mobile": "Mobile-App",
-                       "portal": "Kundenportal", "prozess": "Prozessautomation", "termin": "Terminbuchung"}
+                       "portal": "Kundenportal", "prozess": "Prozessautomation", "termin": "Terminbuchung",
+                       "website": "Website-Entwicklung", "webseite": "Website-Entwicklung", "homepage": "Website-Entwicklung",
+                       "chatbot": "KI-Chatbot", "automation": "KI-Automation", "bundle": "Bundle"}
             for kw, uc in kw_map.items():
                 if kw in msg_lower:
                     qualification["use_case"] = uc
@@ -857,7 +859,9 @@ def generate_response_fallback(message: str, history: list, qual: dict) -> str:
     elif "support" in msg or "ticket" in msg:
         return "Unsere **Support-Automation** optimiert Ihren gesamten Service-Prozess:\n\n- **Intelligente Ticket-Klassifizierung** — automatische Priorisierung und Zuweisung\n- **KI-gestützte Erstantworten** — sofortige Hilfe für Standardfragen\n- **Eskalationsmanagement** — nahtlose Übergabe an menschliche Agenten bei komplexen Fällen\n\nWelches Ticketsystem nutzen Sie aktuell, und wie viele Tickets bearbeiten Sie monatlich?"
     elif "app" in msg or "mobile" in msg or "portal" in msg:
-        return "Wir entwickeln **maßgeschneiderte digitale Lösungen** mit nativer KI-Integration:\n\n- **Kundenportale** — Self-Service mit intelligenter KI-Unterstützung\n- **Interne Tools** — Workflow-Apps für Ihre Fachabteilungen\n- **Mobile Apps** — native iOS/Android oder Cross-Platform\n\nAlle Lösungen sind DSGVO-konform und werden in deutschen bzw. europäischen Rechenzentren betrieben. Was für eine Anwendung schwebt Ihnen vor?"
+        return "Wir entwickeln **massgeschneiderte digitale Loesungen** mit nativer KI-Integration:\n\n- **App MVP**: 9.900 EUR — iOS + Android, 5 Kernfeatures, Auth, Push (8 Wochen)\n- **App Professional**: 24.900 EUR — Full-Stack, Admin-Dashboard, Payment, CRM (14 Wochen)\n- **Kundenportale** — Self-Service mit intelligenter KI-Unterstuetzung\n\nAlle Loesungen DSGVO-konform und in EU-Rechenzentren gehostet. Was fuer eine Anwendung schwebt Ihnen vor?"
+    elif "website" in msg or "webseite" in msg or "homepage" in msg:
+        return "Unsere **Website-Loesungen** auf einen Blick:\n\n- **Website Starter**: 2.990 EUR — bis 5 Seiten, responsive, SEO-Basis (3 Wochen)\n- **Website Professional**: 7.490 EUR — bis 15 Seiten, Animationen, Blog, Analytics (5 Wochen)\n- **Website Enterprise**: 14.900 EUR — Headless CMS, E-Commerce, WCAG, SLA (8 Wochen)\n\nDazu erhaeltlich: **KI-Chatbot Add-on** ab 249 EUR/Monat fuer Lead-Qualifizierung direkt auf Ihrer Website. Was fuer ein Projekt planen Sie?"
     elif "termin" in msg or "buchen" in msg or "gespräch" in msg:
         return "Ich kann direkt hier einen **kostenlosen Beratungstermin** für Sie buchen. Dafür benötige ich:\n\n1. Ihren **Vornamen**\n2. Ihren **Nachnamen**\n3. Ihre **geschäftliche E-Mail-Adresse**\n\nDas Strategiegespräch dauert 30 Minuten und ist vollkommen unverbindlich. Wie heißen Sie?"
     elif "preis" in msg or "kosten" in msg or "tarif" in msg:

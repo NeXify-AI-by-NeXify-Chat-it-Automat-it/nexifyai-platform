@@ -49,7 +49,7 @@ const Admin = () => {
   const [quotes, setQuotes] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [commStats, setCommStats] = useState(null);
-  const [quoteForm, setQuoteForm] = useState({ tier: 'starter', customer_name: '', customer_email: '', customer_company: '', use_case: '' });
+  const [quoteForm, setQuoteForm] = useState({ tier: 'starter', customer_name: '', customer_email: '', customer_company: '', customer_country: 'DE', customer_industry: '', use_case: '', notes: '' });
   const [showQuoteForm, setShowQuoteForm] = useState(false);
   const [commBusy, setCommBusy] = useState('');
 
@@ -479,7 +479,7 @@ const Admin = () => {
     e.preventDefault(); setCommBusy('create');
     try {
       await apiFetch('/api/admin/quotes', { method: 'POST', body: JSON.stringify(quoteForm) });
-      setShowQuoteForm(false); setQuoteForm({ tier: 'starter', customer_name: '', customer_email: '', customer_company: '', use_case: '' });
+      setShowQuoteForm(false); setQuoteForm({ tier: 'starter', customer_name: '', customer_email: '', customer_company: '', customer_country: 'DE', customer_industry: '', use_case: '', notes: '' });
       apiFetch('/api/admin/quotes').then(d => d && setQuotes(d.quotes || []));
       apiFetch('/api/admin/commercial/stats').then(d => d && setCommStats(d));
     } catch (e) { alert(e.message); } finally { setCommBusy(''); }
@@ -540,8 +540,11 @@ const Admin = () => {
               <div className="adm-field"><label>Name</label><input value={quoteForm.customer_name} onChange={e=>setQuoteForm({...quoteForm,customer_name:e.target.value})} required data-testid="quote-name" /></div>
               <div className="adm-field"><label>E-Mail</label><input type="email" value={quoteForm.customer_email} onChange={e=>setQuoteForm({...quoteForm,customer_email:e.target.value})} required data-testid="quote-email" /></div>
               <div className="adm-field"><label>Unternehmen</label><input value={quoteForm.customer_company} onChange={e=>setQuoteForm({...quoteForm,customer_company:e.target.value})} data-testid="quote-company" /></div>
+              <div className="adm-field"><label>Land</label><select value={quoteForm.customer_country} onChange={e=>setQuoteForm({...quoteForm,customer_country:e.target.value})} data-testid="quote-country"><option value="DE">Deutschland</option><option value="AT">Oesterreich</option><option value="CH">Schweiz</option><option value="NL">Niederlande</option><option value="BE">Belgien</option><option value="LU">Luxemburg</option><option value="OTHER">Sonstige</option></select></div>
+              <div className="adm-field"><label>Branche</label><input value={quoteForm.customer_industry} onChange={e=>setQuoteForm({...quoteForm,customer_industry:e.target.value})} placeholder="z.B. Logistik, Finanz, Gesundheit" data-testid="quote-industry" /></div>
             </div>
-            <div className="adm-field" style={{marginTop:'12px'}}><label>Use Case</label><input value={quoteForm.use_case} onChange={e=>setQuoteForm({...quoteForm,use_case:e.target.value})} data-testid="quote-usecase" /></div>
+            <div className="adm-field" style={{marginTop:'12px'}}><label>Use Case</label><input value={quoteForm.use_case} onChange={e=>setQuoteForm({...quoteForm,use_case:e.target.value})} placeholder="Beschreiben Sie den geplanten Einsatz" data-testid="quote-usecase" /></div>
+            <div className="adm-field" style={{marginTop:'12px'}}><label>Interne Notizen</label><textarea value={quoteForm.notes} onChange={e=>setQuoteForm({...quoteForm,notes:e.target.value})} rows={2} placeholder="Interne Bemerkungen (nicht im Angebot sichtbar)" data-testid="quote-notes" style={{width:'100%',resize:'vertical'}} /></div>
             <div style={{display:'flex',gap:'8px',marginTop:'16px'}}>
               <button type="submit" className="adm-btn-primary" disabled={commBusy==='create'} data-testid="submit-quote-btn">{commBusy==='create' ? 'Erstelle...' : 'Angebot erstellen'}</button>
               <button type="button" className="adm-btn-secondary" onClick={()=>setShowQuoteForm(false)}>Abbrechen</button>
