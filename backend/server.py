@@ -31,7 +31,7 @@ try:
         return pwd_context.hash(password)
     def verify_password(plain: str, hashed: str) -> bool:
         return pwd_context.verify(plain, hashed)
-except ImportError:
+except Exception:
     import hashlib
     def hash_password(password: str) -> str:
         return hashlib.pbkdf2_hmac('sha256', password.encode(), b'nexify_salt_v3', 100000).hex()
