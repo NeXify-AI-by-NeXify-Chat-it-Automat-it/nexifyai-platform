@@ -16,65 +16,77 @@ Premium DACH B2B landing page for "NeXifyAI by NeXify" — enterprise AI automat
 - Email: Resend API
 - i18n: Custom React Context + translations.js (DE/NL/EN)
 - SEO: react-helmet-async, JSON-LD, hreflang, Open Graph
+- Chat Markdown: react-markdown + remark-gfm
 
 ## Implemented Features
 
+### AI Chat Optimization — April 2026
+- **Markdown Rendering**: ReactMarkdown + remark-gfm for structured chat responses
+  - Bold text, numbered lists, bullet points, headings, code blocks, blockquotes
+  - Custom CSS styling (.chat-md) matching the dark premium theme
+- **Upgraded System Prompt**: Detailed formatting instructions for structured responses
+  - 7 core services documented with detailed descriptions
+  - 400+ integrations reflected in prompt
+  - Professional DACH-Business tone with clear response structure
+  - Proactive consulting approach with follow-up questions
+- **Enhanced Fallback Responses**: All 8+ response paths use markdown formatting
+
+### Premium 3D Graphics v2.0 — April 2026
+- **Process Pipeline**: Upgraded from 4 small diamonds to premium flow visualization
+  - Hub nodes with wireframe icosahedrons, orbiting rings, and glowing cores
+  - Animated particle streams flowing between nodes
+  - Curved connectors with ambient environment particles
+- **Orchestration Visual**: Hub-spoke diagram replacing basic spinning circles
+  - Central core with animated rings
+  - 4 satellite nodes (SAP/HubSpot, ERP/CRM, API, KI)
+  - Animated pulse particles showing data flow
+- **Integrations Globe**: Enhanced with additional rings, particles, and glow
+  - 70 nodes (up from 50), 22 connection arcs (up from 16)
+  - 3 orbital rings (equatorial, polar, angled)
+  - 120 floating ambient particles
+  - Central glow sphere
+
+### Admin CRM Calendar & Customer Management — April 2026
+- **Calendar View**: Monthly grid with booking badges and blocked slot indicators
+- **Slot Blocking**: Create/delete blocked slots, affects public booking API
+- **Customer CRM**: Aggregated customer list with leads/bookings count and detail view
+- **Booking Management**: Status changes (6 statuses), notes, delete
+
 ### Multilingual System (DE/NL/EN) — April 2026
-- **IP-based auto-detection**: Uses ipapi.co (fallback: ip-api.com) for country → language mapping
-  - DE/AT/CH → German, NL/BE → Dutch, rest → English
-- **Language Switcher**: Premium pill-buttons (DE|NL|EN) in header nav + mobile menu
-- **URL-based routing**: /:lang prefix (e.g., /de, /nl, /en)
-- **Complete translations**: All landing page sections, modals (chat, booking), cookie consent, footer
-- **Legal pages in 3 languages**: Language-specific URL slugs
-  - DE: /de/impressum, /de/datenschutz, /de/agb, /de/ki-hinweise
-  - NL: /nl/impressum, /nl/privacybeleid, /nl/voorwaarden, /nl/ai-informatie
-  - EN: /en/imprint, /en/privacy, /en/terms, /en/ai-transparency
-- **Legacy redirect**: /impressum → /:lang/impressum (based on stored preference)
-- **localStorage persistence**: Key `nx_lang`
-- **Backend language support**: Chat API accepts `language` parameter, LLM responds in correct language
-- **Admin excluded**: /admin stays language-neutral (German)
+- IP-based auto-detection, Language Switcher, URL-based routing
+- Complete translations for all sections, modals, legal pages
+- Chat welcome messages in 3 languages
+- LLM responds in selected language
 
 ### SEO Optimization — April 2026
-- **JSON-LD Structured Data**: Organization, WebSite, Service schemas
-- **hreflang tags**: de, nl, en, x-default
-- **Open Graph**: Locale-aware OG tags (de_DE, nl_NL, en_GB)
-- **Meta tags**: Language-specific title, description, keywords
-- **Canonical URLs**: Per-language canonicals
-- **HTML lang attribute**: Dynamic (de-DE, nl-NL, en-GB)
+- JSON-LD Structured Data, hreflang tags, Open Graph, Meta tags
 
 ### 400+ Integrations Messaging — April 2026
-- Counter updated from 64+ to 400+ across all languages
 - 10 categories with 10 items each (100 named integrations)
-- Custom note: "Every integration is achievable" in all 3 languages
 - Technical badges: REST API, GraphQL, Webhooks, OAuth 2.0, SAML, gRPC
 
 ### 3D Animated Landing Page (v5.0)
 - HeroScene: Neural network constellation, floating icosahedron core
-- IntegrationsGlobe: Wireframe sphere with connection arcs
-- ProcessScene: Pipeline nodes with glow rings
 - Premium CSS: glass-morphism, grain overlay, animated gradient borders
 
 ### LLM-Powered Chat
-- GPT-4o-mini via Emergent key, now with multilingual responses
-- Context-aware, chat-based booking, dynamic date awareness
-
-### Admin CRM (/admin)
-- JWT login (Argon2), dashboard with stats/leads/bookings
-- Search, filter, sort, status management, rate limiting
+- GPT-4o-mini via Emergent key, multilingual, structured markdown responses
+- Chat-based booking, dynamic date awareness, qualification tracking
 
 ### Legal & Compliance
 - 4 legal pages fully translated to DE/NL/EN
 - DSGVO/AVG/GDPR, EU AI Act Art. 52, Boek 6 BW
 
-## Testing (Iterations 5-6) — April 2026
-- Backend: 100% (15/15 multilingual API tests passed)
-- Frontend: 100% (all features verified including language switching, legal pages, SEO)
+## Testing History
+- Iteration 5-6: Backend 100%, Frontend 100% (multilingual, SEO)
+- Iteration 7: 28/28 tests (Admin Calendar, Customer CRM, Chat translations)
+- Iteration 8: 40/40 tests (Chat markdown, 3D graphics, orchestration visual, regressions)
 
 ## File Structure
 ```
 /app/frontend/src/
-├── App.js (Main landing - translation-aware)
-├── App.css (Premium CSS v5.0)
+├── App.js (Main landing - translation-aware, markdown chat)
+├── App.css (Premium CSS v5.0 + chat markdown styles + orchestration hub)
 ├── index.js (HelmetProvider + LanguageProvider + Router)
 ├── index.css (CSS variables)
 ├── setupProxy.js (Custom proxy: /api only)
@@ -82,7 +94,7 @@ Premium DACH B2B landing page for "NeXifyAI by NeXify" — enterprise AI automat
 │   ├── translations.js (DE/NL/EN)
 │   └── LanguageContext.js (Provider + IP detection)
 ├── components/
-│   ├── Scene3D.js (Three.js scenes)
+│   ├── Scene3D.js (Premium 3D: Hero, Globe, Process Flow)
 │   ├── LanguageSwitcher.js
 │   └── SEOHead.js (JSON-LD + meta)
 └── pages/
@@ -92,8 +104,10 @@ Premium DACH B2B landing page for "NeXifyAI by NeXify" — enterprise AI automat
 ```
 
 ## Upcoming Tasks
+- P1: Automated email sequences (booking confirmation, reminders, follow-up)
 - P1: Lighthouse Performance Optimization (3D lazy-loading, font preloading)
-- P2: Final E2E Visual Audit across all languages
+- P2: Analytics Dashboard in Admin area
+- P2: App.js Refactoring (>730 lines → split into components)
 
 ## Backlog
 - P1: Cookie settings granular page
@@ -101,4 +115,4 @@ Premium DACH B2B landing page for "NeXifyAI by NeXify" — enterprise AI automat
 - P3: A/B testing, analytics dashboard
 
 ---
-*Letzte Aktualisierung: 02.04.2026 — Multilingual (DE/NL/EN), SEO, 400+ Integrations deployed. All tests PASSED.*
+*Letzte Aktualisierung: 02.04.2026 — Chat Markdown, Premium 3D Graphics v2.0, System Prompt Upgrade. All 40/40 tests PASSED.*
