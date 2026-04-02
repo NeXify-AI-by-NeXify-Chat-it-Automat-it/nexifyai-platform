@@ -20,99 +20,64 @@ Premium DACH B2B landing page for "NeXifyAI by NeXify" — enterprise AI automat
 
 ## Implemented Features
 
+### Form Label Bug Fix + i18n Completion — April 2026
+- **Fixed duplicate labels**: Contact & Booking forms previously showed "Name" twice, now correctly show "Vorname/Nachname" (DE), "First Name/Last Name" (EN), "Voornaam/Achternaam" (NL)
+- **Fixed hardcoded "Telefon"**: Phone label now translated across all 3 languages
+- **Added separate validation messages**: firstName and lastName get individual error messages
+- **Complete i18n coverage**: All form fields (firstName, lastName, email, phone, company, message) fully translated DE/EN/NL
+
 ### AI Chat Optimization — April 2026
-- **Markdown Rendering**: ReactMarkdown + remark-gfm for structured chat responses
-  - Bold text, numbered lists, bullet points, headings, code blocks, blockquotes
-  - Custom CSS styling (.chat-md) matching the dark premium theme
-- **Upgraded System Prompt**: Detailed formatting instructions for structured responses
-  - 7 core services documented with detailed descriptions
-  - 400+ integrations reflected in prompt
-  - Professional DACH-Business tone with clear response structure
-  - Proactive consulting approach with follow-up questions
-- **Enhanced Fallback Responses**: All 8+ response paths use markdown formatting
+- **Markdown Rendering**: ReactMarkdown + remark-gfm for structured chat responses (bold, lists, headings, code)
+- **Upgraded System Prompt**: 7 core services, 400+ integrations, professional formatting, proactive consulting
+- **Enhanced Fallback Responses**: All 8+ paths use structured markdown
 
 ### Premium 3D Graphics v2.0 — April 2026
-- **Process Pipeline**: Upgraded from 4 small diamonds to premium flow visualization
-  - Hub nodes with wireframe icosahedrons, orbiting rings, and glowing cores
-  - Animated particle streams flowing between nodes
-  - Curved connectors with ambient environment particles
-- **Orchestration Visual**: Hub-spoke diagram replacing basic spinning circles
-  - Central core with animated rings
-  - 4 satellite nodes (SAP/HubSpot, ERP/CRM, API, KI)
-  - Animated pulse particles showing data flow
-- **Integrations Globe**: Enhanced with additional rings, particles, and glow
-  - 70 nodes (up from 50), 22 connection arcs (up from 16)
-  - 3 orbital rings (equatorial, polar, angled)
-  - 120 floating ambient particles
-  - Central glow sphere
+- **Process Pipeline**: Hub nodes with wireframe icosahedrons, orbiting rings, animated particle streams
+- **Orchestration Visual**: Hub-spoke with 4 satellite nodes (SAP/HubSpot, ERP/CRM, API, KI)
+- **Integrations Globe**: 70 nodes, 22 connection arcs, 3 orbital rings, 120 ambient particles
 
 ### Admin CRM Calendar & Customer Management — April 2026
-- **Calendar View**: Monthly grid with booking badges and blocked slot indicators
-- **Slot Blocking**: Create/delete blocked slots, affects public booking API
-- **Customer CRM**: Aggregated customer list with leads/bookings count and detail view
-- **Booking Management**: Status changes (6 statuses), notes, delete
+- Calendar with monthly grid, booking badges, slot blocking
+- Customer CRM: aggregated list, detail view
+- Lead management: 6 statuses, notes, search
 
-### Multilingual System (DE/NL/EN) — April 2026
-- IP-based auto-detection, Language Switcher, URL-based routing
-- Complete translations for all sections, modals, legal pages
-- Chat welcome messages in 3 languages
-- LLM responds in selected language
+### Multilingual System (DE/NL/EN)
+- IP-based auto-detection, Language Switcher, complete translations
+- Chat welcome messages in 3 languages, LLM language-aware
 
-### SEO Optimization — April 2026
-- JSON-LD Structured Data, hreflang tags, Open Graph, Meta tags
-
-### 400+ Integrations Messaging — April 2026
-- 10 categories with 10 items each (100 named integrations)
-- Technical badges: REST API, GraphQL, Webhooks, OAuth 2.0, SAML, gRPC
-
-### 3D Animated Landing Page (v5.0)
-- HeroScene: Neural network constellation, floating icosahedron core
-- Premium CSS: glass-morphism, grain overlay, animated gradient borders
-
-### LLM-Powered Chat
-- GPT-4o-mini via Emergent key, multilingual, structured markdown responses
-- Chat-based booking, dynamic date awareness, qualification tracking
-
-### Legal & Compliance
-- 4 legal pages fully translated to DE/NL/EN
-- DSGVO/AVG/GDPR, EU AI Act Art. 52, Boek 6 BW
+### Other Features
+- SEO (JSON-LD, hreflang, OG), 400+ Integrations messaging, Legal pages (4 pages, 3 languages)
+- Booking flow (date/time/form), Contact form with honeypot
+- Analytics tracking, Cookie consent, Rate limiting
 
 ## Testing History
-- Iteration 5-6: Backend 100%, Frontend 100% (multilingual, SEO)
-- Iteration 7: 28/28 tests (Admin Calendar, Customer CRM, Chat translations)
-- Iteration 8: 40/40 tests (Chat markdown, 3D graphics, orchestration visual, regressions)
+- Iteration 7: 28/28 (Admin Calendar, CRM, Chat translations)
+- Iteration 8: 40/40 (Chat markdown, 3D graphics v2.0, orchestration visual)
+- Iteration 9: 40/40 (Form labels fix, i18n completion, NL translation fix)
 
 ## File Structure
 ```
 /app/frontend/src/
 ├── App.js (Main landing - translation-aware, markdown chat)
-├── App.css (Premium CSS v5.0 + chat markdown styles + orchestration hub)
-├── index.js (HelmetProvider + LanguageProvider + Router)
-├── index.css (CSS variables)
-├── setupProxy.js (Custom proxy: /api only)
-├── i18n/
-│   ├── translations.js (DE/NL/EN)
-│   └── LanguageContext.js (Provider + IP detection)
-├── components/
-│   ├── Scene3D.js (Premium 3D: Hero, Globe, Process Flow)
-│   ├── LanguageSwitcher.js
-│   └── SEOHead.js (JSON-LD + meta)
-└── pages/
-    ├── LegalPages.js (Translated legal content)
-    ├── Admin.js
-    └── Admin.css
+├── App.css (Premium CSS v5.0 + chat markdown + orchestration hub)
+├── i18n/ (translations.js, LanguageContext.js)
+├── components/ (Scene3D.js, LanguageSwitcher.js, SEOHead.js)
+└── pages/ (Admin.js, Admin.css, LegalPages.js)
+/app/backend/
+├── server.py (FastAPI, MongoDB, JWT, LLM, Admin)
+└── tests/ (test_admin_calendar.py, test_chat_markdown.py)
 ```
 
-## Upcoming Tasks
-- P1: Automated email sequences (booking confirmation, reminders, follow-up)
-- P1: Lighthouse Performance Optimization (3D lazy-loading, font preloading)
-- P2: Analytics Dashboard in Admin area
-- P2: App.js Refactoring (>730 lines → split into components)
+## Upcoming Tasks (Prioritized)
+- P1: Automated email sequences (booking confirmation, 24h reminder, 48h follow-up)
+- P1: Lighthouse Performance Optimization (3D lazy-loading, font preloading, code-splitting)
+- P2: Analytics Dashboard in Admin area (conversion funnel, lead trends)
+- P2: App.js Refactoring (>740 lines → split into components)
 
 ## Backlog
-- P1: Cookie settings granular page
-- P2: Admin CSV export, MFA
-- P3: A/B testing, analytics dashboard
+- Cookie settings granular page
+- Admin CSV export, MFA
+- A/B testing framework
 
 ---
-*Letzte Aktualisierung: 02.04.2026 — Chat Markdown, Premium 3D Graphics v2.0, System Prompt Upgrade. All 40/40 tests PASSED.*
+*Last updated: 02.04.2026 — Form labels fix, i18n completion, NL translation fix. Iteration 9: 40/40 tests PASSED.*
