@@ -247,6 +247,18 @@ class LeadUpdate(BaseModel):
     status: str
     notes: Optional[str] = None
 
+class BookingUpdate(BaseModel):
+    status: Optional[str] = None
+    notes: Optional[str] = None
+    date: Optional[str] = None
+    time: Optional[str] = None
+
+class BlockedSlot(BaseModel):
+    date: str
+    time: Optional[str] = None
+    reason: Optional[str] = None
+    all_day: bool = False
+
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -420,7 +432,14 @@ async def get_slots(date: str):
     slots = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30"]
     booked = await db.bookings.find({"date": date, "status": {"$ne": "cancelled"}}, {"time": 1}).to_list(50)
     booked_times = [b["time"] for b in booked]
-    return {"date": date, "slots": [s for s in slots if s not in booked_times]}
+    blocked = await db.blocked_slots.find({"date": date}, {"time": 1, "all_day": 1}).to_list(50)
+    blocked_times = set()
+    for b in blocked:
+        if b.get("all_day"):
+            return {"date": date, "slots": []}
+        if b.get("time"):
+            blocked_times.add(b["time"])
+    return {"date": date, "slots": [s for s in slots if s not in booked_times and s not in blocked_times]}
 
 @app.post("/api/booking")
 async def create_booking(data: BookingRequest, request: Request):
@@ -753,10 +772,163 @@ async def admin_update_lead(lead_id: str, update: LeadUpdate, user = Depends(get
     return {"success": True}
 
 @app.get("/api/admin/bookings")
-async def admin_bookings(user = Depends(get_current_admin), skip: int = 0, limit: int = 50):
-    total = await db.bookings.count_documents({})
-    bookings = await db.bookings.find({}, {"_id": 0}).sort("date", -1).skip(skip).limit(limit).to_list(limit)
+async def admin_bookings(user = Depends(get_current_admin), status: str = None, date_from: str = None, date_to: str = None, skip: int = 0, limit: int = 100):
+    query = {}
+    if status:
+        query["status"] = status
+    if date_from:
+        query.setdefault("date", {})["$gte"] = date_from
+    if date_to:
+        query.setdefault("date", {})["$lte"] = date_to
+    total = await db.bookings.count_documents(query)
+    bookings = await db.bookings.find(query, {"_id": 0}).sort("date", -1).skip(skip).limit(limit).to_list(limit)
     return {"total": total, "bookings": bookings}
+
+@app.get("/api/admin/bookings/{booking_id}")
+async def admin_booking_detail(booking_id: str, user = Depends(get_current_admin)):
+    booking = await db.bookings.find_one({"booking_id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Buchung nicht gefunden")
+    return booking
+
+@app.patch("/api/admin/bookings/{booking_id}")
+async def admin_update_booking(booking_id: str, update: BookingUpdate, user = Depends(get_current_admin)):
+    booking = await db.bookings.find_one({"booking_id": booking_id})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Buchung nicht gefunden")
+    updates = {"updated_at": datetime.now(timezone.utc)}
+    if update.status:
+        updates["status"] = update.status
+    if update.date:
+        updates["date"] = update.date
+    if update.time:
+        updates["time"] = update.time
+    if update.notes is not None:
+        await db.bookings.update_one(
+            {"booking_id": booking_id},
+            {"$set": updates, "$push": {"notes": {"text": update.notes, "by": user["email"], "at": datetime.now(timezone.utc).isoformat()}}}
+        )
+    else:
+        await db.bookings.update_one({"booking_id": booking_id}, {"$set": updates})
+    await log_audit("booking_updated", user["email"], {"booking_id": booking_id, "updates": {k: v for k, v in updates.items() if k != "updated_at"}})
+    return {"success": True}
+
+@app.delete("/api/admin/bookings/{booking_id}")
+async def admin_delete_booking(booking_id: str, user = Depends(get_current_admin)):
+    result = await db.bookings.delete_one({"booking_id": booking_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Buchung nicht gefunden")
+    await log_audit("booking_deleted", user["email"], {"booking_id": booking_id})
+    return {"success": True}
+
+# ============== BLOCKED SLOTS ==============
+
+@app.get("/api/admin/blocked-slots")
+async def admin_get_blocked_slots(user = Depends(get_current_admin), date_from: str = None, date_to: str = None):
+    query = {}
+    if date_from:
+        query.setdefault("date", {})["$gte"] = date_from
+    if date_to:
+        query.setdefault("date", {})["$lte"] = date_to
+    slots = await db.blocked_slots.find(query, {"_id": 0}).sort("date", 1).to_list(200)
+    return {"slots": slots}
+
+@app.post("/api/admin/blocked-slots")
+async def admin_create_blocked_slot(slot: BlockedSlot, user = Depends(get_current_admin)):
+    slot_id = f"BLK-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}-{secrets.token_hex(3).upper()}"
+    doc = {
+        "slot_id": slot_id,
+        "date": slot.date,
+        "time": slot.time,
+        "all_day": slot.all_day,
+        "reason": slot.reason or "",
+        "created_by": user["email"],
+        "created_at": datetime.now(timezone.utc)
+    }
+    await db.blocked_slots.insert_one(doc)
+    await log_audit("slot_blocked", user["email"], {"slot_id": slot_id, "date": slot.date})
+    del doc["_id"]
+    return doc
+
+@app.delete("/api/admin/blocked-slots/{slot_id}")
+async def admin_delete_blocked_slot(slot_id: str, user = Depends(get_current_admin)):
+    result = await db.blocked_slots.delete_one({"slot_id": slot_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Slot nicht gefunden")
+    await log_audit("slot_unblocked", user["email"], {"slot_id": slot_id})
+    return {"success": True}
+
+# ============== CUSTOMER MANAGEMENT ==============
+
+@app.get("/api/admin/customers")
+async def admin_customers(user = Depends(get_current_admin), search: str = None):
+    pipeline = [
+        {"$group": {
+            "_id": "$email",
+            "vorname": {"$first": "$vorname"},
+            "nachname": {"$first": "$nachname"},
+            "unternehmen": {"$first": "$unternehmen"},
+            "telefon": {"$first": "$telefon"},
+            "total_leads": {"$sum": 1},
+            "first_contact": {"$min": "$created_at"},
+            "last_contact": {"$max": "$created_at"},
+            "statuses": {"$push": "$status"}
+        }},
+        {"$sort": {"last_contact": -1}}
+    ]
+    if search:
+        pipeline.insert(0, {"$match": {"$or": [
+            {"vorname": {"$regex": search, "$options": "i"}},
+            {"nachname": {"$regex": search, "$options": "i"}},
+            {"email": {"$regex": search, "$options": "i"}},
+            {"unternehmen": {"$regex": search, "$options": "i"}}
+        ]}})
+    customers = await db.leads.aggregate(pipeline).to_list(200)
+    for c in customers:
+        c["email"] = c.pop("_id")
+        booking_count = await db.bookings.count_documents({"email": c["email"]})
+        c["total_bookings"] = booking_count
+        if c.get("first_contact"):
+            c["first_contact"] = c["first_contact"].isoformat()
+        if c.get("last_contact"):
+            c["last_contact"] = c["last_contact"].isoformat()
+    return {"customers": customers}
+
+@app.get("/api/admin/customers/{email}")
+async def admin_customer_detail(email: str, user = Depends(get_current_admin)):
+    leads = await db.leads.find({"email": email.lower()}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    bookings = await db.bookings.find({"email": email.lower()}, {"_id": 0}).sort("date", -1).to_list(50)
+    chats = await db.chat_sessions.find(
+        {"$or": [{"email": email.lower()}, {"qualification.email": email.lower()}]},
+        {"_id": 0, "messages": {"$slice": -10}}
+    ).sort("updated_at", -1).to_list(10)
+    return {"leads": leads, "bookings": bookings, "chats": chats}
+
+# ============== ENHANCED STATS ==============
+
+@app.get("/api/admin/calendar-data")
+async def admin_calendar_data(user = Depends(get_current_admin), month: str = None):
+    """Get bookings and blocked slots for a month (format: YYYY-MM)"""
+    if not month:
+        month = datetime.now(timezone.utc).strftime("%Y-%m")
+    date_from = f"{month}-01"
+    year, mon = int(month.split("-")[0]), int(month.split("-")[1])
+    if mon == 12:
+        date_to = f"{year + 1}-01-01"
+    else:
+        date_to = f"{year}-{mon + 1:02d}-01"
+    
+    bookings = await db.bookings.find(
+        {"date": {"$gte": date_from, "$lt": date_to}},
+        {"_id": 0}
+    ).sort("date", 1).to_list(200)
+    
+    blocked = await db.blocked_slots.find(
+        {"date": {"$gte": date_from, "$lt": date_to}},
+        {"_id": 0}
+    ).sort("date", 1).to_list(200)
+    
+    return {"bookings": bookings, "blocked_slots": blocked, "month": month}
 
 if __name__ == "__main__":
     import uvicorn

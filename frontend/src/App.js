@@ -428,6 +428,12 @@ const LiveChat = ({ isOpen, onClose, initialQ, t, lang }) => {
   const inputRef = useRef(null);
   const sentInitial = useRef(false);
 
+  /* Reset chat on language change */
+  useEffect(() => {
+    setMsgs([]);
+    sentInitial.current = false;
+  }, [lang]);
+
   useEffect(() => {
     if (isOpen && msgs.length === 0) {
       setMsgs([{ role: 'assistant', content: t.chat.welcome, ts: Date.now() }]);
