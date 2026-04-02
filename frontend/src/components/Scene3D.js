@@ -4,8 +4,8 @@ import { Float, MeshDistortMaterial, Sphere, Box, Torus, Icosahedron, Octahedron
 import * as THREE from 'three';
 
 /* ═══════════ HERO — Neural Network Constellation ═══════════ */
-const NODE_COUNT = 80;
-const EDGE_COUNT = 100;
+const NODE_COUNT = 120;
+const EDGE_COUNT = 150;
 
 function NetworkNodes() {
   const meshRef = useRef();
@@ -86,17 +86,17 @@ function FloatingCore() {
   return (
     <group position={[1.5, 0, 0]}>
       <group ref={ref}>
-        <Icosahedron args={[1.4, 1]}>
-          <meshBasicMaterial color="#ff9b7a" wireframe transparent opacity={0.1} />
+        <Icosahedron args={[1.6, 1]}>
+          <meshBasicMaterial color="#ff9b7a" wireframe transparent opacity={0.12} />
         </Icosahedron>
       </group>
       <group ref={innerRef}>
-        <Icosahedron args={[1.0, 0]}>
-          <MeshDistortMaterial color="#ff9b7a" transparent opacity={0.04} distort={0.25} speed={1.5} />
+        <Icosahedron args={[1.15, 0]}>
+          <MeshDistortMaterial color="#ff9b7a" transparent opacity={0.05} distort={0.3} speed={1.5} />
         </Icosahedron>
       </group>
-      <Sphere args={[0.2, 16, 16]}>
-        <meshStandardMaterial color="#ff9b7a" emissive="#ff9b7a" emissiveIntensity={0.8} transparent opacity={0.15} />
+      <Sphere args={[0.25, 16, 16]}>
+        <meshStandardMaterial color="#ff9b7a" emissive="#ff9b7a" emissiveIntensity={1.2} transparent opacity={0.2} />
       </Sphere>
     </group>
   );
@@ -104,7 +104,7 @@ function FloatingCore() {
 
 function DataStreams() {
   const ref = useRef();
-  const count = 300;
+  const count = 500;
   const positions = useMemo(() => {
     const p = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
@@ -173,9 +173,10 @@ export function HeroScene() {
         dpr={[1, 1.5]}
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       >
-        <ambientLight intensity={0.2} />
-        <pointLight position={[5, 5, 5]} intensity={0.4} color="#ff9b7a" distance={20} decay={2} />
-        <pointLight position={[-4, -3, 3]} intensity={0.15} color="#ff9b7a" distance={15} decay={2} />
+        <ambientLight intensity={0.25} />
+        <pointLight position={[5, 5, 5]} intensity={0.5} color="#ff9b7a" distance={20} decay={2} />
+        <pointLight position={[-4, -3, 3]} intensity={0.2} color="#ff9b7a" distance={15} decay={2} />
+        <pointLight position={[0, -5, 4]} intensity={0.12} color="#ffb59e" distance={12} decay={2} />
         <Suspense fallback={null}>
           <FloatingCore />
           <NetworkNodes />
@@ -227,7 +228,7 @@ function GlobeWireframe() {
 
 function GlobeNodes() {
   const ref = useRef();
-  const count = 70;
+  const count = 90;
   const positions = useMemo(() => {
     const p = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
@@ -262,7 +263,7 @@ function ConnectionArcs() {
   const ref = useRef();
   const arcs = useMemo(() => {
     const lines = [];
-    for (let i = 0; i < 22; i++) {
+    for (let i = 0; i < 30; i++) {
       const phi1 = Math.acos(2 * Math.random() - 1);
       const theta1 = Math.random() * Math.PI * 2;
       const phi2 = Math.acos(2 * Math.random() - 1);
@@ -299,7 +300,7 @@ function ConnectionArcs() {
 /* Floating data particles around globe */
 function GlobeParticles() {
   const ref = useRef();
-  const count = 120;
+  const count = 180;
   const positions = useMemo(() => {
     const p = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
@@ -332,7 +333,7 @@ function GlobeParticles() {
 
 export function IntegrationsGlobe() {
   return (
-    <div style={{ width: '100%', height: '380px', position: 'relative' }}>
+    <div style={{ width: '100%', height: '420px', position: 'relative' }}>
       <Canvas
         camera={{ position: [0, 0, 5.5], fov: 50 }}
         dpr={[1, 1.5]}
