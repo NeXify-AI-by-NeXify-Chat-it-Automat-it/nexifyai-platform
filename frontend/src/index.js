@@ -15,7 +15,16 @@ const CO = {
 
 const LegalWrap = ({ children, title }) => (
   <div className="legal-page">
-    <nav className="legal-nav"><a href="/" className="legal-back">&larr; Zurück zur Startseite</a></nav>
+    <nav className="legal-nav">
+      <div className="legal-nav-inner">
+        <a href="/" className="legal-logo-link">
+          <img src="/icon-mark.svg" alt="" width="28" height="28" />
+          <span className="legal-logo-text">NeXify<span className="legal-logo-accent">AI</span></span>
+        </a>
+        <span className="legal-tagline">Chat it. Automate it.</span>
+      </div>
+      <a href="/" className="legal-back">&larr; Zurück zur Startseite</a>
+    </nav>
     <main className="legal-content"><h1>{title}</h1>{children}</main>
   </div>
 );
