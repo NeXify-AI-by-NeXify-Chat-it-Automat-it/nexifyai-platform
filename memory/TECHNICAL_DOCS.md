@@ -1,149 +1,136 @@
-# NeXifyAI — Technische Dokumentation
+# NeXifyAI — Technische Architektur-Dokumentation
 
-## Architekturübersicht
+## 1. Worker, Trigger & Monitoring — Bestandsnachweis
 
-### Frontend (React 18 SPA)
-- **Einstiegspunkt**: `index.js` → BrowserRouter mit Sprach-Routing (`/:lang`)
-- **Hauptkomponente**: `App.js` — Landing Page mit allen Sektionen
-- **Sprachen**: DE (Standard), NL, EN — via `i18n/LanguageContext.js`
-- **Styling**: CSS Custom Properties (Dark Theme) in `App.css`
-- **3D**: Three.js Scenes via `components/Scene3D.js`
+### 1.1 Aktive Worker / Dienste
 
-### Backend (FastAPI)
-- **Einstiegspunkt**: `server.py` — Alle API-Routen, LLM-Chat, Auth
-- **Commercial Engine**: `commercial.py` — Quotes, Invoices, PDFs, Tarife, Revolut
-- **Datenbank**: MongoDB Atlas (EU, Frankfurt) via `MONGO_URL`
+| Worker | Typ | Trigger | Retry/Fallback | Status |
+|--------|-----|---------|----------------|--------|
+| **FastAPI Backend** | Supervisor-managed | Auto-Start, Hot-Reload | supervisorctl restart | AKTIV |
+| **React Frontend** | Supervisor-managed | Auto-Start, Hot-Reload | supervisorctl restart | AKTIV |
+| **MongoDB** | System-Dienst | Container-Start | Automatisch | AKTIV |
+| **Orchestrator** | In-Process (FastAPI) | API-Call `/api/admin/agents/execute` | try/except + Audit-Log | AKTIV |
+| **MemoryService** | In-Process (FastAPI) | Jeder Chat/CRUD | Inline-Error-Handling | AKTIV |
+| **Email-Worker** | Async (asyncio.to_thread) | Quote-Send, Invoice-Send, Magic Link | try/except + Logger | AKTIV |
 
-### Routing
-| Route | Komponente | Beschreibung |
-|-------|-----------|-------------|
-| `/:lang` | App.js | Landing Page (de/nl/en) |
-| `/:lang/impressum` | LegalPages.js | Impressum |
-| `/:lang/datenschutz` | LegalPages.js | Datenschutzerklärung |
-| `/:lang/agb` | LegalPages.js | AGB |
-| `/:lang/ki-hinweise` | LegalPages.js | KI-Transparenzhinweise |
-| `/integrationen/:slug` | IntegrationDetail.js | SEO Landing Pages |
-| `/angebot` | QuotePortal.js | Magic Link Portal |
-| `/admin` | Admin.js | Admin Dashboard |
+### 1.2 Trigger-Matrix
 
-## Tarifsystem
+| Flow | Trigger | Worker | Audit | Memory |
+|------|---------|--------|-------|--------|
+| Login (Admin) | POST /api/admin/login | JWT-Generierung | `login_success`/`login_failed` | — |
+| Login (Kunde) | POST /api/auth/verify-token | JWT-Generierung | `customer_login_magic_link` | Ja (system_agent) |
+| Magic Link | POST /api/auth/request-magic-link | Email-Worker | `magic_link_requested` | — |
+| Lead-Erstellung | POST /api/contact | Lead-Insert + Email | Timeline `lead_created` | — |
+| Angebot versenden | POST /api/admin/quotes/{id}/send | Email-Worker + Access-Link | `quote_sent` + Timeline | Ja (admin_agent) |
+| Rechnung erstellen | POST /api/admin/invoices | Invoice-Insert | Timeline `invoice_created` | — |
+| Rechnung bezahlt | POST /api/admin/invoices/{id}/mark-paid | Status-Update | `invoice_marked_paid` | Ja (finance_agent) |
+| Chat-Nachricht | POST /api/chat/message | KI-Orchestrator | Timeline (intern) | Ja (chat_agent) |
+| Termin erstellen | POST /api/admin/bookings | Booking-Insert | Timeline `booking_created` | — |
+| Portalzugang | POST /api/admin/customers/portal-access | Token-Generierung + Access-Link | Timeline `portal_access_created` | Ja (admin_agent) |
+| Statuswechsel | PATCH /api/admin/quotes/{id} | Status-Update | Timeline `quote_status_*` | Ja (admin_agent) |
 
-### Single Source of Truth
-Alle Tarife werden zentral in `commercial.py` verwaltet:
-- `TARIFF_CONFIG` — KI-Agenten (Starter/Growth)
-- `SERVICE_CATALOG` — Websites, Apps, SEO, Add-ons
-- `BUNDLE_CATALOG` — Cross-Sell-Bundles
-- `PRODUCT_DESCRIPTIONS` — Marketing-/Rechtstexte
+### 1.3 Monitoring-Endpunkte
 
-### Tarifnummern-Schema
-| Prefix | Kategorie | Beispiel |
-|--------|-----------|---------|
-| NXA-ST- | Starter AI Agent | NXA-ST-499 |
-| NXA-GR- | Growth AI Agent | NXA-GR-1299 |
-| NXA-WEB- | Websites | NXA-WEB-S-2990 |
-| NXA-APP- | Apps | NXA-APP-M-9900 |
-| NXA-SEO- | SEO | NXA-SEO-S-799 |
-| NXA-AI- | Add-ons | NXA-AI-CB-249 |
-| NXA-BDL- | Bundles | NXA-BDL-GD-17490 |
+| Endpunkt | Funktion | Prüfungen |
+|----------|----------|-----------|
+| `GET /api/health` | Basis-Healthcheck | Status + Version + Timestamp |
+| `GET /api/admin/audit/health` | Erweiterter System-Health | DB-Ping, Collections, Agent-Layer, WA-Status, LLM-Key, Fehler-24h, Pricing |
+| `GET /api/admin/audit/timeline` | Audit-Timeline | Alle Events der letzten N Stunden |
+| `GET /api/admin/audit/collection-stats` | DB-Statistiken | Dokumentanzahl pro Collection |
+| `GET /api/admin/memory/agents` | Memory-Agent-Status | Alle registrierten Agent-IDs |
+| `GET /api/admin/memory/by-agent/{id}` | Agent-History | Memory-Einträge pro Agent |
 
-### Abrechnungslogik
-- **KI-Agenten**: 30 % Aktivierungsanzahlung + 24 Monatsraten
-- **Websites/Apps**: 50 % bei Auftrag, 50 % bei Abnahme
-- **SEO**: Monatliche Abrechnung, 6 Monate Mindestlaufzeit
-- **Add-ons**: Monatlich, keine Mindestlaufzeit
-- **Bundles**: Individuell (Kombination der Einzellogiken)
+### 1.4 Self-Healing & Fallback
 
-### USt./VAT
-- NL: 21 % BTW
-- DE: 19 % MwSt.
-- B2B: Reverse Charge bei EU-Lieferungen mit gültiger USt-ID
+| Szenario | Verhalten |
+|----------|-----------|
+| Email-Versand fehlgeschlagen | Logger.error + Audit-Eintrag, Operation fortgesetzt |
+| LLM-Key fehlt | Health-Check meldet "missing", Chat-Fallback auf Standard-Antwort |
+| MongoDB nicht erreichbar | Health-Check "error", Supervisor-Auto-Restart |
+| Rate-Limit überschritten | HTTP 429, automatische Sperre für Window-Dauer |
+| Token abgelaufen | HTTP 401/403, Client-Redirect zu /login |
+| Agent-Execution fehlgeschlagen | try/except, Fallback-Antwort + Audit-Log |
 
-## Angebotsfluss (Offer-to-Cash)
+### 1.5 Alerting
+
+| Alert | Bedingung | Zielgruppe |
+|-------|-----------|------------|
+| `recent_errors_24h` | > 0 Fehler in Timeline | Admin (Audit-View) |
+| `database.status == error` | MongoDB nicht erreichbar | Admin (Health-Check) |
+| `agents.status == error` | Agent-Layer nicht verfügbar | Admin (Health-Check) |
+| `llm.status == missing` | LLM-Key fehlt | Admin (Health-Check) |
+
+### 1.6 Restrisiken
+
+- **Kein separater Background-Worker**: Email-Versand und KI-Orchestrator laufen im FastAPI-Prozess. Bei hoher Last könnte dies den Hauptprozess beeinträchtigen.
+- **Kein Mahnwesen-Cron**: Zahlungserinnerungen erfordern manuellen Admin-Eingriff.
+- **Kein Webhook-Retry**: Eingehende WhatsApp-Webhooks werden einmalig verarbeitet.
+
+---
+
+## 2. KI-Orchestrator — Architektur
+
+### 2.1 Aktueller Zustand: TEMPORÄR (GPT-5.2 via Emergent LLM Key)
+
+Der KI-Orchestrator und alle 9 Sub-Agenten nutzen **GPT-5.2 über den Emergent LLM Key**. Dies ist eine funktionale Übergangslösung.
+
+### 2.2 Agent-Architektur
 
 ```
-Anfrage (Chat/Formular) → Bedarfsanalyse → Angebotserstellung (PDF)
-→ Magic Link per E-Mail → Kundenportal (QuotePortal.js)
-→ Angebotsannahme → Revolut Payment Order → Rechnungserstellung (PDF)
-→ Zahlung → Projektstart
+Orchestrator (GPT-5.2)
+├── intake_agent      — Leadaufnahme, Discovery, Klassifikation
+├── research_agent    — Firmenanalyse, Lead-Enrichment
+├── outreach_agent    — Erstansprache, Follow-ups
+├── offer_agent       — Angebotserstellung, Tarifberatung
+├── planning_agent    — Projektplanung, Architektur
+├── finance_agent     — Rechnungsstellung, Zahlungen
+├── support_agent     — Kundenbetreuung, Problemlösung
+├── design_agent      — Design-Konzeption, SEO
+└── qa_agent          — Qualitätssicherung, Audit
 ```
 
-### Magic Links
-- Einmal-Token (HMAC-SHA256), 24h gültig
-- Kein Passwort erforderlich
-- Audit-Log bei jedem Zugriff
-- Automatische Ablaufzeit
+### 2.3 Guardrails
 
-## Payment (Revolut Merchant API)
-- Production Keys in `.env` (niemals im Frontend)
-- HMAC-SHA256 Webhook-Verifizierung
-- Supported: Kreditkarte, SEPA, Klarna, giropay
-- Fallback: Banküberweisung (IBAN in Rechnung)
+- Dedizierter System-Prompt pro Agent (`/app/backend/agents/`)
+- Routing-Logik im Orchestrator
+- Memory-Pflicht: read() vor Arbeit, write() nach Änderung
+- Audit-Trail pro Execution
+- Agenten empfehlen Aktionen, Business-Logik liegt in API-Endpunkten
 
-## Sicherheit
-- Security Headers: X-Frame-Options, CSP, HSTS, X-Content-Type-Options
-- Argon2 Password Hashing (OWASP-empfohlen)
-- JWT mit kurzer Laufzeit (24h)
-- RBAC (Admin-Rollen)
-- Keine Klartext-Passwörter in Logs/Responses
-- MongoDB _id Exclusion in allen API-Responses
+### 2.4 Migrationspfad (DeepSeek / anderes LLM)
 
-## DSGVO/Compliance
-- Datenschutzerklärung: Art. 13/14 DSGVO — trilingual
-- AGB: Zahlungsbedingungen, Laufzeiten, Revolut, Magic Links
-- KI-Hinweise: EU AI Act 2024/1689 Transparenzpflichten
-- Auftragsverarbeiter: Resend (E-Mail), OpenAI (Chat), MongoDB Atlas (DB), Revolut (Payment)
-- Aufbewahrungsfristen: 24 Monate (Anfragen), 10 Jahre (Rechnungen), 90 Tage (Chat)
+1. Neuen API-Key in `.env`
+2. Model-Name in Agent-Definitionen ändern
+3. System-Prompts ggf. optimieren
+4. Regressionstests
 
-## SEO-Strategie
-- Dedizierte Landing Pages pro Integration (/integrationen/:slug)
-- Strukturierte Daten via react-helmet-async
-- Interne Verlinkung: Integrations → Services → Pricing → Contact
-- Multilingual mit hreflang-Tags (DE/NL/EN)
+### 2.5 Architektur-Grundsatz
 
-## Abhängigkeiten
-### Backend
-- fastapi, uvicorn, motor (MongoDB async), PyJWT
-- reportlab (PDF-Generierung), httpx (HTTP-Client)
-- resend (E-Mail), emergentintegrations (LLM)
-- argon2-cffi (Password Hashing)
+- API-First bleibt führend
+- LLM berät und formuliert, entscheidet nicht
+- QR-WhatsApp = gekapselte Bridge, austauschbar
 
-### Frontend
-- react 18, react-router-dom 6, framer-motion
-- @react-three/fiber, @react-three/drei (3D)
-- react-helmet-async (SEO)
+---
 
-## Synchronisationsregeln (Frontend ↔ Backend)
-- **Single Source of Truth**: `commercial.py` ist die autoritäre Quelle für alle Tarife und Preise
-- **Frontend-Datenhaltung**: `products.js` und `integrations.js` müssen identische Preise/Features wie `SERVICE_CATALOG` enthalten
-- **Bei Preisänderungen**: Zuerst `commercial.py`, dann `products.js`, dann PDF-Output prüfen
-- **Validierung**: Sync-Check-Script verfügbar (python3 — vergleicht alle 15 Produkte)
+## 3. Email-Signatur & DSGVO-Footer
 
-## Produktportfolio (12 Produkte, 3 Bundles)
+### Aktuelle Signatur (alle E-Mails)
+Pascal Courbois — Geschäftsführer | Tel: +31 6 133 188 56 | nexifyai@nexifyai.de
 
-| Produkt | Tarif-Nr. | Preis (netto) | Billing | Beschreibung |
-|---------|-----------|---------------|---------|-------------|
-| Starter AI Agenten AG | NXA-ST-499 | 499 EUR/Mo. | 30 % + 24 Mo. | 2 Agenten, Shared Cloud |
-| Growth AI Agenten AG | NXA-GR-1299 | 1.299 EUR/Mo. | 30 % + 24 Mo. | 10 Agenten, Private Cloud |
-| Website Starter | NXA-WEB-S-2990 | 2.990 EUR | Projekt (50/50) | 5 Seiten, CMS |
-| Website Professional | NXA-WEB-P-7490 | 7.490 EUR | Projekt (50/50) | 15 Seiten, Animations |
-| Website Enterprise | NXA-WEB-E-14900 | 14.900 EUR | Projekt (50/50) | Headless CMS, E-Commerce |
-| App MVP | NXA-APP-M-9900 | 9.900 EUR | Projekt (50/50) | iOS + Android, 5 Features |
-| App Professional | NXA-APP-P-24900 | 24.900 EUR | Projekt (50/50) | Full-Stack, Admin, CRM |
-| SEO Starter | NXA-SEO-S-799 | 799 EUR/Mo. | Monatlich (min. 6) | 50 Keywords |
-| SEO Growth | NXA-SEO-G-1499 | 1.499 EUR/Mo. | Monatlich (min. 6) | 200 Keywords, Multilingual |
-| SEO Enterprise | NXA-SEO-E-IND | Individuell | Monatlich (min. 12) | Dediziertes Team |
-| KI-Chatbot | NXA-AI-CB-249 | 249 EUR/Mo. | Monatlich | Lead-Qualifizierung |
-| KI-Automation | NXA-AI-AUTO-499 | 499 EUR/Mo. | Monatlich | Workflow-Automation |
+### DSGVO-Footer (alle E-Mails)
+NeXify Automate — Graaf van Loonstraat 1E, 5921 JA Venlo, NL | KvK: 90483944 | USt-ID: NL865786276B01
+Impressum | Datenschutz | AGB | DSGVO (EU) 2016/679
 
-### Bundles
-| Bundle | Tarif-Nr. | Preis (netto) | Inhalt |
-|--------|-----------|---------------|--------|
-| Digital Starter | NXA-BDL-DS-3990 | 3.990 EUR | Website Starter + SEO Starter (3 Mo.) |
-| Growth Digital | NXA-BDL-GD-17490 | 17.490 EUR | Website Pro + SEO Growth (6 Mo.) + Chatbot |
-| Enterprise Digital | NXA-BDL-ED-39900 | ab 39.900 EUR | Website Enterprise + App + SEO Enterprise + Growth Agent |
+Zentral über `email_template()` — konsistent in Lead-Bestätigung, Angebot, Rechnung, Magic Link, Statusbenachrichtigungen.
 
-## Offene Risiken
-1. Resend API Key ist Platzhalter — E-Mail-Versand nicht produktiv
-2. App.js >1000 Zeilen — Refactoring geplant (Phase 4)
-3. Keine automatisierten E2E-Tests im CI/CD
-4. Revolut Webhook-Endpoint nicht öffentlich erreichbar in Preview
+---
+
+## 4. Kommerzielle Source of Truth
+
+| Tarif | Kennung | Preis | Laufzeit | Anzahlung |
+|-------|---------|-------|----------|-----------|
+| Starter AI Agenten AG | NXA-SAA-24-499 | 499 EUR/Mo | 24 Mo | 30% = 3.592,80 EUR |
+| Growth AI Agenten AG | NXA-GAA-24-1299 | 1.299 EUR/Mo | 24 Mo | 30% = 9.352,80 EUR |
+
+Weitere: Website (2.990–14.900), Apps (9.900–24.900), SEO (799–1.499/Mo), Bundles (3.990–39.900+)
+Zentral in `commercial.py` TARIFF_CONFIG.

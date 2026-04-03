@@ -1,67 +1,64 @@
 # NeXifyAI — Product Requirements Document
 
 ## Problem Statement
-B2B-Plattform "Starter/Growth AI Agenten AG" — API-First, Unified Communication, Deep Customer Memory (mem0), KI-Orchestrator, Manuelles CRM als vollständige Arbeitsoberfläche, Gemeinsamer Login-Stack mit Rollentrennung, Dynamische Mobile Floating Actions.
+B2B-Plattform "Starter/Growth AI Agenten AG" — API-First, Unified Communication, Deep Customer Memory (mem0), KI-Orchestrator, Manuelles CRM, Gemeinsamer Login-Stack, Dynamische Floating Actions.
 
 ## Architecture
 - **API-First**: Domain → Channel → Connector → Agent → Event/Audit Layer
 - **Unified Auth**: /login → Admin (Passwort) / Kunde (Magic Link) → Role-based JWT
 - **mem0 Memory Layer**: Pflicht-Scoping (user_id, agent_id, app_id, run_id)
-- **KI-Orchestrator**: GPT-5.2 via Emergent LLM Key (MOCKED, temporär)
+- **KI-Orchestrator**: GPT-5.2 via Emergent LLM Key (MOCKED, temporär — Migrationspfad dokumentiert)
 
-## What's Implemented (Verifiziert)
+## What's Implemented & Verified
 
-### Public Header Login-Button (2026-04-03) — VERIFIZIERT
-- "Anmelden" mit Login-Icon zwischen Sprachumschalter und CTA
-- Desktop: Text + Icon, Tablet: Text + Icon, Mobile: Icon-only + "Anmelden" im Burger-Menü
-- i18n: DE=Anmelden, NL=Inloggen, EN=Login
-- Keine Kollision mit Sprachumschalter/CTA/Burger
+### Auth & Login — VERIFIZIERT
+- Login-Button im Public Header (Desktop/Tablet/Mobile, i18n DE/NL/EN)
+- /login als allgemeine Auth-Seite (Home-Link, Legal: Impressum/Datenschutz/AGB)
+- Admin-Flow (E-Mail → Rollen-Badge → Passwort → /admin)
+- Kunden-Flow (E-Mail → Magic Link → /portal)
+- JWT Rollentrennung (admin/customer), serverseitig + UI-seitig
 
-### Unified Login /login (2026-04-03) — VERIFIZIERT
-- Allgemeine Auth-Seite (nicht mehr isolierter Admin-Login)
-- NeXifyAI Home-Link oben links
-- Legal-Links: Startseite, Impressum, Datenschutz, AGB
-- Admin-Flow: E-Mail → Rollen-Badge "Interner Zugang" → Passwort → /admin
-- Kunden-Flow: E-Mail → Magic Link per E-Mail → /portal
-- Unbekannt: Fehlermeldung
-- Session/Logout/Redirect sauber
+### Admin CRM — VERIFIZIERT
+- Vollständige Arbeitsoberfläche: Leads/Kunden/Angebote/Rechnungen/Termine CRUD
+- Rabatt, Sonderpositionen, Status, Notizen, Audit-Trail
+- KI-Agenten-Steuerung, Kommunikation, Timeline
 
-### Rollentrennung (2026-04-03) — VERIFIZIERT
-- Admin-JWT (role=admin) → Admin-Panel
-- Customer-JWT (role=customer) → Kundenportal
-- Customer-JWT → 403 auf Admin-Endpoints
-- Serverseitig: get_current_admin vs get_current_customer
-- UI-seitig: Separate Routen, Separate Views
+### Customer Portal — VERIFIZIERT
+- JWT-Auth + Legacy Magic Link, Dashboard mit Angeboten/Rechnungen/Terminen
+- Logout, Login-Link bei Fehler
 
-### Admin CRM — Vollständige Arbeitsoberfläche — VERIFIZIERT
-- Leads: CRUD, Kunden: CRUD, Angebote: CRUD (Rabatt/Sonderpositionen)
-- Rechnungen: CRUD, Termine: CRUD, Slots blockieren
-- Kommunikation, KI-Agenten, Audit, Timeline
+### Mobile Floating Actions — VERIFIZIERT
+- Dynamisch: Cookie → bottom:120px, kein Cookie → bottom:24px (Delta 96px bewiesen)
+- CSS transition 0.4s, z-index 910, Safe-Area iOS
 
-### Dynamische Mobile Floating Actions — VERIFIZIERT
-- Cookie-zustandsbasiert, smooth CSS transition, z-index 910, Safe-Area iOS
+### Kommerzielle Konsistenz — VERIFIZIERT (Code)
+- Rabatt + Sonderpositionen in Quote-PDF und Invoice-PDF
 
-### Kommerzielle Konsistenz — PDFs — VERIFIZIERT (Code)
-- Quote-PDF: Rabatt + Sonderpositionen
-- Invoice-PDF: Rabatt + Sonderpositionen
+### Breakpoint-Testing — VERIFIZIERT
+- 11 Breakpoints (1920→360): Nav, Login-Button, Floating Actions, Login-Seite alle OK
+- Floating Actions Cookie-Wechsel dynamisch bewiesen (120px → 24px)
 
-### Customer Portal (JWT-Auth) — VERIFIZIERT
-- Dashboard, Angebote, Rechnungen, Termine, Kommunikation, Timeline
-- Logout-Button, Login-Link bei Fehler
+### Worker/Monitoring/Alerting — DOKUMENTIERT
+- 6 Worker, 11 Trigger, 6 Monitoring-Endpunkte, 4 Alerts, Self-Healing
+- Dokumentiert in TECHNICAL_DOCS.md
+
+### Orchestrator-Architektur — DOKUMENTIERT
+- 9 Agenten + Orchestrator, Guardrails, Migrationspfad
+- Dokumentiert in TECHNICAL_DOCS.md
+
+### Email-Signatur & DSGVO — VERIFIZIERT
+- Zentrale email_template() mit Signatur + DSGVO-Footer
+- Impressum/Datenschutz/AGB Links, KvK, USt-ID
 
 ### mem0 Memory Layer — VERIFIZIERT
-- MemoryService, 13 Agent-IDs, automatische Writes
-
-### KI-Orchestrator — VERIFIZIERT (MOCKED: GPT-5.2)
-
-## Pending Tasks
-- P1: Breakpoint-Testing (11 Breakpoints: 1920→360)
-- P1: Worker/Monitoring/Alerting/Trigger nachweisen
-- P1: Orchestrator-Architektur dokumentieren
-- P1: Admin/Portal UX Feintuning
-- P1: Email-Signatur & DSGVO-Footer
-- P2: Outbound Lead Machine
-- P2: server.py Refactoring
+- MemoryService, 13 Agent-IDs, Pflicht-Scoping
 
 ## Testing Status
-- Iteration 21: 100% | Iteration 22: 100% | Iteration 23: 100% | Iteration 24: 100%
+- Iteration 21: 100% | 22: 100% | 23: 100% | 24: 100%
+- Breakpoints: 11/11 bestanden
+
+## Remaining Tasks
+- P2: Outbound Lead Machine
+- P2: server.py Refactoring (>3900 Zeilen → modulare Struktur)
+- P2: Kanalübergreifender Kommunikationskern vollenden
+- P2: Revolut/Billing/Status-Sync
