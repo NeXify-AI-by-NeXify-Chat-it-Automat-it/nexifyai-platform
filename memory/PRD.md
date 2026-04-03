@@ -1,14 +1,20 @@
 # NeXifyAI — Product Requirements Document
 
 ## Problem Statement
-B2B-Plattform "Starter/Growth AI Agenten AG" mit API-First Architektur. Unified Communication Layer (Chat, Mail, WhatsApp, Portal), Deep Customer Memory (mem0), KI-Orchestrator mit Sub-Agents, Automated B2B Outbound Lead Machine, Live Admin CRM.
+B2B-Plattform "Starter/Growth AI Agenten AG" mit API-First Architektur. Unified Communication Layer (Chat, Mail, WhatsApp, Portal), Deep Customer Memory (mem0), KI-Orchestrator mit 9 Sub-Agents, Automated B2B Outbound Lead Machine, Live Admin CRM mit Audit-System.
+
+## Source of Truth — Gesamtkonzept
+Drei Referenzdokumente definieren die Gesamtanforderung:
+1. `NeXifyAI_Emergent_Auftrag_Premium_FineTuned_20260403.txt` — Auftragsspezifikation
+2. `NeXifyAI_Gesamtkonzept_Premium_FineTuned_20260403 (1).md` — Architektur & Features
+3. `NeXifyAI_Gesamtkonzept_Premium_FineTuned_20260403 (2).md` — Design System, Format, QA
 
 ## Architecture
 - **API-First**: Domain Layer, Channel Layer, Connector Layer, Agent Layer, Event/Audit Layer
 - **WhatsApp Bridge**: QR-Pairing als isolierter Connector, austauschbar gegen offizielle API
 - **Unified Communications**: AI-Chat, Email, WhatsApp, Portal in einer Timeline/Identity
-- **KI-Orchestrator**: GPT-5.2 via Emergent LLM Key mit Sub-Agents
-- **Outbound Machine**: Lead-Enrichment, Scoring, personalisierte Outreach
+- **KI-Orchestrator**: GPT-5.2 via Emergent LLM Key mit 9 Sub-Agents
+- **Audit System**: Health-Checks, Timeline, Self-Healing
 
 ## Tech Stack
 - Frontend: React 18 SPA
@@ -17,60 +23,76 @@ B2B-Plattform "Starter/Growth AI Agenten AG" mit API-First Architektur. Unified 
 - LLM: Emergent LLM Key (OpenAI GPT-5.2)
 - Email: Resend API (nexifyai@nexifyai.de)
 
-## Core Data Models (domain.py)
-- Customer/Contact (unified across channels)
-- Conversation (multi-channel, timestamped)
-- Message (with direction, channel, AI flag)
-- Timeline Event (audit trail)
-- WhatsApp Session (bridge connector state)
-- Customer Memory (mem0-style facts)
+## Agent Layer (9 Agenten)
+1. Intake — Leadaufnahme, Discovery, Klassifikation
+2. Research — Firmenanalyse, Lead-Enrichment
+3. Outreach — Personalisierte Erstansprache, Follow-ups
+4. Offer — Angebotserstellung, Tarifberatung
+5. Planning — Projektplanung, Architektur, Build-Handover
+6. Finance — Rechnungsstellung, Zahlungen, Mahnwesen
+7. Support — Kundenbetreuung, Problemlösung
+8. Design — Design-Konzeption, Content-Strategie, SEO
+9. QA — Qualitätssicherung, Audit, Selbstheilung
 
 ## Tariffs (Source of Truth)
 - Starter AI Agenten AG: 499 EUR/Monat, 24 Mo, 30% Anzahlung (3.592,80 EUR)
 - Growth AI Agenten AG: 1.299 EUR/Monat, 24 Mo, 30% Anzahlung (9.352,80 EUR)
+- Websites: Starter 2.990, Professional 7.490, Enterprise 14.900
+- Apps: MVP 9.900, Professional 24.900
+- SEO: Starter 799/Mo (6 Mo), Growth 1.499/Mo (6 Mo)
+- Bundles: Digital Starter 3.990, Growth Digital 17.490, Enterprise Digital ab 39.900
 
 ## What's Implemented
 
-### Block 1-2: WhatsApp Button (DONE)
-- Desktop: Vertikal, flush links, Abrundung nur rechts, Rotation-kompensiert
+### WhatsApp Button (DONE)
+- Desktop: Vertikal, flush links, Abrundung rechts, Rotation-kompensiert
 - Tablet: Angepasste Größe, Content Safe Area
 - Mobile: Horizontaler Pill-Button, bottom:140px
 - Admin/Portal: Versteckt via body.hide-wa
 
-### Block 3: Admin UI (DONE)
-- 10 Sidebar-Navigationspunkte
-- Dashboard, Commercial, Leads, Kommunikation, AI-Chats, WhatsApp, Timeline, Kalender, Kunden, KI-Agenten
-- Responsive Tabellen, saubere Action-Bars
+### Admin CRM (DONE)
+- 11 Sidebar-Tabs: Dashboard, Commercial, Leads, Kommunikation, AI-Chats, WhatsApp, Timeline, Kalender, Kunden, KI-Agenten, Audit
+- WhatsApp Connect mit QR-Pairing, Messaging, Session-Management
+- Conversations View mit Inline-Reply
+- KI-Agenten View mit Task-Execution, Memory-Injection
+- Audit View mit Health-Checks, Timeline, Collection-Stats
 
-### Block 4: WhatsApp QR-Connector (DONE)
-- Session-Status: unpaired/pairing/connected/reconnecting/disconnected/failed
-- QR-Code generieren, Session zurücksetzen, Trennen, Reconnect
-- Simulate-Connect (Dev/Test)
-- Nachrichten senden/empfangen
-- Message History in Admin-Tabelle
-- Nachrichten in Unified Timeline
-- Bridge-Architektur: Isolierter Adapter, austauschbar
+### WhatsApp QR-Connector (DONE)
+- 8 Endpoints (pair/status/reconnect/simulate-connect/send/disconnect/reset/messages)
+- Isolierte Bridge-Architektur
 
-### Block 5: Customer Memory / mem0 (DONE)
+### KI-Orchestrator + 9 Sub-Agents (DONE)
+- Orchestrator mit GPT-5.2 Routing
+- 9 spezialisierte Agenten mit eigenem System-Prompt
+- Audit Trail in Timeline Events
+- Customer Memory Injection
+
+### Customer Memory / mem0 (DONE)
 - Kanalübergreifend: WhatsApp, Email, Chat, Portal
-- Sources: Lead, Quotes, Invoices, Bookings, Chat Sessions, Contact Forms, Unified Conversations, Memory Facts
-- Memory Facts API: Manuell hinzufügen via Admin
-- Automatische Injektion in KI-Agent-Kontexte
+- Memory Facts API
 
-### Block 6: KI-Orchestrator + Sub-Agents (DONE)
-- Orchestrator: Zentrale Routing-Instanz (GPT-5.2)
-- Research Agent: Lead-Recherche, Firmenanalyse
-- Outreach Agent: Personalisierte Erstansprache, Follow-ups
-- Offer Agent: Angebotserstellung, Tarifberatung
-- Support Agent: Kundenbetreuung, Problemlösung
-- Admin UI: KI-Agenten-View mit Task-Input + Customer Memory Injection
-- Audit Trail: Alle Agent-Aktionen in Timeline Events
+### Customer Portal (DONE)
+- 6 Tabs: Übersicht, Angebote, Rechnungen, Termine, Kommunikation, Aktivität
+- Quote Accept/Decline/Revision via Magic Link
+- Communication Tab (Chat + Unified Conversations)
+- Timeline/Activity Tab
+- PDF-Downloads
+
+### Audit System (DONE)
+- Health-Check: Database, Collections, Agents, WhatsApp, LLM, Errors, Pricing
+- Timeline: Letzte 48h Ereignisse
+- Admin UI mit Audit-View
+
+### Mobile Chat Premium (DONE)
+- Mobile-optimierte Bubble-Abstände, Padding, Zeilenhöhe
+- Markdown-Formatierung (Tables, Code, Blockquotes, Lists)
+- Safe-Area für iOS
 
 ## Pending / Upcoming Tasks
 - P1: Outbound Lead Machine (Automatisiertes Lead-Enrichment, Scoring, Email-Outreach)
-- P1: Email-Professionalisierung (Zentrale KI-Orchestrierung, CI-Signatur)
-- P1: Customer Portal Vollausbau (Angebote, Rechnungen, PDF-Downloads)
-- P1: Revolut/Billing/Status-Sync (Quote → Invoice → Payment → App-Status)
+- P1: Email-Professionalisierung (Zentrale KI-Orchestrierung aller Emails)
 - P1: Kanalübergreifender Kommunikationskern vollenden
-- P2: Autonome Dokumentation & QA
-- P2: Refactoring server.py → modulare Struktur
+- P1: Revolut/Billing/Status-Sync (Quote → Invoice → Payment → App-Status)
+- P2: Responsive Fine-Tuning über alle Breakpoints (1920→360)
+- P2: Autonome Dokumentation & QA Agent-Automatisierung
+- P2: server.py Refactoring → modulare Struktur (/routes, /agents, /services)

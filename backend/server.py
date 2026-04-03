@@ -2490,7 +2490,8 @@ async def admin_add_lead_note(
 @app.get("/api/portal/customer/{token}")
 async def customer_portal(token: str):
     """Customer portal via magic link token — shows all customer data."""
-    link = await db.access_links.find_one({"token": token}, {"_id": 0})
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    link = await db.access_links.find_one({"token_hash": token_hash}, {"_id": 0})
     if not link or link.get("expires_at", datetime.min.replace(tzinfo=timezone.utc)) < datetime.now(timezone.utc):
         raise HTTPException(403, "Zugangslink ungültig oder abgelaufen")
     
@@ -2595,7 +2596,8 @@ async def portal_accept_quote(quote_id: str, token: str = None):
     """Customer accepts a quote via portal."""
     if not token:
         raise HTTPException(401, "Zugangstoken fehlt")
-    link = await db.access_links.find_one({"token": token}, {"_id": 0})
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    link = await db.access_links.find_one({"token_hash": token_hash}, {"_id": 0})
     if not link or link.get("expires_at", datetime.min.replace(tzinfo=timezone.utc)) < datetime.now(timezone.utc):
         raise HTTPException(403, "Zugangslink ungültig oder abgelaufen")
     email = link.get("customer_email", "").lower()
@@ -2620,7 +2622,8 @@ async def portal_decline_quote(quote_id: str, data: dict = None, token: str = No
     """Customer declines a quote via portal."""
     if not token:
         raise HTTPException(401, "Zugangstoken fehlt")
-    link = await db.access_links.find_one({"token": token}, {"_id": 0})
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    link = await db.access_links.find_one({"token_hash": token_hash}, {"_id": 0})
     if not link or link.get("expires_at", datetime.min.replace(tzinfo=timezone.utc)) < datetime.now(timezone.utc):
         raise HTTPException(403, "Zugangslink ungültig oder abgelaufen")
     email = link.get("customer_email", "").lower()
@@ -2644,7 +2647,8 @@ async def portal_request_revision(quote_id: str, data: dict, token: str = None):
     """Customer requests a quote revision via portal."""
     if not token:
         raise HTTPException(401, "Zugangstoken fehlt")
-    link = await db.access_links.find_one({"token": token}, {"_id": 0})
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    link = await db.access_links.find_one({"token_hash": token_hash}, {"_id": 0})
     if not link or link.get("expires_at", datetime.min.replace(tzinfo=timezone.utc)) < datetime.now(timezone.utc):
         raise HTTPException(403, "Zugangslink ungültig oder abgelaufen")
     email = link.get("customer_email", "").lower()
