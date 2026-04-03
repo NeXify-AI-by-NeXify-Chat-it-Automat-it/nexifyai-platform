@@ -2034,6 +2034,73 @@ const Admin = () => {
     );
   };
 
+  /* ══════════ MONITORING VIEW (P7) ══════════ */
+  const [monitorData, setMonitorData] = useState(null);
+  const [monitorLoading, setMonitorLoading] = useState(false);
+  const loadMonitoring = async () => {
+    setMonitorLoading(true);
+    const d = await apiFetch('/api/admin/monitoring/status');
+    if (d) setMonitorData(d);
+    setMonitorLoading(false);
+  };
+  useEffect(() => { if (token && view === 'monitoring') loadMonitoring(); }, [token, view]); // eslint-disable-line
+
+  const MonitoringView = () => {
+    if (monitorLoading) return <div className="adm-loading"><I n="sync" /> Lade Systemstatus...</div>;
+    if (!monitorData) return <div className="adm-empty"><I n="monitor_heart" /><p>Systemstatus konnte nicht geladen werden.</p><button className="adm-btn adm-btn-primary" onClick={loadMonitoring}>Erneut laden</button></div>;
+    const sys = monitorData.systems || {};
+    const StatusDot = ({ s }) => <span style={{width:8,height:8,borderRadius:'50%',display:'inline-block',background:s==='ok'||s==='operational'||s==='configured'||s==='healthy'?'#10b981':s==='not_configured'?'#f59e0b':s==='attention'||s==='degraded'?'#f97316':'#ef4444',marginRight:8,flexShrink:0}} />;
+    const Card = ({ icon, title, status, children }) => (
+      <div className="adm-wa-card" style={{padding:'16px 18px'}} data-testid={`monitor-${title.toLowerCase().replace(/\s/g,'-')}`}>
+        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+          <StatusDot s={status} />
+          <I n={icon} style={{fontSize:18,color:'#ff9b7a'}} />
+          <span style={{fontWeight:600,color:'#fff',fontSize:'.875rem'}}>{title}</span>
+          <span className="adm-badge" style={{marginLeft:'auto',background:status==='ok'||status==='configured'||status==='healthy'?'#10b98122':'#f59e0b22',color:status==='ok'||status==='configured'||status==='healthy'?'#10b981':'#f59e0b',fontSize:'.625rem'}}>{status}</span>
+        </div>
+        <div style={{fontSize:'.75rem',color:'#6b7b8d',display:'flex',flexDirection:'column',gap:4}}>{children}</div>
+      </div>
+    );
+    return (
+      <div data-testid="admin-monitoring">
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
+          <h2>System Monitoring</h2>
+          <button className="adm-btn" style={{padding:'6px 14px',width:'auto'}} onClick={loadMonitoring} data-testid="monitor-refresh"><I n="refresh" /> Aktualisieren</button>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:12}}>
+          <Card icon="api" title="API" status={sys.api?.status}><span>Version: {sys.api?.version}</span></Card>
+          <Card icon="database" title="Datenbank" status={sys.database?.status}><span>Collections: {sys.database?.collections}</span></Card>
+          <Card icon="memory" title="Worker / Queue" status={sys.workers?.status}><span>Queue aktiv: {sys.workers?.queue_active ? 'Ja' : 'Nein'}</span></Card>
+          <Card icon="email" title="E-Mail (Resend)" status={sys.email?.status}>
+            <span>Versendet: {sys.email?.total_sent}</span>
+            <span>Fehler: {sys.email?.total_failed}</span>
+            <span>API-Key: {sys.email?.api_key_set ? 'Gesetzt' : 'Fehlt'}</span>
+          </Card>
+          <Card icon="smart_toy" title="LLM / DeepSeek" status={sys.llm?.active_provider === 'deepseek' ? 'ok' : 'fallback'}>
+            <span>Provider: {sys.llm?.active_provider}</span>
+            <span>Ziel-Architektur: {sys.llm?.is_target_architecture ? 'Ja' : 'Nein (Fallback)'}</span>
+            <span>DeepSeek Key: {sys.llm?.providers?.deepseek?.api_key_set ? 'Gesetzt' : 'Fehlt'}</span>
+            {sys.llm?.metrics && <span>Calls: {sys.llm.metrics.calls} | Errors: {sys.llm.metrics.errors}</span>}
+          </Card>
+          <Card icon="payment" title="Revolut" status={sys.payments?.revolut?.status}><span>API-Key: {sys.payments?.revolut?.api_key_set ? 'Gesetzt' : 'Fehlt'}</span></Card>
+          <Card icon="credit_card" title="Stripe" status={sys.payments?.stripe?.status}><span>API-Key: {sys.payments?.stripe?.api_key_set ? 'Gesetzt' : 'Fehlt'}</span></Card>
+          <Card icon="webhook" title="Webhooks" status="ok">
+            <span>Events gesamt: {sys.webhooks?.total_events}</span>
+          </Card>
+          <Card icon="shield" title="Memory / Audit" status="ok">
+            <span>Timeline: {sys.memory_audit?.timeline_events}</span>
+            <span>Legal Audits: {sys.memory_audit?.legal_audits}</span>
+            <span>Memory: {sys.memory_audit?.memory_entries}</span>
+          </Card>
+          <Card icon="report_problem" title="Dead Letter Queue" status={sys.dead_letter_queue?.status}>
+            <span>Einträge: {sys.dead_letter_queue?.count}</span>
+          </Card>
+        </div>
+        <p style={{marginTop:16,fontSize:'.6875rem',color:'#6b7b8d'}}>Stand: {fmtTime(monitorData.timestamp)}</p>
+      </div>
+    );
+  };
+
   /* ══════════ MAIN LAYOUT ══════════ */
   const navItems = [
     { id: 'dashboard', icon: 'dashboard', label: 'Dashboard' },
@@ -2052,6 +2119,7 @@ const Admin = () => {
     { id: 'customers', icon: 'person_search', label: 'Kunden' },
     { id: 'agents', icon: 'smart_toy', label: 'KI-Agenten' },
     { id: 'audit', icon: 'verified', label: 'Audit' },
+    { id: 'monitoring', icon: 'monitor_heart', label: 'Monitoring' },
   ];
 
   return (
@@ -2089,6 +2157,7 @@ const Admin = () => {
           {view === 'customers' && <CustomersView />}
           {view === 'agents' && <AgentsView />}
           {view === 'audit' && <AuditView />}
+          {view === 'monitoring' && <MonitoringView />}
         </div>
       </main>
     </div>

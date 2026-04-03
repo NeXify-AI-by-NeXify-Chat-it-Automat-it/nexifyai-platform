@@ -612,9 +612,10 @@ NeXify Automate — Graaf van Loonstraat 1E, 5921 JA Venlo, NL | KvK: 90483944 |
 </body>
 </html>'''
 
-async def send_email(to: List[str], subject: str, html: str):
+async def send_email(to: List[str], subject: str, html: str, category: str = "transactional", ref_id: str = None):
+    """E-Mail über Resend versenden — mit Audit-Trail und Error-Tracking."""
     if not RESEND_API_KEY:
-        logger.warning("Resend not configured")
+        logger.warning("Resend not configured — email not sent")
         return None
     try:
         import asyncio
@@ -624,10 +625,36 @@ async def send_email(to: List[str], subject: str, html: str):
             "subject": subject,
             "html": html
         })
-        logger.info(f"Email sent to {to}")
+        logger.info(f"Email sent to {to} — subject: {subject[:50]}")
+        # Audit trail
+        try:
+            await db.email_events.insert_one({
+                "to": to,
+                "subject": subject,
+                "category": category,
+                "ref_id": ref_id,
+                "status": "sent",
+                "resend_id": result.get("id") if isinstance(result, dict) else str(result),
+                "sent_at": datetime.now(timezone.utc).isoformat(),
+            })
+        except Exception:
+            pass
         return result
     except Exception as e:
         logger.error(f"Email error: {e}")
+        # Log failure
+        try:
+            await db.email_events.insert_one({
+                "to": to,
+                "subject": subject,
+                "category": category,
+                "ref_id": ref_id,
+                "status": "failed",
+                "error": str(e)[:200],
+                "failed_at": datetime.now(timezone.utc).isoformat(),
+            })
+        except Exception:
+            pass
         return None
 
 # ============== PUBLIC ENDPOINTS ==============
@@ -3362,6 +3389,56 @@ async def billing_reconcile(current_user: dict = Depends(get_current_admin)):
     }
 
 
+# ══════════════════════════════════════════════════════════════
+# E-MAIL / RESEND MONITORING (P3)
+# ══════════════════════════════════════════════════════════════
+
+@app.get("/api/admin/email/stats")
+async def email_stats(current_user: dict = Depends(get_current_admin)):
+    """E-Mail-Versand-Statistiken und History."""
+    total = await db.email_events.count_documents({})
+    sent = await db.email_events.count_documents({"status": "sent"})
+    failed = await db.email_events.count_documents({"status": "failed"})
+
+    recent = []
+    async for e in db.email_events.find({}, {"_id": 0}).sort("sent_at", -1).limit(30):
+        recent.append(e)
+
+    return {
+        "total": total,
+        "sent": sent,
+        "failed": failed,
+        "success_rate": f"{round(sent / max(total, 1) * 100)}%",
+        "resend_configured": bool(RESEND_API_KEY),
+        "sender": SENDER_EMAIL,
+        "recent_events": recent,
+    }
+
+
+@app.post("/api/admin/email/test")
+async def email_test(data: dict = None, current_user: dict = Depends(get_current_admin)):
+    """Test-E-Mail an Admin senden."""
+    to_email = (data or {}).get("to", current_user["email"])
+    result = await send_email(
+        [to_email],
+        "NeXifyAI — E-Mail-Systemtest",
+        email_template(
+            "Systemtest erfolgreich",
+            f"<p>Diese E-Mail bestätigt die funktionierende E-Mail-Zustellung über Resend.</p>"
+            f"<p style='color:#6b7b8d;font-size:12px;'>Gesendet: {datetime.now(timezone.utc).strftime('%d.%m.%Y %H:%M UTC')}</p>",
+        ),
+        category="test",
+        ref_id="email_test",
+    )
+    return {
+        "sent": result is not None,
+        "to": to_email,
+        "provider": "resend",
+        "resend_id": result.get("id") if isinstance(result, dict) else str(result) if result else None,
+    }
+
+
+
 @app.get("/api/admin/webhooks/history")
 async def webhook_history(provider: str = None, limit: int = 50, current_user: dict = Depends(get_current_admin)):
     """Webhook-Events-Historie für Audit."""
@@ -5843,6 +5920,82 @@ async def customer_finance(current_user: dict = Depends(get_current_customer)):
         "bank_transfer_info": bank_info,
     }
 
+
+
+
+# ══════════════════════════════════════════════════════════════
+# MONITORING / SYSTEM STATUS (P7)
+# ══════════════════════════════════════════════════════════════
+
+@app.get("/api/admin/monitoring/status")
+async def monitoring_status(current_user: dict = Depends(get_current_admin)):
+    """Konsolidierter System-Status für das Monitoring-Dashboard."""
+    from services.llm_provider import get_provider_status
+
+    # API health
+    api_status = {"status": "ok", "version": "3.0.0"}
+
+    # Database
+    try:
+        await db.command("ping")
+        db_collections = await db.list_collection_names()
+        db_status = {"status": "ok", "collections": len(db_collections)}
+    except Exception as e:
+        db_status = {"status": "error", "error": str(e)[:100]}
+
+    # Worker/Queue
+    worker_status = {"status": "ok", "queue_active": bool(worker_mgr)} if worker_mgr else {"status": "not_initialized"}
+
+    # E-Mail / Resend
+    email_total = await db.email_events.count_documents({})
+    email_failed = await db.email_events.count_documents({"status": "failed"})
+    email_status = {
+        "status": "ok" if RESEND_API_KEY else "not_configured",
+        "provider": "resend",
+        "api_key_set": bool(RESEND_API_KEY),
+        "total_sent": email_total - email_failed,
+        "total_failed": email_failed,
+    }
+
+    # Payment providers
+    revolut_key = bool(os.environ.get("REVOLUT_SECRET_KEY", "").strip())
+    payment_status = {
+        "revolut": {"status": "configured" if revolut_key else "not_configured", "api_key_set": revolut_key},
+        "stripe": {"status": "not_configured", "api_key_set": False},
+    }
+
+    # Webhooks
+    webhook_total = await db.webhook_events.count_documents({})
+    webhook_recent_errors = 0
+    webhook_status = {"total_events": webhook_total, "recent_errors": webhook_recent_errors}
+
+    # Memory / Audit
+    timeline_total = await db.timeline_events.count_documents({})
+    audit_total = await db.legal_audit.count_documents({})
+    memory_total = await db.customer_memory.count_documents({})
+    memory_status = {"timeline_events": timeline_total, "legal_audits": audit_total, "memory_entries": memory_total}
+
+    # LLM provider
+    llm_status_data = get_provider_status(llm_provider) if llm_provider else {"active_provider": "none"}
+
+    # Dead letter queue
+    dead_letters = await db.dead_letter_queue.count_documents({}) if "dead_letter_queue" in await db.list_collection_names() else 0
+
+    return {
+        "timestamp": utcnow().isoformat(),
+        "systems": {
+            "api": api_status,
+            "database": db_status,
+            "workers": worker_status,
+            "email": email_status,
+            "payments": payment_status,
+            "webhooks": webhook_status,
+            "memory_audit": memory_status,
+            "llm": llm_status_data,
+            "dead_letter_queue": {"count": dead_letters, "status": "ok" if dead_letters == 0 else "attention"},
+        },
+        "overall_status": "operational",
+    }
 
 
 # ══════════════════════════════════════════════════════════════
