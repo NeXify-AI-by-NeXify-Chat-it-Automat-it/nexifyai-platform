@@ -511,8 +511,8 @@ const Admin = () => {
     } catch (e) { alert(e.message); } finally { setCommBusy(''); }
   };
 
-  const QUOTE_STATUS = { draft: {l:'Entwurf',c:'#3b82f6'}, generated: {l:'Erstellt',c:'#8b5cf6'}, sent: {l:'Versendet',c:'#f59e0b'}, opened: {l:'Geoeffnet',c:'#06b6d4'}, accepted: {l:'Angenommen',c:'#10b981'}, declined: {l:'Abgelehnt',c:'#ef4444'}, revision_requested: {l:'Aenderung',c:'#f97316'} };
-  const INV_STATUS = { created: {l:'Erstellt',c:'#3b82f6'}, sent: {l:'Versendet',c:'#f59e0b'}, payment_completed: {l:'Bezahlt',c:'#10b981'}, payment_pending: {l:'Ausstehend',c:'#f59e0b'}, payment_failed: {l:'Fehlgeschlagen',c:'#ef4444'}, overdue: {l:'Ueberfaellig',c:'#dc2626'} };
+  const QUOTE_STATUS = { draft: {l:'Entwurf',c:'#3b82f6'}, generated: {l:'Erstellt',c:'#8b5cf6'}, sent: {l:'Versendet',c:'#f59e0b'}, opened: {l:'Geöffnet',c:'#06b6d4'}, accepted: {l:'Angenommen',c:'#10b981'}, declined: {l:'Abgelehnt',c:'#ef4444'}, revision_requested: {l:'Änderung',c:'#f97316'} };
+  const INV_STATUS = { created: {l:'Erstellt',c:'#3b82f6'}, sent: {l:'Versendet',c:'#f59e0b'}, payment_completed: {l:'Bezahlt',c:'#10b981'}, payment_pending: {l:'Ausstehend',c:'#f59e0b'}, payment_failed: {l:'Fehlgeschlagen',c:'#ef4444'}, overdue: {l:'Überfällig',c:'#dc2626'} };
   const PAY_STATUS = { pending: {l:'Ausstehend',c:'#f59e0b'}, paid: {l:'Bezahlt',c:'#10b981'}, failed: {l:'Fehlgeschlagen',c:'#ef4444'} };
 
   const CommercialView = () => (
@@ -540,7 +540,7 @@ const Admin = () => {
               <div className="adm-field"><label>Name</label><input value={quoteForm.customer_name} onChange={e=>setQuoteForm({...quoteForm,customer_name:e.target.value})} required data-testid="quote-name" /></div>
               <div className="adm-field"><label>E-Mail</label><input type="email" value={quoteForm.customer_email} onChange={e=>setQuoteForm({...quoteForm,customer_email:e.target.value})} required data-testid="quote-email" /></div>
               <div className="adm-field"><label>Unternehmen</label><input value={quoteForm.customer_company} onChange={e=>setQuoteForm({...quoteForm,customer_company:e.target.value})} data-testid="quote-company" /></div>
-              <div className="adm-field"><label>Land</label><select value={quoteForm.customer_country} onChange={e=>setQuoteForm({...quoteForm,customer_country:e.target.value})} data-testid="quote-country"><option value="DE">Deutschland</option><option value="AT">Oesterreich</option><option value="CH">Schweiz</option><option value="NL">Niederlande</option><option value="BE">Belgien</option><option value="LU">Luxemburg</option><option value="OTHER">Sonstige</option></select></div>
+              <div className="adm-field"><label>Land</label><select value={quoteForm.customer_country} onChange={e=>setQuoteForm({...quoteForm,customer_country:e.target.value})} data-testid="quote-country"><option value="DE">Deutschland</option><option value="AT">Österreich</option><option value="CH">Schweiz</option><option value="NL">Niederlande</option><option value="BE">Belgien</option><option value="LU">Luxemburg</option><option value="OTHER">Sonstige</option></select></div>
               <div className="adm-field"><label>Branche</label><input value={quoteForm.customer_industry} onChange={e=>setQuoteForm({...quoteForm,customer_industry:e.target.value})} placeholder="z.B. Logistik, Finanz, Gesundheit" data-testid="quote-industry" /></div>
             </div>
             <div className="adm-field" style={{marginTop:'12px'}}><label>Use Case</label><input value={quoteForm.use_case} onChange={e=>setQuoteForm({...quoteForm,use_case:e.target.value})} placeholder="Beschreiben Sie den geplanten Einsatz" data-testid="quote-usecase" /></div>

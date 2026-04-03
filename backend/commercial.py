@@ -818,7 +818,7 @@ def generate_quote_pdf(quote_data: dict) -> bytes:
 
     elements.append(Paragraph(
         f"Sehr geehrte Damen und Herren,<br/><br/>"
-        f"vielen Dank fuer Ihr Interesse an NeXify<font color='#ff9b7a'><b>AI</b></font>. "
+        f"vielen Dank für Ihr Interesse an NeXify<font color='#ff9b7a'><b>AI</b></font>. "
         f"Nachfolgend unterbreiten wir Ihnen unser Angebot fuer das Produkt "
         f"<b>{tariff.get('name', '')}</b>.",
         styles["BodyText2"],
@@ -848,7 +848,7 @@ def generate_quote_pdf(quote_data: dict) -> bytes:
         [Paragraph("<b>Gesamtvertragswert (netto)</b>", styles["BodyText2"]),
          Paragraph(f"<b>{_fmt_eur(calc.get('total_contract_eur', 0))}</b>", styles["RightAligned"])],
         [Paragraph("", styles["BodyText2"]), Paragraph("", styles["RightAligned"])],
-        [Paragraph("Aktivierungsanzahlung (30 %) — sofort faellig", styles["BodyText2"]),
+        [Paragraph("Aktivierungsanzahlung (30 %) — sofort fällig", styles["BodyText2"]),
          Paragraph(_fmt_eur(calc.get("upfront_eur", 0)), styles["RightAligned"])],
         [Paragraph(f"zzgl. {calc.get('vat_rate', 21)} % USt.", styles["SmallGray"]),
          Paragraph(_fmt_eur(calc.get("upfront_vat", 0)), styles["RightAligned"])],
@@ -877,8 +877,8 @@ def generate_quote_pdf(quote_data: dict) -> bytes:
     elements.append(Paragraph("Vertragsbedingungen", styles["SectionHead"]))
     elements.append(Paragraph(
         "- Vertragslaufzeit: 24 Monate ab Beauftragung<br/>"
-        "- Aktivierungsanzahlung: 30 % des Gesamtvertragswerts, sofort faellig bei Beauftragung<br/>"
-        "- Die Anzahlung deckt: Projektstart, Priorisierung, Setup, Kapazitaetsreservierung, Implementierungsfreigabe<br/>"
+        "- Aktivierungsanzahlung: 30 % des Gesamtvertragswerts, sofort fällig bei Beauftragung<br/>"
+        "- Die Anzahlung deckt: Projektstart, Priorisierung, Setup, Kapazitätsreservierung, Implementierungsfreigabe<br/>"
         "- Restbetrag: In 24 gleichen monatlichen Folgeraten<br/>"
         "- Alle Preise verstehen sich zzgl. der gesetzlichen USt. (21 % NL / 19 % DE)<br/>"
         "- Gültigkeit dieses Angebots: 30 Tage ab Ausstellungsdatum<br/>"
@@ -1014,11 +1014,11 @@ def generate_invoice_pdf(invoice_data: dict) -> bytes:
     ref = invoice_data.get("payment_reference", number)
     elements.append(Paragraph("Zahlungsinformationen", styles["SectionHead"]))
     elements.append(Paragraph(
-        f"Bitte ueberweisen Sie den Betrag unter Angabe der Rechnungsnummer <b>{ref}</b>.<br/><br/>"
+        f"Bitte überweisen Sie den Betrag unter Angabe der Rechnungsnummer <b>{ref}</b>.<br/><br/>"
         f"IBAN: {COMPANY_DATA['bank']['iban']}<br/>"
         f"BIC: {COMPANY_DATA['bank']['bic']}<br/>"
         f"Kontoinhaber: {COMPANY_DATA['bank']['account_holder']}<br/><br/>"
-        f"Von außerhalb des EWR zusaetzlich:<br/>"
+        f"Von außerhalb des EWR zusätzlich:<br/>"
         f"BIC der zwischengeschalteten Bank: {COMPANY_DATA['bank']['intermediary_bic']}",
         styles["BodyText2"],
     ))
@@ -1387,7 +1387,7 @@ def get_commercial_faq() -> list:
         {
             "q": "Was bedeutet 24 Monate Laufzeit?",
             "a": (
-                "Der Vertrag laeuft ueber 24 Monate ab Beauftragung. Dies ermoeglicht eine nachhaltige "
+                "Der Vertrag läuft über 24 Monate ab Beauftragung. Dies ermöglicht eine nachhaltige "
                 "Implementierung, Optimierung und kontinuierliche Weiterentwicklung Ihrer KI-Agenten. "
                 "Die Laufzeit sichert planbare Kosten und priorisierte Ressourcen."
             ),
@@ -1395,13 +1395,13 @@ def get_commercial_faq() -> list:
         {
             "q": "Wie funktioniert die 30-%-Aktivierungsanzahlung?",
             "a": (
-                "Bei Beauftragung wird eine Aktivierungsanzahlung von 30 % des Gesamtvertragswerts faellig. "
+                "Bei Beauftragung wird eine Aktivierungsanzahlung von 30 % des Gesamtvertragswerts fällig. "
                 "Diese deckt ab:\n"
                 "- Strategischer Projektstart und Priorisierung\n"
                 "- Setup und Initialkonfiguration\n"
-                "- Ressourcen- und Kapazitaetsreservierung\n"
+                "- Ressourcen- und Kapazitätsreservierung\n"
                 "- Implementierungsfreigabe\n\n"
-                "Die Anzahlung ist Teil des Gesamtvertragswerts — keine zusaetzliche Gebuehr."
+                "Die Anzahlung ist Teil des Gesamtvertragswerts — keine zusätzliche Gebühr."
             ),
         },
         {
@@ -1424,7 +1424,7 @@ def get_commercial_faq() -> list:
             "q": "Wie wird abgerechnet?",
             "a": (
                 "Die Abrechnung erfolgt in zwei Phasen:\n"
-                "1. **Aktivierungsanzahlung (30 %)** — sofort faellig nach Beauftragung/Angebotsannahme\n"
+                "1. **Aktivierungsanzahlung (30 %)** — sofort fällig nach Beauftragung/Angebotsannahme\n"
                 "2. **Monatliche Folgeraten** — der Restbetrag in 24 gleichen monatlichen Raten\n\n"
                 "Alle Rechnungen werden per E-Mail zugestellt und sind im sicheren Kundencenter abrufbar."
             ),
@@ -1439,8 +1439,8 @@ def get_commercial_faq() -> list:
         {
             "q": "Wie funktionieren die Monatsraten?",
             "a": (
-                f"Starter: {starter['recurring_eur']:.2f} EUR/Monat ueber {starter['recurring_count']} Monate | "
-                f"Growth: {growth['recurring_eur']:.2f} EUR/Monat ueber {growth['recurring_count']} Monate.\n\n"
+                f"Starter: {starter['recurring_eur']:.2f} EUR/Monat über {starter['recurring_count']} Monate | "
+                f"Growth: {growth['recurring_eur']:.2f} EUR/Monat über {growth['recurring_count']} Monate.\n\n"
                 "Alle Betraege zzgl. USt. Rechnungen werden automatisch monatlich erstellt."
             ),
         },
@@ -1453,7 +1453,7 @@ def get_commercial_faq() -> list:
             ),
         },
         {
-            "q": "Wie erfolgt die Zahlung per Bankueberweisung?",
+            "q": "Wie erfolgt die Zahlung per Banküberweisung?",
             "a": (
                 f"Überweisen Sie den Rechnungsbetrag unter Angabe der Rechnungsnummer an:\n\n"
                 f"IBAN: {bank['iban']}\nBIC: {bank['bic']}\nKontoinhaber: {bank['account_holder']}\n\n"
@@ -1496,7 +1496,7 @@ def get_commercial_faq() -> list:
                 "- Kein Datentransfer in Drittländer\n"
                 "- Zeitlich begrenzte Zugriffslinks statt Passwoerter\n"
                 "- Vollstaendige Audit-Logs aller Dokumentenzugriffe\n"
-                "- Verschluesselte Speicherung und Uebertragung\n"
+                "- Verschlüsselte Speicherung und Übertragung\n"
                 "- EU-AI-Act-konforme Umsetzung"
             ),
         },

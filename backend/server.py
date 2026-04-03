@@ -823,7 +823,7 @@ async def chat_message(data: ChatMessage, request: Request):
                                     <p style="margin:0 0 4px;font-size:12px;color:#8f9095;">GESAMTVERTRAGSWERT</p>
                                     <p style="margin:0;color:#fff;font-weight:600;">{calc.get("total_contract_eur",0):,.2f} EUR</p>
                                     </div>''',
-                                    portal_link, "Angebot oeffnen"
+                                    portal_link, "Angebot öffnen"
                                 ),
                             ))
                         qualification["offer_generated"] = quote_obj["quote_id"]
@@ -876,13 +876,13 @@ def generate_response_fallback(message: str, history: list, qual: dict) -> str:
     elif "support" in msg or "ticket" in msg:
         return "Unsere **Support-Automation** optimiert Ihren gesamten Service-Prozess:\n\n- **Intelligente Ticket-Klassifizierung** — automatische Priorisierung und Zuweisung\n- **KI-gestützte Erstantworten** — sofortige Hilfe für Standardfragen\n- **Eskalationsmanagement** — nahtlose Übergabe an menschliche Agenten bei komplexen Fällen\n\nWelches Ticketsystem nutzen Sie aktuell, und wie viele Tickets bearbeiten Sie monatlich?"
     elif "app" in msg or "mobile" in msg or "portal" in msg:
-        return "Wir entwickeln **massgeschneiderte digitale Loesungen** mit nativer KI-Integration:\n\n- **App MVP**: 9.900 EUR — iOS + Android, 5 Kernfeatures, Auth, Push (8 Wochen)\n- **App Professional**: 24.900 EUR — Full-Stack, Admin-Dashboard, Payment, CRM (14 Wochen)\n- **Kundenportale** — Self-Service mit intelligenter KI-Unterstuetzung\n\nAlle Loesungen DSGVO-konform und in EU-Rechenzentren gehostet. Was fuer eine Anwendung schwebt Ihnen vor?"
+        return "Wir entwickeln **maßgeschneiderte digitale Lösungen** mit nativer KI-Integration:\n\n- **App MVP**: 9.900 EUR — iOS + Android, 5 Kernfeatures, Auth, Push (8 Wochen)\n- **App Professional**: 24.900 EUR — Full-Stack, Admin-Dashboard, Payment, CRM (14 Wochen)\n- **Kundenportale** — Self-Service mit intelligenter KI-Unterstützung\n\nAlle Lösungen DSGVO-konform und in EU-Rechenzentren gehostet. Was für eine Anwendung schwebt Ihnen vor?"
     elif "website" in msg or "webseite" in msg or "homepage" in msg:
-        return "Unsere **Website-Loesungen** auf einen Blick:\n\n- **Website Starter**: 2.990 EUR — bis 5 Seiten, responsive, SEO-Basis (3 Wochen)\n- **Website Professional**: 7.490 EUR — bis 15 Seiten, Animationen, Blog, Analytics (5 Wochen)\n- **Website Enterprise**: 14.900 EUR — Headless CMS, E-Commerce, WCAG, SLA (8 Wochen)\n\nDazu erhaeltlich: **KI-Chatbot Add-on** ab 249 EUR/Monat fuer Lead-Qualifizierung direkt auf Ihrer Website. Was fuer ein Projekt planen Sie?"
+        return "Unsere **Website-Lösungen** auf einen Blick:\n\n- **Website Starter**: 2.990 EUR — bis 5 Seiten, responsive, SEO-Basis (3 Wochen)\n- **Website Professional**: 7.490 EUR — bis 15 Seiten, Animationen, Blog, Analytics (5 Wochen)\n- **Website Enterprise**: 14.900 EUR — Headless CMS, E-Commerce, WCAG, SLA (8 Wochen)\n\nDazu erhältlich: **KI-Chatbot Add-on** ab 249 EUR/Monat für Lead-Qualifizierung direkt auf Ihrer Website. Was für ein Projekt planen Sie?"
     elif "termin" in msg or "buchen" in msg or "gespräch" in msg:
         return "Ich kann direkt hier einen **kostenlosen Beratungstermin** für Sie buchen. Dafür benötige ich:\n\n1. Ihren **Vornamen**\n2. Ihren **Nachnamen**\n3. Ihre **geschäftliche E-Mail-Adresse**\n\nDas Strategiegespräch dauert 30 Minuten und ist vollkommen unverbindlich. Wie heißen Sie?"
     elif "preis" in msg or "kosten" in msg or "tarif" in msg:
-        return "Unsere Tarife im Ueberblick:\n\n- **Starter AI Agenten AG** — 499 EUR/Monat (netto): 2 KI-Agenten, Shared Cloud, E-Mail-Support (48h)\n- **Growth AI Agenten AG** — 1.299 EUR/Monat (netto): 10 KI-Agenten, Private Cloud, Priority Support, CRM/ERP-Kit\n\nBeide Tarife laufen ueber **24 Monate**. Bei Beauftragung wird eine **Aktivierungsanzahlung von 30 %** faellig — sie deckt Projektstart, Setup und Kapazitaetsreservierung.\n\nDas Erstgespraech ist **immer unverbindlich und kostenfrei**. Soll ich einen Termin oder direkt ein individuelles Angebot fuer Sie erstellen?"
+        return "Unsere Tarife im Überblick:\n\n- **Starter AI Agenten AG** — 499 EUR/Monat (netto): 2 KI-Agenten, Shared Cloud, E-Mail-Support (48h)\n- **Growth AI Agenten AG** — 1.299 EUR/Monat (netto): 10 KI-Agenten, Private Cloud, Priority Support, CRM/ERP-Kit\n\nBeide Tarife laufen über **24 Monate**. Bei Beauftragung wird eine **Aktivierungsanzahlung von 30 %** fällig — sie deckt Projektstart, Setup und Kapazitätsreservierung.\n\nDas Erstgespräch ist **immer unverbindlich und kostenfrei**. Soll ich einen Termin oder direkt ein individuelles Angebot für Sie erstellen?"
     elif "daten" in msg or "dsgvo" in msg or "sicher" in msg:
         return "**Datenschutz und Sicherheit** sind bei NeXifyAI fundamental verankert:\n\n- **DSGVO/AVG-konform** — vollständige Compliance mit europäischem Datenschutzrecht\n- **Deutsche/EU-Rechenzentren** — keine Datenübertragung in Drittländer\n- **RBAC-Zugriffskontrolle** — granulare Berechtigungen auf Rollen- und Feldebene\n- **Vollständige Audit-Logs** — lückenlose Nachverfolgung aller Aktivitäten\n\nHaben Sie spezifische Compliance-Anforderungen, die wir berücksichtigen sollten?"
     else:
@@ -1435,7 +1435,7 @@ async def send_quote(quote_id: str, current_user: dict = Depends(get_current_adm
                     "Ihr Angebot",
                     f'''<h1 style="color:#fff;font-size:22px;margin:0 0 16px;">Ihr persoenliches Angebot</h1>
                     <p>Sehr geehrte/r {customer_name},</p>
-                    <p>vielen Dank fuer Ihr Interesse an <strong style="color:#ffb599;">NeXifyAI</strong>.</p>
+                    <p>vielen Dank für Ihr Interesse an <strong style="color:#ffb599;">NeXifyAI</strong>.</p>
                     <p>Anbei erhalten Sie Ihr Angebot fuer <strong>{calc.get("tier_name", "")}</strong>:</p>
                     <div style="background:#252a32;padding:20px;margin:20px 0;border-left:3px solid #ffb599;">
                     <p style="margin:0 0 8px;font-size:13px;color:#8f9095;">ANGEBOT</p>
@@ -1443,9 +1443,9 @@ async def send_quote(quote_id: str, current_user: dict = Depends(get_current_adm
                     <p style="margin:8px 0 0;font-size:13px;color:#8f9095;">GESAMTVERTRAGSWERT</p>
                     <p style="margin:0;color:#ffb599;font-weight:600;">{calc.get("total_contract_eur", 0):,.2f} EUR (netto)</p>
                     </div>
-                    <p>Oeffnen Sie das Angebot ueber den sicheren Link:</p>''',
+                    <p>Öffnen Sie das Angebot über den sicheren Link:</p>''',
                     portal_link,
-                    "Angebot oeffnen"
+                    "Angebot öffnen"
                 ),
                 "attachments": [{
                     "filename": f"Angebot_{quote['quote_number'].replace('.', '_')}.pdf",
@@ -1623,7 +1623,7 @@ async def portal_accept_quote(quote_id: str, token: str, request: Request):
                 f"Angebotsannahme bestaetigt — Ihre Anzahlungsrechnung {invoice_number}",
                 email_template(
                     "Angebotsannahme bestaetigt",
-                    f'''<h1 style="color:#fff;font-size:22px;margin:0 0 16px;">Vielen Dank fuer Ihre Beauftragung</h1>
+                    f'''<h1 style="color:#fff;font-size:22px;margin:0 0 16px;">Vielen Dank für Ihre Beauftragung</h1>
                     <p>Ihr Angebot <strong>{quote.get("quote_number", "")}</strong> wurde angenommen.</p>
                     <div style="background:#252a32;padding:20px;margin:20px 0;border-left:3px solid #ffb599;">
                     <p style="margin:0 0 4px;font-size:12px;color:#8f9095;">RECHNUNG</p>
@@ -1632,7 +1632,7 @@ async def portal_accept_quote(quote_id: str, token: str, request: Request):
                     <p style="margin:0;color:#ffb599;font-weight:600;">{gross:,.2f} EUR</p>
                     </div>
                     {payment_cta}
-                    <p>Alternativ per Bankueberweisung:<br/>
+                    <p>Alternativ per Banküberweisung:<br/>
                     IBAN: {COMM_COMPANY["bank"]["iban"]}<br/>
                     BIC: {COMM_COMPANY["bank"]["bic"]}<br/>
                     Verwendungszweck: {invoice_number}</p>''',
@@ -1717,9 +1717,9 @@ async def portal_request_revision(quote_id: str, token: str, request: Request):
             import asyncio
             asyncio.create_task(send_email(
                 NOTIFICATION_EMAILS,
-                f"[NeXifyAI] Aenderungswunsch: {quote.get('quote_number', '')}",
-                email_template("Aenderungswunsch",
-                    f'''<h1 style="color:#fff;font-size:20px;">Aenderungswunsch zum Angebot</h1>
+                f"[NeXifyAI] Änderungswunsch: {quote.get('quote_number', '')}",
+                email_template("Änderungswunsch",
+                    f'''<h1 style="color:#fff;font-size:20px;">Änderungswunsch zum Angebot</h1>
                     <p>Angebot: {quote.get("quote_number","")}</p>
                     <p>Kunde: {quote["customer"].get("name","")}</p>
                     <div style="background:#252a32;padding:16px;margin:16px 0;color:#c5c6cb;white-space:pre-wrap;">{feedback}</div>'''
@@ -1824,7 +1824,7 @@ async def chat_generate_offer(data: OfferDiscoveryRequest, request: Request):
                     <p style="margin:0;color:#fff;font-weight:600;">{calc.get("total_contract_eur",0):,.2f} EUR</p>
                     </div>''',
                     portal_link,
-                    "Angebot oeffnen"
+                    "Angebot öffnen"
                 ),
             ))
         except Exception as e:
@@ -1905,7 +1905,7 @@ async def send_invoice(invoice_id: str, current_user: dict = Depends(get_current
                     <p style="margin:0;color:#fff;">{invoice.get("due_date","---")}</p>
                     </div>
                     {payment_html}
-                    <p>Alternativ per Bankueberweisung:<br/>
+                    <p>Alternativ per Banküberweisung:<br/>
                     IBAN: {COMM_COMPANY["bank"]["iban"]}<br/>
                     BIC: {COMM_COMPANY["bank"]["bic"]}<br/>
                     Verwendungszweck: {invoice["invoice_number"]}</p>''',

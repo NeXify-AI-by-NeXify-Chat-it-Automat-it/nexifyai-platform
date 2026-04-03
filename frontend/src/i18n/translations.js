@@ -110,15 +110,15 @@ de: {
     subtitle:'Transparente Antworten auf die wichtigsten Fragen zu Tarifen, Zahlung und Vertrag.',
     items: [
       { q:'Welche Tarife gibt es?', a:'Wir bieten zwei aktive Kern-Tarife an: Starter AI Agenten AG (499 EUR/Monat) mit 2 KI-Agenten und Growth AI Agenten AG (1.299 EUR/Monat) mit 10 KI-Agenten. Beide mit 24 Monaten Laufzeit.' },
-      { q:'Was bedeutet 24 Monate Laufzeit?', a:'Der Vertrag laeuft ueber 24 Monate ab Beauftragung. Dies ermoeglicht nachhaltige Implementierung, Optimierung und kontinuierliche Weiterentwicklung Ihrer KI-Agenten.' },
-      { q:'Wie funktioniert die 30-%-Aktivierungsanzahlung?', a:'Bei Beauftragung wird eine Aktivierungsanzahlung von 30 % des Gesamtvertragswerts faellig. Diese deckt Projektstart, Priorisierung, Setup, Kapazitaetsreservierung und Implementierungsfreigabe ab. Die Anzahlung ist Teil des Gesamtvertragswerts — keine zusaetzliche Gebuehr.' },
+      { q:'Was bedeutet 24 Monate Laufzeit?', a:'Der Vertrag läuft über 24 Monate ab Beauftragung. Dies ermöglicht nachhaltige Implementierung, Optimierung und kontinuierliche Weiterentwicklung Ihrer KI-Agenten.' },
+      { q:'Wie funktioniert die 30-%-Aktivierungsanzahlung?', a:'Bei Beauftragung wird eine Aktivierungsanzahlung von 30 % des Gesamtvertragswerts fällig. Diese deckt Projektstart, Priorisierung, Setup, Kapazitätsreservierung und Implementierungsfreigabe ab. Die Anzahlung ist Teil des Gesamtvertragswerts — keine zusätzliche Gebühr.' },
       { q:'Was ist im Starter enthalten?', a:'2 KI-Agenten, Shared Cloud Infrastructure, E-Mail-Support (48h), Basis-Integrationen (REST API), Standard-Monitoring, monatliches Reporting. Gesamtvertragswert: 11.976 EUR (netto).' },
       { q:'Was ist im Growth enthalten?', a:'10 KI-Agenten, Private Cloud, Priority Support (24h), CRM/ERP-Kit (SAP, HubSpot, Salesforce), Advanced Monitoring, woechentliches Reporting, dedizierter Onboarding-Manager. Gesamtvertragswert: 31.176 EUR (netto).' },
-      { q:'Wie wird abgerechnet?', a:'1. Aktivierungsanzahlung (30 %) — sofort faellig nach Angebotsannahme. 2. Monatliche Folgeraten — der Restbetrag in 24 gleichen Raten. Alle Rechnungen per E-Mail und im sicheren Kundencenter.' },
-      { q:'Wie erfolgt die Zahlung?', a:'Per sicherem Revolut Checkout (Karte, Bankueberweisung, Apple/Google Pay) oder klassische Bankueberweisung. IBAN: NL66 REVO 3601 4304 36, BIC: REVONL22.' },
-      { q:'Wie funktioniert die Angebotsannahme?', a:'Sie erhalten Ihr Angebot per E-Mail mit sicherem Zugangslink. Dort koennen Sie das Angebot annehmen, ablehnen oder eine Aenderung anfragen. Bei Annahme wird sofort die Anzahlungsrechnung erstellt.' },
-      { q:'Wie sicher sind die KI-Agenten?', a:'Unsere Agenten laufen in isolierten Umgebungen mit Ende-zu-Ende-Verschluesselung. Wir sind DSGVO-konform, erfuellen den EU AI Act und hosten ausschliesslich auf EU-Servern in Frankfurt und Amsterdam.' },
-      { q:'Wie werden Daten DSGVO-konform verarbeitet?', a:'Alle Daten in EU-Rechenzentren. Zeitlich begrenzte Zugriffslinks statt Passwoerter. Vollstaendige Audit-Logs. Verschluesselte Speicherung und Uebertragung.' }
+      { q:'Wie wird abgerechnet?', a:'1. Aktivierungsanzahlung (30 %) — sofort fällig nach Angebotsannahme. 2. Monatliche Folgeraten — der Restbetrag in 24 gleichen Raten. Alle Rechnungen per E-Mail und im sicheren Kundencenter.' },
+      { q:'Wie erfolgt die Zahlung?', a:'Per sicherem Revolut Checkout (Karte, Banküberweisung, Apple/Google Pay) oder klassische Banküberweisung. IBAN: NL66 REVO 3601 4304 36, BIC: REVONL22.' },
+      { q:'Wie funktioniert die Angebotsannahme?', a:'Sie erhalten Ihr Angebot per E-Mail mit sicherem Zugangslink. Dort können Sie das Angebot annehmen, ablehnen oder eine Änderung anfragen. Bei Annahme wird sofort die Anzahlungsrechnung erstellt.' },
+      { q:'Wie sicher sind die KI-Agenten?', a:'Unsere Agenten laufen in isolierten Umgebungen mit Ende-zu-Ende-Verschlüsselung. Wir sind DSGVO-konform, erfüllen den EU AI Act und hosten ausschließlich auf EU-Servern in Frankfurt und Amsterdam.' },
+      { q:'Wie werden Daten DSGVO-konform verarbeitet?', a:'Alle Daten in EU-Rechenzentren. Zeitlich begrenzte Zugriffslinks statt Passwörter. Vollständige Audit-Logs. Verschlüsselte Speicherung und Übertragung.' }
     ]
   },
   contact: {
