@@ -1,84 +1,76 @@
 # NeXifyAI — Product Requirements Document
 
-## Original Problem Statement
-B2B-first commercial system "Starter/Growth AI Agenten AG" for NeXifyAI. Full-stack platform with React frontend, FastAPI backend, MongoDB. Multi-language (DE/NL/EN). Enterprise-grade compliance (DSGVO, EU AI Act).
+## Problem Statement
+B2B-Plattform "Starter/Growth AI Agenten AG" mit API-First Architektur. Unified Communication Layer (Chat, Mail, WhatsApp, Portal), Deep Customer Memory (mem0), KI-Orchestrator mit Sub-Agents, Automated B2B Outbound Lead Machine, Live Admin CRM.
 
-## Core Requirements
-1. Landing page with 3D, multi-language, Trust/Compliance, Chat Discovery
-2. Commercial Engine: Quotes, Invoices, PDF generation, Revolut payment
-3. Magic Link customer portal for quote acceptance
-4. Admin Dashboard / CRM with full entity management
-5. Premium Integrations section (categorized, SEO-linked)
-6. Dedicated SEO landing pages per integration (/integrationen/:slug)
-7. KI-gesteuertes SEO as standalone product
-8. Full Services + Bundles pricing architecture
-9. PDF tariff comparison sheets (CI-branded)
-10. Legal compliance (AGB, Datenschutz, KI-Hinweise) — trilingual
-11. Trust section with operational security
-12. AI advisor with full product matrix + memory
-13. **LeadFlow: All CTAs → AI Chat (not booking calendar)**
-14. **Customer Memory Model (contextual conversations)**
-15. **Customer Portal (/portal) with Magic Link access**
-16. **WhatsApp button (left side, +31613318856)**
-17. **Professional email signatures with legal links**
+## Architecture
+- **API-First**: Domain Layer, Channel Layer, Connector Layer, Agent Layer, Event/Audit Layer
+- **WhatsApp Bridge**: QR-Pairing als isolierter Connector, austauschbar gegen offizielle API
+- **Unified Communications**: AI-Chat, Email, WhatsApp, Portal in einer Timeline/Identity
+- **KI-Orchestrator**: GPT-5.2 via Emergent LLM Key mit Sub-Agents
+- **Outbound Machine**: Lead-Enrichment, Scoring, personalisierte Outreach
 
-## Architecture (Post Phase 4)
-```
-/app/frontend/src/
-├── App.js (495 lines — Nav, Hero, Sections, WhatsApp, CookieConsent)
-├── components/
-│   ├── sections/ (Integrations, LiveChat, SEOProduct, ServicesAll, TrustSection, BookingModal)
-│   ├── shared/index.js (API, COMPANY, animations, utilities)
-│   ├── Scene3D.js, SEOHead.js, LanguageSwitcher.js
-│   └── ui/ (Shadcn components)
-├── data/ (integrations.js, products.js)
-├── pages/ (Admin.js, CustomerPortal.js, IntegrationDetail.js, LegalPages.js, QuotePortal.js)
-└── i18n/ (LanguageContext.js, translations.js)
+## Tech Stack
+- Frontend: React 18 SPA
+- Backend: FastAPI + Motor (MongoDB async)
+- Database: MongoDB
+- LLM: Emergent LLM Key (OpenAI GPT-5.2)
+- Email: Resend API (nexifyai@nexifyai.de)
 
-/app/backend/
-├── server.py (2400 lines — API routes, auth, chat, memory, admin, portal)
-└── commercial.py (1600 lines — tariffs, PDF, quote/invoice generation)
-```
+## Core Data Models (domain.py)
+- Customer/Contact (unified across channels)
+- Conversation (multi-channel, timestamped)
+- Message (with direction, channel, AI flag)
+- Timeline Event (audit trail)
+- WhatsApp Session (bridge connector state)
+- Customer Memory (mem0-style facts)
 
-## API Endpoints (Updated)
-### Product
-- GET /api/product/tariff-sheet, /descriptions, /tariffs, /services, /faq, /compliance
-### Commercial
-- POST /api/commercial/quote, GET /api/admin/quotes, /invoices, /commercial/stats
-### Chat
-- POST /api/chat/message (with customer memory injection)
-### Admin (new)
-- GET /api/admin/timeline, /chat-sessions, /chat-sessions/{id}, /customer-memory/{email}
-- POST /api/admin/leads/{id}/notes
-### Portal (new)
-- GET /api/portal/customer/{token}
-### Existing
-- POST /api/booking, GET /api/booking/slots, POST /api/contact, /api/admin/login
+## Tariffs (Source of Truth)
+- Starter AI Agenten AG: 499 EUR/Monat, 24 Mo, 30% Anzahlung (3.592,80 EUR)
+- Growth AI Agenten AG: 1.299 EUR/Monat, 24 Mo, 30% Anzahlung (9.352,80 EUR)
 
-## Testing Status
-- Iteration 16: 100% (23/23)
-- Iteration 17: 100% (19/19 backend + full frontend)
-- Iteration 18: 100% (22/22 backend + full frontend)
+## What's Implemented
 
-## Completed Phases
-- Phase 1: Foundation (landing page, 3D, integrations, legal)
-- Phase 2: Commercial System (quotes, invoices, PDF, Revolut)
-- Phase 3: Self-Healing (76 umlauts fixed, header hardened, data sync, refactoring)
-- Phase 4: LeadFlow + CRM + Customer Portal + Memory + WhatsApp + Signature
+### Block 1-2: WhatsApp Button (DONE)
+- Desktop: Vertikal, flush links, Abrundung nur rechts, Rotation-kompensiert
+- Tablet: Angepasste Größe, Content Safe Area
+- Mobile: Horizontaler Pill-Button, bottom:140px
+- Admin/Portal: Versteckt via body.hide-wa
 
-## Prioritized Backlog
-### P0 — None
+### Block 3: Admin UI (DONE)
+- 10 Sidebar-Navigationspunkte
+- Dashboard, Commercial, Leads, Kommunikation, AI-Chats, WhatsApp, Timeline, Kalender, Kunden, KI-Agenten
+- Responsive Tabellen, saubere Action-Bars
 
-### P1 (Next)
-- Resend live API key (email sending)
-- Revolut live keys (payment processing)
-- Complete email communication flows (auto-responses, support routing)
-- Dunning logic for overdue invoices
-- Admin CSV export
+### Block 4: WhatsApp QR-Connector (DONE)
+- Session-Status: unpaired/pairing/connected/reconnecting/disconnected/failed
+- QR-Code generieren, Session zurücksetzen, Trennen, Reconnect
+- Simulate-Connect (Dev/Test)
+- Nachrichten senden/empfangen
+- Message History in Admin-Tabelle
+- Nachrichten in Unified Timeline
+- Bridge-Architektur: Isolierter Adapter, austauschbar
 
-### P2 (Future)
-- Customer dashboard beyond Magic Link (OTP/session auth)
-- Subscription recurring billing API
-- A/B testing CTAs
-- Swagger/OpenAPI docs
-- CI/CD pipeline with E2E tests
+### Block 5: Customer Memory / mem0 (DONE)
+- Kanalübergreifend: WhatsApp, Email, Chat, Portal
+- Sources: Lead, Quotes, Invoices, Bookings, Chat Sessions, Contact Forms, Unified Conversations, Memory Facts
+- Memory Facts API: Manuell hinzufügen via Admin
+- Automatische Injektion in KI-Agent-Kontexte
+
+### Block 6: KI-Orchestrator + Sub-Agents (DONE)
+- Orchestrator: Zentrale Routing-Instanz (GPT-5.2)
+- Research Agent: Lead-Recherche, Firmenanalyse
+- Outreach Agent: Personalisierte Erstansprache, Follow-ups
+- Offer Agent: Angebotserstellung, Tarifberatung
+- Support Agent: Kundenbetreuung, Problemlösung
+- Admin UI: KI-Agenten-View mit Task-Input + Customer Memory Injection
+- Audit Trail: Alle Agent-Aktionen in Timeline Events
+
+## Pending / Upcoming Tasks
+- P1: Outbound Lead Machine (Automatisiertes Lead-Enrichment, Scoring, Email-Outreach)
+- P1: Email-Professionalisierung (Zentrale KI-Orchestrierung, CI-Signatur)
+- P1: Customer Portal Vollausbau (Angebote, Rechnungen, PDF-Downloads)
+- P1: Revolut/Billing/Status-Sync (Quote → Invoice → Payment → App-Status)
+- P1: Kanalübergreifender Kommunikationskern vollenden
+- P2: Autonome Dokumentation & QA
+- P2: Refactoring server.py → modulare Struktur
