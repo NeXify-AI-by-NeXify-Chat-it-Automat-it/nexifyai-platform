@@ -180,15 +180,21 @@ def create_timeline_event(entity_type: str, entity_id: str, event: str, **kwargs
 
 
 def create_memory(contact_id: str, fact: str, **kwargs) -> dict:
-    """Customer memory fact (source-bound)."""
+    """Customer memory fact (source-bound) — mem0-konform mit Pflicht-Scoping."""
     return {
         "memory_id": new_id("mem"),
         "contact_id": contact_id,
+        "user_id": kwargs.get("user_id", contact_id),
+        "agent_id": kwargs.get("agent_id", "system"),
+        "app_id": kwargs.get("app_id", "nexifyai"),
+        "run_id": kwargs.get("run_id", new_id("run")),
         "fact": fact,
-        "category": kwargs.get("category", "general"),  # interest, objection, requirement, preference, context
+        "category": kwargs.get("category", "general"),
         "source": kwargs.get("source", "chat"),
         "source_ref": kwargs.get("source_ref", ""),
         "confidence": kwargs.get("confidence", 0.8),
+        "verified": kwargs.get("verified", False),
+        "verification_status": kwargs.get("verification_status", "nicht verifiziert"),
         "created_at": utcnow(),
         "expires_at": kwargs.get("expires_at"),
     }

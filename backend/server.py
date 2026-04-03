@@ -42,6 +42,7 @@ from agents.planning import create_planning_agent
 from agents.finance import create_finance_agent
 from agents.design import create_design_agent
 from agents.qa import create_qa_agent
+from memory_service import MemoryService, AGENT_IDS
 
 # Password hashing with Argon2 (fallback to bcrypt if pwdlib unavailable)
 try:
@@ -271,6 +272,7 @@ COMPANY = {
 # Database
 db_client: Optional[AsyncIOMotorClient] = None
 db = None
+memory_svc: Optional[MemoryService] = None
 
 # Rate limiting storage
 rate_limit_storage = {}
@@ -315,10 +317,13 @@ async def lifespan(app: FastAPI):
     await db.messages.create_index("channel")
     await db.timeline_events.create_index("timestamp")
     await db.customer_memory.create_index("contact_id")
+    await db.customer_memory.create_index("agent_id")
+    await db.customer_memory.create_index([("contact_id", 1), ("agent_id", 1)])
     await db.whatsapp_sessions.create_index("session_id")
 
     # Initialize AI Agent Layer
-    global orchestrator, agents
+    global orchestrator, agents, memory_svc
+    memory_svc = MemoryService(db)
     orchestrator = Orchestrator(db)
     agents = {
         "research": create_research_agent(db),
@@ -1084,6 +1089,24 @@ async def chat_message(data: ChatMessage, request: Request):
          "$set": {"qualification": qualification, "updated_at": datetime.now(timezone.utc)}}
     )
     
+    # mem0 Pflicht-Write: Relevante Fakten aus dem Gespräch persistieren
+    if customer_email and memory_svc:
+        contact = await db.contacts.find_one({"email": customer_email.lower()})
+        if contact:
+            cid = contact["contact_id"]
+            if qualification.get("use_case") and not session.get("_use_case_memorized"):
+                await memory_svc.write(cid, f"Interesse an: {qualification['use_case']}", AGENT_IDS["chat"],
+                                       category="interest", source="chat", source_ref=data.session_id)
+                await db.chat_sessions.update_one({"session_id": data.session_id}, {"$set": {"_use_case_memorized": True}})
+            if qualification.get("booking_confirmed"):
+                await memory_svc.write(cid, f"Termin gebucht: {qualification['booking_confirmed']}", AGENT_IDS["chat"],
+                                       category="context", source="chat", source_ref=data.session_id,
+                                       verification_status="verifiziert")
+            if qualification.get("offer_generated"):
+                await memory_svc.write(cid, f"Angebot generiert: {qualification['offer_generated']}", AGENT_IDS["chat"],
+                                       category="context", source="chat", source_ref=data.session_id,
+                                       verification_status="verifiziert")
+    
     return {"message": response_text, "qualification": qualification, "actions": actions, "should_escalate": should_escalate}
 
 def generate_response_fallback(message: str, history: list, qual: dict) -> str:
@@ -1366,6 +1389,128 @@ async def admin_customers(user = Depends(get_current_admin), search: str = None)
         if c.get("last_contact"):
             c["last_contact"] = c["last_contact"].isoformat()
     return {"customers": customers}
+
+@app.post("/api/admin/customers")
+async def admin_create_customer(data: dict, user = Depends(get_current_admin)):
+    """Manuell einen Kunden anlegen — erstellt Lead + Contact + Memory-Eintrag."""
+    email = data.get("email", "").strip().lower()
+    if not email:
+        raise HTTPException(400, "E-Mail ist Pflichtfeld")
+    
+    vorname = data.get("vorname", "").strip()
+    nachname = data.get("nachname", "").strip()
+    unternehmen = data.get("unternehmen", "").strip()
+    telefon = data.get("telefon", "").strip()
+    branche = data.get("branche", "").strip()
+    
+    # Upsert lead record
+    existing_lead = await db.leads.find_one({"email": email})
+    now = datetime.now(timezone.utc)
+    if existing_lead:
+        await db.leads.update_one(
+            {"email": email},
+            {"$set": {
+                "vorname": vorname or existing_lead.get("vorname", ""),
+                "nachname": nachname or existing_lead.get("nachname", ""),
+                "unternehmen": unternehmen or existing_lead.get("unternehmen", ""),
+                "telefon": telefon or existing_lead.get("telefon", ""),
+                "branche": branche or existing_lead.get("branche", ""),
+                "updated_at": now,
+            }}
+        )
+    else:
+        lead_id = new_id("ld")
+        await db.leads.insert_one({
+            "lead_id": lead_id,
+            "email": email,
+            "vorname": vorname,
+            "nachname": nachname,
+            "unternehmen": unternehmen,
+            "telefon": telefon,
+            "branche": branche,
+            "source": "admin_manual",
+            "status": "qualified",
+            "notes": [],
+            "created_at": now,
+            "updated_at": now,
+        })
+    
+    # Upsert unified contact
+    existing_contact = await db.contacts.find_one({"email": email})
+    if existing_contact:
+        await db.contacts.update_one(
+            {"email": email},
+            {"$set": {
+                "first_name": vorname or existing_contact.get("first_name", ""),
+                "last_name": nachname or existing_contact.get("last_name", ""),
+                "company": unternehmen or existing_contact.get("company", ""),
+                "phone": telefon or existing_contact.get("phone", ""),
+                "industry": branche or existing_contact.get("industry", ""),
+                "updated_at": now,
+            },
+            "$addToSet": {"channels_used": "admin"}}
+        )
+        contact_id = existing_contact["contact_id"]
+    else:
+        contact = create_contact(email, first_name=vorname, last_name=nachname,
+                                  company=unternehmen, phone=telefon, industry=branche,
+                                  source="admin_manual")
+        await db.contacts.insert_one(contact)
+        contact.pop("_id", None)
+        contact_id = contact["contact_id"]
+    
+    # Memory-Eintrag: Manuell erstellter Kunde (mem0-konform)
+    await memory_svc.write(contact_id, f"Kunde manuell angelegt von Admin ({user['email']}). {vorname} {nachname}, {unternehmen}, Branche: {branche}",
+                           AGENT_IDS["admin"], category="context", source="admin", source_ref=user["email"],
+                           verification_status="verifiziert")
+    
+    # Timeline
+    evt = create_timeline_event("contact", contact_id, "customer_created_manual",
+                                actor=user["email"], actor_type="admin",
+                                details={"email": email, "vorname": vorname, "nachname": nachname, "unternehmen": unternehmen})
+    await db.timeline_events.insert_one(evt)
+    
+    return {"status": "ok", "email": email, "contact_id": contact_id}
+
+
+@app.post("/api/admin/customers/portal-access")
+async def admin_create_portal_access(data: dict, user = Depends(get_current_admin)):
+    """Portalzugang für einen Kunden erstellen — Magic Link generieren."""
+    email = data.get("email", "").strip().lower()
+    if not email:
+        raise HTTPException(400, "E-Mail ist Pflichtfeld")
+    
+    # Ensure contact exists
+    contact = await db.contacts.find_one({"email": email})
+    if not contact:
+        raise HTTPException(404, "Kein Kontakt für diese E-Mail gefunden. Bitte erst Kunden anlegen.")
+    
+    token_data = generate_access_token(email, "portal")
+    await db.access_links.insert_one({
+        "token_hash": token_data["token_hash"],
+        "customer_email": email,
+        "document_type": "portal",
+        "expires_at": token_data["expires_at"],
+        "created_at": token_data["created_at"],
+        "created_by": user["email"],
+    })
+    
+    base_url = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
+    portal_url = f"{base_url}/portal/{token_data['token']}"
+    
+    # Memory-Eintrag (mem0-konform)
+    await memory_svc.write(contact["contact_id"], f"Portalzugang erstellt von {user['email']}",
+                           AGENT_IDS["admin"], category="context", source="admin", source_ref=user["email"],
+                           verification_status="verifiziert")
+    
+    # Timeline
+    evt = create_timeline_event("contact", contact["contact_id"], "portal_access_created",
+                                actor=user["email"], actor_type="admin",
+                                details={"email": email, "expires_at": token_data["expires_at"]})
+    await db.timeline_events.insert_one(evt)
+    
+    return {"status": "ok", "portal_url": portal_url, "expires_at": token_data["expires_at"]}
+
 
 @app.get("/api/admin/customers/{email}")
 async def admin_customer_detail(email: str, user = Depends(get_current_admin)):
@@ -2503,6 +2648,35 @@ async def admin_timeline(
     return {"events": events[:limit]}
 
 
+# --- mem0 Memory API (Pflicht-Layer) ---
+
+@app.get("/api/admin/memory/agents")
+async def admin_memory_agents(current_user: dict = Depends(get_current_admin)):
+    """Liste aller bekannten Agent-IDs für mem0."""
+    return {"agents": AGENT_IDS}
+
+@app.get("/api/admin/memory/by-agent/{agent_id}")
+async def admin_memory_by_agent(agent_id: str, limit: int = 30, current_user: dict = Depends(get_current_admin)):
+    """Alle Memory-Einträge eines bestimmten Agenten."""
+    entries = await memory_svc.get_agent_history(agent_id, limit)
+    for e in entries:
+        for k, v in list(e.items()):
+            if hasattr(v, 'isoformat'):
+                e[k] = str(v)
+    return {"agent_id": agent_id, "entries": entries, "count": len(entries)}
+
+@app.get("/api/admin/memory/search")
+async def admin_memory_search(q: str, contact_id: str = None, limit: int = 20, current_user: dict = Depends(get_current_admin)):
+    """Text-Suche über alle Memory-Einträge."""
+    results = await memory_svc.search(q, contact_id, limit)
+    for r in results:
+        for k, v in list(r.items()):
+            if hasattr(v, 'isoformat'):
+                r[k] = str(v)
+    return {"query": q, "results": results, "count": len(results)}
+
+
+
 # --- Admin: Chat Sessions ---
 
 @app.get("/api/admin/chat-sessions")
@@ -2601,7 +2775,7 @@ async def admin_customer_memory(
 async def admin_add_memory_fact(
     email: str, data: dict, current_user: dict = Depends(get_current_admin)
 ):
-    """Manually add a memory fact for a customer."""
+    """Manually add a memory fact for a customer — mem0-konform."""
     fact_text = data.get("fact", "").strip()
     category = data.get("category", "general")
     if not fact_text:
@@ -2613,9 +2787,11 @@ async def admin_add_memory_fact(
         await db.contacts.insert_one(contact)
         contact.pop("_id", None)
         contact_id = contact["contact_id"]
-    mem = create_memory(contact_id, fact_text, category=category, source="admin", source_ref=current_user["email"])
-    await db.customer_memory.insert_one(mem)
-    mem.pop("_id", None)
+    mem = await memory_svc.write(
+        contact_id, fact_text, AGENT_IDS["admin"],
+        category=category, source="admin", source_ref=current_user["email"],
+        verification_status=data.get("verification_status", "verifiziert"),
+    )
     evt = create_timeline_event("contact", contact_id, "memory_fact_added",
                                 actor=current_user["email"], actor_type="admin",
                                 details={"fact": fact_text[:100], "category": category})

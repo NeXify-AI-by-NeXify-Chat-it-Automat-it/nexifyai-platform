@@ -1,0 +1,68 @@
+{
+  "summary": "Iteration 21 - All backend APIs and frontend features tested successfully. 19/19 backend tests passed. Mobile floating buttons correctly positioned side-by-side. Admin Kunden-Tab customer creation and portal access working.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration_21.py",
+    "/app/test_reports/pytest/pytest_results_iter21.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_iteration_21.py"
+  ],
+  "success_rate": {
+    "backend": "100% (19/19 tests passed)",
+    "frontend": "100% (all features working)"
+  },
+  "test_credentials": {
+    "admin_email": "p.courbois@icloud.com",
+    "admin_password": "NxAi#Secure2026!"
+  },
+  "seed_data_creation": "Created test customers with TEST_ prefix during backend testing",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iteration 21 tested new features: POST /api/admin/customers, POST /api/admin/customers/portal-access, GET /api/admin/memory/agents, GET /api/admin/memory/by-agent/{agent_id}, GET /api/admin/memory/search, POST /api/admin/customer-memory/{email}/facts. All APIs working correctly. Mobile floating buttons (WhatsApp + Chat) are side-by-side at bottom=120px with z-index=910. Admin Kunden-Tab has 'Neuer Kunde' button that opens form with fields: Vorname, Nachname, E-Mail, Unternehmen, Telefon, Branche. Portal access button generates magic link URL.",
+  "features_tested": {
+    "backend_apis": {
+      "POST /api/admin/customers": "PASS - Creates customer with lead, contact, and memory entry",
+      "POST /api/admin/customers/portal-access": "PASS - Generates magic link URL with expiration",
+      "GET /api/admin/memory/agents": "PASS - Returns all 13 agent IDs (emergent_build, intake, research, etc.)",
+      "GET /api/admin/memory/by-agent/{agent_id}": "PASS - Returns memory entries for specific agent",
+      "GET /api/admin/memory/search": "PASS - Text search across memory entries",
+      "POST /api/admin/customer-memory/{email}/facts": "PASS - Adds memory fact with agent_id, verification_status"
+    },
+    "frontend_ui": {
+      "mobile_floating_buttons": {
+        "status": "PASS",
+        "whatsapp_position": "x=270, y=676, 48x48px, bottom=120px, right=72px, z-index=910",
+        "chat_trigger_position": "x=326, y=676, 48x48px, bottom=120px, right=16px, z-index=910",
+        "side_by_side": "PASS - y difference 0px, 8px gap between buttons",
+        "no_cookie_collision": "PASS - z-index 910 > cookie banner z-index 300"
+      },
+      "desktop_landing": {
+        "whatsapp": "PASS - Vertical on left side (flush left)",
+        "chat_trigger": "PASS - Bottom right corner"
+      },
+      "admin_kunden_tab": {
+        "neuer_kunde_button": "PASS - Opens customer form",
+        "customer_form_fields": "PASS - Vorname, Nachname, E-Mail, Unternehmen, Telefon, Branche",
+        "save_customer": "PASS - Creates customer and closes form",
+        "customer_list": "PASS - Shows all customers with columns",
+        "customer_detail": "PASS - Opens on row click",
+        "portal_access_button": "PASS - Generates magic link (clipboard error is browser security, not app bug)"
+      }
+    }
+  },
+  "mocked_apis": {
+    "has_mocked_apis": true,
+    "mocked_apis_list": ["GPT-5.2 via Emergent LLM Key used instead of DeepSeek"]
+  }
+}
