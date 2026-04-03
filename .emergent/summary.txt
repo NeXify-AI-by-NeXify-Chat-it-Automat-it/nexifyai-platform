@@ -1,0 +1,126 @@
+<analysis>**original_problem_statement**: 
+B2B-Plattform Starter/Growth AI Agenten AG — API-First, Unified Communication, Deep Customer Memory (mem0), KI-Orchestrator. The user requires a fully premium, highly secure architecture. The platform includes a Unified Login Stack, a new Worker/Scheduler Layer for background tasks, and must keep all internal tools (Admin, Agenten) strictly hidden from public-facing UI. The target LLM architecture is DeepSeek.
+
+**User's preferred language**: German (INSTRUCT NEXT AGENT: You MUST automatically detect the user's primary language from their messages and INSTRUCT next agent to respond in **German** ONLY. The user has a strict zero question, zero suggestion without execution policy. Do not ask for permissions. Do not use phrases like Soll ich...?. Just implement, test (using testing agent/screenshots), and document. Classify every statement as verifiziert, teilweise verifiziert, nicht verifiziert, or widerlegt.)
+
+**what currently exists?** 
+A React 18 SPA and FastAPI backend. The system features a Unified Login Stack with strict role separation, a 3D Hero canvas, and a unified design system that ensures Brand logic is identical across Header, Footer, Login, Portal, Admin, and PDFs. In the backend, a new -based Worker/Scheduler Layer manages async jobs. Initial service wrappers exist for Comms, Outbound, Billing, and LLM Providers. 
+
+**Last working item**: 
+    - Last item agent was working: System-wide design and brand harmonization (User's P0/P1 from the last prompt block), logo consistency checks, and comprehensive layout tests across all breakpoints (Desktop 1920px down to Mobile 360px).
+    - Status: COMPLETED (Verified via Testing Agent Iteration 27, 100% pass).
+    - Agent Testing Done: Y
+    - Which testing method agent to use? NA
+    - User Testing Done: N
+
+**All Pending/In progress Issue list**:  
+  (No bugs pending from the last task, but the user has defined a strict roadmap of logical/backend priorities that must be executed next.)
+
+**In progress Task List**: 
+  - Task 1: **Projektchat / Build-Handover-Kontext härten (P1)**
+     - Where to resume: Backend models and services for project context.
+     - What will be achieved with this? The Project Chat becomes the leading operational context. It must securely store and manage the project scope, discovery, architecture, quote logic, build-handover markdown, and review comments. 
+     - Status: NOT STARTED
+     - Should Test frontend/backend/both after fix? Both
+     - Blocked on something: None
+  - Task 2: **Contract Operating System (P2)**
+     - Where to resume: Backend API and Frontend UI.
+     - What will be achieved with this? First robust version of the Contract OS. Must include master contracts, modular appendices (AI agents, websites, SEO, apps), and digital acceptance/signature capabilities generating an evidence package (timestamp, IP, document hash).
+     - Status: NOT STARTED
+     - Should Test frontend/backend/both after fix? Both
+     - Blocked on something: None
+  - Task 3: **Revolut/Stripe Live-Webhooks & Billing-Status-Sync (P3)**
+     - Where to resume:  / .
+     - What will be achieved with this? Production-ready webhook integrations ensuring idempotent status synchronization across quotes, contracts, invoices, payments, portal, and admin timelines.
+     - Status: NOT STARTED
+     - Should Test frontend/backend/both after fix? Backend
+     - Blocked on something: None
+
+**Upcoming and Future Tasks**
+    Upcoming Tasks:
+    - P4: DeepSeek Live-Migration (Concrete routing of agents, tools, memory context to DeepSeek, replacing the temporary GPT-5.2 mock).
+    - P5: Legal & Compliance Guardian (Operative wiring into outreach, contracts, and comms).
+    - P6: Outbound Lead Machine (Harden to production readiness with legal gates and fit-scoring).
+    - P7:  modular refactoring (Break down the 4200+ line file into , , etc. — **STRICTLY AFTER P1-P6 are stable**).
+
+**Completed work in this session**
+- Worker/Scheduler-Layer implementation (APScheduler, Queue, Dead-letter) (DONE)
+- Initial Services scaffolding (, , , ) (DONE)
+- Public Auth Security by Obscurity (Neutralizing  and redirecting unauth ) (DONE)
+- Mobile Menu Overlay & Floating Actions State Logic fixes (DONE)
+- Hero 3D Scene improvements (DONE)
+- System-wide Design/Brand Harmonization across all Breakpoints (DONE)
+
+**Earlier issues found/mentioned but not fixed**
+- None. Testing agent iterations 25, 26, and 27 all passed at 100%.
+
+**Known issue recurrence from previous fork**
+  - Issue recurrence in previous fork: Mobile Menu UI collisions (Floating actions overlapping).
+  - Recurrence count: 1
+  - Status: RESOLVED in this session.
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+React 18 SPA, FastAPI, Unified Communication, API-First, JWT Auth, APScheduler (Background Workers), mem0 Memory, DeepSeek (Target Architecture).
+
+**key DB schema**
+  - , , , , , , , , 
+
+**changes in tech stack**
+  - Added  and  to handle background jobs cleanly outside of the FastAPI request lifecycle.
+
+**All files of reference** 
+-  (Core backend hub)
+-  and  (Contains the harmonized design tokens)
+-  & 
+
+**Areas that need refactoring**: 
+-  is over 4200 lines. Refactoring into a modular route structure is explicitly requested by the user as Priority 7. Do not start this until P1-P6 are completed.
+
+**key api endpoints**
+- 
+- 
+- Worker status / Outbound pipeline test endpoints.
+
+**Critical Info for New Agent**
+- **STRICT EXECUTION**: The user demands autonomous implementation. Do not ask questions. Follow the defined priority list exactly.
+- **MEMORY READ/WRITE**: You MUST read memory before tasks and write to memory after tasks to ensure  remains accurate with , , , .
+- **SECRECY**: Never expose the use of Emergent, internal agent roles, prompt logic, or bridge solutions to the public or in UI components.
+- Proceed immediately with **Task 1: Projektchat / Build-Handover-Kontext härten**.
+
+**documents and test reports created in this job** 
+- 
+- 
+- 
+- 
+- 
+
+**Last 10 User Messages and any pending HUMAN messages** 
+- The user provided three massive, highly structured blocks of demands. 
+- Block 1 (P0-P6 backend architecture) was implemented by the agent.
+- Block 2 (P0-P8 design/UI/UX security) was implemented and harmonized across breakpoints by the agent.
+- There are NO pending questions from the user. You must seamlessly pick up the next functional priority from the user's backlog: Projektchat / Build-Handover-Kontext härten (Task 1 above).
+
+**Project Health Check:**
+- Broken: None. 
+- Mocked: DeepSeek orchestrator is currently routed through a temporary Emergent GPT-5.2 mock setup (to be resolved in P4).
+
+**3rd Party Integrations**
+- OpenAI GPT-5.2 (Mocking) — uses Emergent LLM Key
+- DeepSeek (Target Orchestrator) — requires User API Key
+- Stripe / Revolut (Payments) — requires User API Key
+- Resend (Emails) — requires User API Key
+
+**Testing status**
+- Testing agent used after significant changes: YES (Iterations 25, 26, 27)
+- Troubleshoot agent used after agent stuck in loop: NO
+- Test files created: 
+- Known regressions: None.
+
+**Credentials to test flow:**
+Admin email:  (Check  for password).
+
+**What agent forgot to execute**
+The agent successfully finished the P0 design harmonization block. The agent now needs to resume the user's explicit roadmap starting at P1: Projektchat/Handover-Kontext härten.</analysis>

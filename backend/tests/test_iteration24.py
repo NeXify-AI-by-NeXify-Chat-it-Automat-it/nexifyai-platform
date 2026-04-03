@@ -12,7 +12,7 @@ import os
 import jwt
 from datetime import datetime, timedelta, timezone
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://ai-architecture-lab.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://contract-os.preview.emergentagent.com').rstrip('/')
 SECRET_KEY = "nexify_jwt_secret_key_production_2026_change_this_in_production"
 ALGORITHM = "HS256"
 

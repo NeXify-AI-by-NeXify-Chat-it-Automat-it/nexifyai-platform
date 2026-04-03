@@ -22,4 +22,4 @@
 - Role Check: POST /api/auth/check-email → {role: admin|customer|unknown}
 
 ## API Base URL
-- https://ai-architecture-lab.preview.emergentagent.com
+- https://contract-os.preview.emergentagent.com

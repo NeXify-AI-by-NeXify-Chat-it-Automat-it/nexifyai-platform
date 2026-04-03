@@ -8,7 +8,7 @@ import os
 import time
 from datetime import datetime, timedelta
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://e511dfe9-fc84-4edd-9e5e-6ba9f2cea19f.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://contract-os.preview.emergentagent.com')
 BASE_URL = BASE_URL.rstrip('/')
 
 # Test credentials from test_credentials.md
