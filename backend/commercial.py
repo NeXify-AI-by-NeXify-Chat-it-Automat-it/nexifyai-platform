@@ -634,6 +634,8 @@ async def get_next_number(db, sequence_type: str) -> str:
         prefix = str(base)[:5]
         suffix = str(base)[5:]
         return f"ag{prefix}.{suffix}"
+    elif sequence_type == "contract":
+        return f"CTR-{datetime.now(timezone.utc).strftime('%Y')}-{seq:04d}"
     return f"{sequence_type}-{seq}"
 
 

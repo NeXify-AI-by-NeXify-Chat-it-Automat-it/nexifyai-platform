@@ -92,6 +92,32 @@ class ProjectStatus(str, Enum):
     PAUSED = "paused"
     CLOSED = "closed"
 
+class ContractStatus(str, Enum):
+    DRAFT = "draft"
+    REVIEW = "review"
+    SENT = "sent"
+    VIEWED = "viewed"
+    ACCEPTED = "accepted"
+    DECLINED = "declined"
+    CHANGE_REQUESTED = "change_requested"
+    AMENDED = "amended"
+    CANCELLED = "cancelled"
+    EXPIRED = "expired"
+
+class ContractType(str, Enum):
+    STANDARD = "standard"
+    INDIVIDUAL = "individual"
+    AMENDMENT = "amendment"
+
+class AppendixType(str, Enum):
+    AI_AGENTS = "ai_agents"
+    WEBSITE = "website"
+    SEO = "seo"
+    APP = "app"
+    AI_ADDON = "ai_addon"
+    BUNDLE = "bundle"
+    CUSTOM = "custom"
+
 
 # ══════════════════════════════════════════
 # HELPER
@@ -329,6 +355,95 @@ def create_project_version(project_id: str, version_num: int, markdown: str, **k
         "changelog": kwargs.get("changelog", ""),
         "author": kwargs.get("author", "admin"),
         "created_at": utcnow(),
+    }
+
+
+APPENDIX_TYPE_LABELS = {
+    "ai_agents": "KI-Agenten",
+    "website": "Website",
+    "seo": "SEO",
+    "app": "App-Entwicklung",
+    "ai_addon": "KI Add-on",
+    "bundle": "Bundle",
+    "custom": "Sonderposition",
+}
+
+LEGAL_MODULES = [
+    {"key": "agb", "label": "Allgemeine Geschäftsbedingungen", "required": True},
+    {"key": "datenschutz", "label": "Datenschutzerklärung", "required": True},
+    {"key": "ki_hinweise", "label": "KI-Nutzungshinweise", "required": True},
+    {"key": "zahlungsbedingungen", "label": "Zahlungsbedingungen", "required": True},
+    {"key": "sla", "label": "Service Level Agreement", "required": False},
+    {"key": "auftragsverarbeitung", "label": "Auftragsverarbeitungsvertrag (AVV)", "required": False},
+]
+
+
+def create_contract(customer: dict, tier_key: str, contract_type: str = "standard", **kwargs) -> dict:
+    """Mastervertrag-Objekt."""
+    return {
+        "contract_id": new_id("ctr"),
+        "contract_number": kwargs.get("contract_number", ""),
+        "contract_type": contract_type,
+        "status": ContractStatus.DRAFT.value,
+        "customer": {
+            "email": customer.get("email", "").lower().strip(),
+            "name": customer.get("name", ""),
+            "company": customer.get("company", ""),
+            "phone": customer.get("phone", ""),
+            "address": customer.get("address", ""),
+        },
+        "tier_key": tier_key,
+        "quote_id": kwargs.get("quote_id", ""),
+        "project_id": kwargs.get("project_id", ""),
+        "calculation": kwargs.get("calculation", {}),
+        "legal_modules": {m["key"]: {"accepted": False, "version": "1.0"} for m in LEGAL_MODULES},
+        "appendices": [],
+        "version": 1,
+        "versions_history": [],
+        "signature": None,
+        "evidence": None,
+        "notes": kwargs.get("notes", ""),
+        "valid_until": kwargs.get("valid_until", ""),
+        "created_by": kwargs.get("created_by", "admin"),
+        "created_at": utcnow(),
+        "updated_at": utcnow(),
+    }
+
+
+def create_contract_appendix(contract_id: str, appendix_type: str, title: str, content: dict, **kwargs) -> dict:
+    """Modulare Vertragsanlage."""
+    return {
+        "appendix_id": new_id("apx"),
+        "contract_id": contract_id,
+        "appendix_type": appendix_type,
+        "title": title,
+        "label": APPENDIX_TYPE_LABELS.get(appendix_type, appendix_type),
+        "content": content,
+        "pricing": kwargs.get("pricing", {}),
+        "version": kwargs.get("version", 1),
+        "status": kwargs.get("status", "draft"),
+        "created_at": utcnow(),
+        "updated_at": utcnow(),
+    }
+
+
+def create_contract_evidence(contract_id: str, action: str, ip: str, user_agent: str, doc_hash: str, **kwargs) -> dict:
+    """Evidenzpaket für digitale Annahme/Ablehnung."""
+    return {
+        "evidence_id": new_id("evd"),
+        "contract_id": contract_id,
+        "action": action,
+        "timestamp": utcnow().isoformat(),
+        "ip_address": ip,
+        "user_agent": user_agent,
+        "document_hash": doc_hash,
+        "contract_version": kwargs.get("contract_version", 1),
+        "consent_status": kwargs.get("consent_status", ""),
+        "legal_modules_accepted": kwargs.get("legal_modules_accepted", {}),
+        "signature_type": kwargs.get("signature_type", ""),
+        "signature_data": kwargs.get("signature_data", ""),
+        "customer_email": kwargs.get("customer_email", ""),
+        "customer_name": kwargs.get("customer_name", ""),
     }
 
 

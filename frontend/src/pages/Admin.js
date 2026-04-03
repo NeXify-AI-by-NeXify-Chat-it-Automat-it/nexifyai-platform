@@ -102,6 +102,13 @@ const Admin = () => {
   const [projectSectionEdit, setProjectSectionEdit] = useState(null);
   const [projectChatMsg, setProjectChatMsg] = useState('');
   const [projectChatSending, setProjectChatSending] = useState(false);
+  const [contracts, setContracts] = useState([]);
+  const [selectedContract, setSelectedContract] = useState(null);
+  const [contractDetail, setContractDetail] = useState(null);
+  const [showContractForm, setShowContractForm] = useState(false);
+  const [contractForm, setContractForm] = useState({ customer_email:'', customer_name:'', customer_company:'', tier_key:'', contract_type:'standard', notes:'' });
+  const [showAppendixForm, setShowAppendixForm] = useState(false);
+  const [appendixForm, setAppendixForm] = useState({ appendix_type:'ai_agents', title:'', description:'', pricing_amount:0 });
 
   const headers = useMemo(() => ({ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }), [token]);
 
@@ -361,6 +368,56 @@ const Admin = () => {
   const generateBuildHandover = async (projectId) => {
     const d = await apiFetch(`/api/admin/projects/${projectId}/build-handover`, { method: 'POST', body: JSON.stringify({}) });
     if (d) { loadProjectDetail(projectId); }
+  };
+
+  /* Load contracts */
+  useEffect(() => {
+    if (!token || view !== 'contracts') return;
+    apiFetch('/api/admin/contracts').then(d => d && setContracts(d.contracts || []));
+  }, [token, view, apiFetch]);
+
+  const loadContractDetail = async (contractId) => {
+    const d = await apiFetch(`/api/admin/contracts/${contractId}`);
+    if (d) { setContractDetail(d); setSelectedContract(contractId); }
+  };
+
+  const createContractFn = async () => {
+    if (!contractForm.customer_email.trim()) return;
+    const payload = {
+      customer: { email: contractForm.customer_email, name: contractForm.customer_name, company: contractForm.customer_company },
+      tier_key: contractForm.tier_key,
+      contract_type: contractForm.contract_type,
+      notes: contractForm.notes,
+    };
+    const d = await apiFetch('/api/admin/contracts', { method: 'POST', body: JSON.stringify(payload) });
+    if (d) {
+      setShowContractForm(false);
+      setContractForm({ customer_email:'', customer_name:'', customer_company:'', tier_key:'', contract_type:'standard', notes:'' });
+      apiFetch('/api/admin/contracts').then(r => r && setContracts(r.contracts || []));
+    }
+  };
+
+  const updateContractStatus = async (contractId, status) => {
+    await apiFetch(`/api/admin/contracts/${contractId}`, { method: 'PATCH', body: JSON.stringify({ status }) });
+    loadContractDetail(contractId);
+    apiFetch('/api/admin/contracts').then(d => d && setContracts(d.contracts || []));
+  };
+
+  const addAppendixFn = async (contractId) => {
+    if (!appendixForm.title.trim()) return;
+    const d = await apiFetch(`/api/admin/contracts/${contractId}/appendices`, {
+      method: 'POST', body: JSON.stringify({
+        appendix_type: appendixForm.appendix_type, title: appendixForm.title,
+        content: { description: appendixForm.description },
+        pricing: { amount: parseFloat(appendixForm.pricing_amount) || 0 },
+      })
+    });
+    if (d) { setShowAppendixForm(false); setAppendixForm({ appendix_type:'ai_agents', title:'', description:'', pricing_amount:0 }); loadContractDetail(contractId); }
+  };
+
+  const sendContractFn = async (contractId) => {
+    const d = await apiFetch(`/api/admin/contracts/${contractId}/send`, { method: 'POST', body: JSON.stringify({}) });
+    if (d) { loadContractDetail(contractId); apiFetch('/api/admin/contracts').then(r => r && setContracts(r.contracts || [])); }
   };
 
   const logout = () => { setToken(''); localStorage.removeItem('nx_admin_token'); localStorage.removeItem('nx_auth'); };
@@ -1671,10 +1728,176 @@ const Admin = () => {
     );
   };
 
+  /* ══════════ CONTRACTS VIEW (P2) ══════════ */
+  const CTR_STATUS_MAP = {
+    draft: { l:'Entwurf', c:'#6b7b8d' }, review: { l:'Review', c:'#f59e0b' },
+    sent: { l:'Versendet', c:'#3b82f6' }, viewed: { l:'Eingesehen', c:'#06b6d4' },
+    accepted: { l:'Angenommen', c:'#10b981' }, declined: { l:'Abgelehnt', c:'#ef4444' },
+    change_requested: { l:'Änderung', c:'#f97316' }, amended: { l:'Nachgetragen', c:'#8b5cf6' },
+    cancelled: { l:'Storniert', c:'#64748b' }, expired: { l:'Abgelaufen', c:'#4a5568' },
+  };
+  const CTR_TYPE_MAP = { standard:'Standardvertrag', individual:'Individualvertrag', amendment:'Nachtragsvertrag' };
+  const APX_TYPE_MAP = { ai_agents:'KI-Agenten', website:'Website', seo:'SEO', app:'App', ai_addon:'KI Add-on', bundle:'Bundle', custom:'Sonderposition' };
+
+  const ContractsView = () => {
+    if (contractDetail && selectedContract) {
+      const cd = contractDetail;
+      const st = CTR_STATUS_MAP[cd.status] || CTR_STATUS_MAP.draft;
+      return (
+        <div className="adm-contract-detail" data-testid="contract-detail">
+          <button className="adm-back-btn" onClick={() => { setSelectedContract(null); setContractDetail(null); setShowAppendixForm(false); }} data-testid="contract-back-btn"><I n="arrow_back" /> Alle Verträge</button>
+          <div style={{display:'flex',gap:16,alignItems:'center',marginBottom:16,flexWrap:'wrap'}}>
+            <h2 style={{margin:0,fontSize:'1.25rem'}}>Vertrag {cd.contract_number}</h2>
+            <span className="adm-badge" style={{background:st.c+'22',color:st.c}}>{st.l}</span>
+            <span className="adm-badge" style={{background:'rgba(255,255,255,0.06)',color:'#c8d1dc'}}>{CTR_TYPE_MAP[cd.contract_type] || cd.contract_type}</span>
+            <select className="adm-select-sm" value={cd.status} onChange={e => updateContractStatus(cd.contract_id, e.target.value)} data-testid="contract-status-select">
+              {Object.entries(CTR_STATUS_MAP).map(([k,v])=><option key={k} value={k}>{v.l}</option>)}
+            </select>
+          </div>
+          {/* Meta cards */}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:8,marginBottom:20}}>
+            <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Kunde</div><div style={{color:'#fff',fontSize:'.8125rem',fontWeight:600}}>{cd.customer?.name||cd.customer?.email}</div><div style={{fontSize:'.6875rem',color:'#6b7b8d'}}>{cd.customer?.company}</div></div>
+            <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Tarif</div><div style={{color:'#fff',fontSize:'.8125rem',fontWeight:600}}>{cd.calculation?.tier_name || cd.tier_key || '-'}</div></div>
+            <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Version</div><div style={{color:'#fff',fontSize:'.8125rem',fontWeight:600}}>v{cd.version||1}</div></div>
+            <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Hash</div><div style={{color:'#ff9b7a',fontSize:'.6875rem',fontFamily:'monospace',wordBreak:'break-all'}}>{cd.document_hash?.slice(0,16)}...</div></div>
+          </div>
+          {/* Calculation */}
+          {cd.calculation && cd.calculation.total_contract_eur && (
+            <div className="adm-wa-card" style={{marginBottom:16}}>
+              <h3 style={{margin:'0 0 12px',fontSize:'.9375rem'}}>Kommerzielle Konditionen</h3>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:10}}>
+                <div><span style={{fontSize:'.6875rem',color:'#6b7b8d'}}>Gesamtvertragswert</span><br/><span style={{color:'#fff',fontWeight:600}}>{(cd.calculation.total_contract_eur||0).toLocaleString('de-DE',{style:'currency',currency:'EUR'})}</span></div>
+                <div><span style={{fontSize:'.6875rem',color:'#6b7b8d'}}>Aktivierungsanzahlung</span><br/><span style={{color:'#ff9b7a',fontWeight:600}}>{(cd.calculation.upfront_eur||0).toLocaleString('de-DE',{style:'currency',currency:'EUR'})}</span></div>
+                <div><span style={{fontSize:'.6875rem',color:'#6b7b8d'}}>Monatsrate</span><br/><span style={{color:'#fff',fontWeight:600}}>{(cd.calculation.recurring_eur||0).toLocaleString('de-DE',{style:'currency',currency:'EUR'})}</span></div>
+                <div><span style={{fontSize:'.6875rem',color:'#6b7b8d'}}>Laufzeit</span><br/><span style={{color:'#fff',fontWeight:600}}>{cd.calculation.contract_months||0} Monate</span></div>
+              </div>
+            </div>
+          )}
+          {/* Appendices */}
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+            <h3 style={{margin:0,fontSize:'.9375rem'}}>Anlagen ({(cd.appendices_detail||[]).length})</h3>
+            <button className="adm-btn adm-btn-secondary" style={{width:'auto',padding:'6px 14px',fontSize:'.75rem'}} onClick={() => setShowAppendixForm(!showAppendixForm)} data-testid="add-appendix-btn"><I n="add" /> Anlage</button>
+          </div>
+          {showAppendixForm && (
+            <div className="adm-form-card" style={{marginBottom:16}} data-testid="appendix-form">
+              <div className="adm-form-grid">
+                <div className="adm-field"><label>Typ</label><select className="adm-select" value={appendixForm.appendix_type} onChange={e => setAppendixForm({...appendixForm, appendix_type: e.target.value})}>{Object.entries(APX_TYPE_MAP).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></div>
+                <div className="adm-field"><label>Titel</label><input value={appendixForm.title} onChange={e => setAppendixForm({...appendixForm, title: e.target.value})} placeholder="Anlage: KI-Agenten Vertrieb" data-testid="appendix-title-input" /></div>
+                <div className="adm-field"><label>Beschreibung</label><input value={appendixForm.description} onChange={e => setAppendixForm({...appendixForm, description: e.target.value})} placeholder="Leistungsbeschreibung..." /></div>
+                <div className="adm-field"><label>Betrag (EUR)</label><input type="number" value={appendixForm.pricing_amount} onChange={e => setAppendixForm({...appendixForm, pricing_amount: e.target.value})} /></div>
+              </div>
+              <div style={{display:'flex',gap:8,marginTop:12}}>
+                <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'8px 16px'}} onClick={() => addAppendixFn(cd.contract_id)} disabled={!appendixForm.title.trim()} data-testid="save-appendix-btn"><I n="check" /> Hinzufügen</button>
+                <button className="adm-btn adm-btn-secondary" onClick={() => setShowAppendixForm(false)}>Abbrechen</button>
+              </div>
+            </div>
+          )}
+          {(cd.appendices_detail||[]).map(a => (
+            <div key={a.appendix_id} className="adm-wa-card" style={{marginBottom:8,borderLeft:`3px solid ${a.appendix_type==='custom'?'#f59e0b':'#3b82f6'}`}} data-testid={`appendix-${a.appendix_id}`}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <div><span style={{fontWeight:600,color:'#fff',fontSize:'.8125rem'}}>{a.title}</span> <span className="adm-badge" style={{background:'rgba(59,130,246,0.12)',color:'#3b82f6',fontSize:'.625rem'}}>{APX_TYPE_MAP[a.appendix_type]||a.appendix_type}</span></div>
+                {a.pricing?.amount > 0 && <span style={{color:'#ff9b7a',fontWeight:600,fontSize:'.8125rem'}}>{parseFloat(a.pricing.amount).toLocaleString('de-DE',{style:'currency',currency:'EUR'})}</span>}
+              </div>
+              {a.content?.description && <p style={{margin:'6px 0 0',fontSize:'.75rem',color:'#6b7b8d'}}>{a.content.description}</p>}
+            </div>
+          ))}
+          {/* Legal Modules */}
+          <h3 style={{fontSize:'.9375rem',color:'#fff',marginTop:20,marginBottom:12}}>Rechtsmodule</h3>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))',gap:8,marginBottom:20}}>
+            {(cd.legal_module_definitions||[]).map(lm => {
+              const accepted = cd.legal_modules?.[lm.key]?.accepted;
+              return (
+                <div key={lm.key} className="adm-wa-card" style={{padding:'10px 14px',borderLeft:`3px solid ${accepted?'#10b981':lm.required?'#ef4444':'#4a5568'}`}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                    <span style={{fontSize:'.8125rem',color:'#fff'}}>{lm.label}</span>
+                    <span className="adm-badge" style={{background:accepted?'#10b98122':'#ef444422',color:accepted?'#10b981':'#ef4444',fontSize:'.625rem'}}>{accepted?'Akzeptiert':'Ausstehend'}{lm.required?' *':''}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {/* Evidence */}
+          {(cd.evidence_list||[]).length > 0 && (
+            <>
+              <h3 style={{fontSize:'.9375rem',color:'#fff',marginBottom:12}}>Evidenzpaket</h3>
+              {cd.evidence_list.map(ev => (
+                <div key={ev.evidence_id} className="adm-wa-card" style={{marginBottom:8,padding:'12px 16px'}}>
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:6,fontSize:'.75rem'}}>
+                    <div><span style={{color:'#6b7b8d'}}>Aktion:</span> <span style={{color:ev.action==='accepted'?'#10b981':'#ef4444',fontWeight:600}}>{ev.action}</span></div>
+                    <div><span style={{color:'#6b7b8d'}}>Zeitstempel:</span> <span style={{color:'#fff'}}>{fmtTime(ev.timestamp)}</span></div>
+                    <div><span style={{color:'#6b7b8d'}}>IP:</span> <span style={{color:'#fff'}}>{ev.ip_address}</span></div>
+                    <div><span style={{color:'#6b7b8d'}}>Signaturtyp:</span> <span style={{color:'#fff'}}>{ev.signature_type||'-'}</span></div>
+                    <div style={{gridColumn:'1/-1'}}><span style={{color:'#6b7b8d'}}>Dokument-Hash:</span> <span style={{color:'#ff9b7a',fontFamily:'monospace',fontSize:'.6875rem'}}>{ev.document_hash}</span></div>
+                    <div style={{gridColumn:'1/-1'}}><span style={{color:'#6b7b8d'}}>User Agent:</span> <span style={{color:'#c8d1dc',fontSize:'.6875rem'}}>{ev.user_agent?.slice(0,80)}</span></div>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+          {/* Actions */}
+          <div style={{display:'flex',gap:8,marginTop:20,flexWrap:'wrap'}}>
+            {['draft','review'].includes(cd.status) && <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'10px 20px'}} onClick={() => sendContractFn(cd.contract_id)} data-testid="send-contract-btn"><I n="send" /> An Kunden senden</button>}
+          </div>
+        </div>
+      );
+    }
+
+    // Contract List
+    return (
+      <div className="adm-contracts" data-testid="admin-contracts">
+        <div className="adm-section-header">
+          <h2>Verträge ({contracts.length})</h2>
+          <button className="adm-btn adm-btn-primary" style={{padding:'8px 16px',width:'auto'}} onClick={() => setShowContractForm(true)} data-testid="create-contract-btn"><I n="add_circle" /> Neuer Vertrag</button>
+        </div>
+        {showContractForm && (
+          <div className="adm-form-card" data-testid="contract-create-form">
+            <h3>Vertrag erstellen</h3>
+            <div className="adm-form-grid">
+              <div className="adm-field"><label>Kunden-E-Mail *</label><input type="email" value={contractForm.customer_email} onChange={e => setContractForm({...contractForm, customer_email: e.target.value})} placeholder="kunde@firma.de" data-testid="contract-email-input" /></div>
+              <div className="adm-field"><label>Name</label><input value={contractForm.customer_name} onChange={e => setContractForm({...contractForm, customer_name: e.target.value})} placeholder="Max Mustermann" /></div>
+              <div className="adm-field"><label>Firma</label><input value={contractForm.customer_company} onChange={e => setContractForm({...contractForm, customer_company: e.target.value})} placeholder="Firma GmbH" /></div>
+              <div className="adm-field"><label>Tarif</label><select className="adm-select" value={contractForm.tier_key} onChange={e => setContractForm({...contractForm, tier_key: e.target.value})} data-testid="contract-tier-select"><option value="">—</option><option value="starter">Starter AI Agenten AG</option><option value="growth">Growth AI Agenten AG</option></select></div>
+              <div className="adm-field"><label>Vertragstyp</label><select className="adm-select" value={contractForm.contract_type} onChange={e => setContractForm({...contractForm, contract_type: e.target.value})} data-testid="contract-type-select"><option value="standard">Standardvertrag</option><option value="individual">Individualvertrag</option><option value="amendment">Nachtragsvertrag</option></select></div>
+              <div className="adm-field"><label>Notizen</label><input value={contractForm.notes} onChange={e => setContractForm({...contractForm, notes: e.target.value})} placeholder="Interne Notizen..." /></div>
+            </div>
+            <div className="adm-form-actions">
+              <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'8px 20px'}} onClick={createContractFn} disabled={!contractForm.customer_email.trim()} data-testid="contract-save-btn"><I n="check" /> Erstellen</button>
+              <button className="adm-btn adm-btn-secondary" onClick={() => setShowContractForm(false)}>Abbrechen</button>
+            </div>
+          </div>
+        )}
+        <div className="adm-table-wrap">
+          <table className="adm-table" data-testid="contracts-table">
+            <thead><tr><th>Nr.</th><th>Kunde</th><th>Tarif</th><th>Typ</th><th>Status</th><th>Version</th><th>Erstellt</th><th></th></tr></thead>
+            <tbody>
+              {contracts.map(c => {
+                const st = CTR_STATUS_MAP[c.status] || CTR_STATUS_MAP.draft;
+                return (
+                  <tr key={c.contract_id} className="adm-row-click" onClick={() => loadContractDetail(c.contract_id)} data-testid={`contract-row-${c.contract_id}`}>
+                    <td style={{fontWeight:600,color:'#fff'}}>{c.contract_number}</td>
+                    <td>{c.customer?.name || c.customer?.email}</td>
+                    <td>{c.calculation?.tier_name || c.tier_key || '-'}</td>
+                    <td>{CTR_TYPE_MAP[c.contract_type]||c.contract_type}</td>
+                    <td><span className="adm-badge" style={{background:st.c+'22',color:st.c}}>{st.l}</span></td>
+                    <td>v{c.version||1}</td>
+                    <td>{fmtDate(c.created_at)}</td>
+                    <td><button className="adm-btn-sm"><I n="visibility" /></button></td>
+                  </tr>
+                );
+              })}
+              {contracts.length === 0 && <tr><td colSpan="8" style={{textAlign:'center',padding:32,color:'#4a5568'}}>Noch keine Verträge</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
   /* ══════════ MAIN LAYOUT ══════════ */
   const navItems = [
     { id: 'dashboard', icon: 'dashboard', label: 'Dashboard' },
     { id: 'projects', icon: 'folder_special', label: 'Projekte' },
+    { id: 'contracts', icon: 'gavel', label: 'Verträge' },
     { id: 'commercial', icon: 'receipt_long', label: 'Angebote & Rechnungen' },
     { id: 'leads', icon: 'people', label: 'Leads' },
     { id: 'conversations', icon: 'chat', label: 'Kommunikation' },
@@ -1708,6 +1931,7 @@ const Admin = () => {
         <div className="adm-content">
           {view === 'dashboard' && <DashboardView />}
           {view === 'projects' && <ProjectsView />}
+          {view === 'contracts' && <ContractsView />}
           {view === 'commercial' && <CommercialView />}
           {view === 'leads' && <LeadsView />}
           {view === 'conversations' && <ConversationsView />}
