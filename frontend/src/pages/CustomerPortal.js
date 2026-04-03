@@ -18,7 +18,7 @@ const QUOTE_STATUS = {
 const CustomerPortal = () => {
   useEffect(() => { document.body.classList.add('hide-wa'); return () => document.body.classList.remove('hide-wa'); }, []);
   const params = new URLSearchParams(window.location.search);
-  const token = params.get('token');
+  const urlToken = params.get('token');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -26,28 +26,117 @@ const CustomerPortal = () => {
   const [actionBusy, setActionBusy] = useState('');
   const [revisionNotes, setRevisionNotes] = useState('');
   const [showRevision, setShowRevision] = useState(null);
+  const [authToken, setAuthToken] = useState('');
+
+  const apiFetch = (url, opts = {}) => {
+    const headers = { ...opts.headers };
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+    return fetch(url, { ...opts, headers });
+  };
+
+  const loadDashboard = async (jwt) => {
+    try {
+      const r = await fetch(`${API}/api/customer/dashboard`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+      });
+      if (!r.ok) throw new Error('Zugang abgelaufen');
+      const d = await r.json();
+      setData(d);
+      setAuthToken(jwt);
+    } catch (e) {
+      throw e;
+    }
+  };
+
+  const loadLegacyToken = async (token) => {
+    try {
+      const r = await fetch(`${API}/api/portal/customer/${token}`);
+      if (!r.ok) throw new Error('Zugangslink ungültig oder abgelaufen');
+      const d = await r.json();
+      setData(d);
+    } catch (e) {
+      throw e;
+    }
+  };
 
   const reload = () => {
-    fetch(`${API}/api/portal/customer/${token}`)
-      .then(r => { if (!r.ok) throw new Error('Zugangslink ungültig oder abgelaufen'); return r.json(); })
-      .then(d => setData(d))
-      .catch(e => setError(e.message));
+    if (authToken) {
+      loadDashboard(authToken).catch(e => setError(e.message));
+    } else if (urlToken) {
+      loadLegacyToken(urlToken).catch(e => setError(e.message));
+    }
   };
 
   useEffect(() => {
-    if (!token) { setError('Kein Zugangstoken vorhanden.'); setLoading(false); return; }
-    fetch(`${API}/api/portal/customer/${token}`)
-      .then(r => { if (!r.ok) throw new Error('Zugangslink ungültig oder abgelaufen'); return r.json(); })
-      .then(d => setData(d))
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [token]);
+    const init = async () => {
+      // 1. Check JWT from localStorage (nach /login Auth)
+      const stored = localStorage.getItem('nx_auth');
+      if (stored) {
+        try {
+          const auth = JSON.parse(stored);
+          if (auth.role === 'customer' && auth.token) {
+            await loadDashboard(auth.token);
+            setLoading(false);
+            return;
+          }
+        } catch {}
+      }
+      
+      // 2. Check URL path for direct magic link token: /portal/{token}
+      const pathParts = window.location.pathname.split('/portal/');
+      const pathToken = pathParts.length > 1 ? pathParts[1] : null;
+      if (pathToken) {
+        try {
+          // Verify token → get JWT
+          const vr = await fetch(`${API}/api/auth/verify-token`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: pathToken }),
+          });
+          if (vr.ok) {
+            const vd = await vr.json();
+            localStorage.setItem('nx_auth', JSON.stringify({
+              token: vd.access_token, role: 'customer', email: vd.email, name: vd.customer_name
+            }));
+            await loadDashboard(vd.access_token);
+            setLoading(false);
+            return;
+          }
+        } catch {}
+      }
+      
+      // 3. Legacy query param token
+      if (urlToken) {
+        try {
+          await loadLegacyToken(urlToken);
+          setLoading(false);
+          return;
+        } catch (e) {
+          setError(e.message);
+          setLoading(false);
+          return;
+        }
+      }
+      
+      // 4. No auth → redirect to login
+      setError('Bitte melden Sie sich an, um auf Ihr Portal zuzugreifen.');
+      setLoading(false);
+    };
+    init();
+  }, []);
+
+  const logout = () => {
+    localStorage.removeItem('nx_auth');
+    window.location.href = '/login';
+  };
 
   const quoteAction = async (quoteId, action, body = {}) => {
     setActionBusy(`${quoteId}_${action}`);
     try {
-      const r = await fetch(`${API}/api/portal/quote/${quoteId}/${action}?token=${token}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+      const headers = { 'Content-Type': 'application/json' };
+      if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+      const qp = urlToken ? `?token=${urlToken}` : '';
+      const r = await fetch(`${API}/api/portal/quote/${quoteId}/${action}${qp}`, {
+        method: 'POST', headers, body: JSON.stringify(body)
       });
       if (r.ok) reload();
     } catch (e) { console.error(e); } finally { setActionBusy(''); }
@@ -62,7 +151,8 @@ const CustomerPortal = () => {
       <div className="cp-error-box">
         <I n="lock" /><h2>Zugang nicht möglich</h2>
         <p>{error}</p>
-        <a href="/" className="cp-btn cp-btn-primary">Zur Startseite</a>
+        <a href="/login" className="cp-btn cp-btn-primary" data-testid="portal-login-link">Zum Login</a>
+        <a href="/" className="cp-btn" style={{marginTop:8}}>Zur Startseite</a>
       </div>
     </div>
   );
@@ -81,7 +171,10 @@ const CustomerPortal = () => {
       <header className="cp-header">
         <div className="cp-header-inner">
           <div className="cp-logo"><img src="/icon-mark.svg" alt="" width="28" height="28" /><span>NeXify<em>AI</em></span></div>
-          <div className="cp-user"><I n="person" /> {data?.customer_name || data?.email}</div>
+          <div className="cp-user">
+            <I n="person" /> {data?.customer_name || data?.email}
+            <button className="cp-logout-btn" onClick={logout} title="Abmelden" data-testid="portal-logout"><I n="logout" /></button>
+          </div>
         </div>
       </header>
       <div className="cp-tabs">

@@ -465,8 +465,11 @@ async def get_current_admin(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
+        role: str = payload.get("role", "admin")
         if not email:
             raise HTTPException(status_code=401, detail="Ungültiger Token")
+        if role != "admin":
+            raise HTTPException(status_code=403, detail="Keine Admin-Berechtigung")
     except JWTError:
         raise HTTPException(status_code=401, detail="Token abgelaufen oder ungültig")
     
@@ -475,6 +478,24 @@ async def get_current_admin(token: str = Depends(oauth2_scheme)):
         raise HTTPException(status_code=401, detail="Benutzer nicht gefunden")
     
     return user
+
+async def get_current_customer(token: str = Depends(oauth2_scheme)):
+    """JWT-basierte Kunden-Authentifizierung — Rolle: customer."""
+    if not token:
+        raise HTTPException(status_code=401, detail="Nicht authentifiziert")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        role: str = payload.get("role")
+        if not email or role != "customer":
+            raise HTTPException(status_code=403, detail="Kein Kundenzugang")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Token abgelaufen oder ungültig")
+    
+    contact = await db.contacts.find_one({"email": email.lower()}, {"_id": 0})
+    if not contact:
+        raise HTTPException(status_code=404, detail="Kundenkonto nicht gefunden")
+    return {"email": email.lower(), "contact": contact}
 
 async def log_audit(action: str, user: str, details: dict = None):
     await db.audit_log.insert_one({
@@ -1162,10 +1183,234 @@ async def admin_login(form_data: OAuth2PasswordRequestForm = Depends(), request:
         await log_audit("login_failed", form_data.username)
         raise HTTPException(status_code=401, detail="Ungültige Anmeldedaten")
     
-    token = create_access_token({"sub": user["email"]})
+    token = create_access_token({"sub": user["email"], "role": "admin"})
     await log_audit("login_success", user["email"])
     
     return {"access_token": token, "token_type": "bearer"}
+
+
+# ============== UNIFIED AUTH (Admin + Kunde) ==============
+
+@app.post("/api/auth/check-email")
+async def auth_check_email(data: dict):
+    """Prüfe ob E-Mail ein Admin oder Kunde ist."""
+    email = data.get("email", "").strip().lower()
+    if not email:
+        raise HTTPException(400, "E-Mail ist Pflichtfeld")
+    
+    admin = await db.admin_users.find_one({"email": email})
+    if admin:
+        return {"role": "admin", "needs_password": True}
+    
+    contact = await db.contacts.find_one({"email": email})
+    lead = await db.leads.find_one({"email": email})
+    if contact or lead:
+        return {"role": "customer", "needs_magic_link": True}
+    
+    return {"role": "unknown"}
+
+
+@app.post("/api/auth/request-magic-link")
+async def auth_request_magic_link(data: dict, request: Request):
+    """Magic Link per E-Mail an Kunden senden."""
+    if request:
+        await check_rate_limit(request, limit=5, window=300)
+    
+    email = data.get("email", "").strip().lower()
+    if not email:
+        raise HTTPException(400, "E-Mail ist Pflichtfeld")
+    
+    # Prüfe ob Kontakt/Lead existiert
+    contact = await db.contacts.find_one({"email": email})
+    lead = await db.leads.find_one({"email": email})
+    if not contact and not lead:
+        raise HTTPException(404, "Kein Konto für diese E-Mail gefunden")
+    
+    # Erstelle Portal-Zugangstoken
+    token_data = generate_access_token(email, "portal")
+    await db.access_links.insert_one({
+        "token_hash": token_data["token_hash"],
+        "customer_email": email,
+        "customer_name": (contact or {}).get("first_name", (lead or {}).get("vorname", "")) + " " + (contact or {}).get("last_name", (lead or {}).get("nachname", "")),
+        "document_type": "portal",
+        "expires_at": token_data["expires_at"],
+        "created_at": token_data["created_at"],
+        "created_by": "system_magic_link",
+    })
+    
+    base_url = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
+    magic_link = f"{base_url}/login/verify?token={token_data['token']}"
+    
+    # E-Mail senden
+    if RESEND_API_KEY:
+        try:
+            html = email_template(
+                "Ihr Portalzugang — NeXifyAI",
+                f"<p>Hallo,</p>"
+                f"<p>Sie haben einen Zugangslink für Ihr NeXifyAI-Kundenportal angefordert.</p>"
+                f"<p>Klicken Sie auf den Button, um sich einzuloggen. Der Link ist 24 Stunden gültig.</p>",
+                magic_link,
+                "Zum Portal"
+            )
+            await send_email([email], "Ihr Portalzugang — NeXifyAI", html)
+        except Exception as e:
+            logger.error(f"Magic Link E-Mail Fehler: {e}")
+    
+    await log_audit("magic_link_requested", email)
+    
+    return {"status": "ok", "message": "Magic Link wurde per E-Mail gesendet"}
+
+
+@app.post("/api/auth/verify-token")
+async def auth_verify_token(data: dict):
+    """Magic Link Token verifizieren → JWT mit role=customer zurückgeben."""
+    token = data.get("token", "").strip()
+    if not token:
+        raise HTTPException(400, "Token fehlt")
+    
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    link = await db.access_links.find_one({"token_hash": token_hash})
+    if not link:
+        raise HTTPException(403, "Zugangslink ungültig")
+    
+    expires = link.get("expires_at")
+    if expires:
+        if isinstance(expires, str):
+            from dateutil.parser import parse as dateparse
+            expires = dateparse(expires)
+        if expires < datetime.now(timezone.utc):
+            raise HTTPException(403, "Zugangslink abgelaufen")
+    
+    email = link.get("customer_email", "").lower()
+    if not email:
+        raise HTTPException(400, "Kein Kundenkonto verknüpft")
+    
+    # JWT mit role=customer erstellen
+    jwt_token = create_access_token(
+        {"sub": email, "role": "customer"},
+        expires_delta=timedelta(hours=24)
+    )
+    
+    await log_audit("customer_login_magic_link", email)
+    
+    # mem0 Memory Write
+    if memory_svc:
+        contact = await db.contacts.find_one({"email": email})
+        if contact:
+            await memory_svc.write(contact["contact_id"], "Kunde hat sich über Magic Link eingeloggt",
+                                   AGENT_IDS["system"], category="context", source="auth",
+                                   verification_status="verifiziert")
+    
+    return {
+        "access_token": jwt_token,
+        "token_type": "bearer",
+        "role": "customer",
+        "email": email,
+        "customer_name": link.get("customer_name", "")
+    }
+
+
+# ============== CUSTOMER PORTAL JWT-AUTH ENDPOINTS ==============
+
+@app.get("/api/customer/me")
+async def customer_me(user = Depends(get_current_customer)):
+    """Kundenprofil — JWT-authentifiziert."""
+    return {
+        "email": user["email"],
+        "role": "customer",
+        "contact": {k: v for k, v in user["contact"].items() if k not in ("_id",)}
+    }
+
+
+@app.get("/api/customer/dashboard")
+async def customer_dashboard(user = Depends(get_current_customer)):
+    """Kunden-Dashboard — alle Daten JWT-authentifiziert."""
+    email = user["email"]
+    
+    # Quotes
+    quotes = []
+    async for q in db.quotes.find({"customer.email": email}, {"_id": 0}).sort("created_at", -1).limit(20):
+        quotes.append({
+            "quote_id": q["quote_id"],
+            "quote_number": q.get("quote_number", ""),
+            "status": q.get("status", ""),
+            "tier": q.get("tier", ""),
+            "calculation": q.get("calculation", {}),
+            "discount": q.get("discount", {}),
+            "special_items": q.get("special_items", []),
+            "created_at": str(q.get("created_at", "")),
+        })
+    
+    # Invoices
+    invoices = []
+    async for inv in db.invoices.find({"customer.email": email}, {"_id": 0}).sort("created_at", -1).limit(20):
+        invoices.append({
+            "invoice_id": inv["invoice_id"],
+            "invoice_number": inv.get("invoice_number", ""),
+            "status": inv.get("status", ""),
+            "payment_status": inv.get("payment_status", ""),
+            "total_eur": inv.get("totals", {}).get("gross", 0),
+            "created_at": str(inv.get("created_at", "")),
+        })
+    
+    # Bookings
+    bookings = []
+    async for bk in db.bookings.find({"email": email}, {"_id": 0}).sort("created_at", -1).limit(10):
+        bookings.append({
+            "booking_id": bk.get("booking_id", ""),
+            "date": bk.get("date", ""),
+            "time": bk.get("time", ""),
+            "status": bk.get("status", ""),
+            "thema": bk.get("thema", ""),
+        })
+    
+    # Communication
+    chat_summaries = []
+    async for sess in db.chat_sessions.find({"customer_email": email}, {"_id": 0, "messages": {"$slice": -3}}).sort("created_at", -1).limit(5):
+        msgs = sess.get("messages", [])
+        chat_summaries.append({
+            "type": "chat", "date": str(sess.get("created_at", "")),
+            "messages": [{"role": m["role"], "content": m["content"][:150]} for m in msgs],
+        })
+    
+    unified_convos = []
+    contact = user["contact"]
+    if contact:
+        cid = contact.get("contact_id")
+        async for conv in db.conversations.find({"contact_id": cid}, {"_id": 0}).sort("last_message_at", -1).limit(10):
+            last_msgs = []
+            async for m in db.messages.find({"conversation_id": conv["conversation_id"]}, {"_id": 0}).sort("timestamp", -1).limit(3):
+                last_msgs.append({
+                    "direction": m.get("direction"), "channel": m.get("channel"),
+                    "content": m.get("content", "")[:200], "timestamp": str(m.get("timestamp", "")),
+                })
+            unified_convos.append({
+                "type": "conversation", "channels": conv.get("channels", []),
+                "status": conv.get("status"), "message_count": conv.get("message_count", 0),
+                "date": str(conv.get("last_message_at", "")), "messages": last_msgs,
+            })
+    
+    # Timeline
+    timeline_items = []
+    async for evt in db.timeline_events.find(
+        {"$or": [{"actor": email}, {"details.email": email}, {"details.customer_email": email}]},
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(20):
+        timeline_items.append({
+            "event_type": evt.get("event_type"), "action": evt.get("action"),
+            "channel": evt.get("channel"), "timestamp": str(evt.get("timestamp", "")),
+            "details": {k: v for k, v in evt.get("details", {}).items() if k not in ("_id",)},
+        })
+    
+    return {
+        "email": email,
+        "customer_name": f"{contact.get('first_name', '')} {contact.get('last_name', '')}".strip(),
+        "quotes": quotes,
+        "invoices": invoices,
+        "bookings": bookings,
+        "communications": chat_summaries + unified_convos,
+        "timeline": timeline_items,
+    }
 
 @app.get("/api/admin/me")
 async def admin_me(user = Depends(get_current_admin)):

@@ -10,6 +10,7 @@ import LegalPage from './pages/LegalPages';
 import QuotePortal from './pages/QuotePortal';
 import CustomerPortal from './pages/CustomerPortal';
 import IntegrationDetail from './pages/IntegrationDetail';
+import UnifiedLogin from './pages/UnifiedLogin';
 
 /* Language-aware redirect: / → /<detected lang> */
 function LangRedirect() {
@@ -43,6 +44,10 @@ root.render(
             {/* Language-prefixed legal pages (all slug variants) */}
             <Route path="/:lang/:page" element={<LegalPage />} />
 
+            {/* Unified Login (Admin + Customer) */}
+            <Route path="/login" element={<UnifiedLogin />} />
+            <Route path="/login/verify" element={<UnifiedLogin />} />
+
             {/* Admin (no language prefix) */}
             <Route path="/admin" element={<Admin />} />
 
@@ -52,8 +57,9 @@ root.render(
             {/* Customer Offer Portal */}
             <Route path="/angebot" element={<QuotePortal />} />
 
-            {/* Customer Portal (Magic Link access) */}
+            {/* Customer Portal (JWT-authenticated) */}
             <Route path="/portal" element={<CustomerPortal />} />
+            <Route path="/portal/:token" element={<CustomerPortal />} />
 
             {/* Backward compatibility: old routes without lang prefix */}
             <Route path="/impressum" element={<LegacyRedirect slug="impressum" />} />

@@ -99,6 +99,7 @@ const Admin = () => {
       const d = await r.json();
       if (!r.ok) throw new Error(d.detail || 'Anmeldung fehlgeschlagen');
       setToken(d.access_token); localStorage.setItem('nx_admin_token', d.access_token);
+      localStorage.setItem('nx_auth', JSON.stringify({ token: d.access_token, role: 'admin', email: loginEmail }));
     } catch (err) { setLoginErr(err.message); } finally { setLoginBusy(false); }
   };
 
@@ -291,7 +292,7 @@ const Admin = () => {
     loadAudit();
   }, [token, view, loadAudit]);
 
-  const logout = () => { setToken(''); localStorage.removeItem('nx_admin_token'); };
+  const logout = () => { setToken(''); localStorage.removeItem('nx_admin_token'); localStorage.removeItem('nx_auth'); };
 
   /* ══════════ LOGIN SCREEN ══════════ */
   if (!token) return (

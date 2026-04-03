@@ -1,0 +1,130 @@
+{
+  "summary": "Iteration 23 - Unified Auth & Customer Portal Testing. Backend: 20/20 tests passed (100%). Frontend: All features working. Tested unified login (admin password flow + customer magic link flow), customer portal JWT auth, role separation (customer JWT blocked from admin endpoints), and mobile floating buttons dynamic positioning.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration_23.py",
+    "/app/test_reports/pytest/pytest_results_iter23.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_iteration_23.py"
+  ],
+  "success_rate": {
+    "backend": "100% (20/20 tests passed)",
+    "frontend": "100% (all features working)"
+  },
+  "test_credentials": {
+    "admin_email": "p.courbois@icloud.com",
+    "admin_password": "NxAi#Secure2026!",
+    "customer_email": "max@testfirma.de"
+  },
+  "seed_data_creation": "Used existing test customer max@testfirma.de",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iteration 23 tested new unified auth system: POST /api/auth/check-email (admin→needs_password, customer→needs_magic_link, unknown→unknown), POST /api/auth/request-magic-link (sends magic link email), POST /api/auth/verify-token (verifies token→returns JWT with role=customer), GET /api/customer/me (JWT auth, returns customer profile), GET /api/customer/dashboard (JWT auth, returns quotes/invoices/bookings/communications/timeline). Role separation verified: customer JWT gets 403 on /api/admin/* endpoints. Admin JWT has role=admin in payload. Frontend: UnifiedLogin.js at /login handles both admin (password step) and customer (magic link sent step). CustomerPortal.js at /portal supports JWT auth via localStorage + legacy token URL. Logout button redirects to /login. Portal without auth shows error with login link. Mobile floating buttons: cookie-visible→bottom:120px, cookie-dismissed→bottom:24px with smooth transition.",
+  "features_tested": {
+    "backend_apis": {
+      "POST /api/auth/check-email": {
+        "status": "PASS",
+        "tests": [
+          "Admin email returns {role:'admin', needs_password:true}",
+          "Customer email returns {role:'customer', needs_magic_link:true}",
+          "Unknown email returns {role:'unknown'}",
+          "Empty email returns 400"
+        ]
+      },
+      "POST /api/auth/request-magic-link": {
+        "status": "PASS",
+        "tests": [
+          "Customer email returns 200 with status:ok",
+          "Unknown email returns 404",
+          "Empty email returns 400"
+        ]
+      },
+      "POST /api/auth/verify-token": {
+        "status": "PASS",
+        "tests": [
+          "Invalid token returns 403",
+          "Empty token returns 400",
+          "Valid token returns JWT with role=customer"
+        ]
+      },
+      "GET /api/customer/me": {
+        "status": "PASS",
+        "tests": [
+          "Without auth returns 401",
+          "With customer JWT returns profile with role=customer"
+        ]
+      },
+      "GET /api/customer/dashboard": {
+        "status": "PASS",
+        "tests": [
+          "Without auth returns 401",
+          "With customer JWT returns dashboard with quotes/invoices/bookings/communications/timeline"
+        ]
+      },
+      "Role Separation": {
+        "status": "PASS",
+        "tests": [
+          "Admin JWT can access /api/admin/leads",
+          "Customer JWT blocked from /api/admin/leads (403)",
+          "Customer JWT blocked from /api/admin/customers (403)",
+          "Customer JWT blocked from /api/admin/quotes (403)"
+        ]
+      },
+      "Admin JWT Role": {
+        "status": "PASS",
+        "tests": [
+          "Admin JWT payload contains role=admin"
+        ]
+      }
+    },
+    "frontend_ui": {
+      "unified_login_page": {
+        "status": "PASS",
+        "url": "/login",
+        "features": [
+          "Email step with input and continue button",
+          "Admin email → Password step shown",
+          "Admin login → redirect to /admin",
+          "Customer email → Magic Link Sent step shown",
+          "data-testid attributes: unified-login-page, login-email-step, login-email-input, login-continue-btn, login-password-step, login-password-input, login-admin-btn, login-magic-link-sent"
+        ]
+      },
+      "customer_portal": {
+        "status": "PASS",
+        "url": "/portal",
+        "features": [
+          "JWT auth via localStorage (from /login flow)",
+          "Legacy token URL support (/portal/{token})",
+          "Dashboard with tabs: Übersicht, Angebote, Rechnungen, Termine, Kommunikation, Aktivität",
+          "Logout button redirects to /login",
+          "Without auth shows error with login link",
+          "data-testid attributes: customer-portal, portal-logout, portal-login-link, cp-tab-*, cp-overview, cp-quotes, cp-invoices, cp-bookings, cp-communication, cp-timeline"
+        ]
+      },
+      "mobile_floating_buttons": {
+        "status": "PASS",
+        "features": [
+          "Cookie visible: bottom=120px",
+          "Cookie dismissed: bottom=24px",
+          "Smooth transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+          "WhatsApp at right=72px"
+        ]
+      }
+    }
+  },
+  "mocked_apis": {
+    "has_mocked_apis": true,
+    "mocked_apis_list": ["GPT-5.2 via Emergent LLM Key"]
+  }
+}

@@ -901,6 +901,40 @@ def generate_quote_pdf(quote_data: dict) -> bytes:
          Paragraph(f"{calc.get('contract_months', 24)} Monate", styles["RightAligned"])],
         [Paragraph("<b>Gesamtvertragswert (netto)</b>", styles["BodyText2"]),
          Paragraph(f"<b>{_fmt_eur(calc.get('total_contract_eur', 0))}</b>", styles["RightAligned"])],
+    ]
+    
+    # Rabatt einfügen (falls vorhanden)
+    discount = quote_data.get("discount", {})
+    discount_pct = discount.get("percent", 0)
+    if discount_pct and discount_pct > 0:
+        discount_amount = calc.get("discount_amount_eur", round(calc.get("total_contract_eur", 0) * discount_pct / 100, 2))
+        fin_data.append(
+            [Paragraph(f"<font color='#10b981'>Rabatt ({discount_pct} %){(' — ' + discount.get('reason', '')) if discount.get('reason') else ''}</font>", styles["BodyText2"]),
+             Paragraph(f"<font color='#10b981'>-{_fmt_eur(discount_amount)}</font>", styles["RightAligned"])]
+        )
+    
+    # Sonderpositionen einfügen (falls vorhanden)
+    special_items = quote_data.get("special_items", [])
+    for si in special_items:
+        desc = si.get("description", "Sonderposition")
+        amt = si.get("amount_eur", 0)
+        si_type = si.get("type", "add")
+        prefix = "+" if si_type == "add" else "-"
+        color = "#3b82f6" if si_type == "add" else "#f59e0b"
+        fin_data.append(
+            [Paragraph(f"<font color='{color}'>{desc}</font>", styles["BodyText2"]),
+             Paragraph(f"<font color='{color}'>{prefix}{_fmt_eur(amt)}</font>", styles["RightAligned"])]
+        )
+    
+    # Netto nach Rabatt/Sonderpositionen (falls vorhanden)
+    if discount_pct > 0 or special_items:
+        net_after = calc.get("total_contract_net_eur", calc.get("total_contract_eur", 0))
+        fin_data.append(
+            [Paragraph("<b>Bereinigter Gesamtwert (netto)</b>", styles["BodyText2"]),
+             Paragraph(f"<b>{_fmt_eur(net_after)}</b>", styles["RightAligned"])]
+        )
+    
+    fin_data.extend([
         [Paragraph("", styles["BodyText2"]), Paragraph("", styles["RightAligned"])],
         [Paragraph("Aktivierungsanzahlung (30 %) — sofort fällig", styles["BodyText2"]),
          Paragraph(_fmt_eur(calc.get("upfront_eur", 0)), styles["RightAligned"])],
@@ -913,7 +947,7 @@ def generate_quote_pdf(quote_data: dict) -> bytes:
          Paragraph(_fmt_eur(calc.get("remaining_eur", 0)), styles["RightAligned"])],
         [Paragraph(f"Monatliche Folgerate ({calc.get('recurring_count', 24)} Raten)", styles["BodyText2"]),
          Paragraph(_fmt_eur(calc.get("recurring_eur", 0)), styles["RightAligned"])],
-    ]
+    ])
     fin_table = Table(fin_data, colWidths=[doc.width * 0.65, doc.width * 0.35])
     fin_table.setStyle(TableStyle([
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
