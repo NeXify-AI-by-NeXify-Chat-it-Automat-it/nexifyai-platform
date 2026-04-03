@@ -2977,9 +2977,20 @@ async def create_access_link(customer_email: str = "", current_user: dict = Depe
 
 @app.post("/api/webhooks/revolut")
 async def revolut_webhook(request: Request):
-    """Handle Revolut payment webhooks — idempotent, synchronisiert über Billing-Service."""
+    """Handle Revolut payment webhooks — idempotent, signaturverifiziert, synchronisiert."""
     body = await request.body()
     raw_body = body.decode("utf-8")
+
+    # Signatur-Verifikation (wenn Secret konfiguriert)
+    revolut_signing_secret = os.environ.get("REVOLUT_WEBHOOK_SECRET", "").strip()
+    if revolut_signing_secret:
+        sig = request.headers.get("revolut-signature", "")
+        timestamp = request.headers.get("revolut-request-timestamp", "")
+        if sig and timestamp:
+            from commercial import verify_revolut_webhook
+            if not verify_revolut_webhook(revolut_signing_secret, timestamp, raw_body, sig):
+                logger.warning(f"Revolut webhook signature mismatch")
+                raise HTTPException(401, "Invalid webhook signature")
 
     try:
         data = json.loads(raw_body)
@@ -3293,6 +3304,75 @@ async def admin_billing_status(customer_email: str = None, current_user: dict = 
         "contracts": {"total": total_contracts, "active": active_contracts},
         "revenue": {"total_gross": round(total_revenue, 2), "total_open": round(total_open, 2), "currency": "EUR"},
     }
+
+
+# ══════════════════════════════════════════════════════════════
+# RECONCILIATION (P4: Keine divergierenden Wahrheitsquellen)
+# ══════════════════════════════════════════════════════════════
+
+@app.post("/api/admin/billing/reconcile")
+async def billing_reconcile(current_user: dict = Depends(get_current_admin)):
+    """Reconciliation: Quote ↔ Contract ↔ Invoice ↔ Payment Status abgleichen."""
+    fixed = []
+    issues = []
+
+    # 1. Invoices mit payment_status=paid → Quote + Contract sync
+    async for inv in db.invoices.find({"payment_status": "paid"}, {"_id": 0}):
+        qid = inv.get("quote_id", "")
+        if qid:
+            quote = await db.quotes.find_one({"quote_id": qid}, {"_id": 0})
+            if quote and quote.get("payment_status") != "deposit_paid":
+                await db.quotes.update_one(
+                    {"quote_id": qid},
+                    {"$set": {"payment_status": "deposit_paid"},
+                     "$push": {"history": {"action": "reconciled_deposit_paid", "at": utcnow().isoformat(), "by": "reconciliation"}}},
+                )
+                fixed.append(f"Quote {qid}: payment_status → deposit_paid")
+
+            contract = await db.contracts.find_one({"quote_id": qid}, {"_id": 0})
+            if contract and contract.get("payment_status") != "deposit_paid":
+                await db.contracts.update_one(
+                    {"contract_id": contract["contract_id"]},
+                    {"$set": {"payment_status": "deposit_paid", "updated_at": utcnow()}}
+                )
+                fixed.append(f"Contract {contract['contract_id']}: payment_status → deposit_paid")
+
+    # 2. Contracts accepted but no invoice
+    async for c in db.contracts.find({"status": "accepted"}, {"_id": 0}):
+        if c.get("quote_id"):
+            inv = await db.invoices.find_one({"quote_id": c["quote_id"]}, {"_id": 0})
+            if not inv:
+                issues.append(f"Contract {c['contract_id']} accepted but no invoice for quote {c['quote_id']}")
+
+    # 3. Invoices with reminder but paid
+    async for inv in db.invoices.find({"payment_status": "paid", "reminder_count": {"$gte": 1}}, {"_id": 0}):
+        issues.append(f"Invoice {inv.get('invoice_id')} is paid but has reminder_count={inv.get('reminder_count')}")
+
+    await db.timeline_events.insert_one(create_timeline_event(
+        "system", "reconciliation", "billing_reconciliation",
+        actor=current_user["email"], actor_type="admin",
+        details={"fixed": len(fixed), "issues": len(issues)},
+    ))
+
+    return {
+        "reconciled": True,
+        "fixed": fixed,
+        "issues": issues,
+        "timestamp": utcnow().isoformat(),
+    }
+
+
+@app.get("/api/admin/webhooks/history")
+async def webhook_history(provider: str = None, limit: int = 50, current_user: dict = Depends(get_current_admin)):
+    """Webhook-Events-Historie für Audit."""
+    query = {}
+    if provider:
+        query["provider"] = provider
+    events = []
+    async for e in db.webhook_events.find(query, {"_id": 0}).sort("processed_at", -1).limit(limit):
+        events.append(e)
+    return {"events": events, "count": len(events)}
+
 
 
 # ══════════════════════════════════════════════════════════════
@@ -5504,6 +5584,11 @@ async def customer_accept_contract(contract_id: str, data: dict, request: Reques
     for lm in LEGAL_MODULES:
         if lm["required"] and not legal_accepted.get(lm["key"]):
             raise HTTPException(400, f"Pflichtmodul nicht akzeptiert: {lm['label']}")
+    # Legal Gate Check (P6: Compliance-Prüfung vor Annahme)
+    if legal_svc:
+        legal_check = await legal_svc.check_contract(contract)
+        if not legal_check.get("approved") and legal_check.get("risk_level") in ("high", "critical"):
+            raise HTTPException(400, f"Compliance-Gate: Vertrag hat offene rechtliche Risiken ({legal_check.get('risk_level')})")
     # Build evidence
     doc_hash = _compute_doc_hash(contract)
     ip_addr = request.client.host if request.client else "unknown"
@@ -5856,3 +5941,105 @@ async def llm_test_agent_flow(data: dict = None, current_user: dict = Depends(ge
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
+
+
+# ══════════════════════════════════════════════════════════════
+# E2E ACCEPTANCE FLOW VERIFICATION (P5)
+# ══════════════════════════════════════════════════════════════
+
+@app.post("/api/admin/e2e/verify-flow")
+async def verify_e2e_flow(current_user: dict = Depends(get_current_admin)):
+    """E2E-Flow-Verifikation: Lead → Quote → Contract → Invoice → Payment → Status.
+    Prüft die gesamte Kette auf Konsistenz."""
+    checks = []
+    issues = []
+
+    # 1. Check: Accepted quotes have invoices
+    async for q in db.quotes.find({"status": "accepted"}, {"_id": 0}).limit(50):
+        inv = await db.invoices.find_one({"quote_id": q["quote_id"]}, {"_id": 0})
+        if inv:
+            checks.append({
+                "check": "quote_has_invoice",
+                "quote_id": q["quote_id"],
+                "invoice_id": inv["invoice_id"],
+                "payment_status": inv.get("payment_status", "unknown"),
+                "pass": True,
+            })
+        else:
+            issues.append({"check": "quote_has_invoice", "quote_id": q["quote_id"], "pass": False, "issue": "Accepted quote without invoice"})
+
+    # 2. Check: Accepted contracts have matching quotes
+    async for c in db.contracts.find({"status": "accepted"}, {"_id": 0}).limit(50):
+        qid = c.get("quote_id", "")
+        if qid:
+            quote = await db.quotes.find_one({"quote_id": qid}, {"_id": 0})
+            checks.append({
+                "check": "contract_has_quote",
+                "contract_id": c["contract_id"],
+                "quote_id": qid,
+                "quote_status": quote.get("status") if quote else "missing",
+                "pass": bool(quote),
+            })
+            if not quote:
+                issues.append({"check": "contract_has_quote", "contract_id": c["contract_id"], "pass": False, "issue": f"Quote {qid} missing"})
+
+    # 3. Check: Paid invoices have consistent contract/quote status
+    async for inv in db.invoices.find({"payment_status": "paid"}, {"_id": 0}).limit(50):
+        qid = inv.get("quote_id", "")
+        if qid:
+            quote = await db.quotes.find_one({"quote_id": qid}, {"_id": 0})
+            contract = await db.contracts.find_one({"quote_id": qid}, {"_id": 0})
+            q_sync = quote and quote.get("payment_status") == "deposit_paid" if quote else True
+            c_sync = contract and contract.get("payment_status") == "deposit_paid" if contract else True
+            checks.append({
+                "check": "payment_status_sync",
+                "invoice_id": inv["invoice_id"],
+                "quote_sync": q_sync,
+                "contract_sync": c_sync,
+                "pass": q_sync and c_sync,
+            })
+            if not (q_sync and c_sync):
+                issues.append({"check": "payment_status_sync", "invoice_id": inv["invoice_id"], "pass": False, "issue": "Status divergence"})
+
+    # 4. Check: Reminder logic correctness
+    async for inv in db.invoices.find({"payment_status": "paid", "reminder_count": {"$gte": 1}}, {"_id": 0}).limit(20):
+        issues.append({"check": "reminder_on_paid", "invoice_id": inv.get("invoice_id"), "pass": False, "issue": "Paid invoice still has active reminders"})
+
+    # 5. Check: LLM provider health
+    llm_ok = False
+    if llm_provider:
+        try:
+            hc = await llm_provider.health_check()
+            llm_ok = hc.get("status") == "healthy"
+        except Exception:
+            pass
+    checks.append({"check": "llm_provider_healthy", "provider": llm_provider.get_provider_name() if llm_provider else "none", "pass": llm_ok})
+
+    # 6. Check: Evidence completeness for accepted contracts
+    async for c in db.contracts.find({"status": "accepted"}, {"_id": 0}).limit(50):
+        evidence = await db.contract_evidence.find_one({"contract_id": c["contract_id"], "action": "accepted"}, {"_id": 0})
+        has_evidence = bool(evidence)
+        checks.append({
+            "check": "contract_evidence_complete",
+            "contract_id": c["contract_id"],
+            "has_evidence": has_evidence,
+            "has_signature": bool(evidence.get("signature_data")) if evidence else False,
+            "has_hash": bool(evidence.get("document_hash")) if evidence else False,
+            "pass": has_evidence,
+        })
+        if not has_evidence:
+            issues.append({"check": "contract_evidence_complete", "contract_id": c["contract_id"], "pass": False, "issue": "Missing evidence for accepted contract"})
+
+    passed = sum(1 for c in checks if c.get("pass"))
+    total = len(checks)
+
+    return {
+        "e2e_verification": True,
+        "total_checks": total,
+        "passed": passed,
+        "failed": total - passed,
+        "pass_rate": f"{round(passed/max(total,1)*100)}%",
+        "checks": checks,
+        "issues": issues,
+        "timestamp": utcnow().isoformat(),
+    }
