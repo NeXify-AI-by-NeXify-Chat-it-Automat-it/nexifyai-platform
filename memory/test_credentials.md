@@ -18,3 +18,4 @@
 - DEEPSEEK_API_KEY: Nicht gesetzt (Kunden-Key erforderlich)
 - REVOLUT_SECRET_KEY: Gesetzt
 - RESEND_API_KEY: Gesetzt
+- LLM_PROVIDER: auto
