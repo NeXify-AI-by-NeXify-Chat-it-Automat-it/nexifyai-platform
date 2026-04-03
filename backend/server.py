@@ -5026,6 +5026,35 @@ async def list_project_versions(project_id: str, current_user: dict = Depends(ge
     return {"versions": versions, "count": len(versions)}
 
 
+@app.get("/api/admin/projects/{project_id}/download-handover")
+async def download_handover(project_id: str, version: int = None, current_user: dict = Depends(get_current_admin)):
+    """Build-Ready-Markdown als Datei herunterladen."""
+    from fastapi.responses import Response
+    query = {"project_id": project_id}
+    if version:
+        query["version"] = version
+    doc = await db.project_versions.find_one(query, {"_id": 0}, sort=[("version", -1)])
+    if not doc:
+        raise HTTPException(404, "Keine Handover-Version gefunden")
+    project = await db.projects.find_one({"project_id": project_id}, {"_id": 0, "title": 1})
+    title = (project or {}).get("title", "project").replace(" ", "_").lower()[:30]
+    filename = f"build-handover_{title}_v{doc.get('version', 1)}.md"
+    return Response(
+        content=doc.get("markdown", ""),
+        media_type="text/markdown",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+
+
+@app.get("/api/admin/projects/{project_id}/start-prompt")
+async def get_start_prompt(project_id: str, current_user: dict = Depends(get_current_admin)):
+    """Startprompt aus dem neuesten Build-Handover (nur Admin, geheim)."""
+    doc = await db.project_versions.find_one({"project_id": project_id}, {"_id": 0}, sort=[("version", -1)])
+    if not doc:
+        raise HTTPException(404, "Keine Handover-Version")
+    return {"start_prompt": doc.get("start_prompt", ""), "version": doc.get("version", 1)}
+
+
 @app.get("/api/admin/projects/{project_id}/completeness")
 async def project_completeness(project_id: str, current_user: dict = Depends(get_current_admin)):
     """Planungsvollständigkeit prüfen."""

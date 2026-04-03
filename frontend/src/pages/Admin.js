@@ -109,6 +109,11 @@ const Admin = () => {
   const [contractForm, setContractForm] = useState({ customer_email:'', customer_name:'', customer_company:'', tier_key:'', contract_type:'standard', notes:'' });
   const [showAppendixForm, setShowAppendixForm] = useState(false);
   const [appendixForm, setAppendixForm] = useState({ appendix_type:'ai_agents', title:'', description:'', pricing_amount:0 });
+  const [billingStatus, setBillingStatus] = useState(null);
+  const [outboundPipeline, setOutboundPipeline] = useState(null);
+  const [complianceSummary, setComplianceSummary] = useState(null);
+  const [legalAudit, setLegalAudit] = useState([]);
+  const [legalRisks, setLegalRisks] = useState([]);
 
   const headers = useMemo(() => ({ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }), [token]);
 
@@ -419,6 +424,26 @@ const Admin = () => {
     const d = await apiFetch(`/api/admin/contracts/${contractId}/send`, { method: 'POST', body: JSON.stringify({}) });
     if (d) { loadContractDetail(contractId); apiFetch('/api/admin/contracts').then(r => r && setContracts(r.contracts || [])); }
   };
+
+  /* Load billing status */
+  useEffect(() => {
+    if (!token || view !== 'billing') return;
+    apiFetch('/api/admin/billing/status').then(d => d && setBillingStatus(d));
+  }, [token, view, apiFetch]);
+
+  /* Load outbound pipeline */
+  useEffect(() => {
+    if (!token || view !== 'outbound_pipeline') return;
+    apiFetch('/api/admin/outbound/pipeline').then(d => d && setOutboundPipeline(d));
+  }, [token, view, apiFetch]);
+
+  /* Load legal compliance */
+  useEffect(() => {
+    if (!token || view !== 'legal') return;
+    apiFetch('/api/admin/legal/compliance').then(d => d && setComplianceSummary(d));
+    apiFetch('/api/admin/legal/audit?limit=20').then(d => d && setLegalAudit(d.audit_log || []));
+    apiFetch('/api/admin/legal/risks?resolved=false').then(d => d && setLegalRisks(d.risks || []));
+  }, [token, view, apiFetch]);
 
   const logout = () => { setToken(''); localStorage.removeItem('nx_admin_token'); localStorage.removeItem('nx_auth'); };
 
@@ -1642,6 +1667,7 @@ const Admin = () => {
           {/* Build Handover */}
           <div style={{display:'flex',gap:8,marginBottom:20,flexWrap:'wrap'}}>
             <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'10px 20px'}} onClick={() => generateBuildHandover(pd.project_id)} data-testid="generate-handover-btn"><I n="construction" /> Build-Handover generieren</button>
+            {pd.latest_version && <a className="adm-btn adm-btn-secondary" style={{width:'auto',padding:'10px 20px',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:6}} href={`${API}/api/admin/projects/${pd.project_id}/download-handover`} target="_blank" rel="noopener noreferrer" data-testid="download-handover-btn"><I n="download" /> Download v{pd.latest_version.version}</a>}
           </div>
           {pd.latest_version && (
             <div className="adm-wa-card" style={{marginBottom:20}}>
@@ -1893,11 +1919,129 @@ const Admin = () => {
     );
   };
 
+  /* ══════════ BILLING DASHBOARD (P7) ══════════ */
+  const BillingView = () => {
+    const bs = billingStatus;
+    if (!bs) return <div style={{textAlign:'center',padding:40,color:'#4a5568'}}>Lade Billing-Status...</div>;
+    return (
+      <div data-testid="admin-billing">
+        <h2>Billing-Dashboard</h2>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))',gap:12,marginBottom:24}}>
+          <div className="adm-stat-card"><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Angebote</div><div style={{fontSize:'1.5rem',fontWeight:700,color:'#fff'}}>{bs.quotes?.total || 0}</div><div style={{fontSize:'.75rem',color:'#10b981'}}>davon akzeptiert: {bs.quotes?.accepted || 0}</div></div>
+          <div className="adm-stat-card"><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Rechnungen</div><div style={{fontSize:'1.5rem',fontWeight:700,color:'#fff'}}>{bs.invoices?.total || 0}</div><div style={{fontSize:'.75rem',color:'#10b981'}}>bezahlt: {bs.invoices?.paid || 0}</div><div style={{fontSize:'.75rem',color:'#f59e0b'}}>offen: {bs.invoices?.pending || 0}</div><div style={{fontSize:'.75rem',color:'#ef4444'}}>überfällig: {bs.invoices?.overdue || 0}</div></div>
+          <div className="adm-stat-card"><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Verträge</div><div style={{fontSize:'1.5rem',fontWeight:700,color:'#fff'}}>{bs.contracts?.total || 0}</div><div style={{fontSize:'.75rem',color:'#10b981'}}>aktiv: {bs.contracts?.active || 0}</div></div>
+          <div className="adm-stat-card"><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Umsatz</div><div style={{fontSize:'1.5rem',fontWeight:700,color:'#ff9b7a'}}>{(bs.revenue?.total_gross||0).toLocaleString('de-DE',{style:'currency',currency:'EUR'})}</div><div style={{fontSize:'.75rem',color:'#f59e0b'}}>offen: {(bs.revenue?.total_open||0).toLocaleString('de-DE',{style:'currency',currency:'EUR'})}</div></div>
+        </div>
+      </div>
+    );
+  };
+
+  /* ══════════ OUTBOUND PIPELINE (P6) ══════════ */
+  const OutboundPipelineView = () => {
+    const op = outboundPipeline;
+    if (!op) return <div style={{textAlign:'center',padding:40,color:'#4a5568'}}>Lade Pipeline...</div>;
+    const maxCount = Math.max(...(op.pipeline || []).map(s => s.count), 1);
+    return (
+      <div data-testid="admin-outbound">
+        <h2>Outbound Lead Machine</h2>
+        <div style={{display:'flex',gap:16,marginBottom:20}}>
+          <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Total Leads</div><div style={{fontSize:'1.25rem',fontWeight:700,color:'#fff'}}>{op.total || 0}</div></div>
+          <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Konversionsrate</div><div style={{fontSize:'1.25rem',fontWeight:700,color:'#ff9b7a'}}>{(op.conversion_rate || 0).toFixed(1)}%</div></div>
+        </div>
+        <div style={{display:'grid',gap:6}}>
+          {(op.pipeline || []).map(s => (
+            <div key={s.key} style={{display:'flex',alignItems:'center',gap:12,padding:'8px 0'}}>
+              <div style={{width:180,fontSize:'.8125rem',color:'#c8d1dc',fontWeight:500}}>{s.label}</div>
+              <div style={{flex:1,background:'rgba(255,255,255,0.04)',borderRadius:4,height:24,overflow:'hidden'}}>
+                <div style={{background:s.count>0?'linear-gradient(90deg,#ff9b7a,#ffb599)':'transparent',height:'100%',width:`${(s.count/maxCount)*100}%`,borderRadius:4,transition:'width .4s'}}></div>
+              </div>
+              <div style={{width:40,textAlign:'right',fontSize:'.8125rem',fontWeight:600,color:s.count>0?'#fff':'#4a5568'}}>{s.count}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  /* ══════════ LEGAL & COMPLIANCE VIEW (P5) ══════════ */
+  const LegalView = () => {
+    const cs = complianceSummary;
+    return (
+      <div data-testid="admin-legal">
+        <h2>Legal & Compliance Guardian</h2>
+        {cs && (
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:12,marginBottom:24}}>
+            <div className="adm-stat-card"><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Offene Risiken</div><div style={{fontSize:'1.5rem',fontWeight:700,color:cs.risks?.open>0?'#ef4444':'#10b981'}}>{cs.risks?.open || 0}</div></div>
+            <div className="adm-stat-card"><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Gelöste Risiken</div><div style={{fontSize:'1.5rem',fontWeight:700,color:'#10b981'}}>{cs.risks?.resolved || 0}</div></div>
+            <div className="adm-stat-card"><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Audit-Einträge</div><div style={{fontSize:'1.5rem',fontWeight:700,color:'#fff'}}>{cs.audits?.total || 0}</div></div>
+            <div className="adm-stat-card"><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Opt-Outs</div><div style={{fontSize:'1.5rem',fontWeight:700,color:'#f59e0b'}}>{cs.opt_outs || 0}</div></div>
+            <div className="adm-stat-card"><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Suppressions</div><div style={{fontSize:'1.5rem',fontWeight:700,color:'#6b7b8d'}}>{cs.suppressions || 0}</div></div>
+          </div>
+        )}
+        {/* Open Risks */}
+        {legalRisks.length > 0 && (
+          <div style={{marginBottom:24}}>
+            <h3 style={{fontSize:'.9375rem',marginBottom:12}}>Offene Risiken</h3>
+            {legalRisks.map(r => (
+              <div key={r.risk_id} className="adm-wa-card" style={{marginBottom:8,borderLeft:`3px solid ${r.level==='critical'?'#dc2626':r.level==='high'?'#ef4444':r.level==='medium'?'#f97316':'#f59e0b'}`}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <span style={{fontWeight:600,color:'#fff',fontSize:'.8125rem'}}>{r.entity_type} — {r.entity_id?.slice(0,20)}</span>
+                  <span className="adm-badge" style={{background:r.level==='critical'?'#dc262622':'#ef444422',color:r.level==='critical'?'#dc2626':'#ef4444',textTransform:'uppercase'}}>{r.level}</span>
+                </div>
+                <p style={{margin:'6px 0 0',fontSize:'.75rem',color:'#c8d1dc'}}>{r.description}</p>
+                {r.mitigation && <p style={{margin:'4px 0 0',fontSize:'.6875rem',color:'#6b7b8d'}}>Mitigierung: {r.mitigation}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+        {/* Recent Gate Decisions */}
+        {cs?.recent_gates?.length > 0 && (
+          <div style={{marginBottom:24}}>
+            <h3 style={{fontSize:'.9375rem',marginBottom:12}}>Letzte Gate-Blockierungen</h3>
+            {cs.recent_gates.map((g, i) => (
+              <div key={i} className="adm-wa-card" style={{marginBottom:8,borderLeft:'3px solid #ef4444'}}>
+                <div style={{display:'flex',justifyContent:'space-between',fontSize:'.75rem'}}>
+                  <span style={{color:'#ef4444',fontWeight:600}}>{g.type}</span>
+                  <span style={{color:'#6b7b8d'}}>{fmtTime(g.timestamp)}</span>
+                </div>
+                <div style={{fontSize:'.75rem',color:'#c8d1dc',marginTop:4}}>{(g.gate_reasons || []).join(', ')}</div>
+              </div>
+            ))}
+          </div>
+        )}
+        {/* Audit Log */}
+        {legalAudit.length > 0 && (
+          <div>
+            <h3 style={{fontSize:'.9375rem',marginBottom:12}}>Audit-Log (letzte 20)</h3>
+            <div className="adm-table-wrap">
+              <table className="adm-table">
+                <thead><tr><th>Typ</th><th>Risiko</th><th>Gate</th><th>Zeitpunkt</th></tr></thead>
+                <tbody>
+                  {legalAudit.map((a, i) => (
+                    <tr key={i}>
+                      <td>{a.type}</td>
+                      <td><span className="adm-badge" style={{background:a.risk_level==='none'?'#10b98122':a.risk_level==='critical'?'#dc262622':'#f59e0b22',color:a.risk_level==='none'?'#10b981':a.risk_level==='critical'?'#dc2626':'#f59e0b'}}>{a.risk_level}</span></td>
+                      <td>{a.approved ? <span style={{color:'#10b981'}}>Freigegeben</span> : <span style={{color:'#ef4444'}}>Blockiert</span>}</td>
+                      <td>{fmtTime(a.timestamp)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   /* ══════════ MAIN LAYOUT ══════════ */
   const navItems = [
     { id: 'dashboard', icon: 'dashboard', label: 'Dashboard' },
     { id: 'projects', icon: 'folder_special', label: 'Projekte' },
     { id: 'contracts', icon: 'gavel', label: 'Verträge' },
+    { id: 'billing', icon: 'account_balance', label: 'Billing' },
+    { id: 'outbound_pipeline', icon: 'rocket_launch', label: 'Outbound' },
+    { id: 'legal', icon: 'shield', label: 'Legal' },
     { id: 'commercial', icon: 'receipt_long', label: 'Angebote & Rechnungen' },
     { id: 'leads', icon: 'people', label: 'Leads' },
     { id: 'conversations', icon: 'chat', label: 'Kommunikation' },
@@ -1932,6 +2076,9 @@ const Admin = () => {
           {view === 'dashboard' && <DashboardView />}
           {view === 'projects' && <ProjectsView />}
           {view === 'contracts' && <ContractsView />}
+          {view === 'billing' && <BillingView />}
+          {view === 'outbound_pipeline' && <OutboundPipelineView />}
+          {view === 'legal' && <LegalView />}
           {view === 'commercial' && <CommercialView />}
           {view === 'leads' && <LeadsView />}
           {view === 'conversations' && <ConversationsView />}

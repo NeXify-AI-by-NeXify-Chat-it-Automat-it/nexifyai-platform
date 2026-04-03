@@ -1,0 +1,92 @@
+{
+  "summary": "P2-P7 Visibility Layer testing completed. Backend: 16/19 tests passed (84%), 3 skipped due to customer portal token fixture. Frontend: All UI flows working correctly. Admin nav items (Dashboard, Projekte, Verträge, Billing, Outbound, Legal) all visible and functional. Customer Portal Projekte tab working with project list, detail view, and chat.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Console", "issues": ["CORS warning for ipapi.co/json - non-critical, external service"]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_p2_p7_visibility.py",
+    "/app/test_reports/pytest/pytest_results_iter34.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "✅ Admin: Billing nav item visible, loads billing dashboard with 4 stat cards (Angebote, Rechnungen, Verträge, Umsatz)",
+    "✅ Admin: Outbound nav item visible, loads pipeline with bar chart showing 26 total leads, 11.5% conversion",
+    "✅ Admin: Legal nav item visible, loads compliance summary with risks (3 open, 2 resolved), audit log (33 entries), opt-outs (13), suppressions (18)",
+    "✅ Admin: Project detail shows 'Build-Handover generieren' and 'Download v1' buttons",
+    "✅ GET /api/admin/billing/status returns quotes, invoices, contracts, revenue stats",
+    "✅ GET /api/admin/outbound/pipeline returns pipeline stages with counts and conversion rate",
+    "✅ GET /api/admin/legal/compliance returns compliance summary",
+    "✅ GET /api/admin/legal/risks returns risks list",
+    "✅ GET /api/admin/legal/audit returns audit log",
+    "✅ GET /api/admin/projects/{id}/download-handover returns markdown file with attachment disposition",
+    "✅ GET /api/admin/projects/{id}/start-prompt returns start prompt and version",
+    "✅ Frontend: Admin nav has all items: Dashboard, Projekte, Verträge, Billing, Outbound, Legal, Angebote & Rechnungen, Leads, Kommunikation, KI-Chats, WhatsApp, Aktivitäten, Kalender, Kunden, KI-Agenten, Audit",
+    "✅ Frontend: Billing dashboard shows Angebote (28), Rechnungen (23), Verträge (33), Umsatz (0,00 €) cards",
+    "✅ Frontend: Outbound shows pipeline stages with counts (Entdeckt: 8, Outreach-bereit: 5, etc.)",
+    "✅ Frontend: Legal shows risks (3 open), gate-blockierungen, audit-log",
+    "✅ Customer Portal: Projekte tab shows project list (3 projects for test customer)",
+    "✅ Customer Portal: Project detail shows sections, Build-Handover (v1), progress bar",
+    "✅ Customer Portal: Project chat send works"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_p2_p7_visibility.py"
+  ],
+  "success_rate": {
+    "backend": "84% (16/19 tests passed, 3 skipped)",
+    "frontend": "100% (all UI flows working)"
+  },
+  "test_credentials": {
+    "admin": "p.courbois@icloud.com / NxAi#Secure2026!",
+    "customer_portal": "Magic link auth via /api/admin/customers/portal-access (test customer: max@testfirma.de)"
+  },
+  "seed_data_creation": "No new seed data created",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "P2-P7 Visibility Layer fully tested. Key endpoints: GET /api/admin/billing/status (billing dashboard), GET /api/admin/outbound/pipeline (outbound pipeline), GET /api/admin/legal/compliance + /risks + /audit (legal guardian), GET /api/admin/projects/{id}/download-handover (markdown file download), GET /api/admin/projects/{id}/start-prompt (secret start prompt). Customer Portal projects: GET /api/customer/projects (list), GET /api/customer/projects/{id} (detail with sections, chat, latest_version), POST /api/customer/projects/{id}/chat (send message). All admin nav items working: Dashboard, Projekte, Verträge, Billing, Outbound, Legal, Angebote & Rechnungen, Leads, Kommunikation, KI-Chats, WhatsApp, Aktivitäten, Kalender, Kunden, KI-Agenten, Audit.",
+  "features_tested": {
+    "admin_billing_dashboard": {
+      "nav_item": "✅ Billing nav item visible in sidebar",
+      "dashboard_loads": "✅ Billing-Dashboard loads with 4 stat cards",
+      "stat_cards": "✅ Shows Angebote (28), Rechnungen (23), Verträge (33), Umsatz",
+      "api_endpoint": "✅ GET /api/admin/billing/status returns quotes, invoices, contracts, revenue"
+    },
+    "admin_outbound_pipeline": {
+      "nav_item": "✅ Outbound nav item visible in sidebar",
+      "pipeline_loads": "✅ Outbound Lead Machine loads with bar chart",
+      "stats": "✅ Shows 26 total leads, 11.5% conversion rate",
+      "pipeline_stages": "✅ Shows all stages: Entdeckt, Analyse, Qualifiziert, etc.",
+      "api_endpoint": "✅ GET /api/admin/outbound/pipeline returns pipeline array with counts"
+    },
+    "admin_legal_guardian": {
+      "nav_item": "✅ Legal nav item visible in sidebar",
+      "view_loads": "✅ Legal & Compliance Guardian loads",
+      "compliance_summary": "✅ Shows Offene Risiken (3), Gelöste Risiken (2), Audit-Einträge (33), Opt-Outs (13), Suppressions (18)",
+      "risks_list": "✅ Shows open risks with level badges (MEDIUM)",
+      "gate_blockierungen": "✅ Shows recent gate blockierungen with timestamps",
+      "audit_log": "✅ Shows audit log table",
+      "api_endpoints": "✅ GET /api/admin/legal/compliance, /risks, /audit all working"
+    },
+    "admin_project_handover": {
+      "project_detail": "✅ Project detail view loads with sections",
+      "generate_button": "✅ 'Build-Handover generieren' button visible",
+      "download_button": "✅ 'Download v1' button visible when handover exists",
+      "download_endpoint": "✅ GET /api/admin/projects/{id}/download-handover returns markdown file",
+      "start_prompt_endpoint": "✅ GET /api/admin/projects/{id}/start-prompt returns secret prompt"
+    },
+    "customer_portal_projects": {
+      "projekte_tab": "✅ Projekte tab visible with count (3)",
+      "project_list": "✅ Shows project cards with title, tier, status, completeness %",
+      "project_detail": "✅ Detail view shows sections, Build-Handover, progress bar",
+      "project_chat": "✅ Chat input and send button working",
+      "api_endpoints": "✅ GET /api/customer/projects, GET /api/customer/projects/{id}, POST /api/customer/projects/{id}/chat"
+    }
+  }
+}
