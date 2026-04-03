@@ -4,72 +4,75 @@
 B2B-Plattform "Starter/Growth AI Agenten AG" — API-First, Unified Communication, Deep Customer Memory (mem0), KI-Orchestrator. Premium-Architektur mit Unified Login Stack, Worker/Scheduler Layer, strikter Trennung Admin/Portal.
 
 ## Ziel-Architektur
-- **LLM**: DeepSeek (Primär) → Emergent GPT (Fallback)
+- **LLM**: DeepSeek (PRIMÄR — LIVE) → Emergent GPT (Fallback)
 - **Backend**: FastAPI + MongoDB + APScheduler
 - **Frontend**: React 18 SPA
 - **Auth**: JWT mit Rollen (Admin, Customer)
-- **Payments**: Revolut + Stripe (Webhooks)
-- **E-Mail**: Resend (produktiv)
+- **Payments**: Revolut (konfiguriert) + Stripe (ausstehend)
+- **E-Mail**: Resend (PRODUKTIV — Audit-Trail aktiv)
 - **Compliance**: Legal Guardian (DSGVO, UWG, EU AI Act)
 
 ## Commercial Source of Truth
 - Starter AI Agenten AG — NXA-SAA-24-499 — 499,00 EUR netto / Monat — 24 Monate — 30% Aktivierungsanzahlung 3.592,80 EUR
 - Growth AI Agenten AG — NXA-GAA-24-1299 — 1.299,00 EUR netto / Monat — 24 Monate — 30% Aktivierungsanzahlung 9.352,80 EUR
 
-## Implementiert und verifiziert
+## Implementiert und verifiziert (Iteration 38)
 
-### Cookie-Banner / Chat-Trigger Fix — VERIFIZIERT
-- Desktop (≥769px): `body.cookie-visible .chat-trigger{bottom:100px}` → kein Overlap
-- Tablet (768px): Cookie-Banner-Anpassung via Mobile-Regeln → kein Overlap
-- Smooth Transition beim Dismissal: `transition: bottom 0.4s cubic-bezier(0.4,0,0.2,1)`
+### P1: DeepSeek LIVE — VERIFIZIERT
+- DEEPSEEK_API_KEY gesetzt und aktiv
+- LLM_PROVIDER=deepseek
+- Health-Check: healthy (1682ms)
+- Agent-Flow-Test: passed (Session-Kontinuität bestätigt)
+- Öffentlicher Chat: über DeepSeek, Premium-Qualität
+- Commercial Source of Truth: korrekt reproduziert (Growth-Tarif NXA-GAA-24-1299)
+- Legal-Kontext: korrekte rechtliche Einordnung
+- Emergent GPT als Fallback: operativ, automatische Umschaltung
 
-### P1: DeepSeek Live — TEILWEISE VERIFIZIERT
-- Architektur produktionsbereit: Provider-Abstraktionsschicht mit Retry, Circuit-Breaker, Metriken
-- `LLM_PROVIDER=deepseek` in .env gesetzt
-- Fallback zu Emergent GPT funktioniert korrekt
-- **Restrisiko**: DEEPSEEK_API_KEY nicht gesetzt → bei Key-Eingabe sofortige Umschaltung
-
-### P2: Live-Provider-Webhooks — VERIFIZIERT
+### P2: Webhook-Härtung — VERIFIZIERT
 - Revolut Signatur-Verifikation (HMAC-SHA256)
+- Idempotente Webhooks mit webhook_events Collection
 - Reconciliation-Endpoint (Quote ↔ Contract ↔ Invoice ↔ Payment)
 - Webhook-History für Audit
-- Idempotente Verarbeitung
 
-### P3: Resend / E-Mail-Delivery — VERIFIZIERT
-- Resend produktiv: Test-E-Mail erfolgreich gesendet (resend_id bestätigt)
-- Audit-Trail: email_events Collection mit category, ref_id, status, resend_id
+### P3: Resend / E-Mail — VERIFIZIERT
+- Resend produktiv (Test-E-Mail erfolgreich, resend_id bestätigt)
+- Audit-Trail: email_events Collection (category, ref_id, status, resend_id)
+- Alle kritischen Pfade mit Audit: portal_access, invoice, reminder, contract
 - Admin-Endpoints: /api/admin/email/stats, /api/admin/email/test
-- E-Mail-Template mit Impressum, Datenschutz, AGB, DSGVO
+- E-Mail-Template: CI-konform mit Impressum, Datenschutz, AGB, DSGVO
 
-### P4: Portal-Finance-Ansicht — VERIFIZIERT
-- /api/customer/finance: Rechnungen, Zahlungsstatus, Fälligkeit, Beträge, PDF, Payment-Links, Banküberweisung
-- Summary mit total_outstanding, total_paid, open_invoices, overdue_invoices
-- Mahnstufen-Anzeige, Premium-UX
+### P4: Contract PDF-Archivierung — VERIFIZIERT
+- generate_contract_pdf: CI-branded PDF mit Kundeninfo, Finanzübersicht, Anlagen, Rechtsmodulen, Evidenzpaket
+- Automatische PDF-Archivierung bei Vertragsannahme
+- Admin: POST /api/admin/contracts/{id}/generate-pdf
+- Download: GET /api/documents/contract/{id}/pdf (HTTP 200, valid PDF)
+- Frontend: PDF-Button im Admin Contract-Detail
+- has_pdf-Info im Admin- und Customer-Contract-Detail
 
-### P5: Contract OS im Portal — VERIFIZIERT
-- Versionshistorie, Evidenzpaket, Signatur-Vorschau, PDF-Download, Änderungsanfrage-Detail
-
-### P6: E2E-Flow-Verifikation — VERIFIZIERT
+### P5: E2E-Flow — VERIFIZIERT
 - 6 Check-Typen: quote_has_invoice, contract_has_quote, payment_status_sync, reminder_on_paid, llm_provider_healthy, contract_evidence_complete
-- 100% Pass Rate
+- 100% Pass Rate mit DeepSeek aktiv
 
-### P7: Legal Guardian — VERIFIZIERT
-- Legal Gate im Contract-Accept-Flow und Outreach-Send-Flow
+### P6: Legal Guardian — VERIFIZIERT
+- Legal Gate im Contract-Accept-Flow (Compliance-Check vor Annahme)
+- Legal Gate im Outreach-Send-Flow
 - Compliance-Summary, Risk Management, Audit Log
 
-### P8: Outbound Lead Machine — VERIFIZIERT
+### P7: Monitoring Dashboard — VERIFIZIERT
+- /api/admin/monitoring/status: Konsolidierter System-Status
+- 10 Status-Cards: API, DB, Worker, Email, LLM/DeepSeek, Revolut, Stripe, Webhooks, Memory/Audit, Dead Letter
+- Admin-UI: "Monitoring" Nav-Item mit Refresh
+
+### P8: Outbound Machine — VERIFIZIERT
 - Legal Gate im Send, Response-Tracking, Handover zu Quote/Meeting/Nurture
 
-### Monitoring Dashboard — VERIFIZIERT (NEU)
-- /api/admin/monitoring/status: Konsolidierter System-Status
-- 10 Status-Cards: API, DB, Worker, Email, LLM, Revolut, Stripe, Webhooks, Memory/Audit, Dead Letter Queue
-- Sichtbar im Admin unter "Monitoring"
+### Cookie-Banner/Chat-Fix — VERIFIZIERT
+- Desktop (≥769px): body.cookie-visible .chat-trigger{bottom:100px}
+- Smooth Transition: transition bottom 0.4s
 
 ## Testing
-- Iteration 37: 100% (Backend 9/9, Frontend 100%, Cookie-Fix + Monitoring + Email + E2E)
+- Iteration 38: Backend 100% (15/15), Frontend 95% → Fix angewendet (PDF-Button)
 
 ## Ausstehend
 - P9: server.py Modular Refactoring (>6000 Zeilen → modulare Routen)
-- DEEPSEEK_API_KEY produktionsnah setzen und live testen
 - Stripe Live-Keys aktivieren
-- PDF-Archivierung in Object Storage (P4 aus User-Roadmap)

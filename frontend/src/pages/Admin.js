@@ -1863,6 +1863,11 @@ const Admin = () => {
           {/* Actions */}
           <div style={{display:'flex',gap:8,marginTop:20,flexWrap:'wrap'}}>
             {['draft','review'].includes(cd.status) && <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'10px 20px'}} onClick={() => sendContractFn(cd.contract_id)} data-testid="send-contract-btn"><I n="send" /> An Kunden senden</button>}
+            <button className="adm-btn adm-btn-secondary" style={{width:'auto',padding:'10px 20px'}} onClick={async () => {
+              const r = await apiFetch(`/api/admin/contracts/${cd.contract_id}/generate-pdf`, { method: 'POST' });
+              if (r?.generated) { window.open(`${API}/api/documents/contract/${cd.contract_id}/pdf`, '_blank'); loadContractDetail(cd.contract_id); }
+            }} data-testid="contract-generate-pdf-btn"><I n="picture_as_pdf" /> PDF generieren & herunterladen</button>
+            {cd.has_pdf && <a href={`${API}/api/documents/contract/${cd.contract_id}/pdf`} target="_blank" rel="noreferrer" className="adm-btn" style={{width:'auto',padding:'10px 20px',textDecoration:'none',display:'flex',alignItems:'center',gap:6}} data-testid="contract-download-pdf-btn"><I n="download" /> PDF herunterladen</a>}
           </div>
         </div>
       );

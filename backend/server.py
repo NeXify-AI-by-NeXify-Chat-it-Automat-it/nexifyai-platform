@@ -5420,6 +5420,10 @@ async def get_contract(contract_id: str, current_user: dict = Depends(get_curren
     contract["document_hash"] = _compute_doc_hash(contract)
     contract["legal_module_definitions"] = LEGAL_MODULES
     contract["appendix_type_labels"] = APPENDIX_TYPE_LABELS
+    # PDF status
+    has_pdf = bool(await db.documents.find_one({"ref_id": contract_id, "type": "contract"}, {"_id": 1}))
+    contract["has_pdf"] = has_pdf
+    contract["pdf_url"] = f"/api/documents/contract/{contract_id}/pdf" if has_pdf else None
     for dt_field in ("created_at", "updated_at"):
         if hasattr(contract.get(dt_field), "isoformat"):
             contract[dt_field] = contract[dt_field].isoformat()
