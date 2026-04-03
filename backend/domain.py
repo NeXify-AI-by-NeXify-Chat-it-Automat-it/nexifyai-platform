@@ -119,6 +119,51 @@ class AppendixType(str, Enum):
     CUSTOM = "custom"
 
 
+class PaymentStatus(str, Enum):
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    REFUNDED = "refunded"
+    CANCELLED = "cancelled"
+
+
+class DeliverableStatus(str, Enum):
+    PLANNED = "planned"
+    IN_PROGRESS = "in_progress"
+    REVIEW = "review"
+    APPROVED = "approved"
+    DELIVERED = "delivered"
+    REJECTED = "rejected"
+
+
+class ReviewCycleStatus(str, Enum):
+    OPEN = "open"
+    IN_REVIEW = "in_review"
+    FEEDBACK_GIVEN = "feedback_given"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    CLOSED = "closed"
+
+
+class BuildPhase(str, Enum):
+    NOT_STARTED = "not_started"
+    SETUP = "setup"
+    DEVELOPMENT = "development"
+    TESTING = "testing"
+    STAGING = "staging"
+    DEPLOYMENT = "deployment"
+    LIVE = "live"
+    MAINTENANCE = "maintenance"
+
+
+class AuditVerification(str, Enum):
+    VERIFIZIERT = "verifiziert"
+    TEILWEISE_VERIFIZIERT = "teilweise verifiziert"
+    NICHT_VERIFIZIERT = "nicht verifiziert"
+    WIDERLEGT = "widerlegt"
+
+
 # ══════════════════════════════════════════
 # HELPER
 # ══════════════════════════════════════════
@@ -460,6 +505,138 @@ def create_whatsapp_session(**kwargs) -> dict:
         "last_activity": None,
         "error": None,
         "metadata": {},
+        "created_at": utcnow(),
+        "updated_at": utcnow(),
+    }
+
+
+# ══════════════════════════════════════════
+# P2 PFLICHT-MODELLE: Payment, Audit, PromptHandover, BuildStatus, ReviewCycle, Deliverable
+# ══════════════════════════════════════════
+
+def create_payment(invoice_id: str, amount: float, method: str, **kwargs) -> dict:
+    """Zahlungsobjekt — Transaktion zu einer Rechnung."""
+    return {
+        "payment_id": new_id("pay"),
+        "invoice_id": invoice_id,
+        "amount": amount,
+        "currency": kwargs.get("currency", "EUR"),
+        "method": method,  # stripe, revolut, bank_transfer, cash
+        "status": PaymentStatus.PENDING.value,
+        "provider_ref": kwargs.get("provider_ref", ""),  # Stripe session_id etc.
+        "customer_email": kwargs.get("customer_email", ""),
+        "idempotency_key": kwargs.get("idempotency_key", new_id("idem")),
+        "metadata": kwargs.get("metadata", {}),
+        "paid_at": None,
+        "failed_at": None,
+        "refunded_at": None,
+        "created_at": utcnow(),
+        "updated_at": utcnow(),
+    }
+
+
+def create_audit_entry(action: str, actor: str, **kwargs) -> dict:
+    """Audit-Trail-Eintrag — Pflicht: kein relevanter Schritt ohne History."""
+    return {
+        "audit_id": new_id("aud"),
+        "action": action,
+        "actor": actor,
+        "actor_type": kwargs.get("actor_type", "system"),  # admin, customer, agent, system
+        "entity_type": kwargs.get("entity_type", ""),
+        "entity_id": kwargs.get("entity_id", ""),
+        "verification_status": kwargs.get("verification_status", AuditVerification.NICHT_VERIFIZIERT.value),
+        "details": kwargs.get("details", {}),
+        "source": kwargs.get("source", ""),
+        "ip_address": kwargs.get("ip_address", ""),
+        "user_agent": kwargs.get("user_agent", ""),
+        "timestamp": utcnow(),
+    }
+
+
+def create_prompt_handover(project_id: str, context_markdown: str, **kwargs) -> dict:
+    """Prompt-Handover — Kontextpaket für Build-Agent / Entwickler."""
+    return {
+        "handover_id": new_id("ho"),
+        "project_id": project_id,
+        "version": kwargs.get("version", 1),
+        "context_markdown": context_markdown,
+        "system_prompt": kwargs.get("system_prompt", ""),
+        "architecture_notes": kwargs.get("architecture_notes", ""),
+        "scope_summary": kwargs.get("scope_summary", ""),
+        "constraints": kwargs.get("constraints", []),
+        "tech_stack": kwargs.get("tech_stack", {}),
+        "dependencies": kwargs.get("dependencies", []),
+        "review_status": kwargs.get("review_status", "entwurf"),
+        "approved_by": kwargs.get("approved_by", ""),
+        "approved_at": None,
+        "created_by": kwargs.get("created_by", "admin"),
+        "created_at": utcnow(),
+        "updated_at": utcnow(),
+    }
+
+
+def create_build_status(project_id: str, **kwargs) -> dict:
+    """Build-Status-Tracking — operativer Stand pro Projekt."""
+    return {
+        "build_status_id": new_id("bs"),
+        "project_id": project_id,
+        "phase": BuildPhase.NOT_STARTED.value,
+        "progress_pct": 0,
+        "milestones_completed": [],
+        "milestones_total": kwargs.get("milestones_total", []),
+        "current_sprint": kwargs.get("current_sprint", ""),
+        "blockers": [],
+        "last_deploy_at": None,
+        "deploy_url": kwargs.get("deploy_url", ""),
+        "test_coverage_pct": 0,
+        "qa_sign_off": False,
+        "notes": kwargs.get("notes", ""),
+        "updated_by": kwargs.get("updated_by", "system"),
+        "created_at": utcnow(),
+        "updated_at": utcnow(),
+    }
+
+
+def create_review_cycle(project_id: str, deliverable_id: str, reviewer: str, **kwargs) -> dict:
+    """Review-Zyklus — formalisiertes Feedback-Loop."""
+    return {
+        "review_id": new_id("rev"),
+        "project_id": project_id,
+        "deliverable_id": deliverable_id,
+        "reviewer": reviewer,
+        "reviewer_type": kwargs.get("reviewer_type", "customer"),  # customer, admin, qa
+        "status": ReviewCycleStatus.OPEN.value,
+        "feedback": [],
+        "round": kwargs.get("round", 1),
+        "max_rounds": kwargs.get("max_rounds", 3),
+        "deadline": kwargs.get("deadline", ""),
+        "approved_at": None,
+        "rejected_reason": kwargs.get("rejected_reason", ""),
+        "created_at": utcnow(),
+        "updated_at": utcnow(),
+    }
+
+
+def create_deliverable(project_id: str, title: str, **kwargs) -> dict:
+    """Deliverable — lieferbares Artefakt im Projektkontext."""
+    return {
+        "deliverable_id": new_id("del"),
+        "project_id": project_id,
+        "title": title,
+        "description": kwargs.get("description", ""),
+        "deliverable_type": kwargs.get("deliverable_type", ""),  # feature, page, integration, document
+        "status": DeliverableStatus.PLANNED.value,
+        "priority": kwargs.get("priority", "medium"),
+        "assigned_to": kwargs.get("assigned_to", ""),
+        "sprint": kwargs.get("sprint", ""),
+        "milestone": kwargs.get("milestone", ""),
+        "acceptance_criteria": kwargs.get("acceptance_criteria", []),
+        "review_cycles": [],
+        "artifacts": [],  # URLs, storage paths
+        "estimated_hours": kwargs.get("estimated_hours", 0),
+        "actual_hours": kwargs.get("actual_hours", 0),
+        "completed_at": None,
+        "delivered_at": None,
         "created_at": utcnow(),
         "updated_at": utcnow(),
     }

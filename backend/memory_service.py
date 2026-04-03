@@ -11,7 +11,7 @@ Pflicht-Scoping pro Eintrag:
 """
 
 from datetime import datetime, timezone
-from domain import create_memory, new_id, utcnow
+from domain import create_memory, create_audit_entry, new_id, utcnow, AuditVerification
 
 APP_ID = "nexifyai"
 
@@ -111,4 +111,63 @@ class MemoryService:
         results = []
         async for mem in self.collection.find({"agent_id": agent_id}, {"_id": 0}).sort("created_at", -1).limit(limit):
             results.append(mem)
+        return results
+
+    async def write_classified(self, contact_id: str, fact: str, agent_id: str,
+                               verification: str, category: str = "general",
+                               source: str = "agent", source_ref: str = "",
+                               run_id: str = None) -> dict:
+        """Memory-Write mit Pflicht-Klassifizierung (verifiziert/teilweise/nicht/widerlegt)."""
+        valid = {v.value for v in AuditVerification}
+        if verification not in valid:
+            verification = AuditVerification.NICHT_VERIFIZIERT.value
+        confidence = {
+            AuditVerification.VERIFIZIERT.value: 1.0,
+            AuditVerification.TEILWEISE_VERIFIZIERT.value: 0.7,
+            AuditVerification.NICHT_VERIFIZIERT.value: 0.3,
+            AuditVerification.WIDERLEGT.value: 0.0,
+        }.get(verification, 0.3)
+        return await self.write(
+            contact_id, fact, agent_id, category, source, source_ref,
+            confidence=confidence, verification_status=verification, run_id=run_id,
+        )
+
+    async def audit_action(self, action: str, actor: str, actor_type: str = "system",
+                           entity_type: str = "", entity_id: str = "",
+                           verification: str = "nicht verifiziert",
+                           details: dict = None, source: str = "",
+                           ip_address: str = "", user_agent: str = "") -> dict:
+        """Audit-Trail-Eintrag mit Pflicht-Klassifizierung."""
+        entry = create_audit_entry(
+            action=action, actor=actor, actor_type=actor_type,
+            entity_type=entity_type, entity_id=entity_id,
+            verification_status=verification, details=details or {},
+            source=source, ip_address=ip_address, user_agent=user_agent,
+        )
+        await self.db.audit_log.insert_one(entry)
+        entry.pop("_id", None)
+        return entry
+
+    async def audit_verified(self, action: str, actor: str, **kwargs) -> dict:
+        """Verifizierter Audit-Eintrag."""
+        return await self.audit_action(
+            action=action, actor=actor,
+            verification=AuditVerification.VERIFIZIERT.value, **kwargs,
+        )
+
+    async def get_audit_trail(self, entity_type: str = None, entity_id: str = None,
+                              actor: str = None, limit: int = 50) -> list:
+        """Audit-Trail für ein Entity oder einen Actor abrufen."""
+        query = {}
+        if entity_type:
+            query["entity_type"] = entity_type
+        if entity_id:
+            query["entity_id"] = entity_id
+        if actor:
+            query["actor"] = actor
+        results = []
+        async for entry in self.db.audit_log.find(query, {"_id": 0}).sort("timestamp", -1).limit(limit):
+            if "timestamp" in entry and hasattr(entry["timestamp"], "isoformat"):
+                entry["timestamp"] = entry["timestamp"].isoformat()
+            results.append(entry)
         return results

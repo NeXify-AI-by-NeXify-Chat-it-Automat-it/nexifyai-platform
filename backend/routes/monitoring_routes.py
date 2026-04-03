@@ -501,3 +501,67 @@ async def verify_e2e_flow(current_user: dict = Depends(get_current_admin)):
         "issues": issues,
         "timestamp": utcnow().isoformat(),
     }
+
+
+
+@router.post("/api/admin/monitoring/migrate-documents")
+async def migrate_legacy_documents(current_user: dict = Depends(get_current_admin)):
+    """Legacy-Dokumente von MongoDB nach Object Storage migrieren.
+    Pflicht: Versionierung, Audit-Eintrag, keine Datenverluste."""
+    from services.storage import put_object, is_available
+    if not is_available():
+        raise HTTPException(503, "Object Storage nicht verfügbar")
+
+    migrated = 0
+    failed = 0
+    skipped = 0
+    errors = []
+
+    async for doc in S.db.documents.find(
+        {"pdf_data": {"$exists": True, "$ne": None}, "storage_path": {"$exists": False}},
+        {"_id": 0}
+    ):
+        ref_id = doc.get("ref_id", "unknown")
+        doc_type = doc.get("type", "unknown")
+        number = doc.get("number", "")
+        version = doc.get("version", 1)
+        pdf_data = doc.get("pdf_data")
+
+        if not pdf_data or not isinstance(pdf_data, bytes):
+            skipped += 1
+            continue
+
+        try:
+            path = f"nexifyai/documents/{doc_type}/{ref_id}_v{version}.pdf"
+            result = put_object(path, pdf_data, "application/pdf")
+            storage_path = result.get("path", path)
+
+            await S.db.documents.update_one(
+                {"ref_id": ref_id, "type": doc_type},
+                {"$set": {"storage_path": storage_path},
+                 "$unset": {"pdf_data": ""}}
+            )
+            migrated += 1
+            logger.info(f"Migrated: {doc_type}/{ref_id} -> {storage_path}")
+        except Exception as e:
+            failed += 1
+            errors.append({"ref_id": ref_id, "type": doc_type, "error": str(e)[:200]})
+            logger.error(f"Migration failed: {doc_type}/{ref_id} — {e}")
+
+    if S.memory_svc:
+        await S.memory_svc.audit_verified(
+            action="legacy_document_migration",
+            actor=current_user.get("email", "admin"),
+            actor_type="admin",
+            entity_type="documents",
+            details={"migrated": migrated, "failed": failed, "skipped": skipped},
+            source="monitoring_routes",
+        )
+
+    return {
+        "status": "completed",
+        "migrated": migrated,
+        "failed": failed,
+        "skipped": skipped,
+        "errors": errors[:10],
+    }

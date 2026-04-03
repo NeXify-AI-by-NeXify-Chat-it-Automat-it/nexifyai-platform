@@ -1,50 +1,72 @@
 # NeXifyAI — Product Requirements Document
 
-## Originalanforderung
-B2B-Plattform "Starter/Growth AI Agenten AG" — API-First, Unified Communication, Deep Customer Memory (mem0), KI-Orchestrator.
+## Produkt
+B2B-Plattform "Starter/Growth AI Agenten AG" — API-First, Unified Communication, Deep Customer Memory (mem0), KI-Orchestrator (DeepSeek).
 
-## Ziel-Architektur
-- **LLM**: DeepSeek (PRIMÄR — LIVE) → Emergent GPT (Fallback)
-- **Backend**: FastAPI + MongoDB + APScheduler
+## Architektur
 - **Frontend**: React 18 SPA
-- **Auth**: JWT (Admin, Customer)
-- **Payments**: Stripe (LIVE via emergentintegrations) + Revolut (konfiguriert)
-- **E-Mail**: Resend (PRODUKTIV)
-- **Storage**: Emergent Object Storage (LIVE) + MongoDB (Fallback)
-- **Compliance**: Legal Guardian (DSGVO, UWG, EU AI Act)
+- **Backend**: FastAPI (Python 3.11) — Modular Route Architecture
+- **Datenbank**: MongoDB (Motor async)
+- **LLM**: DeepSeek (Primär), GPT-5.2 (Fallback via Emergent)
+- **Object Storage**: Emergent Object Storage (für alle Dokumente)
+- **Payments**: Stripe (via emergentintegrations)
+- **E-Mail**: Resend (mit Audit-Trail)
 
-## Status — Verifiziert (Iteration 39)
+## Modulare Backend-Architektur (v3.1)
+```
+server.py (419 Zeilen — Orchestrator)
+routes/
+├── shared.py       (405 — State Container S, Auth, Helpers)
+├── auth_routes.py  (214 — Login, Magic Links, Me)
+├── public_routes.py(686 — Health, Contact, Booking, Chat, Products)
+├── admin_routes.py (604 — CRM: Leads, Customers, Bookings)
+├── billing_routes.py(1454 — Quotes, Invoices, Stripe, Documents)
+├── portal_routes.py(711 — Customer Portal, Dashboard, Finance)
+├── comms_routes.py (577 — Conversations, WhatsApp, Memory)
+├── contract_routes.py(552 — Contract OS, Appendices, Evidence)
+├── project_routes.py(564 — Projects, Sections, Handover)
+├── outbound_routes.py(243 — Lead Machine)
+├── monitoring_routes.py(567 — Monitoring, LLM, Workers, Audit, E2E)
+```
 
-### Stripe Live — VERIFIZIERT
-- Checkout-Sessions via emergentintegrations (echte Stripe-URLs)
-- Status-Polling: /api/payments/checkout/status/{session_id}
-- Webhook: /api/webhooks/stripe (idempotent, Signaturverifikation)
-- Payment-Transaction-Tracking in payment_transactions Collection
-- Automatische Invoice/Quote-Status-Synchronisation bei Zahlung
+## Domain-Modelle (P2 — 17 Pflichtobjekte)
+Contact, Lead, Conversation, Message, Timeline, Memory, WhatsAppSession, Project, ProjectSection, ProjectVersion, Contract, ContractAppendix, ContractEvidence, Payment, Audit, PromptHandover, BuildStatus, ReviewCycle, Deliverable
 
-### Object Storage — VERIFIZIERT
-- Emergent Object Storage initialisiert beim Start
-- PDF-Archivierung: Verträge, Angebote, Rechnungen
-- Download: Object Storage primär, MongoDB-Fallback
-- Monitoring zeigt Storage-Status und Dokument-Verteilung
+## Implementierungsstatus
 
-### Self-Healing/Recovery Dashboard — VERIFIZIERT
-- 5 operative Recovery-Items: LLM, Dead Letter, Email, Payment, Storage
-- Handlungsempfehlungen bei Problemen sichtbar
-- Master-Agent kann Störungen klar erkennen
+### P0 — Restlücken-Verifikation (Abgeschlossen)
+- Stripe: teilweise verifiziert (Test-Key aktiv, Webhook Secret benötigt Produktionskey)
+- Object Storage: verifiziert (30/30 Dokumente)
+- Monitoring: verifiziert (12 Subsysteme)
+- Rollentrennung: verifiziert
+- Projektchat/Handover: verifiziert
+- Memory: verifiziert (173+ Einträge)
 
-### Projekt Derived Status — VERIFIZIERT
-- Phase-Kette: discovery → quote_pending → contract_pending → payment_pending → build_ready
-- Admin: derived_status mit Quote/Contract/Invoice-Referenzen
-- Customer: project_phase mit deutschen Labels
+### P1 — server.py Modular Refactoring (Abgeschlossen)
+- 6530 Zeilen Monolith → 10 modulare Route-Dateien + 419 Zeilen Orchestrator
+- 0 API-Regression (Testing Iteration 40: 100% Pass)
+- Pattern: Mutable State Container (S) mit Runtime-Bindung
 
-### DeepSeek LIVE — VERIFIZIERT
-### Resend E-Mail — VERIFIZIERT (Audit-Trail aktiv)
-### Contract PDF-Archivierung — VERIFIZIERT (Object Storage)
-### Cookie-Banner/Chat-Fix — VERIFIZIERT
-### Legal Guardian — VERIFIZIERT (Gates in Accept + Send Flows)
-### Monitoring Dashboard — VERIFIZIERT (12 System-Status-Cards + Recovery)
-### E2E-Flow — VERIFIZIERT (100% Pass)
+### P2 — Domain-Layer-Härtung (Abgeschlossen)
+- 17 Pflichtobjekte modelliert
+- 6 neue Factories: create_payment, create_audit_entry, create_prompt_handover, create_build_status, create_review_cycle, create_deliverable
+- 4 neue Enums: PaymentStatus, DeliverableStatus, ReviewCycleStatus, BuildPhase, AuditVerification
 
-## Ausstehend
-- P7: server.py Modular Refactoring (>6500 Zeilen → modulare Routen)
+### P3 — Memory/Audit Systematik (Abgeschlossen)
+- write_classified() mit 4-Level-Klassifizierung (verifiziert/teilweise/nicht/widerlegt)
+- audit_action() / audit_verified() mit Pflicht-Klassifizierung
+- get_audit_trail() für Entity/Actor-basierte Abfragen
+
+### P4 — Legacy-Dokumente (Abgeschlossen)
+- 29/29 MongoDB-Dokumente → Object Storage migriert
+- 0 Fehler, Audit-Eintrag geschrieben
+- Migrations-Endpunkt: POST /api/admin/monitoring/migrate-documents
+
+## Offene Punkte
+- Stripe Webhook Secret (benötigt Produktionskey vom Kunden)
+- Next.js Migration (Zielarchitektur — nicht auf Emergent-Plattform möglich)
+- PydanticAI, LiteLLM, Temporal (Ziel-Stack — eigene Infrastruktur)
+
+## Admin Credentials
+- Email: p.courbois@icloud.com
+- Password: NxAi#Secure2026!
