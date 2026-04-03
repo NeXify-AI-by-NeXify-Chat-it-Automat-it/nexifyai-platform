@@ -22,34 +22,71 @@ All products managed in `commercial.py`:
 - TARIFF_CONFIG: KI-Agenten (2 tiers, 24 months, 30% deposit)
 - SERVICE_CATALOG: 10 services (3 websites, 2 apps, 3 SEO, 2 add-ons)
 - BUNDLE_CATALOG: 3 bundles (Digital Starter, Growth Digital, Enterprise Digital)
-- PRODUCT_DESCRIPTIONS: 6 professional product descriptions
+- PRODUCT_DESCRIPTIONS: 12 professional product descriptions (starter, growth, web_starter, web_professional, web_enterprise, app_mvp, app_professional, seo_starter, seo_growth, seo_enterprise, ai_addon_chatbot, ai_addon_automation)
 
 ## API Endpoints
 - GET /api/product/tariff-sheet?category=all|agents|websites|seo|apps|addons|bundles
-- GET /api/product/descriptions
+- GET /api/product/descriptions (12 products)
 - GET /api/product/tariffs
 - GET /api/product/services
+- GET /api/product/faq (18 items)
+- GET /api/product/compliance
 - POST /api/commercial/quote
 - GET /api/commercial/portal/{token}
-- POST /api/chat
+- POST /api/chat/message
+- POST /api/booking
+- GET /api/booking/slots
+
+## Architecture (Post-Refactoring)
+```
+/app/frontend/src/
+├── App.js (482 lines — Nav, Hero, Solutions, UseCases, AppDev, Process, Governance, Pricing, FAQ, Contact, Footer, CookieConsent)
+├── components/
+│   ├── sections/
+│   │   ├── Integrations.js (119 lines)
+│   │   ├── LiveChat.js (113 lines)
+│   │   ├── SEOProductSection.js (82 lines)
+│   │   ├── ServicesAll.js (79 lines)
+│   │   ├── TrustSection.js (63 lines)
+│   │   └── BookingModal.js (76 lines)
+│   ├── shared/
+│   │   └── index.js (61 lines — API, COMPANY, animations, utilities)
+│   ├── Scene3D.js, SEOHead.js, LanguageSwitcher.js
+│   └── ui/ (Shadcn components)
+├── data/ (integrations.js, products.js)
+├── pages/ (IntegrationDetail.js, LegalPages.js, QuotePortal.js)
+└── i18n/ (LanguageContext.js, translations.js)
+```
 
 ## Testing Status
 - Iteration 16: 100% (23/23 automated tests)
-- Iteration 17: All APIs verified (7 PDF categories, descriptions, services, frontend routes)
+- Iteration 17: 100% Backend (19/19) + 100% Frontend (13 feature categories all PASS)
+
+## Completed (Phase 3 — 2026-04-03)
+- 76 ASCII umlaut corrections across 7 files, zero remaining
+- Header/Nav breakpoints verified on 1920px, 1100px, 375px — all clean
+- Frontend/Backend data sync verified — 15 products perfectly matched
+- PRODUCT_DESCRIPTIONS expanded from 6 to 12 (all services covered)
+- FAQ expanded with corrected bundle descriptions + SEO tariffs (18 items total)
+- PDF tariff sheets verified — 4 pages, no encoding errors, correct company data
+- All API endpoints functional and tested
+- App.js refactored from 1049 → 482 lines (6 component files extracted)
+- Documentation updated (CHANGELOG, TECHNICAL_DOCS, PRD)
 
 ## Prioritized Backlog
-### P0 (Done)
-All blocks completed: UI fixes, central tariff system, product descriptions, legal, PDF sheets, trust, KI-advisor
+### P0 — None remaining
 
-### P1 (Remaining)
-- Resend live API key activation
-- App.js refactoring (>1000 lines)
+### P1 (Next)
+- Resend live API key activation (email sending)
+- Revolut Merchant API live keys (payment processing)
 - Dunning logic for overdue invoices
-- Admin CSV export
-- Subscription API
+- Admin CSV export for quotes/invoices
+- Subscription API for recurring billing
 
 ### P2 (Future)
 - A/B testing CTAs
-- Customer dashboard beyond portal
+- Customer dashboard beyond magic link portal
 - Multi-tenant support
-- API documentation
+- Swagger/OpenAPI documentation
+- CI/CD pipeline with E2E tests
+- Performance optimization (Lighthouse 95+)
