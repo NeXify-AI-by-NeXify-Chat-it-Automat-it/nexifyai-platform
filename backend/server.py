@@ -53,6 +53,7 @@ from workers.manager import WorkerManager
 from services.comms import CommunicationService
 from services.billing import BillingService
 from services.outbound import OutboundLeadMachine
+from services.legal_guardian import LegalGuardian
 from services.llm_provider import create_llm_provider
 
 # Password hashing with Argon2 (fallback to bcrypt if pwdlib unavailable)
@@ -99,6 +100,7 @@ worker_mgr = None
 comms_svc = None
 billing_svc = None
 outbound_svc = None
+legal_svc = None
 llm_provider = None
 
 ADVISOR_SYSTEM_PROMPT = """Du bist der NeXify**AI** Advisor — der strategische KI-Berater von NeXify**AI**. Du verkörperst die Marke in jeder Interaktion: modern, kompetent, kreativ, lösungsorientiert.
@@ -341,7 +343,7 @@ async def lifespan(app: FastAPI):
 
     # Initialize AI Agent Layer
     global orchestrator, agents, memory_svc
-    global worker_mgr, comms_svc, billing_svc, outbound_svc, llm_provider
+    global worker_mgr, comms_svc, billing_svc, outbound_svc, llm_provider, legal_svc
     memory_svc = MemoryService(db)
     orchestrator = Orchestrator(db)
     agents = {
@@ -365,6 +367,14 @@ async def lifespan(app: FastAPI):
     comms_svc = CommunicationService(db, worker_manager=worker_mgr)
     billing_svc = BillingService(db, worker_manager=worker_mgr, comms_service=comms_svc)
     outbound_svc = OutboundLeadMachine(db, worker_manager=worker_mgr, comms_service=comms_svc)
+    legal_svc = LegalGuardian(db, memory_svc=memory_svc)
+
+    # Legal/Compliance indexes
+    await db.legal_audit.create_index("type")
+    await db.legal_audit.create_index("timestamp")
+    await db.legal_risks.create_index([("entity_type", 1), ("entity_id", 1)])
+    await db.legal_risks.create_index("resolved")
+    await db.opt_outs.create_index("email", unique=True)
 
     # Outbound-Indexes
     await db.outbound_leads.create_index("outbound_lead_id", unique=True)
@@ -2936,29 +2946,6 @@ async def send_invoice(invoice_id: str, current_user: dict = Depends(get_current
     return {"sent": True, "to": customer_email}
 
 
-@app.post("/api/admin/invoices/{invoice_id}/mark-paid")
-async def mark_invoice_paid(invoice_id: str, current_user: dict = Depends(get_current_admin)):
-    """Manually mark invoice as paid (for bank transfers)"""
-    now = datetime.now(timezone.utc)
-    result = await db.invoices.update_one(
-        {"invoice_id": invoice_id},
-        {"$set": {"payment_status": "paid", "paid_at": now.isoformat(), "status": "payment_completed"},
-         "$push": {"history": {"action": "marked_paid", "at": now.isoformat(), "by": current_user["email"]}}},
-    )
-    if result.modified_count == 0:
-        raise HTTPException(404, "Rechnung nicht gefunden")
-
-    invoice = await db.invoices.find_one({"invoice_id": invoice_id})
-    if invoice and invoice.get("quote_id"):
-        await db.quotes.update_one(
-            {"quote_id": invoice["quote_id"]},
-            {"$set": {"payment_status": "deposit_paid"},
-             "$push": {"history": {"action": "deposit_paid", "at": now.isoformat(), "by": current_user["email"]}}},
-        )
-    await _log_event(db, "payment_completed", invoice_id, current_user["email"])
-    return {"paid": True}
-
-
 # --- Document Downloads ---
 
 @app.get("/api/documents/{doc_type}/{ref_id}/pdf")
@@ -3317,6 +3304,126 @@ async def admin_billing_status(customer_email: str = None, current_user: dict = 
         "contracts": {"total": total_contracts, "active": active_contracts},
         "revenue": {"total_gross": round(total_revenue, 2), "total_open": round(total_open, 2), "currency": "EUR"},
     }
+
+
+# ══════════════════════════════════════════════════════════════
+# LEGAL & COMPLIANCE GUARDIAN (P4)
+# ══════════════════════════════════════════════════════════════
+
+@app.post("/api/admin/legal/check-outreach")
+async def legal_check_outreach(data: dict, current_user: dict = Depends(get_current_admin)):
+    """Legal-Gate: Outreach-Prüfung vor Erstansprache."""
+    if not legal_svc:
+        raise HTTPException(503, "Legal Guardian nicht initialisiert")
+    return await legal_svc.check_outreach(data)
+
+
+@app.post("/api/admin/legal/check-contract/{contract_id}")
+async def legal_check_contract(contract_id: str, current_user: dict = Depends(get_current_admin)):
+    """Legal-Gate: Vertragsprüfung vor Versand."""
+    contract = await db.contracts.find_one({"contract_id": contract_id}, {"_id": 0})
+    if not contract:
+        raise HTTPException(404, "Vertrag nicht gefunden")
+    if not legal_svc:
+        raise HTTPException(503, "Legal Guardian nicht initialisiert")
+    result = await legal_svc.check_contract(contract)
+    # Attach result to contract
+    await db.contracts.update_one(
+        {"contract_id": contract_id},
+        {"$set": {"legal_check": result, "updated_at": utcnow()}}
+    )
+    return result
+
+
+@app.post("/api/admin/legal/check-communication")
+async def legal_check_communication(data: dict, current_user: dict = Depends(get_current_admin)):
+    """Legal-Gate: Kommunikationsprüfung."""
+    if not legal_svc:
+        raise HTTPException(503, "Legal Guardian nicht initialisiert")
+    return await legal_svc.check_communication(data)
+
+
+@app.post("/api/admin/legal/check-billing/{invoice_id}")
+async def legal_check_billing(invoice_id: str, current_user: dict = Depends(get_current_admin)):
+    """Legal-Gate: Rechnungsprüfung."""
+    invoice = await db.invoices.find_one({"invoice_id": invoice_id}, {"_id": 0})
+    if not invoice:
+        raise HTTPException(404, "Rechnung nicht gefunden")
+    if not legal_svc:
+        raise HTTPException(503, "Legal Guardian nicht initialisiert")
+    return await legal_svc.check_billing(invoice)
+
+
+@app.post("/api/admin/legal/risks")
+async def add_legal_risk(data: dict, current_user: dict = Depends(get_current_admin)):
+    """Risiko hinzufügen."""
+    if not legal_svc:
+        raise HTTPException(503, "Legal Guardian nicht initialisiert")
+    entity_type = data.get("entity_type", "")
+    entity_id = data.get("entity_id", "")
+    risk = data.get("risk", {})
+    if not entity_type or not entity_id:
+        raise HTTPException(400, "entity_type und entity_id erforderlich")
+    return await legal_svc.add_risk(entity_type, entity_id, risk, actor=current_user["email"])
+
+
+@app.patch("/api/admin/legal/risks/{risk_id}/resolve")
+async def resolve_legal_risk(risk_id: str, data: dict, current_user: dict = Depends(get_current_admin)):
+    """Risiko als gelöst markieren."""
+    if not legal_svc:
+        raise HTTPException(503, "Legal Guardian nicht initialisiert")
+    return await legal_svc.resolve_risk(risk_id, data.get("resolution", ""), actor=current_user["email"])
+
+
+@app.get("/api/admin/legal/risks")
+async def list_legal_risks(entity_type: str = None, entity_id: str = None, resolved: str = None, current_user: dict = Depends(get_current_admin)):
+    """Risiken anzeigen."""
+    if not legal_svc:
+        raise HTTPException(503, "Legal Guardian nicht initialisiert")
+    resolved_bool = None
+    if resolved == "true":
+        resolved_bool = True
+    elif resolved == "false":
+        resolved_bool = False
+    return {"risks": await legal_svc.get_risks(entity_type, entity_id, resolved_bool)}
+
+
+@app.get("/api/admin/legal/audit")
+async def legal_audit_log(entity_type: str = None, limit: int = 50, current_user: dict = Depends(get_current_admin)):
+    """Legal-Audit-Log."""
+    if not legal_svc:
+        raise HTTPException(503, "Legal Guardian nicht initialisiert")
+    return {"audit_log": await legal_svc.get_audit_log(entity_type, limit)}
+
+
+@app.get("/api/admin/legal/compliance")
+async def compliance_summary(current_user: dict = Depends(get_current_admin)):
+    """Compliance-Gesamtübersicht."""
+    if not legal_svc:
+        raise HTTPException(503, "Legal Guardian nicht initialisiert")
+    return await legal_svc.compliance_summary()
+
+
+@app.post("/api/admin/legal/opt-out")
+async def register_opt_out(data: dict, current_user: dict = Depends(get_current_admin)):
+    """Opt-Out registrieren (Admin)."""
+    if not legal_svc:
+        raise HTTPException(503, "Legal Guardian nicht initialisiert")
+    email = data.get("email", "")
+    if not email:
+        raise HTTPException(400, "email erforderlich")
+    return await legal_svc.opt_out(email, data.get("reason", "admin_registered"), actor=current_user["email"])
+
+
+@app.post("/api/public/opt-out")
+async def public_opt_out(data: dict):
+    """Öffentlicher Opt-Out-Endpoint (kein Auth erforderlich)."""
+    if not legal_svc:
+        raise HTTPException(503, "Legal Guardian nicht initialisiert")
+    email = data.get("email", "")
+    if not email:
+        raise HTTPException(400, "email erforderlich")
+    return await legal_svc.opt_out(email, data.get("reason", "self_service"), actor="customer")
 
 @app.get("/api/admin/commercial/stats")
 async def commercial_stats(current_user: dict = Depends(get_current_admin)):
@@ -5058,13 +5165,19 @@ async def add_contract_appendix(contract_id: str, data: dict, current_user: dict
 
 @app.post("/api/admin/contracts/{contract_id}/send")
 async def send_contract(contract_id: str, data: dict = None, current_user: dict = Depends(get_current_admin)):
-    """Vertrag an Kunden senden."""
+    """Vertrag an Kunden senden — mit Legal-Gate."""
     contract = await db.contracts.find_one({"contract_id": contract_id}, {"_id": 0})
     if not contract:
         raise HTTPException(404, "Vertrag nicht gefunden")
     email = contract.get("customer", {}).get("email", "")
     if not email:
         raise HTTPException(400, "Keine Kunden-E-Mail")
+    # Legal Gate
+    if legal_svc:
+        legal_result = await legal_svc.check_contract(contract)
+        await db.contracts.update_one({"contract_id": contract_id}, {"$set": {"legal_check": legal_result}})
+        if legal_result.get("risk_level") in ("high", "critical"):
+            return {"sent": False, "gate_blocked": True, "legal_check": legal_result, "message": "Legal-Gate: Vertrag kann aufgrund offener Rechtsrisiken nicht versendet werden."}
     # Update status to sent
     await db.contracts.update_one(
         {"contract_id": contract_id},
