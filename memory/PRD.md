@@ -1,10 +1,9 @@
 # NeXifyAI — Product Requirements Document
 
 ## Problem Statement
-B2B-Plattform "Starter/Growth AI Agenten AG" mit API-First Architektur. Unified Communication Layer (Chat, Mail, WhatsApp, Portal), Deep Customer Memory (mem0), KI-Orchestrator mit 9 Sub-Agents, Automated B2B Outbound Lead Machine, Live Admin CRM mit Audit-System.
+B2B-Plattform "Starter/Growth AI Agenten AG" mit API-First Architektur. Unified Communication Layer (Chat, Mail, WhatsApp, Portal), Deep Customer Memory (mem0), KI-Orchestrator mit 9 Sub-Agents, Manuelles CRM als vollständige Arbeitsoberfläche, Dynamische Mobile Floating Actions.
 
 ## Source of Truth — Gesamtkonzept
-Drei Referenzdokumente definieren die Gesamtanforderung:
 1. `NeXifyAI_Emergent_Auftrag_Premium_FineTuned_20260403.txt` — Auftragsspezifikation
 2. `NeXifyAI_Gesamtkonzept_Premium_FineTuned_20260403 (1).md` — Architektur & Features
 3. `NeXifyAI_Gesamtkonzept_Premium_FineTuned_20260403 (2).md` — Design System, Format, QA
@@ -12,104 +11,91 @@ Drei Referenzdokumente definieren die Gesamtanforderung:
 
 ## Architecture
 - **API-First**: Domain Layer, Channel Layer, Connector Layer, Agent Layer, Event/Audit Layer
-- **WhatsApp Bridge**: QR-Pairing als isolierter Connector, austauschbar gegen offizielle API
+- **mem0 Memory Layer**: Pflicht-Scoping (user_id, agent_id, app_id, run_id), MemoryService als zentraler Dienst
 - **Unified Communications**: AI-Chat, Email, WhatsApp, Portal in einer Timeline/Identity
 - **KI-Orchestrator**: GPT-5.2 via Emergent LLM Key mit 9 Sub-Agents
-- **Audit System**: Health-Checks, Timeline, Self-Healing
-- **mem0 Memory Layer**: Pflicht-Scoping mit user_id, agent_id, app_id, run_id
 
 ## Tech Stack
 - Frontend: React 18 SPA
 - Backend: FastAPI + Motor (MongoDB async)
-- Database: MongoDB
+- Database: MongoDB (nexifyai)
 - LLM: Emergent LLM Key (OpenAI GPT-5.2)
-- Email: Resend API (nexifyai@nexifyai.de)
-- Memory: mem0-konformer MemoryService (backend/memory_service.py)
-
-## Agent Layer (9 Agenten + Emergent Build Agent)
-1. Intake — Leadaufnahme, Discovery, Klassifikation (intake_agent)
-2. Research — Firmenanalyse, Lead-Enrichment (research_agent)
-3. Outreach — Personalisierte Erstansprache, Follow-ups (outreach_agent)
-4. Offer — Angebotserstellung, Tarifberatung (offer_agent)
-5. Planning — Projektplanung, Architektur, Build-Handover (planning_agent)
-6. Finance — Rechnungsstellung, Zahlungen, Mahnwesen (finance_agent)
-7. Support — Kundenbetreuung, Problemlösung (support_agent)
-8. Design — Design-Konzeption, Content-Strategie, SEO (design_agent)
-9. QA — Qualitätssicherung, Audit, Selbstheilung (qa_agent)
-10. Emergent Build — Build-Agent-Identität (emergent_build_agent)
-
-## Tariffs (Source of Truth)
-- Starter AI Agenten AG: 499 EUR/Monat, 24 Mo, 30% Anzahlung (3.592,80 EUR)
-- Growth AI Agenten AG: 1.299 EUR/Monat, 24 Mo, 30% Anzahlung (9.352,80 EUR)
-- Websites: Starter 2.990, Professional 7.490, Enterprise 14.900
-- Apps: MVP 9.900, Professional 24.900
-- SEO: Starter 799/Mo (6 Mo), Growth 1.499/Mo (6 Mo)
-- Bundles: Digital Starter 3.990, Growth Digital 17.490, Enterprise Digital ab 39.900
+- Email: Resend API
+- Memory: mem0-konformer MemoryService
 
 ## What's Implemented
 
-### WhatsApp Button (DONE)
-- Desktop: Vertikal, flush links, Abrundung rechts, Rotation-kompensiert
-- Tablet: Angepasste Größe, Content Safe Area
-- Mobile: Horizontaler Pill → 48px Kreis, bottom:120px, side-by-side mit Chat
-- Admin/Portal: Versteckt via body.hide-wa
+### Admin CRM — Vollständige Arbeitsoberfläche (DONE — 2026-04-03)
+Alle Daten sind nicht nur sichtbar, sondern vollständig bearbeitbar:
+- **Leads**: Anlegen, Bearbeiten (alle Felder), Status ändern, Notizen, Edit-Modal
+- **Kunden**: Anlegen, Bearbeiten (alle Felder), Edit-Modal, Portalzugang generieren
+- **Angebote**: Erstellen (mit Tarif, Rabatt, Sonderpositionen), Bearbeiten (Status, Rabatt, Felder), Versenden, Kopieren, PDF, Versionierung
+- **Rechnungen**: Erstellen (aus Angebot), Bearbeiten (Status, Zahlungsstatus, Notizen), Als bezahlt markieren, Versenden, PDF
+- **Termine**: Manuell anlegen (Kalender-Modal), Bearbeiten (Status, Datum, Zeit), Notizen, Löschen
+- **Slots blockieren**: Anlegen, Löschen
+- **Kommunikation**: Konversationen einsehen + inline antworten (Chat, WA, Email, Admin)
+- **KI-Agenten**: Aufgaben an einzelne Agenten oder Orchestrator senden
+- **Audit**: System-Health, Timeline, Collection-Stats
 
-### Mobile Floating Actions (DONE — 2026-04-03)
-- WhatsApp + Chat side-by-side unten rechts auf Mobile (<768px)
-- WA: right:72px, Chat: right:16px, bottom:120px
-- z-index: 910 (über Cookie-Banner 300)
-- Safe-Area-kompatibel (iOS)
-- Keine Kollision mit Cookie-Banner, Browser-Toolbars
-- Touch-optimiert: 48x48px Kreise
-
-### Admin CRM (DONE)
-- 11 Sidebar-Tabs: Dashboard, Commercial, Leads, Kommunikation, AI-Chats, WhatsApp, Timeline, Kalender, Kunden, KI-Agenten, Audit
-- WhatsApp Connect mit QR-Pairing, Messaging, Session-Management
-- Conversations View mit Inline-Reply
-- KI-Agenten View mit Task-Execution, Memory-Injection
-- Audit View mit Health-Checks, Timeline, Collection-Stats
-
-### Manual CRM (DONE — 2026-04-03)
-- POST /api/admin/customers — Manuell Kunden anlegen (Lead + Contact + Memory)
-- POST /api/admin/customers/portal-access — Magic Link Portalzugang generieren
-- POST /api/admin/leads — Manuell Leads anlegen
-- POST /api/admin/quotes — Angebote erstellen (mit Rabatt + Sonderpositionen)
-- Admin UI: Kunden-Tab mit Formular, Suche, Detail-Ansicht, Portal-Button
+### Dynamische Mobile Floating Actions (DONE — 2026-04-03)
+- WhatsApp + Chat **side-by-side** unten rechts auf Mobile (<768px)
+- **Zustandsbasiert**: Cookie-Banner sichtbar → bottom:120px, Cookie weg → bottom:24px
+- **Smooth Transition**: 0.4s cubic-bezier, kein Sprung, kein Geisterabstand
+- CSS-Klasse `body.cookie-visible` steuert Position
+- z-index 910 (über Cookie-Banner 300)
+- Safe-Area iOS-kompatibel
 
 ### mem0 Memory Layer (DONE — 2026-04-03)
 - MemoryService (backend/memory_service.py) als zentraler Pflicht-Layer
 - Pflicht-Scoping: user_id, agent_id, app_id, run_id pro Eintrag
-- 13 definierte Agent-IDs (AGENT_IDS Dictionary)
+- 13 definierte Agent-IDs
 - read/write/search/get_agent_history Methoden
-- Automatische Memory-Writes im Chat-Flow (Interesse, Buchung, Angebot)
-- Admin API: GET /api/admin/memory/agents, /by-agent/{id}, /search
-- Beweispflicht: verification_status Feld (verifiziert/teilweise/nicht verifiziert/widerlegt)
+- Automatische Memory-Writes im Chat-Flow + Admin CRUD
+- Admin API: /memory/agents, /by-agent/{id}, /search
 
 ### Customer Portal (DONE)
 - 6 Tabs: Übersicht, Angebote, Rechnungen, Termine, Kommunikation, Aktivität
 - Quote Accept/Decline/Revision via Magic Link
-- Communication Tab (Chat + Unified Conversations)
-- Timeline/Activity Tab
 - PDF-Downloads
 
 ### KI-Orchestrator + 9 Sub-Agents (DONE)
 - Orchestrator mit GPT-5.2 Routing
-- 9 spezialisierte Agenten mit eigenem System-Prompt
-- Audit Trail in Timeline Events
-- Customer Memory Injection
+- 9 spezialisierte Agenten
 
 ### Premium Admin Login (DONE)
-- Redesigned Login Screen
-- Komplett auf Deutsch
+- Redesigned, komplett Deutsch
 
-## Pending / Upcoming Tasks
-- P1: Kommerzielle Konsistenz (discount_percent + special_items in PDFs, Portal, Rechnungen)
-- P1: Breakpoint-Testing über alle 11 Breakpoints (1920→360)
+## Key API Endpoints
+- `POST /api/admin/leads` — Lead anlegen
+- `PATCH /api/admin/leads/{lead_id}` — Lead bearbeiten (alle Felder)
+- `POST /api/admin/customers` — Kunde anlegen
+- `PATCH /api/admin/customers/{email}` — Kunde bearbeiten
+- `POST /api/admin/customers/portal-access` — Portalzugang erstellen
+- `POST /api/admin/quotes` — Angebot erstellen
+- `PATCH /api/admin/quotes/{quote_id}` — Angebot bearbeiten
+- `POST /api/admin/quotes/{quote_id}/send` — Angebot versenden
+- `POST /api/admin/quotes/{quote_id}/copy` — Angebot kopieren
+- `POST /api/admin/invoices` — Rechnung erstellen
+- `PATCH /api/admin/invoices/{invoice_id}` — Rechnung bearbeiten
+- `POST /api/admin/invoices/{invoice_id}/mark-paid` — Als bezahlt markieren
+- `POST /api/admin/bookings` — Termin manuell anlegen
+- `PATCH /api/admin/bookings/{booking_id}` — Termin bearbeiten
+- `GET /api/admin/memory/agents` — Agent-IDs
+- `GET /api/admin/memory/by-agent/{id}` — Memory pro Agent
+- `GET /api/admin/memory/search` — Memory-Suche
+
+## Pending Tasks
+- P1: Gemeinsamer Login-Stack (Admin + Kunde über gleichen Einstieg, Rollentrennung)
+- P1: Kundenzugangslogik ab Angebotsanfrage systemisch (Lead→Kunde→Portal automatisch)
+- P1: Kommerzielle Konsistenz (Rabatt/Sonderpositionen in PDF/Portal/Rechnung synchron)
+- P1: Admin/Portal UX Feintuning
 - P1: Email-Signatur-Standards & DSGVO-Footer
-- P1: Rollentrennung Customer/Admin verifizieren
-- P2: Outbound Lead Machine (Automatisiertes Lead-Enrichment, Scoring, Email-Outreach)
-- P2: Email-Professionalisierung (Zentrale KI-Orchestrierung aller Emails)
-- P2: Kanalübergreifender Kommunikationskern vollenden
-- P2: Revolut/Billing/Status-Sync (Quote → Invoice → Payment → App-Status)
-- P2: Responsive Fine-Tuning über alle Breakpoints
-- P2: server.py Refactoring → modulare Struktur (/routes, /agents, /services)
+- P1: Breakpoint-Testing (1920→360)
+- P2: Outbound Lead Machine
+- P2: server.py Refactoring (>3600 Zeilen)
+
+## Testing Status
+- Iteration 19: 100% Pass
+- Iteration 20: 96% → 100% (Portal Token fix)
+- Iteration 21: 100% (19/19) — Customer/Portal/mem0
+- Iteration 22: 100% (23/23) — Full CRUD + Dynamic Floating
