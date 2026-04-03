@@ -59,6 +59,17 @@ const Admin = () => {
   const [quoteForm, setQuoteForm] = useState({ tier: 'starter', customer_name: '', customer_email: '', customer_company: '', customer_country: 'DE', customer_industry: '', use_case: '', notes: '' });
   const [showQuoteForm, setShowQuoteForm] = useState(false);
   const [commBusy, setCommBusy] = useState('');
+  const [waMessages, setWaMessages] = useState([]);
+  const [waSendTo, setWaSendTo] = useState('');
+  const [waSendMsg, setWaSendMsg] = useState('');
+  const [waSending, setWaSending] = useState(false);
+  const [convoReply, setConvoReply] = useState('');
+  const [convoReplying, setConvoReplying] = useState(false);
+  const [agentsList, setAgentsList] = useState(null);
+  const [agentTask, setAgentTask] = useState('');
+  const [agentTarget, setAgentTarget] = useState('');
+  const [agentResult, setAgentResult] = useState(null);
+  const [agentLoading, setAgentLoading] = useState(false);
 
   const headers = useMemo(() => ({ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }), [token]);
 
@@ -185,6 +196,28 @@ const Admin = () => {
     const d = await apiFetch(`/api/admin/chat-sessions/${sessionId}`);
     if (d) setSelectedChat(d);
   };
+
+  /* ── WA message loading ── */
+  const loadWaMessages = useCallback(async () => {
+    const d = await apiFetch('/api/admin/whatsapp/messages?limit=30');
+    if (d) setWaMessages(d.messages || []);
+  }, [apiFetch]);
+
+  useEffect(() => {
+    if (!token || view !== 'whatsapp') return;
+    loadWaMessages();
+  }, [token, view, loadWaMessages]);
+
+  /* ── Agent list loading ── */
+  const loadAgents = useCallback(async () => {
+    const d = await apiFetch('/api/admin/agents');
+    if (d) setAgentsList(d);
+  }, [apiFetch]);
+
+  useEffect(() => {
+    if (!token || view !== 'agents') return;
+    loadAgents();
+  }, [token, view, loadAgents]);
 
   const logout = () => { setToken(''); localStorage.removeItem('nx_admin_token'); };
 
@@ -745,13 +778,29 @@ const Admin = () => {
     disconnected: { l: 'Getrennt', c: '#ef4444', i: 'link_off' },
     failed: { l: 'Fehlgeschlagen', c: '#ef4444', i: 'error' },
   };
+
   const waAction = async (action) => {
     const d = await apiFetch(`/api/admin/whatsapp/${action}`, { method: 'POST' });
     if (d) apiFetch('/api/admin/whatsapp/status').then(s => s && setWaStatus(s));
     return d;
   };
+
+  const sendWaMessage = async () => {
+    if (!waSendMsg.trim()) return;
+    setWaSending(true);
+    try {
+      await apiFetch('/api/admin/whatsapp/send', {
+        method: 'POST',
+        body: JSON.stringify({ to: waSendTo.trim(), content: waSendMsg.trim() })
+      });
+      setWaSendMsg('');
+      loadWaMessages();
+    } catch (e) { console.error(e); } finally { setWaSending(false); }
+  };
+
   const WhatsAppView = () => {
     const st = WA_STATUS_MAP[waStatus?.status] || WA_STATUS_MAP.unpaired;
+    const isConnected = waStatus?.status === 'connected';
     return (
       <div className="adm-wa" data-testid="admin-whatsapp">
         <div className="adm-section-header">
@@ -759,70 +808,155 @@ const Admin = () => {
           <span className="adm-badge" style={{ background: st.c + '22', color: st.c }}><I n={st.i} /> {st.l}</span>
         </div>
         <div className="adm-wa-grid">
+          {/* Session Status Card */}
           <div className="adm-wa-card">
             <h3>Session-Status</h3>
             <div className="adm-wa-status-row">
               <div className="adm-wa-status-indicator" style={{ background: st.c }}></div>
               <span>{st.l}</span>
             </div>
-            {waStatus?.phone_number && <p>Telefon: {waStatus.phone_number}</p>}
-            {waStatus?.connected_at && <p>Verbunden seit: {fmtTime(waStatus.connected_at)}</p>}
-            {waStatus?.last_activity && <p>Letzte Aktivität: {fmtTime(waStatus.last_activity)}</p>}
-            {waStatus?.error && <p style={{ color: '#ef4444' }}>Fehler: {waStatus.error}</p>}
+            {waStatus?.phone_number && <p style={{fontSize:'.8125rem',color:'#c8d1dc',marginBottom:6}}>Telefon: {waStatus.phone_number}</p>}
+            {waStatus?.connected_at && <p style={{fontSize:'.75rem',color:'#6b7b8d'}}>Verbunden seit: {fmtTime(waStatus.connected_at)}</p>}
+            {waStatus?.last_activity && <p style={{fontSize:'.75rem',color:'#6b7b8d'}}>Letzte Aktivität: {fmtTime(waStatus.last_activity)}</p>}
+            {waStatus?.error && <p style={{ color: '#ef4444', fontSize:'.8125rem' }}>Fehler: {waStatus.error}</p>}
             <div className="adm-wa-actions">
-              {(waStatus?.status === 'unpaired' || waStatus?.status === 'disconnected' || waStatus?.status === 'failed') && (
+              {(!waStatus?.status || waStatus?.status === 'unpaired' || waStatus?.status === 'disconnected' || waStatus?.status === 'failed') && (
                 <button className="adm-btn adm-btn-primary" onClick={() => waAction('pair')} data-testid="wa-pair-btn"><I n="qr_code_2" /> QR-Code generieren</button>
               )}
-              {waStatus?.status === 'connected' && (
+              {(waStatus?.status === 'disconnected' || waStatus?.status === 'failed') && (
+                <button className="adm-btn adm-btn-secondary" onClick={() => waAction('reconnect')} data-testid="wa-reconnect-btn"><I n="sync" /> Reconnect</button>
+              )}
+              {isConnected && (
                 <button className="adm-btn adm-btn-danger" onClick={() => waAction('disconnect')} data-testid="wa-disconnect-btn"><I n="link_off" /> Trennen</button>
               )}
-              <button className="adm-btn adm-btn-secondary" onClick={() => waAction('reset')} data-testid="wa-reset-btn"><I n="restart_alt" /> Session zurücksetzen</button>
+              {waStatus?.status === 'pairing' && (
+                <button className="adm-btn adm-btn-secondary" onClick={() => waAction('simulate-connect')} data-testid="wa-simulate-btn"><I n="science" /> Verbindung simulieren</button>
+              )}
+              <button className="adm-btn adm-btn-secondary" onClick={() => waAction('reset')} data-testid="wa-reset-btn"><I n="restart_alt" /> Reset</button>
             </div>
           </div>
+
+          {/* QR Code Card */}
           {waStatus?.status === 'pairing' && waStatus?.qr_code && (
             <div className="adm-wa-card adm-wa-qr-card">
               <h3>QR-Code scannen</h3>
               <div className="adm-wa-qr-box" data-testid="wa-qr-code">
                 <I n="qr_code_2" />
-                <p className="adm-wa-qr-hint">Öffnen Sie WhatsApp auf Ihrem Telefon &rarr; Verknüpfte Geräte &rarr; Gerät hinzufügen &rarr; QR-Code scannen</p>
-                <p className="adm-wa-qr-note">In der Produktivumgebung erscheint hier der echte QR-Code.</p>
+                <p className="adm-wa-qr-hint">WhatsApp auf Telefon &rarr; Verknüpfte Geräte &rarr; Gerät hinzufügen &rarr; QR-Code scannen</p>
+                <p className="adm-wa-qr-note">Bridge-Modus: In der Produktivumgebung erscheint hier der echte QR-Code.</p>
               </div>
             </div>
           )}
+
+          {/* Send Message Card — only when connected */}
+          {isConnected && (
+            <div className="adm-wa-card">
+              <h3>Nachricht senden</h3>
+              <div className="adm-field" style={{marginBottom:8}}>
+                <label>An (Telefonnummer)</label>
+                <input value={waSendTo} onChange={e => setWaSendTo(e.target.value)} placeholder="+49 171 234 5678" data-testid="wa-send-to" />
+              </div>
+              <div className="adm-field" style={{marginBottom:8}}>
+                <label>Nachricht</label>
+                <textarea value={waSendMsg} onChange={e => setWaSendMsg(e.target.value)} rows={3} placeholder="Nachricht eingeben..." style={{width:'100%',resize:'vertical'}} data-testid="wa-send-msg" />
+              </div>
+              <button className="adm-btn adm-btn-primary" onClick={sendWaMessage} disabled={waSending || !waSendMsg.trim()} data-testid="wa-send-btn">
+                <I n="send" /> {waSending ? 'Sende...' : 'Senden'}
+              </button>
+            </div>
+          )}
+
+          {/* Architecture Note */}
           <div className="adm-wa-card">
-            <h3>Architektur-Hinweis</h3>
+            <h3>Architektur</h3>
             <div className="adm-wa-arch-info">
-              <p><strong>Schicht A — Official Channel:</strong> WhatsApp Business API / Cloud API wird als Zielarchitektur vorbereitet.</p>
-              <p><strong>Schicht B — QR Bridge (aktuell):</strong> Isolierter Connector für Sofortbetrieb. Austauschbar gegen Official API ohne Rework der Kernlogik.</p>
-              <p><strong>API-First:</strong> Zentrale Messaging-Domain ist kanalunabhängig. WhatsApp, E-Mail, Chat und Portal teilen dieselbe Conversation-/Message-Struktur.</p>
+              <p><strong>Schicht A — Official Channel:</strong> WhatsApp Business API / Cloud API als Zielarchitektur.</p>
+              <p><strong>Schicht B — QR Bridge (aktuell):</strong> Isolierter Connector. Austauschbar ohne Rework der Kernlogik.</p>
+              <p><strong>API-First:</strong> Zentrale Messaging-Domain kanalunabhängig. WhatsApp, E-Mail, Chat und Portal teilen dieselbe Conversation-/Message-Struktur.</p>
             </div>
           </div>
         </div>
+
+        {/* Message History */}
+        {waMessages.length > 0 && (
+          <div style={{marginTop:24}}>
+            <div className="adm-section-header">
+              <h3 style={{fontSize:'1rem',color:'#fff'}}>WhatsApp-Nachrichten</h3>
+              <button className="adm-btn-sm" onClick={loadWaMessages}><I n="refresh" /> Aktualisieren</button>
+            </div>
+            <div className="adm-table-wrap">
+              <table className="adm-table" data-testid="wa-messages-table">
+                <thead><tr><th>Richtung</th><th>Kontakt</th><th>Nachricht</th><th>Zeit</th></tr></thead>
+                <tbody>
+                  {waMessages.map(m => (
+                    <tr key={m.message_id}>
+                      <td><span className="adm-badge" style={{background: m.direction==='inbound' ? '#10b98122' : '#3b82f622', color: m.direction==='inbound' ? '#10b981' : '#3b82f6'}}>{m.direction==='inbound' ? 'Eingehend' : 'Ausgehend'}</span></td>
+                      <td>{m.contact?.phone || m.sender || '—'}</td>
+                      <td style={{maxWidth:300,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{m.content}</td>
+                      <td>{fmtTime(m.timestamp)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
 
   /* ══════════ CONVERSATIONS VIEW ══════════ */
+
+  const sendConvoReply = async (conversationId, channel) => {
+    if (!convoReply.trim()) return;
+    setConvoReplying(true);
+    try {
+      await apiFetch(`/api/admin/conversations/${conversationId}/reply`, {
+        method: 'POST',
+        body: JSON.stringify({ content: convoReply.trim(), channel: channel || 'chat' })
+      });
+      setConvoReply('');
+      const d = await apiFetch(`/api/admin/conversations/${conversationId}`);
+      if (d) setSelectedConvo(d);
+    } catch (e) { console.error(e); } finally { setConvoReplying(false); }
+  };
+
   const ConversationsView = () => (
     <div className="adm-convos" data-testid="admin-conversations">
       {selectedConvo ? (
         <div className="adm-convo-detail">
-          <button className="adm-back-btn" onClick={() => setSelectedConvo(null)}><I n="arrow_back" /> Zurück</button>
+          <button className="adm-back-btn" onClick={() => { setSelectedConvo(null); setConvoReply(''); }}><I n="arrow_back" /> Zurück</button>
           <div className="adm-chat-meta">
-            <span>ID: {selectedConvo.conversation_id}</span>
+            <span>ID: {selectedConvo.conversation_id?.slice(0,16)}</span>
             {selectedConvo.contact?.email && <span>Kontakt: {selectedConvo.contact.email}</span>}
             <span>Kanäle: {(selectedConvo.channels || []).join(', ')}</span>
-            <span>Status: {selectedConvo.status}</span>
+            <span className="adm-badge" style={{background: selectedConvo.status === 'open' ? '#10b98122' : '#6b7b8d22', color: selectedConvo.status === 'open' ? '#10b981' : '#6b7b8d'}}>{selectedConvo.status}</span>
           </div>
           <div className="adm-chat-messages">
             {(selectedConvo.messages || []).map((m, i) => (
               <div key={i} className={`adm-chat-msg ${m.direction === 'inbound' ? 'user' : 'assistant'}`}>
-                <div className="adm-chat-msg-role">{m.direction === 'inbound' ? (m.sender || 'Kunde') : (m.ai_generated ? 'KI' : 'Admin')} <span style={{opacity:.5}}>({m.channel})</span></div>
+                <div className="adm-chat-msg-role">{m.direction === 'inbound' ? (m.sender || 'Kunde') : (m.ai_generated ? 'KI' : 'Admin')} <span style={{opacity:.5,fontSize:'.625rem'}}>({m.channel})</span></div>
                 <div className="adm-chat-msg-text">{m.content}</div>
                 <div className="adm-chat-msg-time">{fmtTime(m.timestamp)}</div>
               </div>
             ))}
             {(!selectedConvo.messages || selectedConvo.messages.length === 0) && <div className="adm-empty">Keine Nachrichten</div>}
+          </div>
+          {/* Reply input */}
+          <div style={{display:'flex',gap:8,marginTop:12,alignItems:'flex-end'}}>
+            <select className="adm-select" style={{width:120,flexShrink:0}} defaultValue={selectedConvo.channel_origin || 'chat'} id="reply-channel" data-testid="convo-reply-channel">
+              <option value="chat">Chat</option>
+              <option value="whatsapp">WhatsApp</option>
+              <option value="email">E-Mail</option>
+              <option value="admin">Admin</option>
+            </select>
+            <input style={{flex:1,background:'rgba(19,26,34,0.6)',border:'1px solid rgba(255,255,255,0.06)',color:'#fff',padding:'10px 14px',fontSize:'.8125rem'}}
+              value={convoReply} onChange={e => setConvoReply(e.target.value)} placeholder="Antwort schreiben..."
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendConvoReply(selectedConvo.conversation_id, document.getElementById('reply-channel')?.value); }}}
+              data-testid="convo-reply-input" />
+            <button className="adm-btn-primary" style={{width:'auto',padding:'10px 20px',flexShrink:0}} onClick={() => sendConvoReply(selectedConvo.conversation_id, document.getElementById('reply-channel')?.value)} disabled={convoReplying || !convoReply.trim()} data-testid="convo-reply-send">
+              <I n="send" />
+            </button>
           </div>
         </div>
       ) : (
@@ -840,7 +974,7 @@ const Admin = () => {
                     const d = await apiFetch(`/api/admin/conversations/${c.conversation_id}`);
                     if (d) setSelectedConvo(d);
                   }}>
-                    <td>{c.contact?.email || c.contact?.first_name || '—'}</td>
+                    <td>{c.contact?.email?.replace('@placeholder.nexifyai.de','') || c.contact?.first_name || '—'}</td>
                     <td>{(c.channels || []).map(ch => <span key={ch} className="adm-channel-badge">{ch}</span>)}</td>
                     <td><span className={`adm-status-dot ${c.status}`}></span> {c.status}</td>
                     <td>{c.message_count}</td>
@@ -857,6 +991,81 @@ const Admin = () => {
     </div>
   );
 
+  /* ══════════ AGENTS VIEW ══════════ */
+
+  const executeAgent = async (agentName) => {
+    if (!agentTask.trim()) return;
+    setAgentLoading(true);
+    setAgentResult(null);
+    try {
+      const endpoint = agentName === 'orchestrator'
+        ? '/api/admin/agents/route'
+        : `/api/admin/agents/${agentName}/execute`;
+      const d = await apiFetch(endpoint, {
+        method: 'POST',
+        body: JSON.stringify({ task: agentTask, customer_email: agentTarget || undefined })
+      });
+      if (d) setAgentResult(d);
+    } catch (e) { console.error(e); } finally { setAgentLoading(false); }
+  };
+
+  const AgentsView = () => (
+    <div className="adm-agents" data-testid="admin-agents">
+      <div className="adm-section-header">
+        <h2>KI-Agenten</h2>
+        {agentsList?.orchestrator && <span className="adm-badge" style={{background:'#10b98122',color:'#10b981'}}>Orchestrator aktiv — {agentsList.orchestrator.model}</span>}
+      </div>
+
+      {/* Agent Cards */}
+      <div className="adm-wa-grid" style={{marginBottom:24}}>
+        {agentsList?.agents && Object.entries(agentsList.agents).map(([name, info]) => (
+          <div key={name} className="adm-wa-card" style={{cursor:'pointer'}} onClick={() => setAgentTarget(name)}>
+            <h3 style={{textTransform:'capitalize'}}>{name}</h3>
+            <p style={{fontSize:'.8125rem',color:'#c8d1dc'}}>{info.role}</p>
+            <span className="adm-badge" style={{background:'#10b98122',color:'#10b981',marginTop:8,display:'inline-block'}}>{info.status}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Task Input */}
+      <div className="adm-wa-card" style={{marginBottom:24}}>
+        <h3>Aufgabe an Agenten senden</h3>
+        <div className="adm-field" style={{marginBottom:8}}>
+          <label>Kunden-E-Mail (optional — injiziert Memory)</label>
+          <input value={agentTarget} onChange={e => setAgentTarget(e.target.value)} placeholder="kunde@firma.de" data-testid="agent-customer-email" />
+        </div>
+        <div className="adm-field" style={{marginBottom:12}}>
+          <label>Aufgabe</label>
+          <textarea value={agentTask} onChange={e => setAgentTask(e.target.value)} rows={4} placeholder="z.B.: Erstelle eine personalisierte Erstansprache für die Firma XY..." style={{width:'100%',resize:'vertical'}} data-testid="agent-task-input" />
+        </div>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          <button className="adm-btn adm-btn-primary" onClick={() => executeAgent('orchestrator')} disabled={agentLoading || !agentTask.trim()} data-testid="agent-route-btn">
+            <I n="route" /> {agentLoading ? 'Wird verarbeitet...' : 'Orchestrator entscheiden lassen'}
+          </button>
+          {agentsList?.agents && Object.keys(agentsList.agents).map(name => (
+            <button key={name} className="adm-btn adm-btn-secondary" onClick={() => executeAgent(name)} disabled={agentLoading || !agentTask.trim()} data-testid={`agent-exec-${name}`} style={{textTransform:'capitalize'}}>
+              <I n="smart_toy" /> {name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Result */}
+      {agentResult && (
+        <div className="adm-wa-card">
+          <h3>Ergebnis {agentResult.agent && <span style={{fontWeight:400,fontSize:'.75rem',color:'#6b7b8d'}}>({agentResult.agent || 'Orchestrator'})</span>}</h3>
+          {agentResult.error ? (
+            <p style={{color:'#ef4444'}}>{agentResult.error}</p>
+          ) : (
+            <pre style={{background:'rgba(19,26,34,0.6)',padding:16,borderRadius:8,fontSize:'.8125rem',color:'#c8d1dc',overflow:'auto',maxHeight:400,whiteSpace:'pre-wrap',wordBreak:'break-word'}} data-testid="agent-result">
+              {typeof agentResult.response === 'string' ? agentResult.response : typeof agentResult.routing === 'object' ? JSON.stringify(agentResult.routing, null, 2) : JSON.stringify(agentResult, null, 2)}
+            </pre>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
   /* ══════════ MAIN LAYOUT ══════════ */
   const navItems = [
     { id: 'dashboard', icon: 'dashboard', label: 'Dashboard' },
@@ -868,6 +1077,7 @@ const Admin = () => {
     { id: 'timeline', icon: 'timeline', label: 'Timeline' },
     { id: 'calendar', icon: 'calendar_month', label: 'Kalender' },
     { id: 'customers', icon: 'person_search', label: 'Kunden' },
+    { id: 'agents', icon: 'smart_toy', label: 'KI-Agenten' },
   ];
 
   return (
@@ -898,6 +1108,7 @@ const Admin = () => {
           {view === 'timeline' && <TimelineView />}
           {view === 'calendar' && <CalendarView />}
           {view === 'customers' && <CustomersView />}
+          {view === 'agents' && <AgentsView />}
         </div>
       </main>
     </div>

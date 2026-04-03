@@ -8,6 +8,7 @@ const fmtEur = (v) => {
 };
 
 export default function QuotePortal() {
+  useEffect(() => { document.body.classList.add('hide-wa'); return () => document.body.classList.remove('hide-wa'); }, []);
   const [quote, setQuote] = useState(null);
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);

@@ -759,11 +759,65 @@ a.integ-item-v2.popular{border-color:rgba(255,155,122,0.1);color:rgba(255,255,25
 
 
 /* ═══════════ WHATSAPP BUTTON ═══════════ */
-.whatsapp-btn{position:fixed;left:0;top:50%;z-index:900;display:flex;align-items:center;gap:8px;background:#25d366;color:#fff;padding:10px 14px 10px 12px;border-radius:0 8px 8px 0;font-weight:600;font-size:13px;letter-spacing:.01em;text-decoration:none;box-shadow:0 4px 16px rgba(37,211,102,0.25);transition:transform .3s,box-shadow .3s;writing-mode:vertical-rl;text-orientation:mixed;transform:translateY(-50%) rotate(180deg)}
-.whatsapp-btn:hover{box-shadow:0 6px 24px rgba(37,211,102,0.4);transform:translateY(-50%) rotate(180deg) translateY(-3px)}
-.whatsapp-btn svg{flex-shrink:0;transform:rotate(90deg)}
-.whatsapp-btn span{font-family:var(--f-display);white-space:nowrap;letter-spacing:.04em}
-@media(max-width:768px){.whatsapp-btn{writing-mode:horizontal-tb;text-orientation:initial;top:auto;bottom:80px;padding:8px 12px 8px 10px;font-size:12px;border-radius:0 6px 6px 0;transform:none}.whatsapp-btn:hover{transform:translateX(2px)}.whatsapp-btn svg{transform:none;width:16px;height:16px}}
+/* Desktop: vertical tab flush left, rounded right, reads bottom→top */
+.whatsapp-btn{
+  position:fixed;left:0;top:50%;z-index:900;
+  display:inline-flex;align-items:center;gap:8px;
+  background:#25d366;color:#fff;
+  padding:16px 11px;
+  border-radius:0 10px 10px 0;
+  font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  text-decoration:none;
+  box-shadow:3px 0 18px rgba(37,211,102,0.18);
+  transition:background .25s ease,box-shadow .25s ease;
+  writing-mode:vertical-rl;text-orientation:mixed;
+  transform:translateY(-50%) rotate(180deg);
+  -webkit-backface-visibility:hidden;backface-visibility:hidden;
+}
+/* Hover: glow right, subtle lift */
+.whatsapp-btn:hover{background:#22c55e;box-shadow:4px 0 28px rgba(37,211,102,0.35)}
+.whatsapp-btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.whatsapp-btn:active{background:#1db954}
+/* Icon: counter-rotate so it stays upright despite parent rotate(180) */
+.whatsapp-btn svg{flex-shrink:0;width:18px;height:18px;transform:rotate(180deg)}
+.whatsapp-btn span{font-family:var(--f-display);white-space:nowrap}
+
+/* CRITICAL: compensate border-radius for 180deg rotation.
+   Visual result: flush left edge, rounded right edge.
+   rotate(180) flips 0 10 10 0 → visual 0 10 10 0 inverted.
+   So we declare the OPPOSITE: 10 0 0 10 → visually becomes 0 10 10 0 after rotation. */
+.whatsapp-btn{border-radius:10px 0 0 10px}
+
+/* ── Tablet (769–1024) ── */
+@media(min-width:769px) and (max-width:1024px){
+  .whatsapp-btn{padding:14px 9px;font-size:10px}
+  .whatsapp-btn svg{width:16px;height:16px}
+}
+
+/* ── Mobile (<769px): horizontal pill bottom-left, above cookie banner ── */
+@media(max-width:768px){
+  .whatsapp-btn{
+    writing-mode:horizontal-tb;text-orientation:initial;text-transform:none;
+    top:auto;bottom:140px;left:12px;
+    padding:10px 16px 10px 12px;
+    font-size:13px;font-weight:600;letter-spacing:.01em;
+    border-radius:24px;
+    transform:none;
+    box-shadow:0 4px 20px rgba(37,211,102,0.3);
+    gap:6px;
+  }
+  .whatsapp-btn:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(37,211,102,0.4)}
+  .whatsapp-btn svg{transform:none;width:18px;height:18px}
+}
+
+/* ── Content safe area: push left content away from button zone on wide screens ── */
+@media(min-width:1025px){
+  .app > main{padding-left:0}/* Button lives in the margin gutter; no shift needed on wide screens */
+}
+@media(min-width:769px) and (max-width:1100px){
+  .app > main .container{padding-left:calc(var(--pad) + 36px)}/* Add safe space on narrower desktops */
+}
+
 /* Hide on admin/portal pages via body class */
 body.hide-wa .whatsapp-btn{display:none}
 /* ═══════════ PRINT ═══════════ */

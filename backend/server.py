@@ -32,6 +32,11 @@ from domain import (
     create_contact, create_conversation, create_message,
     create_timeline_event, create_memory, create_whatsapp_session, new_id, utcnow,
 )
+from agents.orchestrator import Orchestrator, SubAgent
+from agents.research import create_research_agent
+from agents.outreach import create_outreach_agent
+from agents.offer import create_offer_agent
+from agents.support import create_support_agent
 
 # Password hashing with Argon2 (fallback to bcrypt if pwdlib unavailable)
 try:
@@ -67,6 +72,10 @@ EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
 
 # LLM Chat sessions store
 llm_sessions = {}
+
+# Agent Layer (initialized in lifespan)
+orchestrator = None
+agents = {}
 
 ADVISOR_SYSTEM_PROMPT = """Du bist der NeXify**AI** Advisor — der strategische KI-Berater von NeXify**AI**. Du verkörperst die Marke in jeder Interaktion: modern, kompetent, kreativ, lösungsorientiert.
 
@@ -292,6 +301,27 @@ async def lifespan(app: FastAPI):
             })
             logger.info(f"Admin user created: {admin_email}")
     
+    # Create additional indexes for unified comms
+    await db.contacts.create_index("contact_id", unique=True)
+    await db.contacts.create_index("email")
+    await db.conversations.create_index("conversation_id", unique=True)
+    await db.conversations.create_index("contact_id")
+    await db.messages.create_index("conversation_id")
+    await db.messages.create_index("channel")
+    await db.timeline_events.create_index("timestamp")
+    await db.customer_memory.create_index("contact_id")
+    await db.whatsapp_sessions.create_index("session_id")
+
+    # Initialize AI Agent Layer
+    global orchestrator, agents
+    orchestrator = Orchestrator(db)
+    agents = {
+        "research": create_research_agent(db),
+        "outreach": create_outreach_agent(db),
+        "offer": create_offer_agent(db),
+        "support": create_support_agent(db),
+    }
+
     logger.info("NeXifyAI Backend v3.0 started")
     yield
     db_client.close()
@@ -677,7 +707,9 @@ async def create_booking(data: BookingRequest, request: Request):
     return {"success": True, "message": "Ihr Beratungstermin wurde bestätigt.", "booking_id": booking_id}
 
 async def _build_customer_memory(email: str, current_session_id: str = None) -> str:
-    """Build comprehensive customer memory context from all data sources."""
+    """Build comprehensive customer memory context from ALL channels.
+    Sources: Leads, Quotes, Invoices, Bookings, Chat Sessions, Contact Forms,
+    Unified Conversations (WhatsApp/Email/Portal), Memory Facts."""
     if not email:
         return ""
     
@@ -694,7 +726,19 @@ async def _build_customer_memory(email: str, current_session_id: str = None) -> 
                 if isinstance(n, dict):
                     parts.append(f"  Notiz ({n.get('date','')[:10]}): {n.get('text','')[:100]}")
     
-    # 2. Quotes/Angebote
+    # 2. Unified Contact record (domain layer)
+    contact = await db.contacts.find_one({"email": email_lower}, {"_id": 0})
+    contact_id = contact.get("contact_id") if contact else None
+    if contact:
+        channels_used = contact.get("channels_used", [])
+        if channels_used:
+            parts.append(f"Kanäle genutzt: {', '.join(channels_used)}")
+        if contact.get("industry"):
+            parts.append(f"Branche: {contact['industry']}")
+        if contact.get("company"):
+            parts.append(f"Firma: {contact['company']}")
+    
+    # 3. Quotes/Angebote
     quotes = []
     async for q in db.quotes.find({"customer.email": email_lower}, {"_id": 0}).sort("created_at", -1).limit(5):
         status = q.get("status", "unknown")
@@ -704,21 +748,21 @@ async def _build_customer_memory(email: str, current_session_id: str = None) -> 
     if quotes:
         parts.append("Angebote: " + " | ".join(quotes))
     
-    # 3. Invoices/Rechnungen
+    # 4. Invoices/Rechnungen
     invoices = []
     async for inv in db.invoices.find({"customer.email": email_lower}, {"_id": 0}).sort("created_at", -1).limit(5):
         invoices.append(f"Rechnung {inv.get('invoice_number','')}: {inv.get('total_eur',0):,.2f} EUR, Status: {inv.get('status','')}")
     if invoices:
         parts.append("Rechnungen: " + " | ".join(invoices))
     
-    # 4. Bookings/Termine
+    # 5. Bookings/Termine
     bookings = []
     async for bk in db.bookings.find({"email": email_lower}, {"_id": 0}).sort("created_at", -1).limit(3):
         bookings.append(f"Termin {bk.get('date','')} {bk.get('time','')}: {bk.get('status','')}")
     if bookings:
         parts.append("Termine: " + " | ".join(bookings))
     
-    # 5. Previous chat sessions (not current)
+    # 6. Previous chat sessions (not current)
     prev_sessions = []
     query = {"customer_email": email_lower}
     if current_session_id:
@@ -732,12 +776,38 @@ async def _build_customer_memory(email: str, current_session_id: str = None) -> 
         if qual.get("use_case"):
             prev_sessions.append(f"  Interesse: {qual['use_case']}")
     if prev_sessions:
-        parts.append("Gesprächshistorie: " + " | ".join(prev_sessions))
+        parts.append("Chat-Historie: " + " | ".join(prev_sessions))
     
-    # 6. Contact form submissions
-    contact = await db.contacts.find_one({"email": email_lower}, {"_id": 0})
-    if contact:
-        parts.append(f"Kontaktformular: {contact.get('nachricht','')[:100]}")
+    # 7. Unified Conversations (WhatsApp, Email, Portal)
+    if contact_id:
+        conv_summaries = []
+        async for conv in db.conversations.find({"contact_id": contact_id}, {"_id": 0}).sort("last_message_at", -1).limit(5):
+            ch = ", ".join(conv.get("channels", []))
+            cnt = conv.get("message_count", 0)
+            status = conv.get("status", "open")
+            last_msgs = []
+            async for m in db.messages.find({"conversation_id": conv["conversation_id"]}, {"_id": 0, "content": 1, "direction": 1, "channel": 1}).sort("timestamp", -1).limit(2):
+                preview = m.get("content", "")[:60]
+                last_msgs.append(f"[{m.get('channel','?')}/{m.get('direction','?')}] {preview}")
+            summary = f"{ch} ({cnt} Nachrichten, {status})"
+            if last_msgs:
+                summary += ": " + " | ".join(last_msgs)
+            conv_summaries.append(summary)
+        if conv_summaries:
+            parts.append("Kanalübergreifende Konversationen:\n  " + "\n  ".join(conv_summaries))
+    
+    # 8. Memory Facts (mem0 style)
+    if contact_id:
+        facts = []
+        async for mem in db.customer_memory.find({"contact_id": contact_id}, {"_id": 0}).sort("created_at", -1).limit(10):
+            facts.append(f"[{mem.get('category','general')}] {mem.get('fact','')}")
+        if facts:
+            parts.append("Bekannte Fakten:\n  " + "\n  ".join(facts))
+    
+    # 9. Contact form submissions
+    contact_form = await db.inquiries.find_one({"email": email_lower}, {"_id": 0})
+    if contact_form:
+        parts.append(f"Kontaktanfrage: {contact_form.get('nachricht','')[:120]}")
     
     if not parts:
         return ""
@@ -947,7 +1017,8 @@ async def chat_message(data: ChatMessage, request: Request):
                             "expires_at": tok["expires_at"], "created_at": tok["created_at"], "created_by": "ai_advisor",
                         })
                         if RESEND_API_KEY:
-                            import base64, asyncio as aio
+                            import base64
+                            import asyncio as aio
                             pdf_b64 = base64.b64encode(pdf_bytes).decode()
                             frontend_url = os.environ.get("FRONTEND_URL", "https://nexifyai.de")
                             portal_link = f"{frontend_url}/angebot?token={tok['token']}&qid={quote_obj['quote_id']}"
@@ -2317,6 +2388,25 @@ async def admin_customer_memory(
     bookings = await db.bookings.find({"email": email.lower()}, {"_id": 0}).sort("created_at", -1).to_list(10)
     chat_sessions = await db.chat_sessions.find({"customer_email": email.lower()}, {"_id": 0, "messages": {"$slice": -5}}).sort("created_at", -1).to_list(10)
     
+    # Unified conversations
+    contact = await db.contacts.find_one({"email": email.lower()}, {"_id": 0})
+    conversations_out = []
+    facts_out = []
+    if contact:
+        cid = contact.get("contact_id")
+        async for conv in db.conversations.find({"contact_id": cid}, {"_id": 0}).sort("last_message_at", -1).limit(10):
+            mc = await db.messages.find({"conversation_id": conv["conversation_id"]}, {"_id": 0}).sort("timestamp", -1).limit(3).to_list(3)
+            conversations_out.append({
+                "conversation_id": conv["conversation_id"],
+                "channels": conv.get("channels", []),
+                "status": conv.get("status", "open"),
+                "message_count": conv.get("message_count", 0),
+                "last_message_at": str(conv.get("last_message_at", "")),
+                "recent_messages": [{k: (str(v) if hasattr(v, 'isoformat') else v) for k, v in m.items()} for m in mc],
+            })
+        async for mem in db.customer_memory.find({"contact_id": cid}, {"_id": 0}).sort("created_at", -1).limit(20):
+            facts_out.append({k: (str(v) if hasattr(v, 'isoformat') else v) for k, v in mem.items()})
+    
     return {
         "email": email.lower(),
         "memory_context": memory,
@@ -2331,7 +2421,35 @@ async def admin_customer_memory(
             "recent_messages": s.get("messages", []),
             "created_at": str(s.get("created_at", "")),
         } for s in chat_sessions],
+        "conversations": conversations_out,
+        "memory_facts": facts_out,
     }
+
+
+@app.post("/api/admin/customer-memory/{email}/facts")
+async def admin_add_memory_fact(
+    email: str, data: dict, current_user: dict = Depends(get_current_admin)
+):
+    """Manually add a memory fact for a customer."""
+    fact_text = data.get("fact", "").strip()
+    category = data.get("category", "general")
+    if not fact_text:
+        raise HTTPException(400, "Fakt darf nicht leer sein")
+    contact = await db.contacts.find_one({"email": email.lower()}, {"_id": 0})
+    contact_id = contact["contact_id"] if contact else None
+    if not contact_id:
+        contact = create_contact(email, source="admin")
+        await db.contacts.insert_one(contact)
+        contact.pop("_id", None)
+        contact_id = contact["contact_id"]
+    mem = create_memory(contact_id, fact_text, category=category, source="admin", source_ref=current_user["email"])
+    await db.customer_memory.insert_one(mem)
+    mem.pop("_id", None)
+    evt = create_timeline_event("contact", contact_id, "memory_fact_added",
+                                actor=current_user["email"], actor_type="admin",
+                                details={"fact": fact_text[:100], "category": category})
+    await db.timeline_events.insert_one(evt)
+    return {"status": "ok", "memory": {k: (str(v) if hasattr(v, 'isoformat') else v) for k, v in mem.items() if k != "_id"}}
 
 
 # --- Admin: Lead Notes ---
@@ -2518,6 +2636,53 @@ async def admin_reply_to_conversation(
     return {"status": "ok", "message": {k: v for k, v in msg.items() if k != "_id"}}
 
 
+
+# ══════════════════════════════════════════════════════════════
+# AI AGENT LAYER (Orchestrator + Sub-Agents)
+# ══════════════════════════════════════════════════════════════
+
+@app.post("/api/admin/agents/route")
+async def agent_route_task(data: dict, current_user: dict = Depends(get_current_admin)):
+    """Route a task through the orchestrator to a sub-agent."""
+    task = data.get("task", "").strip()
+    context = data.get("context", {})
+    if not task:
+        raise HTTPException(400, "Aufgabe darf nicht leer sein")
+    result = await orchestrator.route(task, context)
+    return result
+
+
+@app.post("/api/admin/agents/{agent_name}/execute")
+async def agent_execute(agent_name: str, data: dict, current_user: dict = Depends(get_current_admin)):
+    """Execute a task with a specific sub-agent."""
+    if agent_name not in agents:
+        raise HTTPException(404, f"Agent '{agent_name}' nicht gefunden. Verfügbar: {list(agents.keys())}")
+    task = data.get("task", "").strip()
+    context = data.get("context", "")
+    if not task:
+        raise HTTPException(400, "Aufgabe darf nicht leer sein")
+
+    # Auto-inject customer memory if email provided
+    email = data.get("customer_email")
+    if email:
+        memory = await _build_customer_memory(email)
+        if memory:
+            context = f"KUNDENSPEICHER:\n{memory}\n\n{context}" if context else f"KUNDENSPEICHER:\n{memory}"
+
+    result = await agents[agent_name].execute(task, context)
+    return result
+
+
+@app.get("/api/admin/agents")
+async def list_agents(current_user: dict = Depends(get_current_admin)):
+    """List all available sub-agents."""
+    from agents.orchestrator import AGENT_ROLES
+    return {
+        "orchestrator": {"status": "active", "model": f"{os.environ.get('ORCHESTRATOR_PROVIDER', 'openai')}/{os.environ.get('ORCHESTRATOR_MODEL', 'gpt-5.2')}"},
+        "agents": {name: {"role": AGENT_ROLES.get(name, ""), "status": "active"} for name in agents},
+    }
+
+
 # ══════════════════════════════════════════════════════════════
 # WHATSAPP QR CONNECTOR (Isolated Bridge Layer)
 # ══════════════════════════════════════════════════════════════
@@ -2619,6 +2784,97 @@ async def wa_reset(current_user: dict = Depends(get_current_admin)):
     return {"status": "reset", "session_id": new_session["session_id"]}
 
 
+@app.post("/api/admin/whatsapp/reconnect")
+async def wa_reconnect(current_user: dict = Depends(get_current_admin)):
+    """Attempt to reconnect a disconnected/failed WhatsApp session."""
+    session = await db.whatsapp_sessions.find_one({}, {"_id": 0}, sort=[("created_at", -1)])
+    if not session:
+        raise HTTPException(404, "Keine WhatsApp-Session gefunden")
+    if session.get("status") == "connected":
+        return {"status": "already_connected"}
+    await db.whatsapp_sessions.update_one(
+        {"session_id": session["session_id"]},
+        {"$set": {"status": WhatsAppSessionStatus.RECONNECTING.value, "error": None, "updated_at": utcnow()}}
+    )
+    evt = create_timeline_event("whatsapp", session["session_id"], "reconnect_initiated",
+                                actor=current_user["email"], actor_type="admin")
+    await db.timeline_events.insert_one(evt)
+    return {"status": "reconnecting", "session_id": session["session_id"]}
+
+
+@app.post("/api/admin/whatsapp/simulate-connect")
+async def wa_simulate_connect(current_user: dict = Depends(get_current_admin)):
+    """DEV ONLY: Simulate a successful WhatsApp connection for testing."""
+    session = await db.whatsapp_sessions.find_one({}, {"_id": 0}, sort=[("created_at", -1)])
+    if not session:
+        session = create_whatsapp_session()
+        await db.whatsapp_sessions.insert_one(session)
+    await db.whatsapp_sessions.update_one(
+        {"session_id": session["session_id"]},
+        {"$set": {
+            "status": WhatsAppSessionStatus.CONNECTED.value,
+            "phone_number": "+31613318856",
+            "connected_at": utcnow(),
+            "last_activity": utcnow(),
+            "qr_code": None,
+            "error": None,
+            "updated_at": utcnow(),
+        }}
+    )
+    evt = create_timeline_event("whatsapp", session["session_id"], "session_connected",
+                                actor=current_user["email"], actor_type="admin",
+                                details={"phone": "+31613318856", "mode": "simulated"})
+    await db.timeline_events.insert_one(evt)
+    return {"status": "connected", "session_id": session["session_id"], "phone_number": "+31613318856"}
+
+
+@app.post("/api/admin/whatsapp/send")
+async def wa_send_message(data: dict, current_user: dict = Depends(get_current_admin)):
+    """Send a WhatsApp message to a contact (via bridge connector).
+    In production, this calls the actual WA connector to deliver the message."""
+    to_phone = data.get("to", "").strip()
+    content = data.get("content", "").strip()
+    conversation_id = data.get("conversation_id", "").strip()
+    if not content:
+        raise HTTPException(400, "Nachricht darf nicht leer sein")
+
+    # Find or resolve conversation
+    convo = None
+    if conversation_id:
+        convo = await db.conversations.find_one({"conversation_id": conversation_id}, {"_id": 0})
+    elif to_phone:
+        contact = await db.contacts.find_one({"$or": [{"phone": to_phone}, {"whatsapp": to_phone}]}, {"_id": 0})
+        if not contact:
+            contact = create_contact(f"wa_{to_phone}@placeholder.nexifyai.de", phone=to_phone, whatsapp=to_phone, source="whatsapp")
+            await db.contacts.insert_one(contact)
+            contact.pop("_id", None)
+        convo = await db.conversations.find_one({
+            "contact_id": contact["contact_id"], "channels": Channel.WHATSAPP.value,
+            "status": {"$in": ["open", "pending"]}
+        }, {"_id": 0})
+        if not convo:
+            convo = create_conversation(contact["contact_id"], Channel.WHATSAPP.value, subject=f"WhatsApp: {to_phone}")
+            await db.conversations.insert_one(convo)
+            convo.pop("_id", None)
+    else:
+        raise HTTPException(400, "Entweder 'to' (Telefonnummer) oder 'conversation_id' muss angegeben werden")
+
+    msg = create_message(convo["conversation_id"], Channel.WHATSAPP.value,
+                         MessageDirection.OUTBOUND.value, content,
+                         sender=current_user["email"], ai_generated=False)
+    await db.messages.insert_one(msg)
+    await db.conversations.update_one(
+        {"conversation_id": convo["conversation_id"]},
+        {"$set": {"last_message_at": utcnow(), "updated_at": utcnow()}, "$inc": {"message_count": 1}}
+    )
+    evt = create_timeline_event("conversation", convo["conversation_id"], "whatsapp_outbound",
+                                channel=Channel.WHATSAPP.value, actor=current_user["email"], actor_type="admin",
+                                details={"to": to_phone, "content_preview": content[:100]})
+    await db.timeline_events.insert_one(evt)
+    await db.whatsapp_sessions.update_one({}, {"$set": {"last_activity": utcnow()}})
+    return {"status": "sent", "message_id": msg["message_id"], "conversation_id": convo["conversation_id"]}
+
+
 @app.get("/api/admin/whatsapp/messages")
 async def wa_messages(
     limit: int = 50,
@@ -2627,7 +2883,6 @@ async def wa_messages(
     """List WhatsApp messages from the unified message store."""
     msgs = []
     async for m in db.messages.find({"channel": Channel.WHATSAPP.value}, {"_id": 0}).sort("timestamp", -1).limit(limit):
-        # Resolve conversation & contact
         convo = await db.conversations.find_one({"conversation_id": m.get("conversation_id")}, {"_id": 0, "contact_id": 1})
         contact = None
         if convo:
