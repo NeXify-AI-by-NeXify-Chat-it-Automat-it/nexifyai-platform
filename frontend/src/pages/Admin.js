@@ -56,7 +56,7 @@ const Admin = () => {
   const [waStatus, setWaStatus] = useState(null);
   const [conversations, setConversations] = useState([]);
   const [selectedConvo, setSelectedConvo] = useState(null);
-  const [quoteForm, setQuoteForm] = useState({ tier: 'starter', customer_name: '', customer_email: '', customer_company: '', customer_country: 'DE', customer_industry: '', use_case: '', notes: '' });
+  const [quoteForm, setQuoteForm] = useState({ tier: 'starter', customer_name: '', customer_email: '', customer_company: '', customer_country: 'DE', customer_industry: '', use_case: '', notes: '', discount_percent: 0, discount_reason: '', special_items: [] });
   const [showQuoteForm, setShowQuoteForm] = useState(false);
   const [commBusy, setCommBusy] = useState('');
   const [waMessages, setWaMessages] = useState([]);
@@ -72,6 +72,10 @@ const Admin = () => {
   const [agentLoading, setAgentLoading] = useState(false);
   const [auditData, setAuditData] = useState(null);
   const [auditTimeline, setAuditTimeline] = useState([]);
+  const [showLeadForm, setShowLeadForm] = useState(false);
+  const [leadForm, setLeadForm] = useState({ vorname:'', nachname:'', email:'', unternehmen:'', telefon:'', nachricht:'', source:'admin' });
+  const [showCustomerForm, setShowCustomerForm] = useState(false);
+  const [customerForm, setCustomerForm] = useState({ vorname:'', nachname:'', email:'', unternehmen:'', telefon:'', branche:'' });
 
   const headers = useMemo(() => ({ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }), [token]);
 
@@ -87,7 +91,7 @@ const Admin = () => {
       const r = await fetch(`${API}/api/admin/login`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: `username=${encodeURIComponent(loginForm.email)}&password=${encodeURIComponent(loginForm.password)}` });
       const d = await r.json();
-      if (!r.ok) throw new Error(d.detail || 'Login fehlgeschlagen');
+      if (!r.ok) throw new Error(d.detail || 'Anmeldung fehlgeschlagen');
       setToken(d.access_token); localStorage.setItem('nx_admin_token', d.access_token);
     } catch (err) { setLoginErr(err.message); } finally { setLoginBusy(false); }
   };
@@ -241,15 +245,29 @@ const Admin = () => {
   /* ══════════ LOGIN SCREEN ══════════ */
   if (!token) return (
     <div className="adm-login" data-testid="admin-login">
-      <div className="adm-login-box">
-        <div className="adm-login-logo"><img src="/icon-mark.svg" alt="" width="36" height="36" /><span>NeXify<em>AI</em></span></div>
-        <h1>Admin Panel</h1>
-        <form onSubmit={login} data-testid="admin-login-form">
-          <div className="adm-field"><label>E-Mail</label><input type="email" value={loginForm.email} onChange={e => setLoginForm({ ...loginForm, email: e.target.value })} required data-testid="admin-email" /></div>
-          <div className="adm-field"><label>Passwort</label><input type="password" value={loginForm.password} onChange={e => setLoginForm({ ...loginForm, password: e.target.value })} required data-testid="admin-password" /></div>
-          {loginErr && <div className="adm-err" data-testid="admin-login-error">{loginErr}</div>}
-          <button type="submit" className="adm-btn-primary" disabled={loginBusy} data-testid="admin-login-btn">{loginBusy ? 'Anmelden...' : 'Anmelden'}</button>
-        </form>
+      <div className="adm-login-left">
+        <div className="adm-login-brand">
+          <div className="adm-login-logo"><img src="/icon-mark.svg" alt="" width="44" height="44" /><span>NeXify<em>AI</em></span></div>
+          <p className="adm-login-tagline">Intelligente Automatisierung für Ihr Unternehmen</p>
+        </div>
+        <div className="adm-login-features">
+          <div className="adm-login-feature"><I n="smart_toy" /><div><strong>9 KI-Agenten</strong><span>Automatisiertes Lead-Management, Outreach und Support</span></div></div>
+          <div className="adm-login-feature"><I n="forum" /><div><strong>Zentrale Kommunikation</strong><span>Chat, E-Mail, WhatsApp und Portal in einer Timeline</span></div></div>
+          <div className="adm-login-feature"><I n="verified" /><div><strong>Echtzeit-Audit</strong><span>Systemgesundheit und Aktivitäten live überwachen</span></div></div>
+        </div>
+      </div>
+      <div className="adm-login-right">
+        <div className="adm-login-box">
+          <h1>Willkommen zurück</h1>
+          <p className="adm-login-subtitle">Melden Sie sich an, um fortzufahren</p>
+          <form onSubmit={login} data-testid="admin-login-form">
+            <div className="adm-field"><label>E-Mail-Adresse</label><input type="email" value={loginForm.email} onChange={e => setLoginForm({ ...loginForm, email: e.target.value })} required placeholder="admin@nexifyai.de" data-testid="admin-email" /></div>
+            <div className="adm-field"><label>Passwort</label><input type="password" value={loginForm.password} onChange={e => setLoginForm({ ...loginForm, password: e.target.value })} required placeholder="Ihr Passwort" data-testid="admin-password" /></div>
+            {loginErr && <div className="adm-err" data-testid="admin-login-error">{loginErr}</div>}
+            <button type="submit" className="adm-btn-primary" disabled={loginBusy} data-testid="admin-login-btn">{loginBusy ? 'Anmeldung läuft...' : 'Anmelden'}</button>
+          </form>
+          <p className="adm-login-footer">Geschützter Bereich — Nur autorisierte Nutzer</p>
+        </div>
       </div>
     </div>
   );
@@ -285,11 +303,17 @@ const Admin = () => {
   );
 
   /* ══════════ LEADS VIEW ══════════ */
+  const createLead = async () => {
+    if (!leadForm.email.trim()) return;
+    const d = await apiFetch('/api/admin/leads', { method: 'POST', body: JSON.stringify(leadForm) });
+    if (d) { setShowLeadForm(false); setLeadForm({ vorname:'', nachname:'', email:'', unternehmen:'', telefon:'', nachricht:'', source:'admin' }); }
+  };
   const LeadsView = () => (
     <div className="adm-leads" data-testid="admin-leads">
       <div className="adm-leads-header">
         <h2>Leads ({leadsTotal})</h2>
         <div className="adm-leads-controls">
+          <button className="adm-btn adm-btn-primary" style={{padding:'8px 16px',width:'auto'}} onClick={() => setShowLeadForm(true)} data-testid="add-lead-btn"><I n="person_add" /> Neuer Lead</button>
           <div className="adm-search"><I n="search" /><input placeholder="Suchen..." value={leadsSearch} onChange={e => setLeadsSearch(e.target.value)} data-testid="leads-search" /></div>
           <select className="adm-select" value={leadsFilter} onChange={e => setLeadsFilter(e.target.value)} data-testid="leads-filter">
             <option value="all">Alle</option>
@@ -297,6 +321,24 @@ const Admin = () => {
           </select>
         </div>
       </div>
+      {showLeadForm && (
+        <div className="adm-form-card" data-testid="lead-form">
+          <h3>Lead manuell anlegen</h3>
+          <div className="adm-form-grid">
+            <div className="adm-field"><label>Vorname</label><input value={leadForm.vorname} onChange={e => setLeadForm({...leadForm, vorname: e.target.value})} placeholder="Max" /></div>
+            <div className="adm-field"><label>Nachname *</label><input value={leadForm.nachname} onChange={e => setLeadForm({...leadForm, nachname: e.target.value})} placeholder="Mustermann" /></div>
+            <div className="adm-field"><label>E-Mail *</label><input type="email" value={leadForm.email} onChange={e => setLeadForm({...leadForm, email: e.target.value})} placeholder="max@firma.de" /></div>
+            <div className="adm-field"><label>Unternehmen</label><input value={leadForm.unternehmen} onChange={e => setLeadForm({...leadForm, unternehmen: e.target.value})} placeholder="Firma GmbH" /></div>
+            <div className="adm-field"><label>Telefon</label><input value={leadForm.telefon} onChange={e => setLeadForm({...leadForm, telefon: e.target.value})} placeholder="+49 171 234 5678" /></div>
+            <div className="adm-field"><label>Quelle</label><select className="adm-select" value={leadForm.source} onChange={e => setLeadForm({...leadForm, source: e.target.value})}><option value="admin">Admin</option><option value="website">Website</option><option value="empfehlung">Empfehlung</option><option value="messe">Messe</option><option value="social">Social Media</option></select></div>
+          </div>
+          <div className="adm-field" style={{gridColumn:'1/-1'}}><label>Notiz</label><textarea value={leadForm.nachricht} onChange={e => setLeadForm({...leadForm, nachricht: e.target.value})} rows={2} placeholder="Optionale Notiz zum Lead..." style={{width:'100%',resize:'vertical'}} /></div>
+          <div className="adm-form-actions">
+            <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'8px 20px'}} onClick={createLead} disabled={!leadForm.email.trim()} data-testid="save-lead-btn"><I n="check" /> Speichern</button>
+            <button className="adm-btn adm-btn-secondary" onClick={() => setShowLeadForm(false)}>Abbrechen</button>
+          </div>
+        </div>
+      )}
       <div className="adm-table-wrap">
         <table className="adm-table" data-testid="leads-table">
           <thead><tr><th>Name</th><th>E-Mail</th><th>Unternehmen</th><th>Quelle</th><th>Status</th><th>Datum</th><th>Aktionen</th></tr></thead>
@@ -503,12 +545,41 @@ const Admin = () => {
   };
 
   /* ══════════ CUSTOMERS VIEW ══════════ */
+  const createCustomer = async () => {
+    if (!customerForm.email.trim()) return;
+    const d = await apiFetch('/api/admin/customers', { method: 'POST', body: JSON.stringify(customerForm) });
+    if (d) { setShowCustomerForm(false); setCustomerForm({ vorname:'', nachname:'', email:'', unternehmen:'', telefon:'', branche:'' }); }
+  };
+  const generatePortalAccess = async (email) => {
+    const d = await apiFetch('/api/admin/customers/portal-access', { method: 'POST', body: JSON.stringify({ email }) });
+    if (d?.portal_url) { navigator.clipboard?.writeText(d.portal_url); alert(`Portalzugang erstellt und kopiert:\n${d.portal_url}`); }
+  };
   const CustomersView = () => (
     <div className="adm-customers" data-testid="admin-customers">
       <div className="adm-leads-header">
         <h2>Kunden ({customers.length})</h2>
-        <div className="adm-search"><I n="search" /><input placeholder="Suchen..." value={custSearch} onChange={e => setCustSearch(e.target.value)} data-testid="customer-search" /></div>
+        <div className="adm-leads-controls">
+          <button className="adm-btn adm-btn-primary" style={{padding:'8px 16px',width:'auto'}} onClick={() => setShowCustomerForm(true)} data-testid="add-customer-btn"><I n="person_add" /> Neuer Kunde</button>
+          <div className="adm-search"><I n="search" /><input placeholder="Suchen..." value={custSearch} onChange={e => setCustSearch(e.target.value)} data-testid="customer-search" /></div>
+        </div>
       </div>
+      {showCustomerForm && (
+        <div className="adm-form-card" data-testid="customer-form">
+          <h3>Kunden manuell anlegen</h3>
+          <div className="adm-form-grid">
+            <div className="adm-field"><label>Vorname</label><input value={customerForm.vorname} onChange={e => setCustomerForm({...customerForm, vorname: e.target.value})} placeholder="Max" /></div>
+            <div className="adm-field"><label>Nachname</label><input value={customerForm.nachname} onChange={e => setCustomerForm({...customerForm, nachname: e.target.value})} placeholder="Mustermann" /></div>
+            <div className="adm-field"><label>E-Mail *</label><input type="email" value={customerForm.email} onChange={e => setCustomerForm({...customerForm, email: e.target.value})} placeholder="max@firma.de" /></div>
+            <div className="adm-field"><label>Unternehmen</label><input value={customerForm.unternehmen} onChange={e => setCustomerForm({...customerForm, unternehmen: e.target.value})} placeholder="Firma GmbH" /></div>
+            <div className="adm-field"><label>Telefon</label><input value={customerForm.telefon} onChange={e => setCustomerForm({...customerForm, telefon: e.target.value})} placeholder="+49 171 234 5678" /></div>
+            <div className="adm-field"><label>Branche</label><input value={customerForm.branche} onChange={e => setCustomerForm({...customerForm, branche: e.target.value})} placeholder="z.B. Logistik, IT, Gesundheit" /></div>
+          </div>
+          <div className="adm-form-actions">
+            <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'8px 20px'}} onClick={createCustomer} disabled={!customerForm.email.trim()} data-testid="save-customer-btn"><I n="check" /> Speichern</button>
+            <button className="adm-btn adm-btn-secondary" onClick={() => setShowCustomerForm(false)}>Abbrechen</button>
+          </div>
+        </div>
+      )}
       <div className="adm-table-wrap">
         <table className="adm-table" data-testid="customers-table">
           <thead><tr><th>Name</th><th>E-Mail</th><th>Unternehmen</th><th>Anfragen</th><th>Buchungen</th><th>Erster Kontakt</th><th>Letzter Kontakt</th></tr></thead>
@@ -531,7 +602,10 @@ const Admin = () => {
         <div className="adm-cust-detail" data-testid="customer-detail">
           <div className="adm-detail-header">
             <h3>{custDetail.email}</h3>
-            <button className="adm-btn-icon" onClick={() => setCustDetail(null)}><I n="close" /></button>
+            <div style={{display:'flex',gap:8}}>
+              <button className="adm-btn-sm" style={{color:'#ff9b7a'}} onClick={() => generatePortalAccess(custDetail.email)} data-testid="portal-access-btn" title="Portalzugang erstellen"><I n="link" /> Portal</button>
+              <button className="adm-btn-icon" onClick={() => setCustDetail(null)}><I n="close" /></button>
+            </div>
           </div>
           <div className="adm-cust-tabs">
             <div className="adm-cust-tab-content">
@@ -566,7 +640,7 @@ const Admin = () => {
     e.preventDefault(); setCommBusy('create');
     try {
       await apiFetch('/api/admin/quotes', { method: 'POST', body: JSON.stringify(quoteForm) });
-      setShowQuoteForm(false); setQuoteForm({ tier: 'starter', customer_name: '', customer_email: '', customer_company: '', customer_country: 'DE', customer_industry: '', use_case: '', notes: '' });
+      setShowQuoteForm(false); setQuoteForm({ tier: 'starter', customer_name: '', customer_email: '', customer_company: '', customer_country: 'DE', customer_industry: '', use_case: '', notes: '', discount_percent: 0, discount_reason: '', special_items: [] });
       apiFetch('/api/admin/quotes').then(d => d && setQuotes(d.quotes || []));
       apiFetch('/api/admin/commercial/stats').then(d => d && setCommStats(d));
     } catch (e) { alert(e.message); } finally { setCommBusy(''); }
@@ -605,7 +679,7 @@ const Admin = () => {
   const CommercialView = () => (
     <div className="adm-dashboard" data-testid="admin-commercial">
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
-        <h2>Commercial</h2>
+        <h2>Angebote & Rechnungen</h2>
         <button className="adm-btn-primary" onClick={() => setShowQuoteForm(true)} data-testid="create-quote-btn"><I n="add" /> Neues Angebot</button>
       </div>
 
@@ -632,6 +706,26 @@ const Admin = () => {
             </div>
             <div className="adm-field" style={{marginTop:'12px'}}><label>Use Case</label><input value={quoteForm.use_case} onChange={e=>setQuoteForm({...quoteForm,use_case:e.target.value})} placeholder="Beschreiben Sie den geplanten Einsatz" data-testid="quote-usecase" /></div>
             <div className="adm-field" style={{marginTop:'12px'}}><label>Interne Notizen</label><textarea value={quoteForm.notes} onChange={e=>setQuoteForm({...quoteForm,notes:e.target.value})} rows={2} placeholder="Interne Bemerkungen (nicht im Angebot sichtbar)" data-testid="quote-notes" style={{width:'100%',resize:'vertical'}} /></div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 2fr',gap:'12px',marginTop:'12px',padding:'14px',background:'rgba(255,155,122,0.04)',borderRadius:8,border:'1px solid rgba(255,155,122,0.08)'}}>
+              <div className="adm-field"><label>Rabatt (%)</label><input type="number" min="0" max="25" step="0.5" value={quoteForm.discount_percent} onChange={e=>setQuoteForm({...quoteForm,discount_percent:parseFloat(e.target.value)||0})} data-testid="quote-discount" /></div>
+              <div className="adm-field"><label>Rabattgrund (Pflicht bei Rabatt)</label><input value={quoteForm.discount_reason} onChange={e=>setQuoteForm({...quoteForm,discount_reason:e.target.value})} placeholder="z.B. Frühbucher, Partner-Rabatt, Verhandlung" data-testid="quote-discount-reason" /></div>
+            </div>
+            <div style={{marginTop:'12px'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+                <label style={{fontWeight:600,fontSize:'.8125rem',color:'#fff'}}>Sonderpositionen</label>
+                <button type="button" className="adm-btn-sm" onClick={() => setQuoteForm({...quoteForm, special_items:[...quoteForm.special_items, {description:'',amount_eur:0,type:'add'}]})}>+ Hinzufügen</button>
+              </div>
+              {quoteForm.special_items.map((si, idx) => (
+                <div key={idx} style={{display:'grid',gridTemplateColumns:'2fr 1fr auto auto',gap:8,marginBottom:6,alignItems:'end'}}>
+                  <div className="adm-field"><label style={{fontSize:'.6875rem'}}>Beschreibung</label><input value={si.description} onChange={e => {const items=[...quoteForm.special_items]; items[idx]={...items[idx],description:e.target.value}; setQuoteForm({...quoteForm,special_items:items});}} placeholder="Zusatzleistung..." /></div>
+                  <div className="adm-field"><label style={{fontSize:'.6875rem'}}>Betrag (EUR netto)</label><input type="number" min="0" step="0.01" value={si.amount_eur} onChange={e => {const items=[...quoteForm.special_items]; items[idx]={...items[idx],amount_eur:parseFloat(e.target.value)||0}; setQuoteForm({...quoteForm,special_items:items});}} /></div>
+                  <select style={{padding:'7px',background:'rgba(19,26,34,0.6)',border:'1px solid rgba(255,255,255,0.06)',color:'#fff',borderRadius:4}} value={si.type} onChange={e => {const items=[...quoteForm.special_items]; items[idx]={...items[idx],type:e.target.value}; setQuoteForm({...quoteForm,special_items:items});}}>
+                    <option value="add">Zuschlag</option><option value="deduct">Abzug</option>
+                  </select>
+                  <button type="button" className="adm-btn-sm" style={{color:'#ef4444'}} onClick={() => {const items=[...quoteForm.special_items]; items.splice(idx,1); setQuoteForm({...quoteForm,special_items:items});}}>Entfernen</button>
+                </div>
+              ))}
+            </div>
             <div style={{display:'flex',gap:'8px',marginTop:'16px'}}>
               <button type="submit" className="adm-btn-primary" disabled={commBusy==='create'} data-testid="submit-quote-btn">{commBusy==='create' ? 'Erstelle...' : 'Angebot erstellen'}</button>
               <button type="button" className="adm-btn-secondary" onClick={()=>setShowQuoteForm(false)}>Abbrechen</button>
@@ -656,9 +750,12 @@ const Admin = () => {
                   <td>{fmtEur(q.calculation?.total_contract_eur)}</td>
                   <td><span className="adm-badge" style={{background:qs.c+'22',color:qs.c}}>{qs.l}</span></td>
                   <td>{fmtDate(q.created_at)}</td>
-                  <td style={{display:'flex',gap:'4px'}}>
-                    {['draft','generated'].includes(q.status) && <button className="adm-btn-sm" onClick={()=>sendQuote(q.quote_id)} disabled={commBusy===`send_${q.quote_id}`} data-testid={`send-quote-${q.quote_id}`}><I n="send" /></button>}
-                    <a className="adm-btn-sm" href={`${API}/api/documents/quote/${q.quote_id}/pdf`} target="_blank" rel="noreferrer" data-testid={`pdf-quote-${q.quote_id}`}><I n="picture_as_pdf" /></a>
+                  <td style={{display:'flex',gap:'4px',flexWrap:'wrap'}}>
+                    {['draft','generated'].includes(q.status) && <button className="adm-btn-sm" onClick={()=>sendQuote(q.quote_id)} disabled={commBusy===`send_${q.quote_id}`} data-testid={`send-quote-${q.quote_id}`} title="Versenden"><I n="send" /></button>}
+                    <button className="adm-btn-sm" onClick={async () => { await apiFetch(`/api/admin/quotes/${q.quote_id}/copy`, { method: 'POST' }); apiFetch('/api/admin/quotes').then(d => d && setQuotes(d.quotes || [])); }} title="Kopieren"><I n="content_copy" /></button>
+                    <a className="adm-btn-sm" href={`${API}/api/documents/quote/${q.quote_id}/pdf`} target="_blank" rel="noreferrer" data-testid={`pdf-quote-${q.quote_id}`} title="PDF"><I n="picture_as_pdf" /></a>
+                    {q.status === 'accepted' && <button className="adm-btn-sm" style={{color:'#10b981'}} onClick={async () => { await apiFetch('/api/admin/invoices', { method: 'POST', body: JSON.stringify({ quote_id: q.quote_id }) }); apiFetch('/api/admin/invoices').then(d => d && setInvoices(d.invoices || [])); }} title="Rechnung erstellen"><I n="receipt" /></button>}
+                    {q.discount && q.discount.percent > 0 && <span className="adm-badge" style={{background:'#f59e0b22',color:'#f59e0b',fontSize:'.5625rem'}}>-{q.discount.percent}%</span>}
                   </td>
                 </tr>
               );
@@ -706,7 +803,7 @@ const Admin = () => {
         <div className="adm-chat-detail">
           <button className="adm-back-btn" onClick={() => setSelectedChat(null)}><I n="arrow_back" /> Zurück</button>
           <div className="adm-chat-meta">
-            <span>Session: {selectedChat.session_id}</span>
+            <span>Sitzung: {selectedChat.session_id}</span>
             {selectedChat.customer_email && <span>Kunde: {selectedChat.customer_email}</span>}
             <span>Erstellt: {fmtTime(selectedChat.created_at)}</span>
           </div>
@@ -736,7 +833,7 @@ const Admin = () => {
           </div>
           <div className="adm-table-wrap">
             <table className="adm-table" data-testid="chats-table">
-              <thead><tr><th>Session</th><th>Kunde</th><th>Nachrichten</th><th>Letzte Nachricht</th><th>Datum</th><th></th></tr></thead>
+              <thead><tr><th>Sitzung</th><th>Kunde</th><th>Nachrichten</th><th>Letzte Nachricht</th><th>Datum</th><th></th></tr></thead>
               <tbody>
                 {chatSessions.map(s => (
                   <tr key={s.session_id} className="adm-row-click" onClick={() => loadChatDetail(s.session_id)}>
@@ -766,22 +863,22 @@ const Admin = () => {
   const TimelineView = () => (
     <div className="adm-timeline" data-testid="admin-timeline">
       <div className="adm-section-header">
-        <h2>Activity Timeline</h2>
-        <span className="adm-count">{timeline.length} Events</span>
+        <h2>Aktivitätsverlauf</h2>
+        <span className="adm-count">{timeline.length} Ereignisse</span>
       </div>
       <div className="adm-timeline-list">
         {timeline.map((ev, i) => (
           <div key={i} className="adm-timeline-item">
             <div className="adm-timeline-icon"><I n={EVENT_ICONS[ev.event] || 'circle'} /></div>
             <div className="adm-timeline-content">
-              <div className="adm-timeline-event">{ev.event}</div>
-              {ev.ref_id && <div className="adm-timeline-ref">Ref: {ev.ref_id}</div>}
+              <div className="adm-timeline-event">{ev.event?.replace(/_/g, ' ')}</div>
+              {ev.ref_id && <div className="adm-timeline-ref">Ref.: {ev.ref_id}</div>}
               <div className="adm-timeline-actor">{ev.actor || '—'}</div>
             </div>
             <div className="adm-timeline-time">{fmtTime(ev.timestamp)}</div>
           </div>
         ))}
-        {timeline.length === 0 && <div className="adm-empty">Keine Events vorhanden</div>}
+        {timeline.length === 0 && <div className="adm-empty">Keine Ereignisse vorhanden</div>}
       </div>
     </div>
   );
@@ -979,7 +1076,7 @@ const Admin = () => {
       ) : (
         <>
           <div className="adm-section-header">
-            <h2>Unified Conversations</h2>
+            <h2>Konversationen</h2>
             <span className="adm-count">{conversations.length} aktiv</span>
           </div>
           <div className="adm-table-wrap">
@@ -1150,12 +1247,12 @@ const Admin = () => {
   /* ══════════ MAIN LAYOUT ══════════ */
   const navItems = [
     { id: 'dashboard', icon: 'dashboard', label: 'Dashboard' },
-    { id: 'commercial', icon: 'receipt_long', label: 'Commercial' },
+    { id: 'commercial', icon: 'receipt_long', label: 'Angebote & Rechnungen' },
     { id: 'leads', icon: 'people', label: 'Leads' },
     { id: 'conversations', icon: 'chat', label: 'Kommunikation' },
-    { id: 'chats', icon: 'forum', label: 'AI-Chats' },
+    { id: 'chats', icon: 'forum', label: 'KI-Chats' },
     { id: 'whatsapp', icon: 'smartphone', label: 'WhatsApp' },
-    { id: 'timeline', icon: 'timeline', label: 'Timeline' },
+    { id: 'timeline', icon: 'timeline', label: 'Aktivitäten' },
     { id: 'calendar', icon: 'calendar_month', label: 'Kalender' },
     { id: 'customers', icon: 'person_search', label: 'Kunden' },
     { id: 'agents', icon: 'smart_toy', label: 'KI-Agenten' },
@@ -1178,7 +1275,7 @@ const Admin = () => {
       <main className="adm-main">
         <header className="adm-topbar">
           <h1 className="adm-topbar-title">{navItems.find(n => n.id === view)?.label}</h1>
-          <div className="adm-topbar-user"><I n="account_circle" /> Admin</div>
+          <div className="adm-topbar-user"><I n="account_circle" /> Administration</div>
         </header>
         <div className="adm-content">
           {view === 'dashboard' && <DashboardView />}

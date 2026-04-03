@@ -1180,6 +1180,44 @@ async def admin_leads(user = Depends(get_current_admin), status: str = None, sea
     
     return {"total": total, "leads": leads}
 
+
+@app.post("/api/admin/leads")
+async def admin_create_lead(data: dict, current_user: dict = Depends(get_current_admin)):
+    """Manuell einen Lead anlegen."""
+    email = data.get("email", "").strip().lower()
+    if not email:
+        raise HTTPException(400, "E-Mail ist Pflichtfeld")
+    existing = await db.leads.find_one({"email": email})
+    if existing:
+        raise HTTPException(409, "Ein Lead mit dieser E-Mail existiert bereits")
+    lead = {
+        "lead_id": new_id("lead"),
+        "vorname": data.get("vorname", "").strip(),
+        "nachname": data.get("nachname", "").strip(),
+        "email": email,
+        "unternehmen": data.get("unternehmen", "").strip(),
+        "telefon": data.get("telefon", "").strip(),
+        "nachricht": data.get("nachricht", "").strip(),
+        "source": data.get("source", "admin"),
+        "status": "new",
+        "notes": [],
+        "created_at": utcnow(),
+        "updated_at": utcnow(),
+    }
+    await db.leads.insert_one(lead)
+    lead.pop("_id", None)
+    # Also create a unified contact
+    contact = create_contact(email, first_name=data.get("vorname",""), last_name=data.get("nachname",""),
+                             phone=data.get("telefon",""), company=data.get("unternehmen",""), source="admin")
+    await db.contacts.update_one({"email": email}, {"$setOnInsert": contact}, upsert=True)
+    evt = create_timeline_event("lead", lead["lead_id"], "lead_created_manually",
+                                actor=current_user["email"], actor_type="admin",
+                                details={"email": email, "source": "admin"})
+    await db.timeline_events.insert_one(evt)
+    return lead
+
+
+
 @app.get("/api/admin/leads/{lead_id}")
 async def admin_lead_detail(lead_id: str, user = Depends(get_current_admin)):
     lead = await db.leads.find_one({"lead_id": lead_id}, {"_id": 0})
@@ -1395,6 +1433,9 @@ class QuoteRequest(BaseModel):
     customer_industry: str = ""
     use_case: str = ""
     notes: str = ""
+    discount_percent: float = 0.0
+    discount_reason: str = ""
+    special_items: list = []  # [{"description": str, "amount_eur": float, "type": "add|deduct"}]
 
 
 class OfferDiscoveryRequest(BaseModel):
@@ -1551,7 +1592,7 @@ async def get_product_descriptions():
 
 @app.post("/api/admin/quotes")
 async def create_quote(req: QuoteRequest, current_user: dict = Depends(get_current_admin)):
-    """Create a new quote from admin"""
+    """Angebot manuell erstellen — mit Tarifvorauswahl, Rabatt und Sonderpositionen."""
     calc = calc_contract(req.tier)
     if not calc:
         raise HTTPException(400, "Ungültiger Tarif")
@@ -1559,6 +1600,31 @@ async def create_quote(req: QuoteRequest, current_user: dict = Depends(get_curre
     quote_number = await get_next_number(db, "quote")
     now = datetime.now(timezone.utc)
     tariff = get_tariff(req.tier)
+
+    # Apply discount
+    discount = {}
+    if req.discount_percent > 0:
+        discount = {
+            "percent": min(req.discount_percent, 25.0),  # Max 25% Rabatt
+            "reason": req.discount_reason or "Kein Grund angegeben",
+            "applied_by": current_user["email"],
+        }
+        calc["discount_percent"] = discount["percent"]
+        calc["discount_reason"] = discount["reason"]
+        calc["total_contract_eur_before_discount"] = calc.get("total_contract_eur", 0)
+        calc["total_contract_eur"] = round(calc["total_contract_eur"] * (1 - discount["percent"] / 100), 2)
+        calc["activation_fee_eur"] = round(calc["total_contract_eur"] * 0.3, 2)
+
+    # Apply special items
+    special_items = []
+    special_total = 0
+    for item in (req.special_items or []):
+        desc = item.get("description", "").strip()
+        amount = float(item.get("amount_eur", 0))
+        item_type = item.get("type", "add")
+        if desc and amount > 0:
+            special_items.append({"description": desc, "amount_eur": amount, "type": item_type})
+            special_total += amount if item_type == "add" else -amount
 
     quote = {
         "quote_id": f"q_{secrets.token_hex(8)}",
@@ -1576,12 +1642,15 @@ async def create_quote(req: QuoteRequest, current_user: dict = Depends(get_curre
         },
         "use_case": req.use_case,
         "calculation": calc,
+        "discount": discount,
+        "special_items": special_items,
+        "special_items_total_eur": special_total,
         "notes": req.notes,
         "date": now.strftime("%d.%m.%Y"),
         "valid_until": (now + timedelta(days=30)).isoformat(),
         "created_at": now.isoformat(),
         "created_by": current_user["email"],
-        "history": [{"action": "created", "at": now.isoformat(), "by": current_user["email"]}],
+        "history": [{"action": "erstellt", "at": now.isoformat(), "by": current_user["email"]}],
     }
 
     await db.quotes.insert_one(quote)
@@ -1687,6 +1756,98 @@ async def send_quote(quote_id: str, current_user: dict = Depends(get_current_adm
     )
     await _log_event(db, "offer_sent", quote_id, current_user["email"])
     return {"sent": True, "to": customer_email}
+
+
+@app.post("/api/admin/quotes/{quote_id}/copy")
+async def copy_quote(quote_id: str, current_user: dict = Depends(get_current_admin)):
+    """Angebot kopieren / versionieren."""
+    orig = await db.quotes.find_one({"quote_id": quote_id}, {"_id": 0})
+    if not orig:
+        raise HTTPException(404, "Angebot nicht gefunden")
+    new_id_val = f"q_{secrets.token_hex(8)}"
+    new_number = await get_next_number(db, "quote")
+    now = datetime.now(timezone.utc)
+    copy = {**orig,
+        "quote_id": new_id_val,
+        "quote_number": new_number,
+        "status": "draft",
+        "date": now.strftime("%d.%m.%Y"),
+        "valid_until": (now + timedelta(days=30)).isoformat(),
+        "created_at": now.isoformat(),
+        "created_by": current_user["email"],
+        "history": [
+            {"action": "kopiert", "at": now.isoformat(), "by": current_user["email"], "from": quote_id},
+        ],
+    }
+    await db.quotes.insert_one(copy)
+    copy.pop("_id", None)
+    # Regenerate PDF
+    from commercial import generate_quote_pdf
+    pdf_bytes = generate_quote_pdf(copy)
+    await db.documents.insert_one({
+        "doc_id": f"doc_{secrets.token_hex(8)}",
+        "type": "quote",
+        "ref_id": new_id_val,
+        "number": new_number,
+        "pdf_data": pdf_bytes,
+        "created_at": now.isoformat(),
+    })
+    await _log_event(db, "offer_copied", new_id_val, current_user["email"])
+    return {"quote": copy, "copied_from": quote_id}
+
+
+@app.post("/api/admin/invoices")
+async def admin_create_invoice(data: dict, current_user: dict = Depends(get_current_admin)):
+    """Rechnung manuell erstellen (aus Angebot oder frei)."""
+    quote_id = data.get("quote_id")
+    now = datetime.now(timezone.utc)
+    inv_number = await get_next_number(db, "invoice")
+
+    if quote_id:
+        quote = await db.quotes.find_one({"quote_id": quote_id}, {"_id": 0})
+        if not quote:
+            raise HTTPException(404, "Angebot nicht gefunden")
+        calc = quote.get("calculation", {})
+        amount = data.get("amount_eur") or calc.get("activation_fee_eur", 0)
+        customer = quote.get("customer", {})
+    else:
+        amount = data.get("amount_eur", 0)
+        customer = {
+            "name": data.get("customer_name", ""),
+            "email": data.get("customer_email", ""),
+            "company": data.get("customer_company", ""),
+        }
+
+    tax_rate = data.get("tax_rate", 0.19)
+    netto = round(float(amount), 2)
+    ust = round(netto * tax_rate, 2)
+    brutto = round(netto + ust, 2)
+
+    invoice = {
+        "invoice_id": f"inv_{secrets.token_hex(8)}",
+        "invoice_number": inv_number,
+        "quote_id": quote_id or "",
+        "status": "draft",
+        "customer": customer,
+        "amount_netto_eur": netto,
+        "tax_rate": tax_rate,
+        "tax_eur": ust,
+        "total_eur": brutto,
+        "description": data.get("description", ""),
+        "date": now.strftime("%d.%m.%Y"),
+        "due_date": (now + timedelta(days=14)).strftime("%d.%m.%Y"),
+        "created_at": now.isoformat(),
+        "created_by": current_user["email"],
+        "history": [{"action": "erstellt", "at": now.isoformat(), "by": current_user["email"]}],
+    }
+    await db.invoices.insert_one(invoice)
+    invoice.pop("_id", None)
+    evt = create_timeline_event("invoice", invoice["invoice_id"], "invoice_created",
+                                actor=current_user["email"], actor_type="admin",
+                                details={"invoice_number": inv_number, "total_eur": brutto})
+    await db.timeline_events.insert_one(evt)
+    return invoice
+
 
 
 # --- Customer-Facing Offer Portal ---
