@@ -676,6 +676,7 @@ a.integ-item-v2.popular{border-color:rgba(255,155,122,0.1);color:rgba(255,255,25
 .footer-links a,.footer-links button{font-size:.75rem;color:var(--nx-dim);transition:color 200ms ease}
 .footer-links a:hover,.footer-links button:hover{color:var(--nx-accent)}
 .footer-ids{margin-top:16px;font-size:.5625rem;color:var(--nx-dim);line-height:1.6}
+.footer-iban{margin-top:8px;font-size:.6875rem;color:var(--nx-dim)}
 .footer-bottom{margin-top:36px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.04);display:flex;flex-direction:column;gap:12px;align-items:center}
 @media(min-width:768px){.footer-bottom{flex-direction:row;justify-content:space-between}}
 .footer-copy{font-size:.6875rem;text-transform:uppercase;letter-spacing:.06em;color:var(--nx-dim)}

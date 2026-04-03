@@ -169,7 +169,10 @@ const UnifiedLogin = () => {
           <div className="ul-visual-orb ul-visual-orb-2" />
           <div className="ul-visual-grid" />
           <div className="ul-visual-content">
-            <div className="ul-visual-logo">NEXIFY<span className="ul-visual-ai">AI</span></div>
+            <div className="ul-visual-logo">
+              <img src="/icon-mark.svg" alt="" width="36" height="36" />
+              <span>NeXify<span className="ul-visual-ai">AI</span></span>
+            </div>
             <p className="ul-visual-tagline">Ihre digitale Infrastruktur.<br />Sicher. Intelligent. Skalierbar.</p>
             <div className="ul-visual-features">
               <div className="ul-vf"><I n="shield" /> Verschlüsselte Verbindung</div>
