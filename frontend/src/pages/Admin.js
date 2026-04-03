@@ -70,6 +70,8 @@ const Admin = () => {
   const [agentTarget, setAgentTarget] = useState('');
   const [agentResult, setAgentResult] = useState(null);
   const [agentLoading, setAgentLoading] = useState(false);
+  const [auditData, setAuditData] = useState(null);
+  const [auditTimeline, setAuditTimeline] = useState([]);
 
   const headers = useMemo(() => ({ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }), [token]);
 
@@ -218,6 +220,21 @@ const Admin = () => {
     if (!token || view !== 'agents') return;
     loadAgents();
   }, [token, view, loadAgents]);
+
+  /* ── Audit loading ── */
+  const loadAudit = useCallback(async () => {
+    const [health, tl] = await Promise.all([
+      apiFetch('/api/admin/audit/health'),
+      apiFetch('/api/admin/audit/timeline?hours=48&limit=50'),
+    ]);
+    if (health) setAuditData(health);
+    if (tl) setAuditTimeline(tl.events || []);
+  }, [apiFetch]);
+
+  useEffect(() => {
+    if (!token || view !== 'audit') return;
+    loadAudit();
+  }, [token, view, loadAudit]);
 
   const logout = () => { setToken(''); localStorage.removeItem('nx_admin_token'); };
 
@@ -1031,20 +1048,20 @@ const Admin = () => {
       <div className="adm-wa-card" style={{marginBottom:24}}>
         <h3>Aufgabe an Agenten senden</h3>
         <div className="adm-field" style={{marginBottom:8}}>
-          <label>Kunden-E-Mail (optional — injiziert Memory)</label>
+          <label>Kunden-E-Mail (optional)</label>
           <input value={agentTarget} onChange={e => setAgentTarget(e.target.value)} placeholder="kunde@firma.de" data-testid="agent-customer-email" />
         </div>
         <div className="adm-field" style={{marginBottom:12}}>
           <label>Aufgabe</label>
-          <textarea value={agentTask} onChange={e => setAgentTask(e.target.value)} rows={4} placeholder="z.B.: Erstelle eine personalisierte Erstansprache für die Firma XY..." style={{width:'100%',resize:'vertical'}} data-testid="agent-task-input" />
+          <textarea value={agentTask} onChange={e => setAgentTask(e.target.value)} rows={4} placeholder="z.B.: Erstelle eine personalisierte Erstansprache..." style={{width:'100%',resize:'vertical'}} data-testid="agent-task-input" />
         </div>
         <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
           <button className="adm-btn adm-btn-primary" onClick={() => executeAgent('orchestrator')} disabled={agentLoading || !agentTask.trim()} data-testid="agent-route-btn">
-            <I n="route" /> {agentLoading ? 'Wird verarbeitet...' : 'Orchestrator entscheiden lassen'}
+            <I n="route" /> {agentLoading ? 'Verarbeite...' : 'Orchestrator'}
           </button>
           {agentsList?.agents && Object.keys(agentsList.agents).map(name => (
             <button key={name} className="adm-btn adm-btn-secondary" onClick={() => executeAgent(name)} disabled={agentLoading || !agentTask.trim()} data-testid={`agent-exec-${name}`} style={{textTransform:'capitalize'}}>
-              <I n="smart_toy" /> {name}
+              {name}
             </button>
           ))}
         </div>
@@ -1053,7 +1070,7 @@ const Admin = () => {
       {/* Result */}
       {agentResult && (
         <div className="adm-wa-card">
-          <h3>Ergebnis {agentResult.agent && <span style={{fontWeight:400,fontSize:'.75rem',color:'#6b7b8d'}}>({agentResult.agent || 'Orchestrator'})</span>}</h3>
+          <h3>Ergebnis {agentResult.agent && <span style={{fontWeight:400,fontSize:'.75rem',color:'#6b7b8d'}}>({agentResult.agent})</span>}</h3>
           {agentResult.error ? (
             <p style={{color:'#ef4444'}}>{agentResult.error}</p>
           ) : (
@@ -1061,6 +1078,70 @@ const Admin = () => {
               {typeof agentResult.response === 'string' ? agentResult.response : typeof agentResult.routing === 'object' ? JSON.stringify(agentResult.routing, null, 2) : JSON.stringify(agentResult, null, 2)}
             </pre>
           )}
+        </div>
+      )}
+    </div>
+  );
+
+  /* ══════════ AUDIT VIEW ══════════ */
+  const AuditView = () => (
+    <div className="adm-audit" data-testid="admin-audit">
+      <div className="adm-section-header">
+        <h2>System-Audit</h2>
+        <button className="adm-btn-sm" onClick={loadAudit}><I n="refresh" /> Aktualisieren</button>
+      </div>
+
+      {/* Health Status */}
+      {auditData && (
+        <div className="adm-wa-grid" style={{marginBottom:24}}>
+          <div className="adm-wa-card">
+            <h3>Gesamtstatus</h3>
+            <span className="adm-badge" style={{
+              background: auditData.overall === 'healthy' ? '#10b98122' : '#ef444422',
+              color: auditData.overall === 'healthy' ? '#10b981' : '#ef4444',
+              fontSize:'.9375rem', padding:'6px 16px'
+            }}>{auditData.overall === 'healthy' ? 'Gesund' : 'Eingeschränkt'}</span>
+          </div>
+          {auditData.checks && Object.entries(auditData.checks).map(([key, val]) => (
+            <div key={key} className="adm-wa-card">
+              <h3 style={{textTransform:'capitalize',fontSize:'.875rem'}}>{key.replace(/_/g, ' ')}</h3>
+              {typeof val === 'object' ? (
+                <div style={{fontSize:'.8125rem',color:'#c8d1dc'}}>
+                  {val.status && <span className="adm-badge" style={{background: val.status === 'ok' ? '#10b98122' : '#f59e0b22', color: val.status === 'ok' ? '#10b981' : '#f59e0b'}}>{val.status}</span>}
+                  {val.count != null && <span style={{marginLeft:8}}>{val.count} aktiv</span>}
+                  {val.names && <p style={{marginTop:4,color:'#6b7b8d'}}>{val.names.join(', ')}</p>}
+                  {val.counts && <div style={{marginTop:8}}>{Object.entries(val.counts).map(([c, n]) => <span key={c} style={{display:'inline-block',marginRight:12,fontSize:'.75rem'}}>{c}: <strong style={{color:'#fff'}}>{n}</strong></span>)}</div>}
+                  {val.phone && <p style={{marginTop:4}}>Telefon: {val.phone}</p>}
+                  {val.detail && <p style={{marginTop:4,color:'#6b7b8d'}}>{val.detail}</p>}
+                </div>
+              ) : (
+                <span style={{fontSize:'.9375rem',fontWeight:700,color:'#fff'}}>{val}</span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Audit Timeline */}
+      {auditTimeline.length > 0 && (
+        <div>
+          <h3 style={{fontSize:'1rem',color:'#fff',marginBottom:12}}>Letzte 48h Ereignisse ({auditTimeline.length})</h3>
+          <div className="adm-table-wrap">
+            <table className="adm-table" data-testid="audit-timeline-table">
+              <thead><tr><th>Typ</th><th>Aktion</th><th>Kanal</th><th>Akteur</th><th>Zeit</th></tr></thead>
+              <tbody>
+                {auditTimeline.map((e, i) => (
+                  <tr key={i}>
+                    <td><span className="adm-channel-badge">{e.entity_type}</span></td>
+                    <td>{e.action?.replace(/_/g, ' ')}</td>
+                    <td>{e.channel || '—'}</td>
+                    <td>{e.actor || '—'}</td>
+                    <td>{fmtTime(e.timestamp)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
@@ -1078,6 +1159,7 @@ const Admin = () => {
     { id: 'calendar', icon: 'calendar_month', label: 'Kalender' },
     { id: 'customers', icon: 'person_search', label: 'Kunden' },
     { id: 'agents', icon: 'smart_toy', label: 'KI-Agenten' },
+    { id: 'audit', icon: 'verified', label: 'Audit' },
   ];
 
   return (
@@ -1109,6 +1191,7 @@ const Admin = () => {
           {view === 'calendar' && <CalendarView />}
           {view === 'customers' && <CustomersView />}
           {view === 'agents' && <AgentsView />}
+          {view === 'audit' && <AuditView />}
         </div>
       </main>
     </div>

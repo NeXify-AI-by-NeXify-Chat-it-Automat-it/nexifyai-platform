@@ -17,12 +17,15 @@ def _get_key():
     return os.environ.get("EMERGENT_LLM_KEY", "")
 
 AGENT_ROLES = {
+    "intake": "Leadaufnahme, Discovery und Erstklassifikation",
     "research": "Lead-Recherche und Firmenanalyse",
     "outreach": "Personalisierte Erstansprache und Nachfass-Kommunikation",
     "offer": "Angebotserstellung und Tarifberatung",
-    "finance": "Rechnungsstellung, Zahlungen und Mahnung",
+    "planning": "Projektplanung, Architektur und Build-Handover",
+    "finance": "Rechnungsstellung, Zahlungen und Mahnwesen",
     "support": "Kundenbetreuung und Problemlösung",
-    "qa": "Qualitätssicherung und Dokumentation",
+    "design": "Design-Konzeption, Content-Strategie und SEO",
+    "qa": "Qualitätssicherung, Audit und Selbstheilung",
 }
 
 ORCHESTRATOR_SYSTEM = """Du bist der NeXifyAI Orchestrator — die zentrale KI-Instanz, die eingehende Aufgaben analysiert und an spezialisierte Sub-Agenten delegiert.

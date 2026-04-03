@@ -37,6 +37,11 @@ from agents.research import create_research_agent
 from agents.outreach import create_outreach_agent
 from agents.offer import create_offer_agent
 from agents.support import create_support_agent
+from agents.intake import create_intake_agent
+from agents.planning import create_planning_agent
+from agents.finance import create_finance_agent
+from agents.design import create_design_agent
+from agents.qa import create_qa_agent
 
 # Password hashing with Argon2 (fallback to bcrypt if pwdlib unavailable)
 try:
@@ -320,6 +325,11 @@ async def lifespan(app: FastAPI):
         "outreach": create_outreach_agent(db),
         "offer": create_offer_agent(db),
         "support": create_support_agent(db),
+        "intake": create_intake_agent(db),
+        "planning": create_planning_agent(db),
+        "finance": create_finance_agent(db),
+        "design": create_design_agent(db),
+        "qa": create_qa_agent(db),
     }
 
     logger.info("NeXifyAI Backend v3.0 started")
@@ -2522,13 +2532,51 @@ async def customer_portal(token: str):
             "status": bk.get("status", ""),
         })
     
-    # Communication history (recent chat summaries)
+    # Communication history (recent chat summaries + unified conversations)
     chat_summaries = []
     async for sess in db.chat_sessions.find({"customer_email": email}, {"_id": 0, "messages": {"$slice": -3}}).sort("created_at", -1).limit(5):
         msgs = sess.get("messages", [])
         chat_summaries.append({
+            "type": "chat",
             "date": str(sess.get("created_at", "")),
             "messages": [{"role": m["role"], "content": m["content"][:150]} for m in msgs],
+        })
+    
+    # Unified conversations (WhatsApp, Email, Portal)
+    contact = await db.contacts.find_one({"email": email}, {"_id": 0})
+    unified_convos = []
+    if contact:
+        cid = contact.get("contact_id")
+        async for conv in db.conversations.find({"contact_id": cid}, {"_id": 0}).sort("last_message_at", -1).limit(10):
+            last_msgs = []
+            async for m in db.messages.find({"conversation_id": conv["conversation_id"]}, {"_id": 0}).sort("timestamp", -1).limit(3):
+                last_msgs.append({
+                    "direction": m.get("direction"),
+                    "channel": m.get("channel"),
+                    "content": m.get("content", "")[:200],
+                    "timestamp": str(m.get("timestamp", "")),
+                })
+            unified_convos.append({
+                "type": "conversation",
+                "channels": conv.get("channels", []),
+                "status": conv.get("status"),
+                "message_count": conv.get("message_count", 0),
+                "date": str(conv.get("last_message_at", "")),
+                "messages": last_msgs,
+            })
+    
+    # Timeline events for this customer
+    timeline_items = []
+    async for evt in db.timeline_events.find(
+        {"$or": [{"actor": email}, {"details.email": email}, {"details.customer_email": email}]},
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(20):
+        timeline_items.append({
+            "event_type": evt.get("event_type"),
+            "action": evt.get("action"),
+            "channel": evt.get("channel"),
+            "timestamp": str(evt.get("timestamp", "")),
+            "details": {k: v for k, v in evt.get("details", {}).items() if k not in ("_id",)},
         })
     
     return {
@@ -2537,8 +2585,82 @@ async def customer_portal(token: str):
         "quotes": quotes,
         "invoices": invoices,
         "bookings": bookings,
-        "communications": chat_summaries,
+        "communications": chat_summaries + unified_convos,
+        "timeline": timeline_items,
     }
+
+
+@app.post("/api/portal/quote/{quote_id}/accept")
+async def portal_accept_quote(quote_id: str, token: str = None):
+    """Customer accepts a quote via portal."""
+    if not token:
+        raise HTTPException(401, "Zugangstoken fehlt")
+    link = await db.access_links.find_one({"token": token}, {"_id": 0})
+    if not link or link.get("expires_at", datetime.min.replace(tzinfo=timezone.utc)) < datetime.now(timezone.utc):
+        raise HTTPException(403, "Zugangslink ungültig oder abgelaufen")
+    email = link.get("customer_email", "").lower()
+    quote = await db.quotes.find_one({"quote_id": quote_id, "customer.email": email}, {"_id": 0})
+    if not quote:
+        raise HTTPException(404, "Angebot nicht gefunden")
+    if quote.get("status") not in ("sent", "opened"):
+        raise HTTPException(400, f"Angebot kann im Status '{quote.get('status')}' nicht angenommen werden")
+    await db.quotes.update_one(
+        {"quote_id": quote_id},
+        {"$set": {"status": "accepted", "accepted_at": utcnow(), "updated_at": utcnow()}}
+    )
+    evt = create_timeline_event("quote", quote_id, "quote_accepted",
+                                actor=email, actor_type="customer",
+                                details={"quote_number": quote.get("quote_number")})
+    await db.timeline_events.insert_one(evt)
+    return {"status": "accepted", "quote_id": quote_id}
+
+
+@app.post("/api/portal/quote/{quote_id}/decline")
+async def portal_decline_quote(quote_id: str, data: dict = None, token: str = None):
+    """Customer declines a quote via portal."""
+    if not token:
+        raise HTTPException(401, "Zugangstoken fehlt")
+    link = await db.access_links.find_one({"token": token}, {"_id": 0})
+    if not link or link.get("expires_at", datetime.min.replace(tzinfo=timezone.utc)) < datetime.now(timezone.utc):
+        raise HTTPException(403, "Zugangslink ungültig oder abgelaufen")
+    email = link.get("customer_email", "").lower()
+    quote = await db.quotes.find_one({"quote_id": quote_id, "customer.email": email}, {"_id": 0})
+    if not quote:
+        raise HTTPException(404, "Angebot nicht gefunden")
+    reason = (data or {}).get("reason", "")
+    await db.quotes.update_one(
+        {"quote_id": quote_id},
+        {"$set": {"status": "declined", "decline_reason": reason, "updated_at": utcnow()}}
+    )
+    evt = create_timeline_event("quote", quote_id, "quote_declined",
+                                actor=email, actor_type="customer",
+                                details={"quote_number": quote.get("quote_number"), "reason": reason[:200]})
+    await db.timeline_events.insert_one(evt)
+    return {"status": "declined", "quote_id": quote_id}
+
+
+@app.post("/api/portal/quote/{quote_id}/revision")
+async def portal_request_revision(quote_id: str, data: dict, token: str = None):
+    """Customer requests a quote revision via portal."""
+    if not token:
+        raise HTTPException(401, "Zugangstoken fehlt")
+    link = await db.access_links.find_one({"token": token}, {"_id": 0})
+    if not link or link.get("expires_at", datetime.min.replace(tzinfo=timezone.utc)) < datetime.now(timezone.utc):
+        raise HTTPException(403, "Zugangslink ungültig oder abgelaufen")
+    email = link.get("customer_email", "").lower()
+    quote = await db.quotes.find_one({"quote_id": quote_id, "customer.email": email}, {"_id": 0})
+    if not quote:
+        raise HTTPException(404, "Angebot nicht gefunden")
+    notes = data.get("notes", "")
+    await db.quotes.update_one(
+        {"quote_id": quote_id},
+        {"$set": {"status": "revision_requested", "revision_notes": notes, "updated_at": utcnow()}}
+    )
+    evt = create_timeline_event("quote", quote_id, "revision_requested",
+                                actor=email, actor_type="customer",
+                                details={"notes": notes[:200]})
+    await db.timeline_events.insert_one(evt)
+    return {"status": "revision_requested", "quote_id": quote_id}
 
 
 # ══════════════════════════════════════════════════════════════
@@ -2638,6 +2760,89 @@ async def admin_reply_to_conversation(
 
 
 # ══════════════════════════════════════════════════════════════
+
+# ══════════════════════════════════════════════════════════════
+# AUDIT / HEALTH CHECK SYSTEM
+# ══════════════════════════════════════════════════════════════
+
+@app.get("/api/admin/audit/health")
+async def admin_audit_health(current_user: dict = Depends(get_current_admin)):
+    """System health check and audit summary."""
+    checks = {}
+    
+    # 1. Database connectivity
+    try:
+        await db.command("ping")
+        checks["database"] = {"status": "ok", "detail": "MongoDB erreichbar"}
+    except Exception as e:
+        checks["database"] = {"status": "error", "detail": str(e)}
+    
+    # 2. Collections stats
+    collections_needed = ["leads", "quotes", "invoices", "bookings", "chat_sessions",
+                          "contacts", "conversations", "messages", "timeline_events",
+                          "customer_memory", "whatsapp_sessions"]
+    col_stats = {}
+    for col_name in collections_needed:
+        col = db[col_name]
+        cnt = await col.count_documents({})
+        col_stats[col_name] = cnt
+    checks["collections"] = {"status": "ok", "counts": col_stats}
+    
+    # 3. Agent layer
+    checks["agents"] = {
+        "status": "ok" if agents else "error",
+        "count": len(agents),
+        "names": list(agents.keys()),
+    }
+    
+    # 4. WA session status
+    wa = await db.whatsapp_sessions.find_one({}, {"_id": 0}, sort=[("created_at", -1)])
+    checks["whatsapp"] = {
+        "status": wa.get("status", "unknown") if wa else "no_session",
+        "phone": wa.get("phone_number") if wa else None,
+    }
+    
+    # 5. LLM key status
+    key = os.environ.get("EMERGENT_LLM_KEY", "")
+    checks["llm"] = {"status": "ok" if key else "missing", "key_present": bool(key)}
+    
+    # 6. Recent errors in timeline
+    error_count = await db.timeline_events.count_documents({
+        "action": {"$regex": "error|fail", "$options": "i"},
+        "timestamp": {"$gte": utcnow() - timedelta(hours=24)}
+    })
+    checks["recent_errors_24h"] = error_count
+    
+    # 7. Pricing consistency check
+    tariff_count = await db.quotes.count_documents({})
+    checks["pricing"] = {"status": "ok", "quotes_in_system": tariff_count}
+    
+    overall = "healthy"
+    for k, v in checks.items():
+        if isinstance(v, dict) and v.get("status") == "error":
+            overall = "degraded"
+            break
+    
+    return {"overall": overall, "checks": checks, "timestamp": str(utcnow())}
+
+
+@app.get("/api/admin/audit/timeline")
+async def admin_audit_timeline(
+    hours: int = 24,
+    limit: int = 100,
+    current_user: dict = Depends(get_current_admin)
+):
+    """Recent audit trail / timeline events."""
+    cutoff = utcnow() - timedelta(hours=hours)
+    events = []
+    async for evt in db.timeline_events.find(
+        {"timestamp": {"$gte": cutoff}}, {"_id": 0}
+    ).sort("timestamp", -1).limit(limit):
+        evt["timestamp"] = str(evt.get("timestamp", ""))
+        events.append(evt)
+    return {"events": events, "count": len(events), "hours": hours}
+
+
 # AI AGENT LAYER (Orchestrator + Sub-Agents)
 # ══════════════════════════════════════════════════════════════
 

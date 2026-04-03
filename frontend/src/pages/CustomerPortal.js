@@ -23,6 +23,16 @@ const CustomerPortal = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [tab, setTab] = useState('overview');
+  const [actionBusy, setActionBusy] = useState('');
+  const [revisionNotes, setRevisionNotes] = useState('');
+  const [showRevision, setShowRevision] = useState(null);
+
+  const reload = () => {
+    fetch(`${API}/api/portal/customer/${token}`)
+      .then(r => { if (!r.ok) throw new Error('Zugangslink ungültig oder abgelaufen'); return r.json(); })
+      .then(d => setData(d))
+      .catch(e => setError(e.message));
+  };
 
   useEffect(() => {
     if (!token) { setError('Kein Zugangstoken vorhanden.'); setLoading(false); return; }
@@ -32,6 +42,16 @@ const CustomerPortal = () => {
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
   }, [token]);
+
+  const quoteAction = async (quoteId, action, body = {}) => {
+    setActionBusy(`${quoteId}_${action}`);
+    try {
+      const r = await fetch(`${API}/api/portal/quote/${quoteId}/${action}?token=${token}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+      });
+      if (r.ok) reload();
+    } catch (e) { console.error(e); } finally { setActionBusy(''); }
+  };
 
   if (loading) return (
     <div className="cp-loading"><div className="cp-spinner"></div><p>Laden...</p></div>
@@ -52,6 +72,8 @@ const CustomerPortal = () => {
     { id: 'quotes', icon: 'description', label: `Angebote (${data?.quotes?.length || 0})` },
     { id: 'invoices', icon: 'receipt', label: `Rechnungen (${data?.invoices?.length || 0})` },
     { id: 'bookings', icon: 'event', label: `Termine (${data?.bookings?.length || 0})` },
+    { id: 'communication', icon: 'forum', label: `Kommunikation (${data?.communications?.length || 0})` },
+    { id: 'timeline', icon: 'timeline', label: 'Aktivität' },
   ];
 
   return (
@@ -126,11 +148,23 @@ const CustomerPortal = () => {
                     <span className="cp-card-price">{fmtEur(q.calculation?.total_contract_eur)}</span>
                   </div>
                   <div className="cp-card-actions">
-                    {(q.status === 'sent' || q.status === 'opened') && (
-                      <a href={`/angebot?token=${token}&qid=${q.quote_id}`} className="cp-btn cp-btn-primary" data-testid={`cp-view-quote-${q.quote_id}`}><I n="visibility" /> Angebot ansehen</a>
-                    )}
-                    <a href={`${API}/api/documents/quote/${q.quote_id}/pdf`} target="_blank" rel="noreferrer" className="cp-btn cp-btn-secondary" data-testid={`cp-dl-quote-${q.quote_id}`}><I n="picture_as_pdf" /> PDF herunterladen</a>
+                    {(q.status === 'sent' || q.status === 'opened') && (<>
+                      <button className="cp-btn cp-btn-accept" onClick={() => quoteAction(q.quote_id, 'accept')} disabled={!!actionBusy} data-testid={`cp-accept-${q.quote_id}`}><I n="check_circle" /> Annehmen</button>
+                      <button className="cp-btn cp-btn-danger" onClick={() => quoteAction(q.quote_id, 'decline')} disabled={!!actionBusy} data-testid={`cp-decline-${q.quote_id}`}><I n="cancel" /> Ablehnen</button>
+                      <button className="cp-btn cp-btn-secondary" onClick={() => { setShowRevision(q.quote_id); setRevisionNotes(''); }} data-testid={`cp-revision-${q.quote_id}`}><I n="edit_note" /> Änderung anfragen</button>
+                    </>)}
+                    <a href={`/angebot?token=${token}&qid=${q.quote_id}`} className="cp-btn cp-btn-primary" data-testid={`cp-view-quote-${q.quote_id}`}><I n="visibility" /> Ansehen</a>
+                    <a href={`${API}/api/documents/quote/${q.quote_id}/pdf`} target="_blank" rel="noreferrer" className="cp-btn cp-btn-secondary" data-testid={`cp-dl-quote-${q.quote_id}`}><I n="picture_as_pdf" /> PDF</a>
                   </div>
+                  {showRevision === q.quote_id && (
+                    <div className="cp-revision-form" data-testid="cp-revision-form">
+                      <textarea value={revisionNotes} onChange={e => setRevisionNotes(e.target.value)} placeholder="Welche Änderungen wünschen Sie?" rows={3} />
+                      <div style={{display:'flex',gap:8,marginTop:8}}>
+                        <button className="cp-btn cp-btn-primary cp-btn-sm" onClick={() => { quoteAction(q.quote_id, 'revision', { notes: revisionNotes }); setShowRevision(null); }} disabled={!revisionNotes.trim()}>Absenden</button>
+                        <button className="cp-btn cp-btn-secondary cp-btn-sm" onClick={() => setShowRevision(null)}>Abbrechen</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -175,6 +209,56 @@ const CustomerPortal = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {tab === 'communication' && (
+          <div className="cp-communication" data-testid="cp-communication">
+            <h2>Ihre Kommunikation</h2>
+            {(!data?.communications || data.communications.length === 0) ? (
+              <div className="cp-empty"><I n="forum" /><p>Noch keine Nachrichten vorhanden.</p></div>
+            ) : data.communications.map((c, i) => {
+              const isConvo = c.type === 'conversation';
+              const channels = isConvo ? (c.channels || []).join(', ') : 'Chat';
+              return (
+                <div key={i} className="cp-card cp-comm-card" data-testid={`cp-comm-${i}`}>
+                  <div className="cp-card-header">
+                    <span className="cp-card-title">{channels}{isConvo && c.message_count ? ` (${c.message_count} Nachrichten)` : ''}</span>
+                    <span className="cp-card-date">{fmtDate(c.date)}</span>
+                  </div>
+                  <div className="cp-comm-messages">
+                    {(c.messages || []).slice(0, 3).map((m, j) => (
+                      <div key={j} className={`cp-comm-msg ${m.role === 'user' || m.direction === 'inbound' ? 'user' : 'ai'}`}>
+                        <span className="cp-comm-role">{m.role === 'user' || m.direction === 'inbound' ? 'Sie' : 'NeXifyAI'}{m.channel ? ` (${m.channel})` : ''}</span>
+                        <span className="cp-comm-text">{m.content}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {tab === 'timeline' && (
+          <div className="cp-timeline" data-testid="cp-timeline">
+            <h2>Aktivitätsverlauf</h2>
+            {(!data?.timeline || data.timeline.length === 0) ? (
+              <div className="cp-empty"><I n="timeline" /><p>Noch keine Aktivitäten vorhanden.</p></div>
+            ) : (
+              <div className="cp-timeline-list">
+                {data.timeline.map((evt, i) => (
+                  <div key={i} className="cp-timeline-item" data-testid={`cp-tl-${i}`}>
+                    <div className="cp-timeline-dot"></div>
+                    <div className="cp-timeline-content">
+                      <span className="cp-timeline-action">{evt.action?.replace(/_/g, ' ')}</span>
+                      {evt.channel && <span className="cp-badge cp-badge-sm">{evt.channel}</span>}
+                      <span className="cp-timeline-date">{fmtDate(evt.timestamp)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </main>
