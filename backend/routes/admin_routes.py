@@ -101,7 +101,7 @@ async def admin_create_lead(data: dict, current_user: dict = Depends(get_current
         "telefon": data.get("telefon", "").strip(),
         "nachricht": data.get("nachricht", "").strip(),
         "source": data.get("source", "admin"),
-        "status": "new",
+        "status": "neu",
         "notes": [],
         "created_at": utcnow(),
         "updated_at": utcnow(),

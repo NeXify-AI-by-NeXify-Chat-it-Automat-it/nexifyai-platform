@@ -57,9 +57,10 @@ const Nav = ({ onChat, t, lang, mobileMenuOpen, setMobileMenuOpen }) => {
 };
 
 /* ═══════════ HERO ═══════════ */
-const Hero = ({ onChat, t, lang }) => {
+const Hero = ({ onChat, onBook, t, lang }) => {
   useEffect(() => { track('page_view', { section: 'hero' }); }, []);
   const ctaLabel = lang === 'en' ? 'Start Consultation' : lang === 'nl' ? 'Advies starten' : 'Beratung starten';
+  const bookLabel = lang === 'en' ? 'Book Meeting' : lang === 'nl' ? 'Gesprek boeken' : 'Termin buchen';
   return (
     <section id="hero" className="hero" aria-labelledby="hero-t" data-testid="hero-section">
       <HeroScene />
@@ -71,7 +72,8 @@ const Hero = ({ onChat, t, lang }) => {
             <p className="hero-desc">{t.hero.desc}</p>
             <motion.div className="hero-actions" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>
               <button className="btn btn-primary btn-lg btn-glow" onClick={() => { onChat(); track('cta_click', { loc: 'hero' }); }} data-testid="hero-book-btn">{ctaLabel} <I n="forum" /></button>
-              <a href="#loesungen" className="btn btn-secondary btn-lg" onClick={() => track('cta_click', { loc: 'hero', t: 'explore' })}>{t.nav.leistungen}</a>
+              <button className="btn btn-secondary btn-lg" onClick={() => { onBook(); track('cta_click', { loc: 'hero', t: 'booking' }); }} data-testid="hero-booking-btn"><I n="calendar_month" /> {bookLabel}</button>
+              <a href="#loesungen" className="btn btn-ghost btn-lg" onClick={() => track('cta_click', { loc: 'hero', t: 'explore' })}>{t.nav.leistungen}</a>
             </motion.div>
             <motion.div className="hero-stats" data-testid="hero-stats" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}>
               {t.hero.stats.map((s, i) => (
@@ -299,7 +301,7 @@ const FAQ = ({ t }) => {
 };
 
 /* ═══════════ CONTACT ═══════════ */
-const Contact = ({ onChat, t, lang }) => {
+const Contact = ({ onChat, onBook, t, lang }) => {
   const [form, setForm] = useState({ vorname: '', nachname: '', email: '', telefon: '', unternehmen: '', nachricht: '', _hp: '' });
   const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(false);
@@ -326,7 +328,10 @@ const Contact = ({ onChat, t, lang }) => {
             <div className="contact-benefits">
               {t.contact.benefits.map((b, i) => <div key={i} className="contact-benefit"><I n="verified" /><span>{b}</span></div>)}
             </div>
-            <button className="btn btn-primary btn-lg btn-glow contact-cta-btn" onClick={() => { onChat(); track('cta_click', { loc: 'contact' }); }} data-testid="contact-book-btn">{lang === 'en' ? 'Start Consultation' : lang === 'nl' ? 'Advies starten' : 'Beratung starten'} <I n="forum" /></button>
+            <div className="contact-cta-group">
+              <button className="btn btn-primary btn-lg btn-glow contact-cta-btn" onClick={() => { onChat(); track('cta_click', { loc: 'contact' }); }} data-testid="contact-book-btn">{lang === 'en' ? 'Start Consultation' : lang === 'nl' ? 'Advies starten' : 'Beratung starten'} <I n="forum" /></button>
+              <button className="btn btn-secondary btn-lg" onClick={() => { onBook(); track('cta_click', { loc: 'contact', t: 'booking' }); }} data-testid="contact-booking-btn"><I n="calendar_month" /> {lang === 'en' ? 'Book Meeting' : lang === 'nl' ? 'Gesprek boeken' : 'Termin buchen'}</button>
+            </div>
           </motion.div>
           <motion.div className="contact-form-box" variants={fadeUp}>
             <form onSubmit={submit} className="contact-form" noValidate data-testid="contact-form">
@@ -485,7 +490,7 @@ function App() {
       <a href="#loesungen" className="skip-link">Skip to content</a>
       <Nav onChat={openChat} t={t} lang={lang} mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
       <main id="main-content">
-        <Hero onChat={openChat} t={t} lang={lang} />
+        <Hero onChat={openChat} onBook={openBooking} t={t} lang={lang} />
         <Solutions t={t} />
         <UseCases t={t} />
         <AppDev onChat={openChat} t={t} lang={lang} />
@@ -497,7 +502,7 @@ function App() {
         <ServicesAll onChat={openChat} />
         <TrustSection t={t} />
         <FAQ t={t} />
-        <Contact onChat={openChat} t={t} lang={lang} />
+        <Contact onChat={openChat} onBook={openBooking} t={t} lang={lang} />
       </main>
       <Ft onCookieSettings={openCookieSettings} t={t} lang={lang} />
       <WhatsAppButton />
