@@ -127,6 +127,13 @@ const Admin = () => {
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [newUserForm, setNewUserForm] = useState({ email: '', password: '', role: 'admin' });
   const [webhookEvents, setWebhookEvents] = useState([]);
+  /* API Keys State */
+  const [apiKeys, setApiKeys] = useState([]);
+  const [apiKeysLoading, setApiKeysLoading] = useState(false);
+  const [showCreateApiKey, setShowCreateApiKey] = useState(false);
+  const [newApiKeyForm, setNewApiKeyForm] = useState({ name: '', scopes: 'all', rate_limit_per_hour: 1000, expires_in_days: '', description: '' });
+  const [newApiKeyResult, setNewApiKeyResult] = useState(null);
+  const [copiedKey, setCopiedKey] = useState(false);
   const [webhooksLoading, setWebhooksLoading] = useState(false);
   const [legalAudit, setLegalAudit] = useState([]);
   const [legalRisks, setLegalRisks] = useState([]);
@@ -548,6 +555,7 @@ const Admin = () => {
   }, [token, view, apiFetch]);
 
   useEffect(() => { if (token && view === 'monitoring') loadMonitoring(); }, [token, view]); // eslint-disable-line
+  useEffect(() => { if (token && view === 'api_keys') loadApiKeys(); }, [token, view]); // eslint-disable-line
 
   const logout = () => { setToken(''); localStorage.removeItem('nx_admin_token'); localStorage.removeItem('nx_auth'); };
 
@@ -2633,6 +2641,38 @@ const Admin = () => {
     if (d && !d.error) loadAdminUsers();
   };
 
+  /* ══════ API Keys ══════ */
+  const loadApiKeys = useCallback(async () => {
+    setApiKeysLoading(true);
+    const d = await apiFetch('/api/admin/api-keys');
+    if (d?.keys) setApiKeys(d.keys);
+    setApiKeysLoading(false);
+  }, []);
+
+  const createApiKey = async () => {
+    const body = { name: newApiKeyForm.name, scopes: newApiKeyForm.scopes === 'all' ? ['all'] : newApiKeyForm.scopes.split(',').map(s => s.trim()), rate_limit_per_hour: parseInt(newApiKeyForm.rate_limit_per_hour) || 1000, description: newApiKeyForm.description };
+    if (newApiKeyForm.expires_in_days) body.expires_in_days = parseInt(newApiKeyForm.expires_in_days);
+    const d = await apiFetch('/api/admin/api-keys', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (d?.api_key) { setNewApiKeyResult(d); loadApiKeys(); }
+  };
+
+  const toggleApiKey = async (keyId, isActive) => {
+    await apiFetch(`/api/admin/api-keys/${keyId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_active: !isActive }) });
+    loadApiKeys();
+  };
+
+  const deleteApiKey = async (keyId) => {
+    if (!window.confirm('API-Key permanent löschen? Alle externen Integrationen mit diesem Key werden sofort unterbrochen.')) return;
+    await apiFetch(`/api/admin/api-keys/${keyId}`, { method: 'DELETE' });
+    loadApiKeys();
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(true);
+    setTimeout(() => setCopiedKey(false), 2000);
+  };
+
   const UsersView = () => (
     <div data-testid="admin-users">
       <div className="adm-section-header">
@@ -2796,6 +2836,111 @@ const Admin = () => {
 
   /* ══════════ MAIN LAYOUT ══════════ */
 
+  const ApiKeysView = () => (
+    <div data-testid="admin-api-keys">
+      <div className="adm-section-header">
+        <h2>API-Zugang</h2>
+        <button className="adm-btn adm-btn-primary" style={{padding:'8px 16px',width:'auto'}} onClick={() => { setShowCreateApiKey(true); setNewApiKeyResult(null); }} data-testid="create-api-key-btn"><I n="vpn_key" /> Neuer API-Key</button>
+      </div>
+      <div className="adm-form-card" style={{marginBottom:20,borderLeft:'3px solid #FF6B00'}}>
+        <div style={{display:'flex',gap:8,alignItems:'flex-start'}}>
+          <I n="info" style={{color:'#FF6B00',flexShrink:0}} />
+          <div style={{fontSize:'.8125rem',color:'#c8d1dc',lineHeight:1.6}}>
+            <strong style={{color:'#fff'}}>Externer API-Zugang</strong><br/>
+            Über die API v1 können externe Systeme programmatisch auf NeXifyAI zugreifen.<br/>
+            Base URL: <code style={{background:'rgba(255,255,255,0.06)',padding:'2px 6px',borderRadius:3,fontSize:'.75rem',color:'#FF6B00'}}>{API}/api/v1</code><br/>
+            Header: <code style={{background:'rgba(255,255,255,0.06)',padding:'2px 6px',borderRadius:3,fontSize:'.75rem',color:'#FF6B00'}}>X-API-Key: nxa_live_...</code><br/>
+            <a href={`${API}/api/v1/docs`} target="_blank" rel="noopener noreferrer" style={{color:'#FF6B00',fontWeight:600}}>API-Dokumentation ansehen</a>
+          </div>
+        </div>
+      </div>
+      {newApiKeyResult && (
+        <div className="adm-form-card" style={{marginBottom:20,borderLeft:'3px solid #10b981',background:'rgba(16,185,129,0.04)'}} data-testid="new-api-key-result">
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
+            <I n="check_circle" style={{color:'#10b981'}} />
+            <strong style={{color:'#10b981',fontSize:'.875rem'}}>API-Key erstellt</strong>
+          </div>
+          <p style={{color:'#ef4444',fontSize:'.75rem',margin:'0 0 8px',fontWeight:600}}>Dieser Key wird nur einmal angezeigt — jetzt kopieren!</p>
+          <div style={{display:'flex',gap:8,alignItems:'center'}}>
+            <code style={{flex:1,background:'rgba(0,0,0,0.3)',padding:'10px 14px',borderRadius:4,fontSize:'.8125rem',color:'#fff',wordBreak:'break-all',fontFamily:'monospace'}} data-testid="new-api-key-value">{newApiKeyResult.api_key}</code>
+            <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'8px 14px',flexShrink:0}} onClick={() => copyToClipboard(newApiKeyResult.api_key)} data-testid="copy-api-key-btn"><I n={copiedKey ? 'done' : 'content_copy'} /> {copiedKey ? 'Kopiert' : 'Kopieren'}</button>
+          </div>
+          <div style={{marginTop:12,fontSize:'.75rem',color:'#6b7b8d'}}>
+            <span>Name: <strong>{newApiKeyResult.name}</strong></span> &nbsp;|&nbsp;
+            <span>Scopes: {newApiKeyResult.scopes?.join(', ')}</span> &nbsp;|&nbsp;
+            <span>Rate-Limit: {newApiKeyResult.rate_limit_per_hour}/h</span>
+          </div>
+          <button className="adm-btn adm-btn-secondary" style={{marginTop:12,width:'auto',padding:'6px 14px'}} onClick={() => setNewApiKeyResult(null)}>Schließen</button>
+        </div>
+      )}
+      {showCreateApiKey && !newApiKeyResult && (
+        <div className="adm-form-card" style={{marginBottom:20}} data-testid="create-api-key-form">
+          <h3>Neuen API-Key erstellen</h3>
+          <div className="adm-form-grid">
+            <div className="adm-field"><label>Name *</label><input value={newApiKeyForm.name} onChange={e => setNewApiKeyForm({...newApiKeyForm, name: e.target.value})} placeholder="z.B. Production, Staging, Zapier" data-testid="api-key-name" /></div>
+            <div className="adm-field"><label>Berechtigungen (Scopes)</label><select className="adm-select" value={newApiKeyForm.scopes} onChange={e => setNewApiKeyForm({...newApiKeyForm, scopes: e.target.value})} data-testid="api-key-scopes">
+              <option value="all">Vollzugriff (all)</option>
+              <option value="contacts:read,contacts:write,leads:read,leads:write">Kontakte & Leads</option>
+              <option value="quotes:read,contracts:read,invoices:read">Nur Lesen (kommerziell)</option>
+              <option value="stats:read">Nur Statistiken</option>
+            </select></div>
+            <div className="adm-field"><label>Rate-Limit / Stunde</label><input type="number" value={newApiKeyForm.rate_limit_per_hour} onChange={e => setNewApiKeyForm({...newApiKeyForm, rate_limit_per_hour: e.target.value})} data-testid="api-key-rate-limit" /></div>
+            <div className="adm-field"><label>Ablauf (Tage, leer = unbegrenzt)</label><input type="number" value={newApiKeyForm.expires_in_days} onChange={e => setNewApiKeyForm({...newApiKeyForm, expires_in_days: e.target.value})} placeholder="Leer für unbegrenzt" data-testid="api-key-expires" /></div>
+          </div>
+          <div className="adm-field" style={{marginTop:8}}><label>Beschreibung</label><input value={newApiKeyForm.description} onChange={e => setNewApiKeyForm({...newApiKeyForm, description: e.target.value})} placeholder="Wofür wird dieser Key verwendet?" data-testid="api-key-description" /></div>
+          <div className="adm-form-actions" style={{marginTop:12}}>
+            <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'8px 20px'}} onClick={createApiKey} disabled={!newApiKeyForm.name.trim()} data-testid="save-api-key-btn"><I n="vpn_key" /> Key erstellen</button>
+            <button className="adm-btn adm-btn-secondary" onClick={() => setShowCreateApiKey(false)}>Abbrechen</button>
+          </div>
+        </div>
+      )}
+      <div className="adm-table-wrap">
+        <table className="adm-table" data-testid="api-keys-table">
+          <thead><tr><th>Name</th><th>Key-Prefix</th><th>Scopes</th><th>Rate-Limit</th><th>Anfragen</th><th>Zuletzt genutzt</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            {apiKeysLoading ? (
+              <tr><td colSpan="8" style={{textAlign:'center',padding:32,color:'#6b7b8d'}}>Lade...</td></tr>
+            ) : apiKeys.length === 0 ? (
+              <tr><td colSpan="8" style={{textAlign:'center',padding:32,color:'#4a5568'}}>Noch keine API-Keys erstellt</td></tr>
+            ) : apiKeys.map(k => (
+              <tr key={k.key_id} data-testid={`api-key-row-${k.key_id}`}>
+                <td style={{fontWeight:600,color:'#fff'}}>{k.name}{k.description && <div style={{fontSize:'.6875rem',color:'#6b7b8d',fontWeight:400}}>{k.description}</div>}</td>
+                <td><code style={{fontSize:'.75rem',color:'#FF6B00',fontFamily:'monospace'}}>{k.key_prefix}</code></td>
+                <td style={{fontSize:'.75rem'}}>{k.scopes?.join(', ')}</td>
+                <td style={{fontSize:'.75rem'}}>{k.rate_limit_per_hour}/h</td>
+                <td style={{fontSize:'.75rem',color:'#FF6B00',fontWeight:600}}>{k.total_requests || 0}</td>
+                <td style={{fontSize:'.75rem',color:'#6b7b8d'}}>{k.last_used_at ? fmtTime(k.last_used_at) : 'Nie'}</td>
+                <td>
+                  <span className="adm-badge" style={{background:k.is_active?'#10b98122':'#ef444422',color:k.is_active?'#10b981':'#ef4444',cursor:'pointer'}} onClick={() => toggleApiKey(k.key_id, k.is_active)} data-testid={`toggle-key-${k.key_id}`}>{k.is_active ? 'Aktiv' : 'Deaktiviert'}</span>
+                </td>
+                <td><button className="adm-btn-sm" style={{color:'#ef4444'}} onClick={() => deleteApiKey(k.key_id)} data-testid={`delete-key-${k.key_id}`}><I n="delete" /></button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="adm-form-card" style={{marginTop:20}}>
+        <h3 style={{marginBottom:12}}>Schnellstart — cURL Beispiel</h3>
+        <code style={{display:'block',background:'rgba(0,0,0,0.3)',padding:'14px 18px',borderRadius:6,fontSize:'.75rem',color:'#c8d1dc',lineHeight:1.8,fontFamily:'monospace',whiteSpace:'pre-wrap',overflowX:'auto'}}>
+{`# Statistiken abrufen
+curl -H "X-API-Key: nxa_live_..." ${API}/api/v1/stats
+
+# Kontakte auflisten
+curl -H "X-API-Key: nxa_live_..." ${API}/api/v1/contacts
+
+# Neuen Lead erstellen
+curl -X POST -H "X-API-Key: nxa_live_..." \\
+  -H "Content-Type: application/json" \\
+  -d '{"email":"test@firma.de","vorname":"Max","nachname":"Muster","unternehmen":"Firma GmbH"}' \\
+  ${API}/api/v1/leads
+
+# API-Dokumentation
+curl ${API}/api/v1/docs`}
+        </code>
+      </div>
+    </div>
+  );
+
   const navItems = [
     { id: 'dashboard', icon: 'dashboard', label: 'Dashboard' },
     { id: 'projects', icon: 'folder_special', label: 'Projekte' },
@@ -2813,6 +2958,7 @@ const Admin = () => {
     { id: 'customers', icon: 'person_search', label: 'Kunden' },
     { id: 'agents', icon: 'smart_toy', label: 'KI-Agenten' },
     { id: 'users', icon: 'admin_panel_settings', label: 'Benutzer' },
+    { id: 'api_keys', icon: 'vpn_key', label: 'API-Zugang' },
     { id: 'webhooks', icon: 'webhook', label: 'Webhooks' },
     { id: 'audit', icon: 'verified', label: 'Audit' },
     { id: 'monitoring', icon: 'monitor_heart', label: 'Monitoring' },
@@ -2858,6 +3004,7 @@ const Admin = () => {
           {view === 'customers' && <CustomersView />}
           {view === 'agents' && <AgentsView />}
           {view === 'users' && <UsersView />}
+          {view === 'api_keys' && <ApiKeysView />}
           {view === 'webhooks' && <WebhookEventsView />}
           {view === 'audit' && <AuditView />}
           {view === 'monitoring' && <MonitoringView />}

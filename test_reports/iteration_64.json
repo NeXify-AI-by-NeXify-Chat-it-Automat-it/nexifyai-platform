@@ -1,0 +1,218 @@
+{
+  "summary": "Iteration 64 - External API v1 Implementation Testing - ALL TESTS PASSED. Verified all 25 features: API health, docs, authentication (missing/invalid/valid key), admin API key management (create/list/toggle/delete), stats, contacts CRUD, leads CRUD, read-only endpoints (quotes/contracts/projects/invoices), webhooks CRUD, and frontend API-Zugang view with all UI elements.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_api_v1_external.py",
+    "/app/test_reports/pytest/pytest_results_iter64.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_api_v1_external.py"
+  ],
+  "success_rate": {
+    "backend": "100% (24/24 tests passed)",
+    "frontend": "100% (All UI elements verified)"
+  },
+  "test_credentials": {
+    "admin_email": "p.courbois@icloud.com",
+    "admin_password": "1def!xO2022!!",
+    "existing_api_key": "nxa_live_aaeef1d1f40df3f43537a153f83c6a65999a3e438e6137dd",
+    "app_url": "https://contract-os.preview.emergentagent.com"
+  },
+  "seed_data_creation": "Created test contacts, leads, webhooks, and API keys during testing (prefixed with TEST_)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "External API v1 fully tested and working. All endpoints use X-API-Key header authentication. Admin can create/list/toggle/delete API keys via /api/admin/api-keys. Frontend API-Zugang view shows key table, create form, cURL examples with correct base URL.",
+  "verified_features": {
+    "api_v1_health": {
+      "status": "VERIFIED",
+      "endpoint": "GET /api/v1/health",
+      "response": "200 with status=operational, version, timestamp"
+    },
+    "api_v1_docs": {
+      "status": "VERIFIED",
+      "endpoint": "GET /api/v1/docs",
+      "response": "Full documentation JSON with endpoints, scopes, authentication info"
+    },
+    "api_key_auth_missing": {
+      "status": "VERIFIED",
+      "test": "Request without X-API-Key header",
+      "response": "401 Unauthorized"
+    },
+    "api_key_auth_invalid": {
+      "status": "VERIFIED",
+      "test": "Request with invalid X-API-Key",
+      "response": "401 Unauthorized"
+    },
+    "api_key_auth_valid": {
+      "status": "VERIFIED",
+      "test": "Request with valid X-API-Key",
+      "response": "200 OK with data"
+    },
+    "admin_create_api_key": {
+      "status": "VERIFIED",
+      "endpoint": "POST /api/admin/api-keys",
+      "response": "Returns api_key (nxa_live_...) and key_id"
+    },
+    "admin_list_api_keys": {
+      "status": "VERIFIED",
+      "endpoint": "GET /api/admin/api-keys",
+      "response": "Returns keys array with count, key_hash NOT exposed"
+    },
+    "admin_toggle_api_key": {
+      "status": "VERIFIED",
+      "endpoint": "PUT /api/admin/api-keys/{id}",
+      "response": "Toggles is_active status"
+    },
+    "admin_delete_api_key": {
+      "status": "VERIFIED",
+      "endpoint": "DELETE /api/admin/api-keys/{id}",
+      "response": "Removes key and associated webhooks"
+    },
+    "api_v1_stats": {
+      "status": "VERIFIED",
+      "endpoint": "GET /api/v1/stats",
+      "response": "System statistics (contacts, leads, quotes, contracts, projects, invoices counts)"
+    },
+    "api_v1_contacts_list": {
+      "status": "VERIFIED",
+      "endpoint": "GET /api/v1/contacts",
+      "response": "Paginated data with total, page, per_page, has_more"
+    },
+    "api_v1_contacts_create": {
+      "status": "VERIFIED",
+      "endpoint": "POST /api/v1/contacts",
+      "response": "201 Created with contact_id"
+    },
+    "api_v1_contacts_get": {
+      "status": "VERIFIED",
+      "endpoint": "GET /api/v1/contacts/{id}",
+      "response": "Contact details"
+    },
+    "api_v1_contacts_update": {
+      "status": "VERIFIED",
+      "endpoint": "PUT /api/v1/contacts/{id}",
+      "response": "Updated contact, verified persistence"
+    },
+    "api_v1_leads_list": {
+      "status": "VERIFIED",
+      "endpoint": "GET /api/v1/leads",
+      "response": "Paginated data"
+    },
+    "api_v1_leads_create": {
+      "status": "VERIFIED",
+      "endpoint": "POST /api/v1/leads",
+      "response": "201 Created with lead_id, status=new"
+    },
+    "api_v1_leads_get": {
+      "status": "VERIFIED",
+      "endpoint": "GET /api/v1/leads/{id}",
+      "response": "Lead details"
+    },
+    "api_v1_quotes_list": {
+      "status": "VERIFIED",
+      "endpoint": "GET /api/v1/quotes",
+      "response": "Paginated data"
+    },
+    "api_v1_contracts_list": {
+      "status": "VERIFIED",
+      "endpoint": "GET /api/v1/contracts",
+      "response": "Paginated data"
+    },
+    "api_v1_projects_list": {
+      "status": "VERIFIED",
+      "endpoint": "GET /api/v1/projects",
+      "response": "Paginated data"
+    },
+    "api_v1_invoices_list": {
+      "status": "VERIFIED",
+      "endpoint": "GET /api/v1/invoices",
+      "response": "Paginated data"
+    },
+    "api_v1_webhooks_register": {
+      "status": "VERIFIED",
+      "endpoint": "POST /api/v1/webhooks",
+      "response": "201 Created with webhook_id, auto-generated secret"
+    },
+    "api_v1_webhooks_list": {
+      "status": "VERIFIED",
+      "endpoint": "GET /api/v1/webhooks",
+      "response": "Webhooks for the API key"
+    },
+    "api_v1_webhooks_delete": {
+      "status": "VERIFIED",
+      "endpoint": "DELETE /api/v1/webhooks/{id}",
+      "response": "Removes webhook, verified deletion"
+    },
+    "frontend_api_zugang_nav": {
+      "status": "VERIFIED",
+      "details": "API-Zugang nav item present in sidebar with vpn_key icon"
+    },
+    "frontend_api_zugang_view": {
+      "status": "VERIFIED",
+      "elements": [
+        "Externer API-Zugang info box",
+        "Base URL: https://contract-os.preview.emergentagent.com/api/v1",
+        "Header: X-API-Key: nxa_live_...",
+        "API-Dokumentation ansehen link",
+        "API keys table with columns: Name, Key-Prefix, Scopes, Rate-Limit, Anfragen, Zuletzt genutzt, Status",
+        "Neuer API-Key button"
+      ]
+    },
+    "frontend_create_api_key_form": {
+      "status": "VERIFIED",
+      "fields": [
+        "Name (required)",
+        "Berechtigungen (Scopes) dropdown",
+        "Rate-Limit / Stunde",
+        "Ablauf (Tage, leer = unbegrenzt)",
+        "Beschreibung",
+        "Key erstellen button"
+      ]
+    },
+    "frontend_api_key_created_result": {
+      "status": "VERIFIED",
+      "details": "Shows generated key (nxa_live_...), Kopieren button, key details (Name, Scopes, Rate-Limit)"
+    },
+    "frontend_curl_examples": {
+      "status": "VERIFIED",
+      "details": "cURL examples with correct base URL https://contract-os.preview.emergentagent.com/api/v1"
+    }
+  },
+  "mocked_apis": {
+    "DeepSeek_LLM": "Routed through Emergent GPT-5.2 mock via EMERGENT_LLM_KEY"
+  },
+  "pytest_results": {
+    "total_tests": 24,
+    "passed": 24,
+    "failed": 0,
+    "test_classes": [
+      "TestApiV1Health (1 test)",
+      "TestApiV1Docs (1 test)",
+      "TestApiV1Authentication (3 tests)",
+      "TestAdminApiKeyManagement (4 tests)",
+      "TestApiV1Stats (1 test)",
+      "TestApiV1Contacts (4 tests)",
+      "TestApiV1Leads (3 tests)",
+      "TestApiV1ReadOnlyEndpoints (4 tests)",
+      "TestApiV1Webhooks (3 tests)"
+    ]
+  },
+  "playwright_test_results": {
+    "admin_login": "PASS",
+    "api_zugang_navigation": "PASS",
+    "api_zugang_view_elements": "PASS (all 7 elements found)",
+    "create_api_key_form": "PASS (all 6 fields found)",
+    "api_key_creation": "PASS (key generated with nxa_live_ prefix)",
+    "curl_examples_base_url": "PASS (correct URL)"
+  }
+}

@@ -1,7 +1,7 @@
 """NeXifyAI — Admin CRM Routes"""
 import secrets
 from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, Request
 from routes.shared import S
 from routes.shared import (
     get_current_admin,
@@ -861,3 +861,91 @@ async def admin_webhook_events(limit: int = 50, current_user: dict = Depends(get
     async for evt in S.db.webhook_events.find({}, {"_id": 0}).sort("timestamp", -1).limit(limit):
         events.append(evt)
     return {"events": events, "count": len(events)}
+
+
+# ══════════════════════════════════════════════════════════════
+# API KEY MANAGEMENT (External API Access)
+# ══════════════════════════════════════════════════════════════
+
+@router.post("/api/admin/api-keys")
+async def admin_create_api_key(request: Request, current_user: dict = Depends(get_current_admin)):
+    """Neuen API-Key generieren."""
+    from routes.api_v1_routes import generate_api_key
+    body = await request.json()
+    name = body.get("name", "API Key")
+    scopes = body.get("scopes", ["all"])
+    rate_limit = body.get("rate_limit_per_hour", 1000)
+    expires_in_days = body.get("expires_in_days")
+    description = body.get("description", "")
+
+    raw_key, key_hash = generate_api_key()
+    key_id = new_id("apk")
+    expires_at = None
+    if expires_in_days:
+        expires_at = (utcnow() + timedelta(days=expires_in_days)).isoformat()
+
+    doc = {
+        "key_id": key_id,
+        "key_hash": key_hash,
+        "key_prefix": raw_key[:16] + "...",
+        "name": name,
+        "description": description,
+        "scopes": scopes,
+        "rate_limit_per_hour": rate_limit,
+        "expires_at": expires_at,
+        "is_active": True,
+        "created_by": current_user["email"],
+        "created_at": utcnow().isoformat(),
+        "last_used_at": None,
+        "total_requests": 0,
+    }
+    await S.db.api_keys.insert_one(doc)
+    await log_audit("api_key_created", current_user["email"], {"key_id": key_id, "name": name, "scopes": scopes})
+    return {
+        "key_id": key_id,
+        "api_key": raw_key,
+        "name": name,
+        "scopes": scopes,
+        "rate_limit_per_hour": rate_limit,
+        "expires_at": expires_at,
+        "notice": "Dieser API-Key wird nur einmal angezeigt. Bitte sicher aufbewahren."
+    }
+
+
+@router.get("/api/admin/api-keys")
+async def admin_list_api_keys(current_user: dict = Depends(get_current_admin)):
+    """Alle API-Keys auflisten (ohne Hash)."""
+    keys = []
+    async for k in S.db.api_keys.find({}, {"_id": 0, "key_hash": 0}).sort("created_at", -1):
+        keys.append(k)
+    return {"keys": keys, "count": len(keys)}
+
+
+@router.put("/api/admin/api-keys/{key_id}")
+async def admin_update_api_key(key_id: str, request: Request, current_user: dict = Depends(get_current_admin)):
+    """API-Key aktualisieren (Name, Scopes, Rate-Limit, Aktivierung)."""
+    body = await request.json()
+    updates = {}
+    for field in ["name", "description", "scopes", "rate_limit_per_hour", "is_active"]:
+        if field in body:
+            updates[field] = body[field]
+    if not updates:
+        raise HTTPException(400, "Keine Änderungen angegeben")
+    result = await S.db.api_keys.update_one({"key_id": key_id}, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(404, "API-Key nicht gefunden")
+    await log_audit("api_key_updated", current_user["email"], {"key_id": key_id, "updates": list(updates.keys())})
+    return {"status": "ok", "key_id": key_id, "updated": list(updates.keys())}
+
+
+@router.delete("/api/admin/api-keys/{key_id}")
+async def admin_delete_api_key(key_id: str, current_user: dict = Depends(get_current_admin)):
+    """API-Key permanent löschen."""
+    result = await S.db.api_keys.delete_one({"key_id": key_id})
+    if result.deleted_count == 0:
+        raise HTTPException(404, "API-Key nicht gefunden")
+    # Also delete associated webhooks
+    await S.db.webhooks.delete_many({"api_key_id": key_id})
+    await log_audit("api_key_deleted", current_user["email"], {"key_id": key_id})
+    return {"status": "ok", "deleted": key_id}
+
