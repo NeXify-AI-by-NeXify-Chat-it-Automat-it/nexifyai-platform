@@ -1,60 +1,39 @@
 # NeXifyAI — Product Requirements Document
 
 ## Original Problem Statement
-B2B-Plattform "Starter/Growth AI Agenten AG" (NeXifyAI) — API-First, Unified Communication, Deep Customer Memory (mem0), KI-Orchestrator. Premium, hochsichere Architektur. Autopilot-Direktive: Alle Vorgaben gesammelt, strukturiert, Gesamtbild verstanden, komplett umgesetzt.
+B2B-Plattform "Starter/Growth AI Agenten AG" (NeXifyAI) — API-First, Unified Communication, KI-Orchestrator. Premium, hochsichere Architektur. CI: Niederländisches Orange (#FF6B00) + Weiß. Revolut ONLY. D/A/CH-Lokalisierung.
+
+## CI-Farben (Verbindlich)
+- **Primär**: Niederländisches Orange `#FF6B00` (Hover: `#FF8533`)
+- **Sekundär**: Weiß `#FFFFFF`
+- **Ausnahmen NUR**: Grün (Bestätigung), Rot (Warnung), Blau (Information)
+- **Keine**: Dollar-Zeichen ($), billige SVG-Icons
 
 ## Tech Stack
-- **Frontend**: React 18 SPA (CRA), ErrorBoundary, ContractAcceptance page
-- **Backend**: FastAPI (Python), modular routing, Global Exception Handler
-- **Database**: MongoDB — 30+ Indexes (inkl. sparse)
-- **Auth**: JWT (24h), Dual-Role, OAuth2
-- **Workers**: APScheduler (8 Job-Typen, Dead-Letter Queue)
-- **Email**: Hostinger SMTP
-- **LLM**: DeepSeek (Target) → Emergent GPT-5.2 mock (aktiv)
-- **Payments**: Revolut ONLY
-- **Security**: HSTS, X-Frame-Options DENY, Rate Limiting 200/min, CORS Origins
+React 18 SPA, FastAPI, MongoDB, JWT Auth, APScheduler, Hostinger SMTP, Revolut, Emergent GPT-5.2 (DeepSeek Target)
 
-## Go-Live Status: APPROVED (Iteration 58)
+## Go-Live Status: APPROVED (Iteration 59, 100%)
 
-### Vollständig Verifizierte Geschäftsprozesse
-
-**E2E Outbound Pipeline:**
-Discover → Prequalify → Analyze & Score → Legal-Check → Outreach → Send → Respond → Handover → CRM
-
-**E2E Contract Lifecycle:**
-Create (mit Titel + Kalkulation) → Add Appendix → Send (Magic Link) → Customer View → Legal Accept → Digital Signature → Evidence Package → Status: Accepted
-
-**E2E Öffentliche Vertragsannahme:**
-`/vertrag?token=xxx&cid=xxx` → Contract View → Legal Modules (4 Pflicht) → Signature (Name/Zeichnung) → Accept → Evidenzpaket (IP, UserAgent, DocHash, Timestamp)
+### Verifizierte Geschäftsprozesse
+- E2E Outbound: Discover → Prequalify → Analyze → Legal → Outreach → Send → Respond → Handover
+- E2E Contract: Create → Appendix → Send (Magic Link) → View → Legal Accept → Signature → Evidence
+- Public Contract Acceptance: `/vertrag?token=xxx&cid=xxx` (token-basiert, kein Login)
 
 ### Architecture Blocks (Alle VERIFIZIERT)
-
-| Block | Beschreibung | Status |
-|-------|-------------|--------|
-| A | Public Website (3D Hero, Services, Legal Pages, Booking) | VERIFIZIERT |
-| B | Customer Portal (10 Tabs: Übersicht, Verträge, Projekte, Finanzen, Dokumente, Settings, Consents) | VERIFIZIERT |
-| C | Admin Panel (19-21 Navigation Views, Full CRUD) | VERIFIZIERT |
-| D | Admin Governance (User Mgmt, Webhook Store, Audit, Monitoring) | VERIFIZIERT |
-| E | Outbound Lead Machine (Full Pipeline, Bulk Import, Filter) | VERIFIZIERT |
-| F | Backend Infrastructure (10 Route-Module, Workers, Timeline, Legal Audit) | VERIFIZIERT |
-| G | Production Hardening (CORS, HSTS, Rate Limiting, ErrorBoundary, Exception Handler) | VERIFIZIERT |
-
-### Key API Endpoints
-- POST /api/admin/login (OAuth2)
-- GET/POST /api/admin/outbound/* (Full pipeline)
-- GET/POST /api/admin/projects/*, /api/admin/contracts/*
-- GET /api/admin/stats, /billing/status, /legal/compliance, /monitoring/status
-- GET/POST /api/admin/users, DELETE /api/admin/users/{email}
-- GET /api/admin/webhooks/events
-- GET/PATCH /api/customer/profile, /documents, /consents
-- **NEW: GET /api/public/contracts/view?token=&cid= (kein Auth)**
-- **NEW: POST /api/public/contracts/accept (kein Auth, Token-basiert)**
+| Block | Status |
+|-------|--------|
+| A: Public Website (3D Hero, Legal Pages, Booking) | VERIFIZIERT |
+| B: Customer Portal (10 Tabs) | VERIFIZIERT |
+| C: Admin Panel (19+ Views) | VERIFIZIERT |
+| D: Governance (Users, Webhooks, Audit, Monitoring) | VERIFIZIERT |
+| E: Outbound Lead Machine (41 Leads) | VERIFIZIERT |
+| F: Backend Infrastructure (10 Route-Module) | VERIFIZIERT |
+| G: Production Hardening (HSTS, CORS, Rate Limiting) | VERIFIZIERT |
+| CI: Orange/Weiß Migration (293 Referenzen) | VERIFIZIERT |
 
 ### Testing History
-- Iteration 55: 100% (Outbound, Projects, Contracts)
-- Iteration 56: 100% (User Mgmt, Webhooks, Security)
-- Iteration 57: 100% (ErrorBoundary, Exception Handler, Indexes)
-- **Iteration 58: 100% (E2E Contract Acceptance, Kalkulation, Public Endpoints)**
+- Iteration 55-58: 100% (Functional, E2E, Security)
+- **Iteration 59: 100% — CI Orange/Weiß Migration verifiziert**
 
 ## Test Credentials
 - Admin: p.courbois@icloud.com / 1def!xO2022!!
@@ -62,8 +41,7 @@ Create (mit Titel + Kalkulation) → Add Appendix → Send (Magic Link) → Cust
 ## MOCKED: DeepSeek → Emergent GPT-5.2
 
 ## Post-Go-Live Backlog
-- [ ] DeepSeek Live-Migration (DEEPSEEK_API_KEY)
+- [ ] DeepSeek Live-Migration
 - [ ] Content & Copywriting Overhaul
 - [ ] server.py modular refactoring
 - [ ] Next.js Migration
-- [ ] PydanticAI + LiteLLM + Temporal
