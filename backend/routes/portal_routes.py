@@ -806,6 +806,148 @@ async def customer_opt_in(user=Depends(get_current_customer)):
     return {"status": "ok", "opted_out": False}
 
 
+
+# ══════════════════════════════════════════════════════════════
+# ACTIVE CUSTOMER FEATURES
+# ══════════════════════════════════════════════════════════════
+
+@router.post("/api/customer/requests")
+async def customer_create_request(request: Request, user=Depends(get_current_customer)):
+    """Kunde stellt eine neue Anfrage (Projekt, Angebot, etc.)."""
+    import uuid
+    body = await request.json()
+    email = user["email"]
+    req_id = f"req_{uuid.uuid4().hex[:16]}"
+    doc = {
+        "request_id": req_id,
+        "customer_email": email,
+        "customer_name": user.get("name", ""),
+        "type": body.get("type", "general"),
+        "subject": body.get("subject", ""),
+        "description": body.get("description", ""),
+        "budget_range": body.get("budget_range", ""),
+        "urgency": body.get("urgency", "normal"),
+        "status": "new",
+        "created_at": utcnow(),
+        "updated_at": utcnow(),
+    }
+    await S.db.customer_requests.insert_one(doc)
+    await S.db.timeline_events.insert_one(
+        create_timeline_event("contact", email, "customer_request_created", actor=email, actor_type="customer", details={"request_id": req_id, "type": doc["type"], "subject": doc["subject"]})
+    )
+    return {"request_id": req_id, "status": "new"}
+
+
+@router.get("/api/customer/requests")
+async def customer_list_requests(user=Depends(get_current_customer)):
+    """Alle Anfragen des Kunden."""
+    email = user["email"]
+    reqs = []
+    async for r in S.db.customer_requests.find({"customer_email": email}, {"_id": 0}).sort("created_at", -1).limit(50):
+        r["created_at"] = str(r.get("created_at", ""))
+        r["updated_at"] = str(r.get("updated_at", ""))
+        reqs.append(r)
+    return {"requests": reqs}
+
+
+@router.post("/api/customer/bookings")
+async def customer_create_booking(request: Request, user=Depends(get_current_customer)):
+    """Kunde bucht einen neuen Termin."""
+    import uuid
+    body = await request.json()
+    email = user["email"]
+    bk_id = f"bk_{uuid.uuid4().hex[:16]}"
+    doc = {
+        "booking_id": bk_id,
+        "customer_email": email,
+        "customer_name": user.get("name", ""),
+        "date": body.get("date", ""),
+        "time": body.get("time", ""),
+        "type": body.get("type", "beratung"),
+        "notes": body.get("notes", ""),
+        "status": "requested",
+        "created_at": utcnow(),
+    }
+    await S.db.bookings.insert_one(doc)
+    await S.db.timeline_events.insert_one(
+        create_timeline_event("contact", email, "booking_requested", actor=email, actor_type="customer", details={"booking_id": bk_id, "date": doc["date"], "time": doc["time"]})
+    )
+    return {"booking_id": bk_id, "status": "requested"}
+
+
+@router.post("/api/customer/messages")
+async def customer_send_message(request: Request, user=Depends(get_current_customer)):
+    """Kunde sendet eine Direktnachricht an das Team."""
+    import uuid
+    body = await request.json()
+    email = user["email"]
+    msg_id = f"msg_{uuid.uuid4().hex[:16]}"
+    doc = {
+        "message_id": msg_id,
+        "customer_email": email,
+        "customer_name": user.get("name", ""),
+        "subject": body.get("subject", ""),
+        "content": body.get("content", ""),
+        "category": body.get("category", "general"),
+        "status": "unread",
+        "created_at": utcnow(),
+    }
+    await S.db.customer_messages.insert_one(doc)
+    await S.db.timeline_events.insert_one(
+        create_timeline_event("contact", email, "customer_message_sent", actor=email, actor_type="customer", details={"message_id": msg_id, "subject": doc["subject"]})
+    )
+    return {"message_id": msg_id, "status": "sent"}
+
+
+@router.get("/api/customer/messages")
+async def customer_list_messages(user=Depends(get_current_customer)):
+    """Alle Nachrichten des Kunden."""
+    email = user["email"]
+    msgs = []
+    async for m in S.db.customer_messages.find({"customer_email": email}, {"_id": 0}).sort("created_at", -1).limit(50):
+        m["created_at"] = str(m.get("created_at", ""))
+        msgs.append(m)
+    return {"messages": msgs}
+
+
+@router.post("/api/customer/support")
+async def customer_create_support_ticket(request: Request, user=Depends(get_current_customer)):
+    """Kunde erstellt ein Support-Ticket."""
+    import uuid
+    body = await request.json()
+    email = user["email"]
+    ticket_id = f"tkt_{uuid.uuid4().hex[:16]}"
+    doc = {
+        "ticket_id": ticket_id,
+        "customer_email": email,
+        "customer_name": user.get("name", ""),
+        "subject": body.get("subject", ""),
+        "description": body.get("description", ""),
+        "category": body.get("category", "general"),
+        "priority": body.get("priority", "normal"),
+        "status": "open",
+        "created_at": utcnow(),
+        "updated_at": utcnow(),
+    }
+    await S.db.support_tickets.insert_one(doc)
+    await S.db.timeline_events.insert_one(
+        create_timeline_event("contact", email, "support_ticket_created", actor=email, actor_type="customer", details={"ticket_id": ticket_id, "subject": doc["subject"]})
+    )
+    return {"ticket_id": ticket_id, "status": "open"}
+
+
+@router.get("/api/customer/support")
+async def customer_list_support_tickets(user=Depends(get_current_customer)):
+    """Alle Support-Tickets des Kunden."""
+    email = user["email"]
+    tickets = []
+    async for t in S.db.support_tickets.find({"customer_email": email}, {"_id": 0}).sort("created_at", -1).limit(50):
+        t["created_at"] = str(t.get("created_at", ""))
+        t["updated_at"] = str(t.get("updated_at", ""))
+        tickets.append(t)
+    return {"tickets": tickets}
+
+
 # ══════════════════════════════════════════════════════════════
 # MONITORING / SYSTEM STATUS (P7)
 # ══════════════════════════════════════════════════════════════

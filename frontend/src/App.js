@@ -414,6 +414,9 @@ const Ft = ({ onCookieSettings, t, lang }) => {
               <li><a href={lp.datenschutz}>{t.footer.datenschutz}</a></li>
               <li><a href={lp.agb}>{t.footer.agb}</a></li>
               <li><a href={lp.ki}>{t.footer.ki}</a></li>
+              <li><a href={lp.widerruf}>{lang === 'nl' ? 'Herroepingsrecht' : lang === 'en' ? 'Cancellation Policy' : 'Widerrufsbelehrung'}</a></li>
+              <li><a href={lp.cookies}>{lang === 'nl' ? 'Cookiebeleid' : lang === 'en' ? 'Cookie Policy' : 'Cookie-Richtlinie'}</a></li>
+              <li><a href={lp.avv}>{lang === 'nl' ? 'Verwerkersovereenkomst' : lang === 'en' ? 'Data Processing Agreement' : 'AVV'}</a></li>
               <li><button onClick={onCookieSettings} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>{t.footer.cookie}</button></li>
             </ul>
             <div className="footer-ids"><p>KvK: {COMPANY.kvk}</p><p>USt-ID: {COMPANY.vat}</p><p className="footer-iban">IBAN: NL66 REVO 3601 4304 36</p></div>

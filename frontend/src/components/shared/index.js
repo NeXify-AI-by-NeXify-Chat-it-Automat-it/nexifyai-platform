@@ -11,9 +11,9 @@ export const COMPANY = {
 };
 
 export const LEGAL_PATHS = {
-  de: { impressum: '/de/impressum', datenschutz: '/de/datenschutz', agb: '/de/agb', ki: '/de/ki-hinweise' },
-  nl: { impressum: '/nl/impressum', datenschutz: '/nl/privacybeleid', agb: '/nl/voorwaarden', ki: '/nl/ai-informatie' },
-  en: { impressum: '/en/imprint', datenschutz: '/en/privacy', agb: '/en/terms', ki: '/en/ai-transparency' }
+  de: { impressum: '/de/impressum', datenschutz: '/de/datenschutz', agb: '/de/agb', ki: '/de/ki-hinweise', widerruf: '/de/widerrufsbelehrung', cookies: '/de/cookie-richtlinie', avv: '/de/avv' },
+  nl: { impressum: '/nl/impressum', datenschutz: '/nl/privacybeleid', agb: '/nl/voorwaarden', ki: '/nl/ai-informatie', widerruf: '/nl/herroepingsrecht', cookies: '/nl/cookiebeleid', avv: '/nl/verwerkersovereenkomst' },
+  en: { impressum: '/en/imprint', datenschutz: '/en/privacy', agb: '/en/terms', ki: '/en/ai-transparency', widerruf: '/en/cancellation-policy', cookies: '/en/cookie-policy', avv: '/en/dpa' }
 };
 
 export const LOCALE_MAP = { de: 'de-DE', nl: 'nl-NL', en: 'en-GB' };
