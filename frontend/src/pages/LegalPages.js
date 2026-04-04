@@ -98,9 +98,8 @@ const DatenschutzContent = {
       </section>
       <section><h2>3. Auftragsverarbeiter</h2><ul><li><strong>Resend, Inc.</strong> (USA): E-Mail-Versand. SCC gemäß Art. 46 DSGVO.</li><li><strong>OpenAI, Inc.</strong> (USA): Chat-Verarbeitung. SCC + Zero Data Retention.</li><li><strong>MongoDB Atlas</strong>: EU-Rechenzentren (Frankfurt).</li><li><strong>Revolut Ltd.</strong> (Litauen/EU): Zahlungsabwicklung. PCI DSS Level 1 zertifiziert. Verarbeitung innerhalb der EU.</li></ul></section>
       <section><h2>4. Datensicherheit</h2><p>SSL/TLS-Verschlüsselung aller Übertragungen. Argon2-Passwort-Hashing (OWASP-empfohlen). Rollenbasierte Zugriffskontrolle (RBAC). Zeitlich begrenzte Magic-Links statt Passwörter. Security-Header (X-Frame-Options, CSP, HSTS). Regelmäßige Updates und Dependency-Audits. Verschlüsselte Datenhaltung (AES-256 at rest via MongoDB Atlas). Audit-Logs für alle kommerziellen Transaktionen.</p></section>
-      <section><h2>4. Ihre Rechte</h2><p>Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung (Art. 18), Datenübertragbarkeit (Art. 20), Widerspruch (Art. 21).</p><p>Anfragen an: <a href={`mailto:${CO.email}`}>{CO.email}</a>. Antwort innerhalb von 30 Tagen.</p><p>Beschwerderecht bei der Autoriteit Persoonsgegevens, Den Haag.</p></section>
-      <section><h2>5. Cookies</h2><p>Nur technisch notwendige Cookies und localStorage. Keine Drittanbieter-Tracking-Cookies.</p></section>
-      <section><h2>6. Datensicherheit</h2><p>SSL/TLS-Verschlüsselung, Argon2-Passwort-Hashing, RBAC, regelmäßige Sicherheitsaudits.</p></section>
+      <section><h2>5. Ihre Rechte</h2><p>Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung (Art. 18), Datenübertragbarkeit (Art. 20), Widerspruch (Art. 21).</p><p>Anfragen an: <a href={`mailto:${CO.email}`}>{CO.email}</a>. Antwort innerhalb von 30 Tagen.</p><p>Beschwerderecht bei der Autoriteit Persoonsgegevens, Den Haag.</p></section>
+      <section><h2>6. Cookies</h2><p>Nur technisch notwendige Cookies und localStorage. Keine Drittanbieter-Tracking-Cookies.</p></section>
       <p className="legal-date">Stand: April 2026</p>
     </>
   ),
