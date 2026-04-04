@@ -69,7 +69,7 @@ export default function QuotePortal() {
     card: { background: '#12171e', borderRadius: '12px', maxWidth: '720px', width: '100%', padding: '40px', boxShadow: '0 4px 32px rgba(0,0,0,0.5)' },
     logo: { marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '4px' },
     brand: { fontSize: '22px', fontWeight: 700, color: '#fff' },
-    ai: { fontSize: '22px', fontWeight: 700, color: '#ff9b7a' },
+    ai: { fontSize: '22px', fontWeight: 700, color: '#FF6B00' },
     h1: { fontSize: '24px', fontWeight: 700, color: '#fff', margin: '0 0 4px' },
     sub: { fontSize: '14px', color: '#78829a', margin: '0 0 28px' },
     custBox: { background: '#1a2028', padding: '16px', borderRadius: '8px', marginBottom: '28px' },
@@ -78,9 +78,9 @@ export default function QuotePortal() {
     section: { marginBottom: '28px' },
     secTitle: { color: '#fff', fontSize: '15px', fontWeight: 600, margin: '0 0 12px', paddingBottom: '8px', borderBottom: '1px solid #252a32' },
     row: { display: 'flex', justifyContent: 'space-between', padding: '7px 0', fontSize: '14px', color: '#c5c9d2' },
-    rowHl: { display: 'flex', justifyContent: 'space-between', padding: '10px 14px', fontSize: '14px', background: '#1a2028', borderRadius: '6px', borderLeft: '3px solid #ff9b7a', marginBottom: '4px' },
-    accent: { color: '#ff9b7a', fontWeight: 600 },
-    btn: { width: '100%', padding: '16px', background: '#ff9b7a', color: '#0c1117', fontWeight: 700, fontSize: '16px', border: 'none', borderRadius: '8px', cursor: 'pointer', transition: 'opacity .2s' },
+    rowHl: { display: 'flex', justifyContent: 'space-between', padding: '10px 14px', fontSize: '14px', background: '#1a2028', borderRadius: '6px', borderLeft: '3px solid #FF6B00', marginBottom: '4px' },
+    accent: { color: '#FF6B00', fontWeight: 600 },
+    btn: { width: '100%', padding: '16px', background: '#FF6B00', color: '#fff', fontWeight: 700, fontSize: '16px', border: 'none', borderRadius: '8px', cursor: 'pointer', transition: 'opacity .2s' },
     btnSec: { flex: 1, padding: '12px', background: 'transparent', border: '1px solid', fontWeight: 600, borderRadius: '8px', cursor: 'pointer', fontSize: '14px', transition: 'opacity .2s' },
     ta: { width: '100%', minHeight: '80px', background: '#1a2028', border: '1px solid #333', borderRadius: '6px', color: '#fff', padding: '12px', fontSize: '14px', resize: 'vertical', boxSizing: 'border-box' },
     status: (c) => ({ padding: '24px', background: '#1a2028', borderRadius: '8px', borderLeft: `4px solid ${c}`, marginBottom: '28px' }),
@@ -89,7 +89,7 @@ export default function QuotePortal() {
     gridItem: { display: 'flex', flexDirection: 'column', gap: '4px' },
     gridLabel: { fontSize: '11px', color: '#78829a', textTransform: 'uppercase', letterSpacing: '0.5px' },
     gridVal: { fontSize: '16px', color: '#fff', fontWeight: 600 },
-    payBtn: { display: 'block', width: '100%', textAlign: 'center', padding: '16px', background: '#ff9b7a', color: '#0c1117', fontWeight: 700, fontSize: '16px', borderRadius: '8px', textDecoration: 'none', marginBottom: '16px' },
+    payBtn: { display: 'block', width: '100%', textAlign: 'center', padding: '16px', background: '#FF6B00', color: '#fff', fontWeight: 700, fontSize: '16px', borderRadius: '8px', textDecoration: 'none', marginBottom: '16px' },
     bank: { background: '#1a2028', padding: '18px', borderRadius: '8px', marginBottom: '24px', fontSize: '13px', color: '#78829a', lineHeight: 1.7 },
     err: { background: '#3f1111', color: '#f87171', padding: '12px 16px', borderRadius: '6px', fontSize: '14px', marginBottom: '16px' },
     footer: { textAlign: 'center', paddingTop: '24px', borderTop: '1px solid #252a32', color: '#555', fontSize: '11px', lineHeight: 1.7 },
@@ -108,7 +108,7 @@ export default function QuotePortal() {
           <div style={S.status('#22c55e')}><h2 style={S.statusH}>Angebot angenommen</h2><p style={S.muted}>Ihre Anzahlungsrechnung wurde erstellt.</p></div>
           <div style={S.grid3}>
             <div style={S.gridItem}><span style={S.gridLabel}>Rechnungsnr.</span><span style={S.gridVal}>{d.invoice_number}</span></div>
-            <div style={S.gridItem}><span style={S.gridLabel}>Betrag (brutto)</span><span style={{...S.gridVal,color:'#ff9b7a'}}>{fmtEur(d.amount_gross)}</span></div>
+            <div style={S.gridItem}><span style={S.gridLabel}>Betrag (brutto)</span><span style={{...S.gridVal,color:'#FF6B00'}}>{fmtEur(d.amount_gross)}</span></div>
             <div style={S.gridItem}><span style={S.gridLabel}>Faellig am</span><span style={S.gridVal}>{d.due_date}</span></div>
           </div>
           {d.checkout_url && <a href={d.checkout_url} style={S.payBtn} data-testid="pay-online-btn">Jetzt online bezahlen</a>}
@@ -184,7 +184,7 @@ export default function QuotePortal() {
         </div>
 
         <div style={{marginBottom:'12px'}}>
-          <a href={`${API}/api/documents/quote/${qid}/pdf`} target="_blank" rel="noreferrer" style={{color:'#ff9b7a',fontSize:'14px'}} data-testid="pdf-download">PDF-Angebot herunterladen</a>
+          <a href={`${API}/api/documents/quote/${qid}/pdf`} target="_blank" rel="noreferrer" style={{color:'#FF6B00',fontSize:'14px'}} data-testid="pdf-download">PDF-Angebot herunterladen</a>
         </div>
 
         {error && <div style={S.err}>{error}</div>}
@@ -199,12 +199,12 @@ export default function QuotePortal() {
               {action === 'accept' ? 'Wird verarbeitet...' : 'Angebot annehmen'}
             </button>
             <div style={{display:'flex',gap:'12px'}}>
-              <button style={{...S.btnSec,borderColor:'#ff9b7a',color:'#ff9b7a'}} onClick={() => setPanel(panel === 'revision' ? null : 'revision')} data-testid="revision-btn">Änderung anfragen</button>
+              <button style={{...S.btnSec,borderColor:'#FF6B00',color:'#FF6B00'}} onClick={() => setPanel(panel === 'revision' ? null : 'revision')} data-testid="revision-btn">Änderung anfragen</button>
               <button style={{...S.btnSec,borderColor:'#555',color:'#999'}} onClick={() => setPanel(panel === 'decline' ? null : 'decline')} data-testid="decline-btn">Angebot ablehnen</button>
             </div>
             {panel === 'revision' && <div>
               <textarea style={S.ta} value={revisionFeedback} onChange={e => setRevisionFeedback(e.target.value)} placeholder="Beschreiben Sie Ihren Änderungswunsch..." data-testid="revision-textarea" />
-              <button style={{...S.btn,marginTop:'8px',background:'#ff9b7a',fontSize:'14px',padding:'12px'}} onClick={handleRevision} disabled={!revisionFeedback.trim() || !!action}>Änderungswunsch senden</button>
+              <button style={{...S.btn,marginTop:'8px',background:'#FF6B00',fontSize:'14px',padding:'12px'}} onClick={handleRevision} disabled={!revisionFeedback.trim() || !!action}>Änderungswunsch senden</button>
             </div>}
             {panel === 'decline' && <div>
               <textarea style={S.ta} value={declineReason} onChange={e => setDeclineReason(e.target.value)} placeholder="Grund (optional)..." data-testid="decline-textarea" />

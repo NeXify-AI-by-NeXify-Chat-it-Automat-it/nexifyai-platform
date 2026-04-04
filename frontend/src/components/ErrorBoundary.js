@@ -50,12 +50,12 @@ class ErrorBoundary extends React.Component {
               data-testid="error-boundary-reload"
               onClick={() => window.location.reload()}
               style={{
-                background: '#ff9b7a', color: '#0c1117', border: 'none',
+                background: '#FF6B00', color: '#fff', border: 'none',
                 padding: '12px 32px', borderRadius: 8, fontSize: '.875rem',
                 fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
               }}
-              onMouseOver={e => e.currentTarget.style.background = '#ffb599'}
-              onMouseOut={e => e.currentTarget.style.background = '#ff9b7a'}
+              onMouseOver={e => e.currentTarget.style.background = '#FF8533'}
+              onMouseOut={e => e.currentTarget.style.background = '#FF6B00'}
             >
               Seite neu laden
             </button>

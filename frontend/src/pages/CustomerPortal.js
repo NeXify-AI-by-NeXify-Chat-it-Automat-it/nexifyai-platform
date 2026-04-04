@@ -529,7 +529,7 @@ const CustomerPortal = () => {
                       <h3 style={{margin:'0 0 12px',fontSize:'.9375rem'}}>Kommerzielle Konditionen</h3>
                       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:12}}>
                         <div><div className="cp-meta-label">Gesamtvertragswert</div><div className="cp-meta-val" style={{fontSize:'1.125rem',fontWeight:700,color:'#fff'}}>{fmtEur(cd.calculation.total_contract_eur)}</div></div>
-                        <div><div className="cp-meta-label">Aktivierungsanzahlung (30%)</div><div className="cp-meta-val" style={{color:'#ff9b7a',fontWeight:600}}>{fmtEur(cd.calculation.upfront_eur)}</div></div>
+                        <div><div className="cp-meta-label">Aktivierungsanzahlung (30%)</div><div className="cp-meta-val" style={{color:'#FF6B00',fontWeight:600}}>{fmtEur(cd.calculation.upfront_eur)}</div></div>
                         <div><div className="cp-meta-label">Monatsrate</div><div className="cp-meta-val">{fmtEur(cd.calculation.recurring_eur)}/Monat</div></div>
                         <div><div className="cp-meta-label">Laufzeit</div><div className="cp-meta-val">{cd.calculation.contract_months || 0} Monate</div></div>
                       </div>
@@ -544,7 +544,7 @@ const CustomerPortal = () => {
                         <div key={a.appendix_id} style={{padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,0.03)'}} data-testid={`cp-appendix-${a.appendix_id}`}>
                           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                             <span style={{fontWeight:600,color:'#fff',fontSize:'.8125rem'}}>{a.title}</span>
-                            {a.pricing?.amount > 0 && <span style={{color:'#ff9b7a',fontWeight:600}}>{fmtEur(a.pricing.amount)}</span>}
+                            {a.pricing?.amount > 0 && <span style={{color:'#FF6B00',fontWeight:600}}>{fmtEur(a.pricing.amount)}</span>}
                           </div>
                           {a.content?.description && <p style={{margin:'4px 0 0',fontSize:'.75rem',color:'#6b7b8d'}}>{a.content.description}</p>}
                         </div>
@@ -598,9 +598,9 @@ const CustomerPortal = () => {
                           </div>
                         ))}
                         <div className="cp-version-item cp-version-current">
-                          <div className="cp-version-badge" style={{background:'rgba(255,155,122,0.15)',color:'#ff9b7a'}}>v{cd.version || 1}</div>
+                          <div className="cp-version-badge" style={{background:'rgba(255,107,0,0.15)',color:'#FF6B00'}}>v{cd.version || 1}</div>
                           <div className="cp-version-info">
-                            <span className="cp-version-status" style={{color:'#ff9b7a'}}>Aktuelle Version</span>
+                            <span className="cp-version-status" style={{color:'#FF6B00'}}>Aktuelle Version</span>
                             <span className="cp-version-date">{fmtTime(cd.updated_at)}</span>
                           </div>
                         </div>
@@ -765,11 +765,11 @@ const CustomerPortal = () => {
                   <div style={{display:'flex',alignItems:'center',gap:12,margin:'20px 0 16px',flexWrap:'wrap'}}>
                     <h2 style={{margin:0}}>{pd.title}</h2>
                     <span className="cp-badge" style={{background:st.c+'22',color:st.c}}>{st.l}</span>
-                    <span className="cp-badge" style={{background:'rgba(255,155,122,0.12)',color:'#ff9b7a'}}>{pd.completeness || 0}% abgeschlossen</span>
+                    <span className="cp-badge" style={{background:'rgba(255,107,0,0.12)',color:'#FF6B00'}}>{pd.completeness || 0}% abgeschlossen</span>
                   </div>
                   {/* Progress */}
                   <div style={{background:'rgba(255,255,255,0.04)',borderRadius:6,height:8,marginBottom:20,overflow:'hidden'}}>
-                    <div style={{background:'linear-gradient(90deg,#ff9b7a,#ffb599)',height:'100%',width:`${pd.completeness||0}%`,borderRadius:6,transition:'width .5s'}}></div>
+                    <div style={{background:'linear-gradient(90deg,#FF6B00,#FF8533)',height:'100%',width:`${pd.completeness||0}%`,borderRadius:6,transition:'width .5s'}}></div>
                   </div>
                   {/* Sections */}
                   {(pd.sections || []).length > 0 && (
@@ -798,7 +798,7 @@ const CustomerPortal = () => {
                   <div className="cp-card">
                     <div style={{maxHeight:300,overflowY:'auto',marginBottom:12}}>
                       {(pd.chat || []).map(m => (
-                        <div key={m.message_id} style={{marginBottom:8,padding:'8px 12px',background:m.sender_type==='customer'?'rgba(255,155,122,0.06)':'rgba(59,130,246,0.06)',borderRadius:6,borderLeft:`3px solid ${m.sender_type==='customer'?'#ff9b7a':'#3b82f6'}`}}>
+                        <div key={m.message_id} style={{marginBottom:8,padding:'8px 12px',background:m.sender_type==='customer'?'rgba(255,107,0,0.06)':'rgba(59,130,246,0.06)',borderRadius:6,borderLeft:`3px solid ${m.sender_type==='customer'?'#FF6B00':'#3b82f6'}`}}>
                           <div style={{display:'flex',justifyContent:'space-between',fontSize:'.6875rem',color:'#6b7b8d',marginBottom:2}}>
                             <span>{m.sender_type === 'customer' ? 'Sie' : 'NeXifyAI'}</span>
                             <span>{fmtTime(m.timestamp)}</span>
@@ -831,7 +831,7 @@ const CustomerPortal = () => {
                       </div>
                       <div className="cp-card-body">
                         <span>{p.tier || '-'}</span>
-                        <span style={{color:'#ff9b7a',fontWeight:600}}>{p.completeness || 0}%</span>
+                        <span style={{color:'#FF6B00',fontWeight:600}}>{p.completeness || 0}%</span>
                       </div>
                       <div className="cp-card-footer">
                         <span>{fmtDate(p.created_at)}</span>

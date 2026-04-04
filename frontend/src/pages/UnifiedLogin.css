@@ -106,7 +106,7 @@
 }
 
 .ul-visual-ai {
-  color: var(--nx-accent, #ff9b7a);
+  color: var(--nx-accent, #FF6B00);
   font-style: normal;
 }
 
@@ -404,7 +404,7 @@
 
 .ul-field label {
   font-family: var(--f-display, 'Plus Jakarta Sans', sans-serif);
-  color: var(--nx-accent, #ff9b7a);
+  color: var(--nx-accent, #FF6B00);
   font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -495,7 +495,7 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  background: var(--nx-accent, #ff9b7a);
+  background: var(--nx-accent, #FF6B00);
   color: #0c1117;
   font-family: var(--f-display, 'Plus Jakarta Sans', sans-serif);
   font-weight: 700;
@@ -514,7 +514,7 @@
 }
 
 .ul-btn:hover:not(:disabled) {
-  background: var(--nx-accent-h, #ffb599);
+  background: var(--nx-accent-h, #FF8533);
   transform: translateY(-1px);
   box-shadow: 0 6px 24px rgba(255, 155, 122, 0.20);
 }
@@ -617,7 +617,7 @@
   width: 36px;
   height: 36px;
   border: 2.5px solid rgba(255, 255, 255, 0.06);
-  border-top-color: var(--nx-accent, #ff9b7a);
+  border-top-color: var(--nx-accent, #FF6B00);
   border-radius: 50%;
   animation: ul-spin 0.7s linear infinite;
   margin: 0 auto;
@@ -804,11 +804,11 @@
   margin: 4px 0;
 }
 .ul-checkbox input[type="checkbox"] {
-  accent-color: var(--nx-accent, #ff9b7a);
+  accent-color: var(--nx-accent, #FF6B00);
   width: 16px; height: 16px; margin-top: 1px; flex-shrink: 0;
   cursor: pointer;
 }
-.ul-checkbox a { color: var(--nx-accent, #ff9b7a); text-decoration: underline; }
+.ul-checkbox a { color: var(--nx-accent, #FF6B00); text-decoration: underline; }
 .ul-trust-row {
   display: flex; justify-content: center; gap: 16px;
   font-size: .6875rem; color: rgba(255,255,255,.25);

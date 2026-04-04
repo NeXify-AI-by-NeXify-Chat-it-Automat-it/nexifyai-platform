@@ -96,7 +96,7 @@ const ContractAcceptance = () => {
         {/* Header */}
         <div style={styles.header} data-testid="contract-view">
           <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:8}}>
-            <div style={{width:40,height:40,borderRadius:8,background:'rgba(255,155,122,0.1)',display:'flex',alignItems:'center',justifyContent:'center'}}><I n="gavel" style={{color:'#ff9b7a',fontSize:20}} /></div>
+            <div style={{width:40,height:40,borderRadius:8,background:'rgba(255,107,0,0.1)',display:'flex',alignItems:'center',justifyContent:'center'}}><I n="gavel" style={{color:'#FF6B00',fontSize:20}} /></div>
             <div>
               <div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase',letterSpacing:1}}>Vertrag</div>
               <div style={{fontSize:'1.125rem',fontWeight:700,color:'#fff'}}>{c.contract_number}</div>
@@ -112,7 +112,7 @@ const ContractAcceptance = () => {
           <div style={styles.metaCard}><div style={styles.metaLabel}>Erstellt</div><div style={styles.metaValue}>{fmtDate(c.created_at)}</div></div>
           <div style={styles.metaCard}><div style={styles.metaLabel}>Netto</div><div style={styles.metaValue}>{fmtCurrency(calc.net_total)}</div></div>
           <div style={styles.metaCard}><div style={styles.metaLabel}>MwSt. (21%)</div><div style={styles.metaValue}>{fmtCurrency(calc.vat_amount)}</div></div>
-          <div style={styles.metaCard}><div style={styles.metaLabel}>Gesamt</div><div style={{...styles.metaValue,color:'#ff9b7a',fontSize:'1rem'}}>{fmtCurrency(calc.gross_total)}</div></div>
+          <div style={styles.metaCard}><div style={styles.metaLabel}>Gesamt</div><div style={{...styles.metaValue,color:'#FF6B00',fontSize:'1rem'}}>{fmtCurrency(calc.gross_total)}</div></div>
         </div>
 
         {/* Appendices */}
@@ -126,7 +126,7 @@ const ContractAcceptance = () => {
                   <span style={{fontSize:'.6875rem',color:'#6b7b8d',background:'rgba(255,255,255,0.04)',padding:'2px 8px',borderRadius:4}}>{(c.appendix_type_labels || {})[a.appendix_type] || a.appendix_type}</span>
                 </div>
                 {a.content?.scope && <p style={{margin:0,fontSize:'.8125rem',color:'#c8d1dc'}}>{a.content.scope}</p>}
-                {a.content?.value && <div style={{marginTop:4,fontSize:'.8125rem',color:'#ff9b7a',fontWeight:600}}>{fmtCurrency(a.content.value)}</div>}
+                {a.content?.value && <div style={{marginTop:4,fontSize:'.8125rem',color:'#FF6B00',fontWeight:600}}>{fmtCurrency(a.content.value)}</div>}
               </div>
             ))}
           </div>
@@ -137,7 +137,7 @@ const ContractAcceptance = () => {
           <h3 style={styles.sectionTitle}><I n="shield" /> Rechtsmodule & Einwilligungen</h3>
           {(c.legal_module_definitions || []).map(lm => (
             <label key={lm.key} style={styles.legalRow} data-testid={`legal-${lm.key}`}>
-              <input type="checkbox" checked={!!legalAccepted[lm.key]} onChange={e => setLegalAccepted({...legalAccepted, [lm.key]: e.target.checked})} style={{accentColor:'#ff9b7a',width:18,height:18}} />
+              <input type="checkbox" checked={!!legalAccepted[lm.key]} onChange={e => setLegalAccepted({...legalAccepted, [lm.key]: e.target.checked})} style={{accentColor:'#FF6B00',width:18,height:18}} />
               <div>
                 <div style={{fontWeight:600,color:'#fff',fontSize:'.8125rem'}}>{lm.label} {lm.required && <span style={{color:'#ef4444'}}>*</span>}</div>
                 <div style={{fontSize:'.75rem',color:'#6b7b8d'}}>{lm.description}</div>
@@ -193,11 +193,11 @@ const styles = {
   appendixCard: { background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.04)', borderRadius:8, padding:'14px 18px', marginBottom:8 },
   legalRow: { display:'flex', gap:12, alignItems:'flex-start', padding:'10px 0', borderBottom:'1px solid rgba(255,255,255,0.03)', cursor:'pointer' },
   tabBtn: { padding:'8px 16px', borderRadius:6, border:'1px solid rgba(255,255,255,0.08)', background:'transparent', color:'#6b7b8d', fontSize:'.8125rem', cursor:'pointer', transition:'all .2s' },
-  tabBtnActive: { background:'rgba(255,155,122,0.1)', borderColor:'rgba(255,155,122,0.3)', color:'#ff9b7a' },
+  tabBtnActive: { background:'rgba(255,107,0,0.1)', borderColor:'rgba(255,107,0,0.3)', color:'#FF6B00' },
   input: { width:'100%', padding:'12px 16px', background:'rgba(19,26,34,0.8)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, color:'#fff', fontSize:'.875rem', boxSizing:'border-box' },
   canvas: { width:'100%', height:120, background:'#fff', borderRadius:8, cursor:'crosshair', touchAction:'none' },
   secondaryBtn: { background:'transparent', border:'1px solid rgba(255,255,255,0.08)', color:'#6b7b8d', borderRadius:6, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:4 },
-  acceptBtn: { width:'100%', padding:'16px 24px', background:'#ff9b7a', color:'#0c1117', border:'none', borderRadius:10, fontSize:'1rem', fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all .2s' },
+  acceptBtn: { width:'100%', padding:'16px 24px', background:'#FF6B00', color:'#fff', border:'none', borderRadius:10, fontSize:'1rem', fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all .2s' },
 };
 
 export default ContractAcceptance;
