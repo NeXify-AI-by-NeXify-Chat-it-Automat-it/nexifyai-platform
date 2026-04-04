@@ -245,7 +245,15 @@ const Governance = ({ t }) => (
 );
 
 /* ═══════════ PRICING ═══════════ */
-const Pricing = ({ onChat, t, lang }) => (
+const Pricing = ({ onChat, onBook, t, lang }) => {
+  const customLabel = { de: 'Individuelles Angebot', nl: 'Individuele offerte', en: 'Custom Quote' };
+  const customDesc = {
+    de: 'Sie benötigen eine maßgeschneiderte Lösung? Wir analysieren Ihre Anforderungen und erstellen ein individuelles Angebot — kostenlos und unverbindlich.',
+    nl: 'Heeft u een oplossing op maat nodig? Wij analyseren uw behoeften en stellen een individuele offerte op — gratis en vrijblijvend.',
+    en: 'Need a tailored solution? We analyze your requirements and create a custom quote — free and non-binding.'
+  };
+  const customCta = { de: 'Individuell anfragen', nl: 'Individueel aanvragen', en: 'Request custom quote' };
+  return (
   <AnimSection id="preise" className="section bg-dark" aria-labelledby="price-t" data-testid="pricing-section">
     <div className="container">
       <motion.header className="section-header centered" variants={fadeUp}>
@@ -255,18 +263,34 @@ const Pricing = ({ onChat, t, lang }) => (
       </motion.header>
       <div className="pricing-grid" role="list">
         {t.pricing.plans.map((pl, i) => (
-          <motion.article key={i} className={`price-card ${pl.hl ? 'hl' : ''}`} role="listitem" variants={scaleIn} whileHover={{ y: -8, transition: { duration: 0.25 } }}>
+          <motion.article key={i} className={`price-card ${pl.hl ? 'hl' : ''}`} role="listitem" variants={scaleIn} custom={i} whileHover={{ y: -8, transition: { duration: 0.25 } }}>
             {pl.badge && <span className="price-badge">{pl.badge}</span>}
+            {pl.hl && <div className="price-glow-ring" />}
             <div className="price-name">{pl.name}</div>
             <div className="price-val">{pl.price}<span className="price-period"> {pl.period}</span></div>
+            <div className="price-divider" />
             <ul className="price-features">{pl.features.map((f, fi) => <li key={fi} className="price-feat"><I n="check_circle" c="price-check" />{f}</li>)}</ul>
-            <button className={`btn ${pl.hl ? 'btn-primary btn-glow' : 'btn-secondary'} price-cta`} onClick={() => { onChat(lang === 'en' ? `I'm interested in ${pl.name}` : lang === 'nl' ? `Ik ben geïnteresseerd in ${pl.name}` : `Ich interessiere mich für ${pl.name}`); track('pricing_click', { plan: pl.name }); }} data-testid={`price-cta-${pl.name.toLowerCase()}`}>{pl.cta}</button>
+            <button className={`btn ${pl.hl ? 'btn-primary btn-glow' : 'btn-secondary'} price-cta`} onClick={() => { onChat(lang === 'en' ? `I'm interested in ${pl.name}` : lang === 'nl' ? `Ik ben geïnteresseerd in ${pl.name}` : `Ich interessiere mich für ${pl.name}`); track('pricing_click', { plan: pl.name }); }} data-testid={`price-cta-${pl.name.toLowerCase().replace(/\s/g,'-')}`}>{pl.cta}</button>
           </motion.article>
         ))}
       </div>
+      <motion.div className="custom-quote-bar" variants={fadeUp} data-testid="custom-quote-bar">
+        <div className="custom-quote-inner">
+          <div className="custom-quote-icon"><I n="architecture" /></div>
+          <div className="custom-quote-text">
+            <h4>{customLabel[lang] || customLabel.de}</h4>
+            <p>{customDesc[lang] || customDesc.de}</p>
+          </div>
+          <div className="custom-quote-actions">
+            <button className="btn btn-primary" onClick={() => { onChat(lang === 'en' ? 'I need a custom solution — please create an individual quote' : lang === 'nl' ? 'Ik heb een maatwerkoplossing nodig — maak een individuele offerte' : 'Ich benötige eine individuelle Lösung — bitte erstellen Sie mir ein maßgeschneidertes Angebot'); track('custom_quote_click'); }} data-testid="custom-quote-cta">{customCta[lang] || customCta.de} <I n="arrow_forward" /></button>
+            <button className="btn btn-secondary" onClick={() => { onBook(); track('custom_quote_book'); }} data-testid="custom-quote-book"><I n="calendar_month" /> {lang === 'en' ? 'Book consultation' : lang === 'nl' ? 'Gesprek boeken' : 'Beratung buchen'}</button>
+          </div>
+        </div>
+      </motion.div>
     </div>
   </AnimSection>
-);
+  );
+};
 
 /* ═══════════ FAQ ═══════════ */
 const FAQ = ({ t }) => {
@@ -497,7 +521,7 @@ function App() {
         <Process t={t} />
         <Integrations onChat={openChat} t={t} />
         <Governance t={t} />
-        <Pricing onChat={openChat} t={t} lang={lang} />
+        <Pricing onChat={openChat} onBook={openBooking} t={t} lang={lang} />
         <SEOProductSection onChat={openChat} />
         <ServicesAll onChat={openChat} />
         <TrustSection t={t} />

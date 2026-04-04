@@ -110,6 +110,18 @@ class BookingRequest(BaseModel):
     thema: Optional[str] = None
     datenschutz_akzeptiert: bool = True
 
+class QuoteRequest(BaseModel):
+    vorname: str = Field(..., min_length=2, max_length=100)
+    nachname: str = Field(..., min_length=2, max_length=100)
+    email: EmailStr
+    telefon: Optional[str] = None
+    unternehmen: Optional[str] = None
+    interesse: str = Field(..., min_length=5, max_length=2000)
+    tarif: Optional[str] = None
+    budget: Optional[str] = None
+    source: str = "website"
+    language: Optional[str] = "de"
+
 class ChatMessage(BaseModel):
     session_id: str
     message: str
@@ -173,7 +185,6 @@ async def submit_contact(data: ContactForm, request: Request):
     await S.db.leads.insert_one(lead)
     
     # Customer email
-    import asyncio
     asyncio.create_task(send_email(
         [data.email],
         "Ihre Anfrage bei NeXifyAI – Bestätigung",
@@ -229,6 +240,71 @@ async def get_slots(date: str):
     return {"date": date, "slots": [s for s in slots if s not in booked_times and s not in blocked_times]}
 
 
+@router.post("/api/quote/request")
+async def request_individual_quote(data: QuoteRequest, request: Request):
+    """Individuelle Angebotsanfrage — dreifach gesichert: MongoDB + Timeline + Memory."""
+    await check_rate_limit(request, limit=5, window=120)
+    now = datetime.now(timezone.utc)
+    quote_id = f"QR-{now.strftime('%Y%m%d%H%M%S')}-{secrets.token_hex(3).upper()}"
+    
+    # 1. Lead erstellen oder aktualisieren
+    existing_lead = await S.db.leads.find_one({"email": data.email})
+    lead_id = None
+    if existing_lead:
+        lead_id = existing_lead.get("lead_id")
+        await S.db.leads.update_one(
+            {"email": data.email},
+            {"$set": {"updated_at": now.isoformat(), "interesse": data.interesse, "tarif": data.tarif, "budget": data.budget},
+             "$push": {"tags": "angebot_angefragt"}}
+        )
+    else:
+        lead_id = f"LEAD-{now.strftime('%Y%m%d%H%M%S')}-{secrets.token_hex(4).upper()}"
+        await S.db.leads.insert_one({
+            "lead_id": lead_id, "email": data.email,
+            "vorname": data.vorname, "nachname": data.nachname,
+            "telefon": data.telefon, "unternehmen": data.unternehmen,
+            "status": "qualifiziert", "source": data.source,
+            "interesse": data.interesse, "tarif": data.tarif, "budget": data.budget,
+            "tags": ["angebot_angefragt"], "score": 40,
+            "created_at": now.isoformat(), "updated_at": now.isoformat()
+        })
+    
+    # 2. Angebotsanfrage speichern
+    quote_req = {
+        "quote_request_id": quote_id, "lead_id": lead_id,
+        "email": data.email, "vorname": data.vorname, "nachname": data.nachname,
+        "unternehmen": data.unternehmen, "telefon": data.telefon,
+        "interesse": data.interesse, "tarif": data.tarif, "budget": data.budget,
+        "status": "eingegangen", "source": data.source, "language": data.language,
+        "created_at": now.isoformat()
+    }
+    await S.db.quote_requests.insert_one(quote_req)
+    
+    # 3. Timeline-Event (Audit-Trail)
+    await S.db.timeline_events.insert_one({
+        "event_id": f"TL-{secrets.token_hex(4).upper()}",
+        "type": "quote_request", "entity_type": "lead", "entity_id": lead_id,
+        "title": f"Angebotsanfrage von {data.vorname} {data.nachname}",
+        "description": f"Interesse: {data.interesse[:100]}{'...' if len(data.interesse) > 100 else ''}",
+        "metadata": {"quote_request_id": quote_id, "tarif": data.tarif, "email": data.email},
+        "created_at": now.isoformat(), "created_by": "system"
+    })
+    
+    # 4. Memory-Eintrag (Wissensquelle)
+    if hasattr(S, 'memory_service') and S.memory_service:
+        try:
+            await S.memory_service.write_classified(
+                content=f"Angebotsanfrage: {data.vorname} {data.nachname} ({data.email}), Interesse: {data.interesse}, Tarif: {data.tarif or 'individuell'}",
+                classification="operational", category="quote_request",
+                metadata={"quote_request_id": quote_id, "lead_id": lead_id}
+            )
+        except Exception:
+            pass
+    
+    return {"quote_request_id": quote_id, "lead_id": lead_id, "status": "eingegangen",
+            "message": "Ihre Angebotsanfrage wurde erfolgreich übermittelt. Wir melden uns innerhalb von 24 Stunden."}
+
+
 @router.post("/api/booking")
 async def create_booking(data: BookingRequest, request: Request):
     await check_rate_limit(request, limit=3, window=60)
@@ -273,7 +349,6 @@ async def create_booking(data: BookingRequest, request: Request):
     
     date_formatted = datetime.strptime(data.date, "%Y-%m-%d").strftime("%d.%m.%Y")
     
-    import asyncio
     # Customer confirmation
     asyncio.create_task(send_email(
         [data.email],
