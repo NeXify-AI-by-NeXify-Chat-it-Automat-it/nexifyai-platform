@@ -31,6 +31,61 @@ from commercial import (
 
 router = APIRouter(tags=["public"])
 
+
+def get_system_prompt(language="de"):
+    """Build the full system prompt with date context and language instruction."""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    weekday_de = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"][datetime.now(timezone.utc).weekday()]
+    lang_instruction = ""
+    if language == "nl":
+        lang_instruction = "\n\nBELANGRIJK: Antwoord altijd in het Nederlands (u-vorm). Schrijf de merknaam altijd als NeXify**AI** (met vetgedrukt AI). Gebruik dezelfde opmaakregels: **vetgedrukt**, opsommingstekens, genummerde lijsten."
+    elif language == "en":
+        lang_instruction = "\n\nIMPORTANT: Always respond in English. Always write the brand name as NeXify**AI** (with bold AI). Use the same formatting rules: **bold** for key terms, bullet points, numbered lists."
+    base = getattr(S, "ADVISOR_SYSTEM_PROMPT", "Du bist der NeXifyAI Advisor.")
+    return base + f"\n\nWICHTIG: Das heutige Datum ist {today} ({weekday_de}). Alle Terminvorschläge müssen in der Zukunft liegen (frühestens ab morgen). Verwende ausschließlich Daten im Format YYYY-MM-DD. Schlage nur Werktage (Mo-Fr) vor, keine Wochenenden." + lang_instruction
+
+
+def generate_response_fallback(message: str, history: list, qualification: dict) -> str:
+    """Rule-based fallback when LLM provider is unavailable."""
+    msg = message.lower()
+    if any(k in msg for k in ["preis", "kosten", "tarif", "price", "cost"]):
+        return ("Wir bieten zwei Haupttarife an:\n\n"
+                "**Starter AI Agenten AG** — 499 EUR/Monat (24 Monate)\n"
+                "**Growth AI Agenten AG** — 1.299 EUR/Monat (24 Monate)\n\n"
+                "Gerne erstelle ich Ihnen ein individuelles Angebot. "
+                "Buchen Sie ein unverbindliches Strategiegespräch, damit wir Ihre Anforderungen besprechen können.")
+    if any(k in msg for k in ["termin", "buchen", "gespräch", "meeting", "call"]):
+        return ("Sehr gerne! Für ein Strategiegespräch benötige ich:\n\n"
+                "1. Ihren **Vor- und Nachnamen**\n"
+                "2. Ihre **geschäftliche E-Mail-Adresse**\n"
+                "3. Ihren **Wunschtermin** (Mo–Fr, 09:00–17:00)\n\n"
+                "Alternativ können Sie auch direkt über WhatsApp buchen: +31 6 133 188 56")
+    if any(k in msg for k in ["seo", "suchmaschine", "google", "ranking"]):
+        return ("Unser **KI-gesteuertes SEO** optimiert Ihre Sichtbarkeit systematisch:\n\n"
+                "- **SEO Starter**: 799 EUR/Monat — 50 Keywords\n"
+                "- **SEO Growth**: 1.499 EUR/Monat — 200 Keywords, Content-Strategie, Multilingual\n"
+                "- **SEO Enterprise**: Individuell\n\n"
+                "Was ist Ihr aktueller Stand bei Suchmaschinenoptimierung?")
+    if any(k in msg for k in ["website", "webseite", "homepage", "app", "mobile"]):
+        return ("Wir entwickeln maßgeschneiderte digitale Lösungen:\n\n"
+                "- **Website Starter**: 2.990 EUR (bis 5 Seiten, 3 Wochen)\n"
+                "- **Website Professional**: 7.490 EUR (bis 15 Seiten, Animationen, Blog)\n"
+                "- **App MVP**: 9.900 EUR (iOS + Android, 8 Wochen)\n"
+                "- **App Professional**: 24.900 EUR (Full-Stack, 14 Wochen)\n\n"
+                "Haben Sie bereits konkrete Vorstellungen zum Umfang?")
+    if any(k in msg for k in ["hallo", "hi", "guten", "moin", "hey"]):
+        return ("Willkommen bei NeXify**AI**! Ich bin Ihr strategischer KI-Berater.\n\n"
+                "Wie kann ich Ihnen weiterhelfen? Interessieren Sie sich für:\n"
+                "- **KI-Agenten** für Vertrieb, Support oder Prozessautomation?\n"
+                "- **Website-** oder **App-Entwicklung**?\n"
+                "- **KI-gesteuertes SEO**?\n\n"
+                "Erzählen Sie mir von Ihrem Vorhaben — ich berate Sie gerne.")
+    return ("Vielen Dank für Ihre Nachricht. Leider steht unser KI-Berater gerade nicht zur Verfügung.\n\n"
+            "Sie erreichen uns direkt:\n"
+            "- **WhatsApp**: +31 6 133 188 56\n"
+            "- **E-Mail**: support@nexify-automate.com\n\n"
+            "Oder buchen Sie ein unverbindliches Strategiegespräch — wir melden uns innerhalb von 24 Stunden.")
+
 class ContactForm(BaseModel):
     vorname: str = Field(..., min_length=2, max_length=100)
     nachname: str = Field(..., min_length=2, max_length=100)

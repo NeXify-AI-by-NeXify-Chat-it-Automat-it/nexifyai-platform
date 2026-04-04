@@ -913,5 +913,11 @@ body.mobile-menu-open .whatsapp-btn{opacity:0!important;pointer-events:none!impo
 body.mobile-menu-open .chat-trigger{opacity:0!important;pointer-events:none!important;visibility:hidden!important;transition:opacity .15s,visibility .15s!important}
 body.mobile-menu-open .cookie-banner{z-index:50!important}
 
+/* ═══════════ CHAT OPEN → HIDE FLOATING ACTIONS (Mobile/Tablet) ═══════════ */
+@media(max-width:768px){
+  body.chat-open .whatsapp-btn{opacity:0!important;pointer-events:none!important;visibility:hidden!important;transition:opacity .2s,visibility .2s!important}
+  body.chat-open .chat-trigger{opacity:0!important;pointer-events:none!important;visibility:hidden!important;transition:opacity .2s,visibility .2s!important}
+}
+
 /* ═══════════ PRINT ═══════════ */
 @media print{.nav,.chat-trigger,.chat-overlay,.booking-overlay,.cookie-banner{display:none!important}body{background:#fff;color:#000}}

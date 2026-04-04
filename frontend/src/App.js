@@ -461,14 +461,16 @@ function App() {
     return () => window.removeEventListener('scroll', h);
   }, [lang]);
 
-  /* Dynamic floating action positioning based on cookie banner and mobile menu state */
+  /* Dynamic floating action positioning based on cookie banner, mobile menu, and chat state */
   useEffect(() => {
     if (showCookie) document.body.classList.add('cookie-visible');
     else document.body.classList.remove('cookie-visible');
     if (mobileMenuOpen) document.body.classList.add('mobile-menu-open');
     else document.body.classList.remove('mobile-menu-open');
-    return () => { document.body.classList.remove('cookie-visible'); document.body.classList.remove('mobile-menu-open'); };
-  }, [showCookie, mobileMenuOpen]);
+    if (chatOpen) document.body.classList.add('chat-open');
+    else document.body.classList.remove('chat-open');
+    return () => { document.body.classList.remove('cookie-visible'); document.body.classList.remove('mobile-menu-open'); document.body.classList.remove('chat-open'); };
+  }, [showCookie, mobileMenuOpen, chatOpen]);
 
   const openChat = (msg = '') => { setChatQ(msg); setChatOpen(true); track('chat_open', { source: msg ? 'cta_contextual' : 'cta_generic', msg }); };
   const openBooking = () => { setBookOpen(true); };
