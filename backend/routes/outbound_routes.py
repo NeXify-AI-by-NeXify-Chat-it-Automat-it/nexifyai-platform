@@ -186,7 +186,6 @@ async def outbound_mark_response(lead_id: str, data: dict, current_user: dict = 
     response_content = data.get("content", "")
     now = utcnow().isoformat()
 
-    new_status = OutboundLeadMachine.__dict__.get("RESPONDED", "responded") if response_type == "positive" else lead.get("status")
     from services.outbound import OutboundStatus
     if response_type == "positive":
         new_status = OutboundStatus.RESPONDED
@@ -195,6 +194,8 @@ async def outbound_mark_response(lead_id: str, data: dict, current_user: dict = 
     elif response_type == "opt_out":
         new_status = OutboundStatus.OPT_OUT
         await S.outbound_svc.opt_out(lead.get("contact_email", ""), "customer_response_opt_out")
+    else:
+        new_status = lead.get("status", "responded")
 
     await S.db.outbound_leads.update_one(
         {"outbound_lead_id": lead_id},
@@ -274,6 +275,46 @@ async def outbound_handover(lead_id: str, data: dict, current_user: dict = Depen
     ))
     result["status"] = new_status
     return result
+
+
+# ══════════════════════════════════════════════════════════════
+# BULK IMPORT ENDPOINT
+# ══════════════════════════════════════════════════════════════
+
+@router.post("/api/admin/outbound/bulk-import")
+async def outbound_bulk_import(data: dict, current_user: dict = Depends(get_current_admin)):
+    """Bulk-Import von Outbound-Leads. Erwartet {'leads': [...]}."""
+    leads_data = data.get("leads", [])
+    if not leads_data:
+        raise HTTPException(400, "Keine Leads angegeben")
+    results = {"imported": 0, "skipped": 0, "errors": []}
+    for i, ld in enumerate(leads_data):
+        if not ld.get("name"):
+            results["errors"].append(f"Lead {i}: Kein Name")
+            results["skipped"] += 1
+            continue
+        # Duplicate check
+        if ld.get("email"):
+            existing = await S.db.outbound_leads.find_one({"contact_email": ld["email"].lower()})
+            if existing:
+                results["skipped"] += 1
+                continue
+        try:
+            await S.outbound_svc.discover_lead({
+                "name": ld.get("name", ""),
+                "website": ld.get("website", ""),
+                "industry": ld.get("industry", ""),
+                "email": ld.get("email", ""),
+                "phone": ld.get("phone", ""),
+                "contact_name": ld.get("contact_name", ""),
+                "country": ld.get("country", "DE"),
+                "notes": ld.get("notes", ""),
+            }, source="bulk_import")
+            results["imported"] += 1
+        except Exception as e:
+            results["errors"].append(f"Lead {i} ({ld.get('name')}): {str(e)}")
+            results["skipped"] += 1
+    return results
 
 
 # ══════════════════════════════════════════════════════════════

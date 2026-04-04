@@ -154,7 +154,7 @@ async def auth_verify_token(data: dict):
     # mem0 Memory Write
     if S.memory_svc:
         contact = await S.db.contacts.find_one({"email": email})
-        if contact:
+        if contact and contact.get("contact_id"):
             await S.memory_svc.write(contact["contact_id"], "Kunde hat sich über Magic Link eingeloggt",
                                    AGENT_IDS["system"], category="context", source="auth",
                                    verification_status="verifiziert")

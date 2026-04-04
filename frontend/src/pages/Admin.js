@@ -111,6 +111,16 @@ const Admin = () => {
   const [appendixForm, setAppendixForm] = useState({ appendix_type:'ai_agents', title:'', description:'', pricing_amount:0 });
   const [billingStatus, setBillingStatus] = useState(null);
   const [outboundPipeline, setOutboundPipeline] = useState(null);
+  const [outboundLeads, setOutboundLeads] = useState([]);
+  const [outboundLeadsLoading, setOutboundLeadsLoading] = useState(false);
+  const [selectedOutboundLead, setSelectedOutboundLead] = useState(null);
+  const [outboundDetail, setOutboundDetail] = useState(null);
+  const [showDiscoverForm, setShowDiscoverForm] = useState(false);
+  const [discoverForm, setDiscoverForm] = useState({ name:'', website:'', industry:'', email:'', phone:'', contact_name:'', country:'DE', notes:'' });
+  const [outboundFilter, setOutboundFilter] = useState('all');
+  const [outreachForm, setOutreachForm] = useState({ channel:'email', subject:'', content:'' });
+  const [showOutreachForm, setShowOutreachForm] = useState(false);
+  const [outboundBusy, setOutboundBusy] = useState('');
   const [complianceSummary, setComplianceSummary] = useState(null);
   const [legalAudit, setLegalAudit] = useState([]);
   const [legalRisks, setLegalRisks] = useState([]);
@@ -135,7 +145,7 @@ const Admin = () => {
       const d = await r.json();
       if (!r.ok) throw new Error(d.detail || 'Anmeldung fehlgeschlagen');
       setToken(d.access_token); localStorage.setItem('nx_admin_token', d.access_token);
-      localStorage.setItem('nx_auth', JSON.stringify({ token: d.access_token, role: 'admin', email: loginEmail }));
+      localStorage.setItem('nx_auth', JSON.stringify({ token: d.access_token, role: 'admin', email: loginForm.email }));
     } catch (err) { setLoginErr(err.message); } finally { setLoginBusy(false); }
   };
 
@@ -469,7 +479,59 @@ const Admin = () => {
   useEffect(() => {
     if (!token || view !== 'outbound_pipeline') return;
     apiFetch('/api/admin/outbound/pipeline').then(d => d && setOutboundPipeline(d));
-  }, [token, view, apiFetch]);
+    loadOutboundLeads();
+  }, [token, view, apiFetch]); // eslint-disable-line
+
+  const loadOutboundLeads = async (statusFilter) => {
+    setOutboundLeadsLoading(true);
+    const params = new URLSearchParams({ limit: '100' });
+    if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
+    const d = await apiFetch(`/api/admin/outbound/leads?${params}`);
+    if (d) setOutboundLeads(d.leads || []);
+    setOutboundLeadsLoading(false);
+  };
+
+  const loadOutboundDetail = async (leadId) => {
+    const d = await apiFetch(`/api/admin/outbound/${leadId}`);
+    if (d) { setOutboundDetail(d); setSelectedOutboundLead(leadId); }
+  };
+
+  const discoverLead = async () => {
+    if (!discoverForm.name.trim()) return;
+    setOutboundBusy('discover');
+    const d = await apiFetch('/api/admin/outbound/discover', { method: 'POST', body: JSON.stringify(discoverForm) });
+    if (d && !d.error) {
+      setShowDiscoverForm(false);
+      setDiscoverForm({ name:'', website:'', industry:'', email:'', phone:'', contact_name:'', country:'DE', notes:'' });
+      loadOutboundLeads(outboundFilter);
+      apiFetch('/api/admin/outbound/pipeline').then(r => r && setOutboundPipeline(r));
+    }
+    setOutboundBusy('');
+  };
+
+  const outboundAction = async (leadId, action, data = {}) => {
+    setOutboundBusy(action);
+    let url, method = 'POST', body = JSON.stringify(data);
+    switch(action) {
+      case 'prequalify': url = `/api/admin/outbound/${leadId}/prequalify`; break;
+      case 'analyze': url = `/api/admin/outbound/${leadId}/analyze`; break;
+      case 'legal-check': url = `/api/admin/outbound/${leadId}/legal-check`; break;
+      case 'outreach': url = `/api/admin/outbound/${leadId}/outreach`; break;
+      case 'send-outreach': url = `/api/admin/outbound/${leadId}/outreach/${data.outreach_id}/send`; body = '{}'; break;
+      case 'followup': url = `/api/admin/outbound/${leadId}/followup`; break;
+      case 'respond': url = `/api/admin/outbound/${leadId}/respond`; break;
+      case 'handover': url = `/api/admin/outbound/${leadId}/handover`; break;
+      default: setOutboundBusy(''); return;
+    }
+    const d = await apiFetch(url, { method, body });
+    if (d) {
+      loadOutboundDetail(leadId);
+      loadOutboundLeads(outboundFilter);
+      apiFetch('/api/admin/outbound/pipeline').then(r => r && setOutboundPipeline(r));
+    }
+    setOutboundBusy('');
+    return d;
+  };
 
   /* Load legal compliance */
   useEffect(() => {
@@ -2212,28 +2274,235 @@ const Admin = () => {
     );
   };
 
-  /* ══════════ OUTBOUND PIPELINE (P6) ══════════ */
+  /* ══════════ OUTBOUND LEAD MACHINE (P6) ══════════ */
+  const OB_STATUS_MAP = {
+    discovered:{l:'Entdeckt',c:'#6b7b8d',icon:'search'}, analyzing:{l:'Analyse',c:'#3b82f6',icon:'analytics'},
+    qualified:{l:'Qualifiziert',c:'#10b981',icon:'check_circle'}, unqualified:{l:'Unqualifiziert',c:'#64748b',icon:'cancel'},
+    legal_blocked:{l:'Legal blockiert',c:'#ef4444',icon:'block'}, outreach_ready:{l:'Outreach-bereit',c:'#8b5cf6',icon:'send'},
+    contacted:{l:'Kontaktiert',c:'#06b6d4',icon:'mark_email_read'}, followup_1:{l:'Follow-up 1',c:'#f59e0b',icon:'replay'},
+    followup_2:{l:'Follow-up 2',c:'#f97316',icon:'replay'}, followup_3:{l:'Follow-up 3',c:'#dc2626',icon:'replay'},
+    responded:{l:'Antwort',c:'#10b981',icon:'reply'}, meeting_booked:{l:'Termin gebucht',c:'#10b981',icon:'event_available'},
+    quote_sent:{l:'Angebot gesendet',c:'#8b5cf6',icon:'receipt_long'}, nurture:{l:'Nurture',c:'#f59e0b',icon:'water_drop'},
+    opt_out:{l:'Opt-Out',c:'#ef4444',icon:'person_off'}, suppressed:{l:'Unterdrückt',c:'#64748b',icon:'visibility_off'},
+  };
+
   const OutboundPipelineView = () => {
     const op = outboundPipeline;
-    if (!op) return <div style={{textAlign:'center',padding:40,color:'#4a5568'}}>Lade Pipeline...</div>;
-    const maxCount = Math.max(...(op.pipeline || []).map(s => s.count), 1);
+
+    // Lead Detail View
+    if (outboundDetail && selectedOutboundLead) {
+      const ld = outboundDetail;
+      const st = OB_STATUS_MAP[ld.status] || OB_STATUS_MAP.discovered;
+      return (
+        <div data-testid="outbound-detail">
+          <button className="adm-back-btn" onClick={() => { setSelectedOutboundLead(null); setOutboundDetail(null); setShowOutreachForm(false); }} data-testid="outbound-back-btn"><I n="arrow_back" /> Alle Outbound-Leads</button>
+          <div style={{display:'flex',gap:16,alignItems:'center',marginBottom:16,flexWrap:'wrap'}}>
+            <h2 style={{margin:0,fontSize:'1.25rem'}}>{ld.company_name || 'Unbekannt'}</h2>
+            <span className="adm-badge" style={{background:st.c+'22',color:st.c}}><I n={st.icon} /> {st.l}</span>
+            <span className="adm-badge" style={{background:'rgba(255,155,122,0.12)',color:'#ff9b7a'}}>Score: {ld.score || 0}</span>
+          </div>
+          {/* Meta */}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:8,marginBottom:20}}>
+            <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Kontakt</div><div style={{color:'#fff',fontSize:'.8125rem',fontWeight:600}}>{ld.contact_name || '-'}</div><div style={{fontSize:'.6875rem',color:'#6b7b8d'}}>{ld.contact_email}</div></div>
+            <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Telefon</div><div style={{color:'#fff',fontSize:'.8125rem',fontWeight:600}}>{ld.contact_phone || '-'}</div></div>
+            <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Website</div><div style={{color:'#3b82f6',fontSize:'.8125rem'}}>{ld.website ? <a href={ld.website.startsWith('http')?ld.website:`https://${ld.website}`} target="_blank" rel="noreferrer" style={{color:'#3b82f6'}}>{ld.website}</a> : '-'}</div></div>
+            <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Branche</div><div style={{color:'#fff',fontSize:'.8125rem',fontWeight:600}}>{ld.industry || '-'}</div></div>
+            <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Land</div><div style={{color:'#fff',fontSize:'.8125rem',fontWeight:600}}>{ld.country || 'DE'}</div></div>
+            <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Legal</div><div style={{color:ld.legal_status==='approved'?'#10b981':ld.legal_status==='blocked'?'#ef4444':'#f59e0b',fontSize:'.8125rem',fontWeight:600}}>{ld.legal_status || 'Ausstehend'}</div></div>
+          </div>
+          {/* Fit-Products */}
+          {(ld.fit_products || []).length > 0 && (
+            <div className="adm-wa-card" style={{marginBottom:16}}>
+              <h3 style={{margin:'0 0 10px',fontSize:'.9375rem'}}>Produkt-Fit</h3>
+              <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                {ld.fit_products.map((fp, i) => (
+                  <div key={i} className="adm-badge" style={{background:'rgba(16,185,129,0.12)',color:'#10b981',padding:'6px 12px',fontSize:'.75rem'}}>{fp.name} — Score: {fp.score}</div>
+                ))}
+              </div>
+            </div>
+          )}
+          {/* Analysis */}
+          {ld.analysis && Object.keys(ld.analysis).length > 0 && (
+            <div className="adm-wa-card" style={{marginBottom:16}}>
+              <h3 style={{margin:'0 0 10px',fontSize:'.9375rem'}}>Analyse</h3>
+              <pre style={{background:'rgba(12,17,23,0.8)',padding:12,borderRadius:6,fontSize:'.75rem',color:'#c8d1dc',overflow:'auto',maxHeight:200,whiteSpace:'pre-wrap'}}>{JSON.stringify(ld.analysis, null, 2)}</pre>
+            </div>
+          )}
+          {ld.notes && (
+            <div className="adm-wa-card" style={{marginBottom:16}}>
+              <h3 style={{margin:'0 0 8px',fontSize:'.9375rem'}}>Notizen</h3>
+              <p style={{margin:0,fontSize:'.8125rem',color:'#c8d1dc',whiteSpace:'pre-wrap'}}>{ld.notes}</p>
+            </div>
+          )}
+          {/* Pipeline Actions */}
+          <div className="adm-wa-card" style={{marginBottom:16}}>
+            <h3 style={{margin:'0 0 12px',fontSize:'.9375rem'}}>Pipeline-Aktionen</h3>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+              {ld.status === 'discovered' && <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'8px 16px'}} onClick={() => outboundAction(ld.outbound_lead_id, 'prequalify')} disabled={!!outboundBusy} data-testid="ob-prequalify"><I n="fact_check" /> Vorqualifizieren</button>}
+              {['discovered','qualified'].includes(ld.status) && <button className="adm-btn adm-btn-secondary" style={{width:'auto',padding:'8px 16px'}} onClick={() => outboundAction(ld.outbound_lead_id, 'analyze')} disabled={!!outboundBusy} data-testid="ob-analyze"><I n="analytics" /> Analysieren & Scoren</button>}
+              {['qualified'].includes(ld.status) && ld.legal_status !== 'approved' && <button className="adm-btn adm-btn-secondary" style={{width:'auto',padding:'8px 16px'}} onClick={() => outboundAction(ld.outbound_lead_id, 'legal-check')} disabled={!!outboundBusy} data-testid="ob-legal"><I n="shield" /> Legal-Check</button>}
+              {ld.status === 'outreach_ready' && <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'8px 16px'}} onClick={() => setShowOutreachForm(true)} disabled={!!outboundBusy} data-testid="ob-outreach"><I n="send" /> Outreach erstellen</button>}
+              {['contacted','followup_1','followup_2'].includes(ld.status) && <button className="adm-btn adm-btn-secondary" style={{width:'auto',padding:'8px 16px'}} onClick={() => outboundAction(ld.outbound_lead_id, 'followup', { days_delay: 3 })} disabled={!!outboundBusy} data-testid="ob-followup"><I n="replay" /> Follow-up (3 Tage)</button>}
+              {['contacted','followup_1','followup_2','followup_3'].includes(ld.status) && (
+                <>
+                  <button className="adm-btn" style={{width:'auto',padding:'8px 16px',background:'rgba(16,185,129,0.12)',color:'#10b981',border:'1px solid rgba(16,185,129,0.2)'}} onClick={() => outboundAction(ld.outbound_lead_id, 'respond', { response_type: 'positive', content: 'Positive Rückmeldung' })} disabled={!!outboundBusy} data-testid="ob-respond-pos"><I n="thumb_up" /> Positive Antwort</button>
+                  <button className="adm-btn" style={{width:'auto',padding:'8px 16px',background:'rgba(239,68,68,0.08)',color:'#ef4444',border:'1px solid rgba(239,68,68,0.2)'}} onClick={() => outboundAction(ld.outbound_lead_id, 'respond', { response_type: 'negative' })} disabled={!!outboundBusy} data-testid="ob-respond-neg"><I n="thumb_down" /> Negative Antwort</button>
+                </>
+              )}
+              {['responded','meeting_booked'].includes(ld.status) && (
+                <>
+                  <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'8px 16px'}} onClick={() => outboundAction(ld.outbound_lead_id, 'handover', { handover_type: 'quote' })} disabled={!!outboundBusy} data-testid="ob-handover-quote"><I n="receipt_long" /> Handover: Angebot</button>
+                  <button className="adm-btn adm-btn-secondary" style={{width:'auto',padding:'8px 16px'}} onClick={() => outboundAction(ld.outbound_lead_id, 'handover', { handover_type: 'meeting' })} disabled={!!outboundBusy} data-testid="ob-handover-meeting"><I n="event" /> Handover: Termin</button>
+                </>
+              )}
+            </div>
+            {outboundBusy && <div style={{marginTop:8,fontSize:'.75rem',color:'#ff9b7a'}}>Aktion wird ausgeführt...</div>}
+          </div>
+          {/* Outreach Form */}
+          {showOutreachForm && (
+            <div className="adm-form-card" style={{marginBottom:16}} data-testid="outreach-form">
+              <h3>Outreach erstellen</h3>
+              <div className="adm-form-grid">
+                <div className="adm-field"><label>Kanal</label><select className="adm-select" value={outreachForm.channel} onChange={e => setOutreachForm({...outreachForm, channel: e.target.value})}><option value="email">E-Mail</option><option value="phone">Telefon</option><option value="linkedin">LinkedIn</option></select></div>
+                <div className="adm-field"><label>Betreff</label><input value={outreachForm.subject} onChange={e => setOutreachForm({...outreachForm, subject: e.target.value})} placeholder="Betreffzeile..." data-testid="outreach-subject" /></div>
+                <div className="adm-field" style={{gridColumn:'1/-1'}}><label>Nachricht</label><textarea value={outreachForm.content} onChange={e => setOutreachForm({...outreachForm, content: e.target.value})} rows={6} placeholder="Personalisierte Erstansprache..." style={{width:'100%',resize:'vertical',background:'rgba(19,26,34,0.6)',border:'1px solid rgba(255,255,255,0.06)',color:'#fff',padding:12,fontSize:'.8125rem',borderRadius:6}} data-testid="outreach-content" /></div>
+              </div>
+              <div style={{display:'flex',gap:8,marginTop:12}}>
+                <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'8px 20px'}} disabled={!outreachForm.subject.trim()||!outreachForm.content.trim()} onClick={async () => {
+                  const d = await outboundAction(ld.outbound_lead_id, 'outreach', outreachForm);
+                  if (d?.outreach_id) { setShowOutreachForm(false); setOutreachForm({ channel:'email', subject:'', content:'' }); }
+                }} data-testid="outreach-save"><I n="check" /> Erstellen</button>
+                <button className="adm-btn adm-btn-secondary" onClick={() => setShowOutreachForm(false)}>Abbrechen</button>
+              </div>
+            </div>
+          )}
+          {/* Outreach History */}
+          {(ld.outreach_history || []).length > 0 && (
+            <div className="adm-wa-card" style={{marginBottom:16}}>
+              <h3 style={{margin:'0 0 12px',fontSize:'.9375rem'}}>Outreach-Verlauf ({ld.outreach_history.length})</h3>
+              {ld.outreach_history.map((oh, i) => (
+                <div key={oh.outreach_id || i} style={{marginBottom:10,padding:'10px 14px',background:'rgba(255,255,255,0.02)',borderRadius:6,borderLeft:`3px solid ${oh.status==='sent'?'#10b981':oh.status==='draft'?'#f59e0b':'#6b7b8d'}`}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
+                    <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                      <span className="adm-badge" style={{background:oh.status==='sent'?'#10b98122':'#f59e0b22',color:oh.status==='sent'?'#10b981':'#f59e0b',fontSize:'.625rem'}}>{oh.status}</span>
+                      <span style={{fontSize:'.75rem',color:'#6b7b8d'}}>{oh.channel} | {fmtTime(oh.created_at)}</span>
+                    </div>
+                    {oh.status === 'draft' && <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'4px 12px',fontSize:'.6875rem'}} onClick={() => outboundAction(ld.outbound_lead_id, 'send-outreach', { outreach_id: oh.outreach_id })} disabled={!!outboundBusy} data-testid={`send-outreach-${oh.outreach_id}`}><I n="send" /> Jetzt senden</button>}
+                  </div>
+                  {oh.subject && <div style={{fontSize:'.8125rem',color:'#fff',fontWeight:600,marginBottom:4}}>{oh.subject}</div>}
+                  {oh.content && <div style={{fontSize:'.75rem',color:'#c8d1dc',whiteSpace:'pre-wrap'}}>{oh.content.slice(0, 200)}{oh.content.length > 200 ? '...' : ''}</div>}
+                  {oh.sent_at && <div style={{fontSize:'.6875rem',color:'#6b7b8d',marginTop:4}}>Gesendet: {fmtTime(oh.sent_at)}</div>}
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Legal Issues */}
+          {(ld.legal_issues || []).length > 0 && (
+            <div className="adm-wa-card" style={{marginBottom:16,borderLeft:'3px solid #ef4444'}}>
+              <h3 style={{margin:'0 0 10px',fontSize:'.9375rem',color:'#ef4444'}}>Legal-Probleme</h3>
+              {ld.legal_issues.map((issue, i) => (
+                <div key={i} style={{fontSize:'.8125rem',color:'#c8d1dc',padding:'4px 0',borderBottom:'1px solid rgba(255,255,255,0.03)'}}><I n="warning" /> {issue}</div>
+              ))}
+            </div>
+          )}
+          {/* Timeline */}
+          {(ld.timeline || []).length > 0 && (
+            <div className="adm-wa-card">
+              <h3 style={{margin:'0 0 12px',fontSize:'.9375rem'}}>Aktivitätsverlauf</h3>
+              {ld.timeline.map((t, i) => (
+                <div key={t.event_id || i} style={{display:'flex',gap:12,padding:'6px 0',borderBottom:'1px solid rgba(255,255,255,0.03)',fontSize:'.75rem'}}>
+                  <span style={{color:'#6b7b8d',whiteSpace:'nowrap'}}>{fmtTime(t.timestamp || t.created_at)}</span>
+                  <span style={{color:'#c8d1dc'}}>{t.event}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Pipeline Overview + Lead List
     return (
       <div data-testid="admin-outbound">
-        <h2>Outbound Lead Machine</h2>
-        <div style={{display:'flex',gap:16,marginBottom:20}}>
-          <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Total Leads</div><div style={{fontSize:'1.25rem',fontWeight:700,color:'#fff'}}>{op.total || 0}</div></div>
-          <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Konversionsrate</div><div style={{fontSize:'1.25rem',fontWeight:700,color:'#ff9b7a'}}>{(op.conversion_rate || 0).toFixed(1)}%</div></div>
+        <div className="adm-section-header">
+          <h2>Outbound Lead Machine</h2>
+          <button className="adm-btn adm-btn-primary" style={{padding:'8px 16px',width:'auto'}} onClick={() => setShowDiscoverForm(true)} data-testid="discover-lead-btn"><I n="person_add" /> Lead erfassen</button>
         </div>
-        <div style={{display:'grid',gap:6}}>
-          {(op.pipeline || []).map(s => (
-            <div key={s.key} style={{display:'flex',alignItems:'center',gap:12,padding:'8px 0'}}>
-              <div style={{width:180,fontSize:'.8125rem',color:'#c8d1dc',fontWeight:500}}>{s.label}</div>
-              <div style={{flex:1,background:'rgba(255,255,255,0.04)',borderRadius:4,height:24,overflow:'hidden'}}>
-                <div style={{background:s.count>0?'linear-gradient(90deg,#ff9b7a,#ffb599)':'transparent',height:'100%',width:`${(s.count/maxCount)*100}%`,borderRadius:4,transition:'width .4s'}}></div>
-              </div>
-              <div style={{width:40,textAlign:'right',fontSize:'.8125rem',fontWeight:600,color:s.count>0?'#fff':'#4a5568'}}>{s.count}</div>
+        {/* Pipeline Stats */}
+        {op && (
+          <div style={{marginBottom:24}}>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:8,marginBottom:16}}>
+              <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Gesamt</div><div style={{fontSize:'1.25rem',fontWeight:700,color:'#fff'}}>{op.total || 0}</div></div>
+              <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Konversionsrate</div><div style={{fontSize:'1.25rem',fontWeight:700,color:'#ff9b7a'}}>{(op.conversion_rate || 0).toFixed(1)}%</div></div>
+              <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Qualifiziert</div><div style={{fontSize:'1.25rem',fontWeight:700,color:'#10b981'}}>{(op.pipeline||[]).find(s=>s.key==='qualified')?.count||0}</div></div>
+              <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Kontaktiert</div><div style={{fontSize:'1.25rem',fontWeight:700,color:'#06b6d4'}}>{(op.pipeline||[]).find(s=>s.key==='contacted')?.count||0}</div></div>
+              <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Termine</div><div style={{fontSize:'1.25rem',fontWeight:700,color:'#10b981'}}>{(op.pipeline||[]).find(s=>s.key==='meeting_booked')?.count||0}</div></div>
             </div>
+            {/* Mini Pipeline Bar */}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:4}}>
+              {(op.pipeline||[]).filter(s=>s.count>0).map(s => {
+                const sm = OB_STATUS_MAP[s.key] || {l:s.label,c:'#6b7b8d'};
+                return <div key={s.key} style={{background:sm.c+'15',border:`1px solid ${sm.c}33`,borderRadius:6,padding:'6px 10px',textAlign:'center',cursor:'pointer'}} onClick={() => { setOutboundFilter(s.key); loadOutboundLeads(s.key); }}>
+                  <div style={{fontSize:'.6875rem',color:sm.c,fontWeight:600}}>{sm.l}</div>
+                  <div style={{fontSize:'1rem',fontWeight:700,color:'#fff'}}>{s.count}</div>
+                </div>;
+              })}
+            </div>
+          </div>
+        )}
+        {/* Discover Form */}
+        {showDiscoverForm && (
+          <div className="adm-form-card" style={{marginBottom:20}} data-testid="discover-form">
+            <h3>Neuen Lead erfassen</h3>
+            <div className="adm-form-grid">
+              <div className="adm-field"><label>Firmenname *</label><input value={discoverForm.name} onChange={e => setDiscoverForm({...discoverForm, name: e.target.value})} placeholder="Firma GmbH" data-testid="discover-name" /></div>
+              <div className="adm-field"><label>Website</label><input value={discoverForm.website} onChange={e => setDiscoverForm({...discoverForm, website: e.target.value})} placeholder="https://firma.de" data-testid="discover-website" /></div>
+              <div className="adm-field"><label>Branche</label><input value={discoverForm.industry} onChange={e => setDiscoverForm({...discoverForm, industry: e.target.value})} placeholder="z.B. Handwerk, SaaS, Beratung" data-testid="discover-industry" /></div>
+              <div className="adm-field"><label>Kontakt E-Mail</label><input type="email" value={discoverForm.email} onChange={e => setDiscoverForm({...discoverForm, email: e.target.value})} placeholder="kontakt@firma.de" data-testid="discover-email" /></div>
+              <div className="adm-field"><label>Kontaktperson</label><input value={discoverForm.contact_name} onChange={e => setDiscoverForm({...discoverForm, contact_name: e.target.value})} placeholder="Max Mustermann" /></div>
+              <div className="adm-field"><label>Telefon</label><input value={discoverForm.phone} onChange={e => setDiscoverForm({...discoverForm, phone: e.target.value})} placeholder="+49..." /></div>
+              <div className="adm-field"><label>Land</label><select className="adm-select" value={discoverForm.country} onChange={e => setDiscoverForm({...discoverForm, country: e.target.value})}><option value="DE">Deutschland</option><option value="AT">Österreich</option><option value="CH">Schweiz</option><option value="NL">Niederlande</option><option value="BE">Belgien</option></select></div>
+              <div className="adm-field" style={{gridColumn:'1/-1'}}><label>Notizen / Pain Signals</label><textarea value={discoverForm.notes} onChange={e => setDiscoverForm({...discoverForm, notes: e.target.value})} rows={3} placeholder="z.B. keine website, veraltete Prozesse, sucht KI-Lösung..." style={{width:'100%',resize:'vertical',background:'rgba(19,26,34,0.6)',border:'1px solid rgba(255,255,255,0.06)',color:'#fff',padding:12,fontSize:'.8125rem',borderRadius:6}} data-testid="discover-notes" /></div>
+            </div>
+            <div className="adm-form-actions">
+              <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'8px 20px'}} onClick={discoverLead} disabled={!discoverForm.name.trim()||outboundBusy==='discover'} data-testid="discover-save"><I n="check" /> Erfassen</button>
+              <button className="adm-btn adm-btn-secondary" onClick={() => setShowDiscoverForm(false)}>Abbrechen</button>
+            </div>
+          </div>
+        )}
+        {/* Filter */}
+        <div style={{display:'flex',gap:8,marginBottom:16,alignItems:'center',flexWrap:'wrap'}}>
+          <span style={{fontSize:'.8125rem',color:'#6b7b8d'}}>Filter:</span>
+          {[{k:'all',l:'Alle'},{k:'discovered',l:'Entdeckt'},{k:'qualified',l:'Qualifiziert'},{k:'outreach_ready',l:'Outreach'},{k:'contacted',l:'Kontaktiert'},{k:'responded',l:'Antwort'},{k:'meeting_booked',l:'Termin'}].map(f => (
+            <button key={f.k} className={`adm-btn ${outboundFilter===f.k?'adm-btn-primary':'adm-btn-secondary'}`} style={{width:'auto',padding:'5px 12px',fontSize:'.75rem'}} onClick={() => { setOutboundFilter(f.k); loadOutboundLeads(f.k); }} data-testid={`ob-filter-${f.k}`}>{f.l}</button>
           ))}
+        </div>
+        {/* Lead Table */}
+        <div className="adm-table-wrap">
+          <table className="adm-table" data-testid="outbound-leads-table">
+            <thead><tr><th>Firma</th><th>Kontakt</th><th>Branche</th><th>Score</th><th>Status</th><th>Legal</th><th>Aktualisiert</th><th></th></tr></thead>
+            <tbody>
+              {outboundLeadsLoading ? (
+                <tr><td colSpan="8" style={{textAlign:'center',padding:32,color:'#6b7b8d'}}>Lade...</td></tr>
+              ) : outboundLeads.length === 0 ? (
+                <tr><td colSpan="8" style={{textAlign:'center',padding:32,color:'#4a5568'}}>Keine Outbound-Leads{outboundFilter!=='all'?` mit Status "${(OB_STATUS_MAP[outboundFilter]||{}).l||outboundFilter}"`:''}</td></tr>
+              ) : outboundLeads.map(lead => {
+                const ls = OB_STATUS_MAP[lead.status] || OB_STATUS_MAP.discovered;
+                return (
+                  <tr key={lead.outbound_lead_id} className="adm-row-click" onClick={() => loadOutboundDetail(lead.outbound_lead_id)} data-testid={`ob-row-${lead.outbound_lead_id}`}>
+                    <td style={{fontWeight:600,color:'#fff'}}>{lead.company_name}</td>
+                    <td><div>{lead.contact_name || '-'}</div><div style={{fontSize:'.6875rem',color:'#6b7b8d'}}>{lead.contact_email}</div></td>
+                    <td>{lead.industry || '-'}</td>
+                    <td><span style={{color:lead.score>=60?'#10b981':lead.score>=30?'#f59e0b':'#6b7b8d',fontWeight:600}}>{lead.score || 0}</span></td>
+                    <td><span className="adm-badge" style={{background:ls.c+'22',color:ls.c}}>{ls.l}</span></td>
+                    <td><span style={{color:lead.legal_status==='approved'?'#10b981':lead.legal_status==='blocked'?'#ef4444':'#6b7b8d',fontSize:'.75rem'}}>{lead.legal_status==='approved'?'OK':lead.legal_status==='blocked'?'Blockiert':'–'}</span></td>
+                    <td style={{fontSize:'.75rem',color:'#6b7b8d'}}>{fmtDate(lead.updated_at)}</td>
+                    <td><button className="adm-btn-sm"><I n="visibility" /></button></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     );

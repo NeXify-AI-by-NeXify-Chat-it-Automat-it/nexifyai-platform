@@ -10,7 +10,7 @@ from routes.shared import (
     email_template,
     logger,
 )
-from domain import create_contact, create_timeline_event, utcnow
+from domain import create_contact, create_timeline_event, utcnow, new_id
 from memory_service import AGENT_IDS
 
 router = APIRouter(tags=["admin"])
