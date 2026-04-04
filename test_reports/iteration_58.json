@@ -1,0 +1,96 @@
+{
+  "summary": "Iteration 58 - Contract Acceptance E2E Tests - ALL TESTS PASSED (100%). Verified all NEW features: 1) Public Contract Acceptance page at /vertrag (token-based, no auth), 2) Contract title field, 3) Contract value auto-calculation (net, VAT 21%, gross), 4) Appendix creation with both 'type' and 'appendix_type' fields. 17/17 backend API tests passed. Frontend UI tests passed for login flow, dashboard, and contract acceptance page.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration_58_contract_acceptance.py",
+    "/app/test_reports/pytest/pytest_results_iter58.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_iteration_58_contract_acceptance.py"
+  ],
+  "success_rate": {
+    "backend": "100% (17/17 tests passed)",
+    "frontend": "100% (Login flow, Dashboard, Contract Acceptance page all verified)"
+  },
+  "test_credentials": {
+    "admin_email": "p.courbois@icloud.com",
+    "admin_password": "1def!xO2022!!"
+  },
+  "seed_data_creation": "Created test contracts via API for E2E testing (auto-cleanup not required)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iteration 58 verified all new contract acceptance features. Public endpoints /api/public/contracts/view and /api/public/contracts/accept work without JWT auth (token-based). Contract creation with value field auto-calculates net/VAT/gross. Appendix creation accepts both 'type' and 'appendix_type' fields.",
+  "verified_features": {
+    "public_contract_acceptance_page": {
+      "route": "/vertrag?token=xxx&cid=xxx",
+      "status": "VERIFIED",
+      "details": "Page renders contract details, legal modules, signature input, accept button. Success state shows 'Vertrag angenommen'"
+    },
+    "contract_title_field": {
+      "status": "VERIFIED",
+      "details": "Contract creation accepts 'title' field and displays it on contract view"
+    },
+    "contract_value_auto_calculation": {
+      "status": "VERIFIED",
+      "details": "value=15000 → net_total=15000, vat_amount=3150 (21%), gross_total=18150"
+    },
+    "appendix_type_field_tolerance": {
+      "status": "VERIFIED",
+      "details": "Accepts both 'appendix_type' and 'type' fields for backward compatibility"
+    },
+    "public_contract_view_api": {
+      "endpoint": "GET /api/public/contracts/view?token=xxx&cid=xxx",
+      "status": "VERIFIED",
+      "details": "Returns contract data without JWT auth, includes legal_module_definitions"
+    },
+    "public_contract_accept_api": {
+      "endpoint": "POST /api/public/contracts/accept",
+      "status": "VERIFIED",
+      "details": "Accepts contract with signature and legal modules, creates evidence package"
+    },
+    "admin_login_2step_flow": {
+      "status": "VERIFIED",
+      "details": "Email → Weiter → Role Selection (Administration) → Password → Anmelden"
+    },
+    "admin_dashboard": {
+      "status": "VERIFIED",
+      "details": "Shows real stats (72 leads, 27 bookings, 3 chats), no duplicate 'Dashboard' header"
+    },
+    "admin_navigation_views": {
+      "status": "VERIFIED",
+      "details": "21 sidebar items, all views render correctly"
+    },
+    "security_headers": {
+      "status": "VERIFIED",
+      "details": "HSTS, X-Frame-Options (DENY), X-Content-Type-Options (nosniff) present"
+    },
+    "admin_routes_auth": {
+      "status": "VERIFIED",
+      "details": "Returns 401 without token"
+    },
+    "health_endpoint": {
+      "status": "VERIFIED",
+      "details": "Returns {status: 'healthy', version: '3.0.0'}"
+    }
+  },
+  "mocked_apis": {
+    "DeepSeek_LLM": "Routed through Emergent GPT-5.2 mock via EMERGENT_LLM_KEY"
+  },
+  "data_counts": {
+    "leads": 72,
+    "bookings": 27,
+    "chat_sessions": 3,
+    "outbound_leads": 39,
+    "contracts": "43+"
+  }
+}

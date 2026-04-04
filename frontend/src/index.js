@@ -13,6 +13,7 @@ import CustomerPortal from './pages/CustomerPortal';
 import IntegrationDetail from './pages/IntegrationDetail';
 import UnifiedLogin from './pages/UnifiedLogin';
 import BookingPage from './pages/BookingPage';
+import ContractAcceptance from './pages/ContractAcceptance';
 
 /* Language-aware redirect: / → /<detected lang> */
 function LangRedirect() {
@@ -63,6 +64,9 @@ root.render(
 
             {/* Customer Offer Portal */}
             <Route path="/angebot" element={<QuotePortal />} />
+
+            {/* Contract Acceptance (Magic Link) */}
+            <Route path="/vertrag" element={<ContractAcceptance />} />
 
             {/* Customer Portal (JWT-authenticated) */}
             <Route path="/portal" element={<CustomerPortal />} />

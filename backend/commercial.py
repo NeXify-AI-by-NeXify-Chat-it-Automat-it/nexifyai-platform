@@ -753,6 +753,11 @@ def verify_access_token(provided_token: str, stored_hash: str, expires_at: str) 
     return hmac.compare_digest(computed_hash, stored_hash)
 
 
+def hash_token(token: str) -> str:
+    """Token hashen für DB-Lookup."""
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
 # ═══════════════════════════════════════════════════
 # PDF GENERATION
 # ═══════════════════════════════════════════════════

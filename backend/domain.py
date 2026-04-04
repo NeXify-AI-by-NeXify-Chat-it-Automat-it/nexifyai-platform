@@ -429,6 +429,7 @@ def create_contract(customer: dict, tier_key: str, contract_type: str = "standar
         "contract_id": new_id("ctr"),
         "contract_number": kwargs.get("contract_number", ""),
         "contract_type": contract_type,
+        "title": kwargs.get("title", ""),
         "status": ContractStatus.DRAFT.value,
         "customer": {
             "email": customer.get("email", "").lower().strip(),

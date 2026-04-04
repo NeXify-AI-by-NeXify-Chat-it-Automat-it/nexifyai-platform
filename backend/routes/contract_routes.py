@@ -67,12 +67,25 @@ async def create_contract_endpoint(data: dict, current_user: dict = Depends(get_
     if tier_key and not calc:
         from commercial import calc_contract as cc
         calc = cc(tier_key) or {}
+    # Manual value fallback: wenn kein tier_key aber value angegeben
+    if not calc and data.get("value"):
+        net = float(data.get("value", 0))
+        vat_rate = 0.21
+        calc = {
+            "net_total": net,
+            "vat_rate": vat_rate,
+            "vat_amount": round(net * vat_rate, 2),
+            "gross_total": round(net * (1 + vat_rate), 2),
+            "currency": data.get("currency", "EUR"),
+            "duration_months": data.get("duration_months", 12),
+        }
     # Number
     from commercial import get_next_number as gnn
     cnum = await gnn(S.db, "contract")
     contract = create_contract(
         customer, tier_key, contract_type,
         contract_number=cnum,
+        title=data.get("title", ""),
         quote_id=data.get("quote_id", ""),
         project_id=data.get("project_id", ""),
         calculation=calc,
@@ -187,9 +200,14 @@ async def update_contract(contract_id: str, data: dict, current_user: dict = Dep
 @router.post("/api/admin/contracts/{contract_id}/appendices")
 async def add_contract_appendix(contract_id: str, data: dict, current_user: dict = Depends(get_current_admin)):
     """Modulare Anlage hinzufügen."""
-    appendix_type = data.get("appendix_type", "")
+    appendix_type = data.get("appendix_type", "") or data.get("type", "")
     title = data.get("title", "")
     content = data.get("content", {})
+    if isinstance(content, str):
+        content = {"description": content}
+    # Allow scope/value as top-level fields
+    if not content and data.get("scope"):
+        content = {"scope": data.get("scope", ""), "value": data.get("value", 0)}
     if not appendix_type or not title:
         raise HTTPException(400, "appendix_type und title erforderlich")
     contract = await S.db.contracts.find_one({"contract_id": contract_id}, {"_id": 0, "contract_id": 1})
@@ -558,6 +576,110 @@ async def customer_request_change(contract_id: str, data: dict, request: Request
     evidence.pop("_id", None)
     return {"change_requested": True, "evidence_id": evidence["evidence_id"]}
 
+
+
+# ══════════════════════════════════════════════════════════════
+# PUBLIC TOKEN-BASED CONTRACT ACCESS (E2E: /vertrag?token=xxx&cid=xxx)
+# ══════════════════════════════════════════════════════════════
+
+async def _verify_contract_token(token: str, contract_id: str):
+    """Token aus access_links verifizieren und Contract zurückgeben."""
+    from commercial import hash_token
+    token_hash = hash_token(token)
+    link = await S.db.access_links.find_one({"token_hash": token_hash, "contract_id": contract_id}, {"_id": 0})
+    if not link:
+        raise HTTPException(403, "Ungültiger oder abgelaufener Link")
+    if link.get("expires_at") and link["expires_at"] < utcnow().isoformat():
+        raise HTTPException(403, "Link abgelaufen")
+    contract = await S.db.contracts.find_one({"contract_id": contract_id}, {"_id": 0})
+    if not contract:
+        raise HTTPException(404, "Vertrag nicht gefunden")
+    return contract, link.get("customer_email", "")
+
+
+@router.get("/api/public/contracts/view")
+async def public_contract_view(token: str, cid: str):
+    """Öffentliche Vertragsansicht über Magic Link (kein Login erforderlich)."""
+    contract, email = await _verify_contract_token(token, cid)
+    # Mark as viewed
+    if contract.get("status") == ContractStatus.SENT.value:
+        await S.db.contracts.update_one(
+            {"contract_id": cid},
+            {"$set": {"status": ContractStatus.VIEWED.value, "viewed_at": utcnow().isoformat()}}
+        )
+        contract["status"] = ContractStatus.VIEWED.value
+    # Load appendices
+    appendices = []
+    async for a in S.db.contract_appendices.find({"contract_id": cid}, {"_id": 0}).sort("created_at", 1):
+        if hasattr(a.get("created_at"), "isoformat"):
+            a["created_at"] = a["created_at"].isoformat()
+        appendices.append(a)
+    contract["appendices_detail"] = appendices
+    contract["document_hash"] = _compute_doc_hash(contract)
+    contract["legal_module_definitions"] = LEGAL_MODULES
+    contract["appendix_type_labels"] = APPENDIX_TYPE_LABELS
+    for dt_field in ("created_at", "updated_at", "sent_at"):
+        if hasattr(contract.get(dt_field), "isoformat"):
+            contract[dt_field] = contract[dt_field].isoformat()
+    # Remove sensitive fields
+    contract.pop("versions_history", None)
+    contract.pop("_id", None)
+    return contract
+
+
+@router.post("/api/public/contracts/accept")
+async def public_contract_accept(data: dict, request: Request):
+    """Öffentliche Vertragsannahme über Magic Link mit Evidenzpaket."""
+    token = data.get("token", "")
+    cid = data.get("contract_id", "")
+    if not token or not cid:
+        raise HTTPException(400, "Token und Contract-ID erforderlich")
+    contract, email = await _verify_contract_token(token, cid)
+    if contract.get("status") not in (ContractStatus.SENT.value, ContractStatus.VIEWED.value):
+        raise HTTPException(400, f"Vertrag kann im Status '{contract.get('status')}' nicht angenommen werden")
+    # Signature
+    signature_type = data.get("signature_type", "name")
+    signature_data = data.get("signature_data", "")
+    if not signature_data:
+        raise HTTPException(400, "Signatur erforderlich")
+    # Legal modules
+    legal_accepted = data.get("legal_modules_accepted", {})
+    for lm in LEGAL_MODULES:
+        if lm["required"] and not legal_accepted.get(lm["key"]):
+            raise HTTPException(400, f"Pflichtmodul nicht akzeptiert: {lm['label']}")
+    # Evidence
+    doc_hash = _compute_doc_hash(contract)
+    ip_addr = request.client.host if request.client else "unknown"
+    ua = request.headers.get("user-agent", "unknown")
+    evidence = create_contract_evidence(
+        cid, "accepted",
+        ip=ip_addr, user_agent=ua, doc_hash=doc_hash,
+        contract_version=contract.get("version", 1),
+        consent_status="accepted",
+        legal_modules_accepted=legal_accepted,
+        signature_type=signature_type,
+        signature_data=signature_data,
+        customer_email=email,
+        customer_name=data.get("customer_name", contract.get("customer", {}).get("name", "")),
+    )
+    await S.db.contract_evidence.insert_one({**evidence})
+    await S.db.contracts.update_one(
+        {"contract_id": cid},
+        {"$set": {
+            "status": ContractStatus.ACCEPTED.value,
+            "accepted_at": utcnow().isoformat(),
+            "signature": {"type": signature_type, "timestamp": utcnow().isoformat()},
+            "evidence": evidence["evidence_id"],
+            "legal_modules": {lm["key"]: {"accepted": legal_accepted.get(lm["key"], False), "version": "1.0", "accepted_at": utcnow().isoformat() if legal_accepted.get(lm["key"]) else None} for lm in LEGAL_MODULES},
+            "updated_at": utcnow(),
+        }}
+    )
+    await S.db.timeline_events.insert_one(create_timeline_event(
+        "contract", cid, "contract_accepted",
+        actor=email, actor_type="customer",
+        details={"signature_type": signature_type, "evidence_id": evidence["evidence_id"]},
+    ))
+    return {"accepted": True, "evidence_id": evidence["evidence_id"], "status": "accepted"}
 
 # ══════════════════════════════════════════════════════════════
 # CUSTOMER FINANCE — Portal-Finance-Ansicht (P2)

@@ -566,7 +566,6 @@ const Admin = () => {
   /* ══════════ DASHBOARD VIEW ══════════ */
   const DashboardView = () => (
     <div className="adm-dashboard" data-testid="admin-dashboard">
-      <h2>Dashboard</h2>
       <div className="adm-stat-grid">
         <div className="adm-stat-card"><div className="adm-stat-icon"><I n="people" /></div><div className="adm-stat-val">{stats?.leads_total || 0}</div><div className="adm-stat-label">Leads gesamt</div></div>
         <div className="adm-stat-card hl"><div className="adm-stat-icon"><I n="trending_up" /></div><div className="adm-stat-val">{stats?.leads_new || 0}</div><div className="adm-stat-label">Neue Leads</div></div>
