@@ -29,7 +29,7 @@ routes/
 ├── monitoring_routes.py(567 — Monitoring, LLM, Workers, Audit, E2E)
 ```
 
-## Domain-Modelle (P2 — 17 Pflichtobjekte)
+## Domain-Modelle (17 Pflichtobjekte)
 Contact, Lead, Conversation, Message, Timeline, Memory, WhatsAppSession, Project, ProjectSection, ProjectVersion, Contract, ContractAppendix, ContractEvidence, Payment, Audit, PromptHandover, BuildStatus, ReviewCycle, Deliverable
 
 ## Implementierungsstatus
@@ -49,18 +49,23 @@ Contact, Lead, Conversation, Message, Timeline, Memory, WhatsAppSession, Project
 
 ### P2 — Domain-Layer-Härtung (Abgeschlossen)
 - 17 Pflichtobjekte modelliert
-- 6 neue Factories: create_payment, create_audit_entry, create_prompt_handover, create_build_status, create_review_cycle, create_deliverable
-- 4 neue Enums: PaymentStatus, DeliverableStatus, ReviewCycleStatus, BuildPhase, AuditVerification
+- 6 neue Factories, 5 neue Enums
 
 ### P3 — Memory/Audit Systematik (Abgeschlossen)
-- write_classified() mit 4-Level-Klassifizierung (verifiziert/teilweise/nicht/widerlegt)
+- write_classified() mit 4-Level-Klassifizierung
 - audit_action() / audit_verified() mit Pflicht-Klassifizierung
-- get_audit_trail() für Entity/Actor-basierte Abfragen
 
 ### P4 — Legacy-Dokumente (Abgeschlossen)
 - 29/29 MongoDB-Dokumente → Object Storage migriert
-- 0 Fehler, Audit-Eintrag geschrieben
-- Migrations-Endpunkt: POST /api/admin/monitoring/migrate-documents
+
+### P5 — UnifiedLogin UI/UX Perfektionierung (Abgeschlossen — 2026-02-04)
+- Premium 2-Spalten-Design: Linke Marken-Spalte + Rechte Form-Spalte
+- Framer-motion Entrance-Animationen für alle Elemente
+- Feature-Icons in individuellen Containern, Trust-Badges (256-bit TLS, EU-Hosting)
+- Passwort-Sichtbarkeits-Toggle, Input-Icons (Mail, Lock)
+- AnimatePresence Step-Transitions (email→password→admin, email→register)
+- Responsive: 960px (Tablet), 600px (Mobile), 380px (Kompakt)
+- Testing Iteration 41: 100% Pass (14/14 Tests)
 
 ## Offene Punkte
 - Stripe Webhook Secret (benötigt Produktionskey vom Kunden)
