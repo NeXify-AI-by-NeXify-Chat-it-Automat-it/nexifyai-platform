@@ -18,7 +18,7 @@ server.py (419 Zeilen — Orchestrator)
 routes/
 ├── shared.py       (405 — State Container S, Auth, Helpers)
 ├── auth_routes.py  (214 — Login, Magic Links, Me)
-├── public_routes.py(686 — Health, Contact, Booking, Chat, Products)
+├── public_routes.py(~740 — Health, Contact, Booking, Chat, Products)
 ├── admin_routes.py (604 — CRM: Leads, Customers, Bookings)
 ├── billing_routes.py(1454 — Quotes, Invoices, Stripe, Documents)
 ├── portal_routes.py(711 — Customer Portal, Dashboard, Finance)
@@ -38,39 +38,33 @@ Contact, Lead, Conversation, Message, Timeline, Memory, WhatsAppSession, Project
 - Stripe: teilweise verifiziert (Test-Key aktiv, Webhook Secret benötigt Produktionskey)
 - Object Storage: verifiziert (30/30 Dokumente)
 - Monitoring: verifiziert (12 Subsysteme)
-- Rollentrennung: verifiziert
-- Projektchat/Handover: verifiziert
-- Memory: verifiziert (173+ Einträge)
 
 ### P1 — server.py Modular Refactoring (Abgeschlossen)
 - 6530 Zeilen Monolith → 10 modulare Route-Dateien + 419 Zeilen Orchestrator
 - 0 API-Regression (Testing Iteration 40: 100% Pass)
-- Pattern: Mutable State Container (S) mit Runtime-Bindung
 
 ### P2 — Domain-Layer-Härtung (Abgeschlossen)
-- 17 Pflichtobjekte modelliert
-- 6 neue Factories, 5 neue Enums
+- 17 Pflichtobjekte modelliert, 6 neue Factories, 5 neue Enums
 
 ### P3 — Memory/Audit Systematik (Abgeschlossen)
-- write_classified() mit 4-Level-Klassifizierung
-- audit_action() / audit_verified() mit Pflicht-Klassifizierung
+- write_classified(), audit_action(), audit_verified() mit Pflicht-Klassifizierung
 
 ### P4 — Legacy-Dokumente (Abgeschlossen)
 - 29/29 MongoDB-Dokumente → Object Storage migriert
 
 ### P5 — UnifiedLogin UI/UX Perfektionierung (Abgeschlossen — 2026-02-04)
-- Premium 2-Spalten-Design: Linke Marken-Spalte + Rechte Form-Spalte
-- Framer-motion Entrance-Animationen für alle Elemente
-- Feature-Icons in individuellen Containern, Trust-Badges (256-bit TLS, EU-Hosting)
-- Passwort-Sichtbarkeits-Toggle, Input-Icons (Mail, Lock)
-- AnimatePresence Step-Transitions (email→password→admin, email→register)
-- Responsive: 960px (Tablet), 600px (Mobile), 380px (Kompakt)
-- Testing Iteration 41: 100% Pass (14/14 Tests)
+- Premium 2-Spalten-Design, Framer-motion, Trust-Badges
+- Testing Iteration 41: 100% Pass (14/14)
+
+### P6 — Chat-Bug + Mobile Floating Buttons (Abgeschlossen — 2026-02-04)
+- Chat-Endpoint: get_system_prompt() + generate_response_fallback() fehlten nach Refactoring
+- Mobile: body.chat-open CSS-Klasse → WhatsApp + ChatTrigger ausgeblendet bei Chat-Öffnung
+- Testing Iteration 42: 100% Pass (Backend 8/8, Frontend alle Tests)
 
 ## Offene Punkte
 - Stripe Webhook Secret (benötigt Produktionskey vom Kunden)
-- Next.js Migration (Zielarchitektur — nicht auf Emergent-Plattform möglich)
-- PydanticAI, LiteLLM, Temporal (Ziel-Stack — eigene Infrastruktur)
+- Next.js Migration (Zielarchitektur)
+- PydanticAI, LiteLLM, Temporal (Ziel-Stack)
 
 ## Admin Credentials
 - Email: p.courbois@icloud.com
