@@ -706,6 +706,107 @@ async def customer_finance(current_user: dict = Depends(get_current_customer)):
 
 
 # ══════════════════════════════════════════════════════════════
+# CUSTOMER PROFILE / SETTINGS (BLOCK B)
+# ══════════════════════════════════════════════════════════════
+
+@router.get("/api/customer/profile")
+async def customer_profile(user=Depends(get_current_customer)):
+    """Kundenprofil abrufen."""
+    email = user["email"]
+    contact = await S.db.contacts.find_one({"email": email}, {"_id": 0})
+    if not contact:
+        return {"email": email, "first_name": "", "last_name": "", "phone": "", "company": "", "notification_preferences": {"email_quotes": True, "email_invoices": True, "email_status": True}}
+    return {
+        "email": email,
+        "first_name": contact.get("first_name", ""),
+        "last_name": contact.get("last_name", ""),
+        "phone": contact.get("phone", ""),
+        "company": contact.get("company", ""),
+        "country": contact.get("country", ""),
+        "created_at": contact.get("created_at", ""),
+        "notification_preferences": contact.get("notification_preferences", {"email_quotes": True, "email_invoices": True, "email_status": True}),
+    }
+
+
+@router.patch("/api/customer/profile")
+async def update_customer_profile(data: dict, user=Depends(get_current_customer)):
+    """Kundenprofil aktualisieren."""
+    email = user["email"]
+    allowed_fields = {"first_name", "last_name", "phone", "company", "country", "notification_preferences"}
+    updates = {k: v for k, v in data.items() if k in allowed_fields}
+    if not updates:
+        raise HTTPException(400, "Keine aktualisierbaren Felder")
+    updates["updated_at"] = utcnow().isoformat()
+    await S.db.contacts.update_one({"email": email}, {"$set": updates}, upsert=True)
+    await S.db.timeline_events.insert_one(create_timeline_event(
+        "contact", email, "profile_updated", actor=email, actor_type="customer",
+        details={"fields": list(updates.keys())},
+    ))
+    return {"status": "ok", "updated": list(updates.keys())}
+
+
+@router.get("/api/customer/documents")
+async def customer_documents(user=Depends(get_current_customer)):
+    """Kundendokumente abrufen — Verträge, Angebote, Rechnungen als Download-Liste."""
+    email = user["email"]
+    documents = []
+    # Contract PDFs
+    async for c in S.db.contracts.find({"customer.email": email, "has_pdf": True}, {"_id": 0, "contract_id": 1, "contract_number": 1, "status": 1, "created_at": 1}):
+        documents.append({"type": "contract", "id": c["contract_id"], "label": f"Vertrag {c.get('contract_number','')}", "status": c.get("status",""), "created_at": c.get("created_at",""), "download_url": f"/api/documents/contract/{c['contract_id']}/pdf"})
+    # Quote PDFs
+    async for q in S.db.quotes.find({"email": email.lower()}, {"_id": 0, "quote_id": 1, "quote_number": 1, "status": 1, "created_at": 1}):
+        if q.get("quote_id"):
+            documents.append({"type": "quote", "id": q["quote_id"], "label": f"Angebot {q.get('quote_number','')}", "status": q.get("status",""), "created_at": q.get("created_at",""), "download_url": f"/api/documents/quote/{q['quote_id']}/pdf"})
+    # Invoice PDFs
+    async for inv in S.db.invoices.find({"email": email.lower()}, {"_id": 0, "invoice_id": 1, "invoice_number": 1, "status": 1, "created_at": 1}):
+        if inv.get("invoice_id"):
+            documents.append({"type": "invoice", "id": inv["invoice_id"], "label": f"Rechnung {inv.get('invoice_number','')}", "status": inv.get("status",""), "created_at": inv.get("created_at",""), "download_url": f"/api/documents/invoice/{inv['invoice_id']}/pdf"})
+    # Project handover documents
+    async for pv in S.db.project_versions.find({}, {"_id": 0}).sort("created_at", -1):
+        proj = await S.db.projects.find_one({"project_id": pv.get("project_id"), "customer_email": email}, {"_id": 0, "title": 1})
+        if proj:
+            documents.append({"type": "handover", "id": pv.get("project_id"), "label": f"Build-Handover: {proj.get('title','')} v{pv.get('version',1)}", "status": "final", "created_at": pv.get("created_at",""), "download_url": f"/api/admin/projects/{pv['project_id']}/download-handover"})
+    documents.sort(key=lambda d: d.get("created_at", ""), reverse=True)
+    return {"documents": documents, "count": len(documents)}
+
+
+@router.get("/api/customer/consents")
+async def customer_consents(user=Depends(get_current_customer)):
+    """DSGVO-Einwilligungen abrufen."""
+    email = user["email"]
+    consents = []
+    async for ev in S.db.contract_evidence.find({"actor_email": email}, {"_id": 0}).sort("timestamp", -1):
+        consents.append({"type": "contract_acceptance", "contract_id": ev.get("contract_id"), "action": ev.get("action"), "timestamp": ev.get("timestamp"), "legal_modules": ev.get("legal_modules_accepted", {})})
+    opt_out = await S.db.opt_outs.find_one({"email": email}, {"_id": 0})
+    contact = await S.db.contacts.find_one({"email": email}, {"_id": 0, "notification_preferences": 1})
+    return {
+        "consents": consents,
+        "opt_out": opt_out is not None,
+        "marketing_opt_in": not (opt_out is not None),
+        "notification_preferences": contact.get("notification_preferences", {}) if contact else {},
+    }
+
+
+@router.post("/api/customer/consents/opt-out")
+async def customer_opt_out(data: dict, user=Depends(get_current_customer)):
+    """Marketing Opt-Out."""
+    email = user["email"]
+    reason = data.get("reason", "customer_request")
+    await S.db.opt_outs.update_one({"email": email}, {"$set": {"email": email, "reason": reason, "timestamp": utcnow().isoformat()}}, upsert=True)
+    await S.db.timeline_events.insert_one(create_timeline_event("contact", email, "marketing_opt_out", actor=email, actor_type="customer", details={"reason": reason}))
+    return {"status": "ok", "opted_out": True}
+
+
+@router.post("/api/customer/consents/opt-in")
+async def customer_opt_in(user=Depends(get_current_customer)):
+    """Marketing Opt-In (Widerruf des Opt-Out)."""
+    email = user["email"]
+    await S.db.opt_outs.delete_one({"email": email})
+    await S.db.timeline_events.insert_one(create_timeline_event("contact", email, "marketing_opt_in", actor=email, actor_type="customer"))
+    return {"status": "ok", "opted_out": False}
+
+
+# ══════════════════════════════════════════════════════════════
 # MONITORING / SYSTEM STATUS (P7)
 # ══════════════════════════════════════════════════════════════
 

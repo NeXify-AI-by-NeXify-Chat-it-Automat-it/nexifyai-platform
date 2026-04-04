@@ -382,9 +382,16 @@ app = FastAPI(title="NeXifyAI API", version="3.1.0", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+CORS_ORIGINS = [
+    os.environ.get("FRONTEND_URL", "").rstrip("/"),
+    "https://contract-os.preview.emergentagent.com",
+    "http://localhost:3000",
+]
+CORS_ORIGINS = [o for o in CORS_ORIGINS if o]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS if CORS_ORIGINS else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -398,6 +405,8 @@ async def security_headers(request: Request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
     if request.url.path.startswith("/api/portal/") or request.url.path.startswith("/api/documents/"):

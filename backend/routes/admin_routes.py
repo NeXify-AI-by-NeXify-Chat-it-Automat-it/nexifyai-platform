@@ -778,3 +778,86 @@ async def add_customer_note(email: str, data: dict, current_user: dict = Depends
     })
     
     return {"status": "ok", "note": note}
+
+
+
+# ══════════════════════════════════════════════════════════════
+# ADMIN USER MANAGEMENT (BLOCK D — GOVERNANCE)
+# ══════════════════════════════════════════════════════════════
+
+@router.get("/api/admin/users")
+async def admin_users_list(current_user: dict = Depends(get_current_admin)):
+    """Admin-Benutzerliste."""
+    users = []
+    async for u in S.db.admin_users.find({}, {"_id": 0, "password_hash": 0}):
+        users.append(u)
+    return {"users": users, "count": len(users)}
+
+
+@router.post("/api/admin/users")
+async def admin_create_user(data: dict, current_user: dict = Depends(get_current_admin)):
+    """Neuen Admin-Benutzer anlegen."""
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "")
+    role = data.get("role", "admin")
+    if not email or not password:
+        raise HTTPException(400, "E-Mail und Passwort erforderlich")
+    existing = await S.db.admin_users.find_one({"email": email})
+    if existing:
+        raise HTTPException(409, "Benutzer existiert bereits")
+    from server import hash_password
+    await S.db.admin_users.insert_one({
+        "email": email,
+        "password_hash": hash_password(password),
+        "role": role,
+        "created_at": utcnow().isoformat(),
+        "created_by": current_user["email"],
+    })
+    return {"status": "ok", "email": email, "role": role}
+
+
+@router.patch("/api/admin/users/{email}")
+async def admin_update_user(email: str, data: dict, current_user: dict = Depends(get_current_admin)):
+    """Admin-Benutzer aktualisieren (Rolle, Passwort)."""
+    email_lower = email.lower()
+    existing = await S.db.admin_users.find_one({"email": email_lower})
+    if not existing:
+        raise HTTPException(404, "Benutzer nicht gefunden")
+    updates = {}
+    if data.get("role"):
+        updates["role"] = data["role"]
+    if data.get("password"):
+        from server import hash_password
+        updates["password_hash"] = hash_password(data["password"])
+    if data.get("active") is not None:
+        updates["active"] = data["active"]
+    if not updates:
+        raise HTTPException(400, "Keine Änderungen")
+    updates["updated_at"] = utcnow().isoformat()
+    await S.db.admin_users.update_one({"email": email_lower}, {"$set": updates})
+    return {"status": "ok", "email": email_lower, "updated": list(updates.keys())}
+
+
+@router.delete("/api/admin/users/{email}")
+async def admin_delete_user(email: str, current_user: dict = Depends(get_current_admin)):
+    """Admin-Benutzer löschen (Selbstlöschung nicht möglich)."""
+    email_lower = email.lower()
+    if email_lower == current_user["email"]:
+        raise HTTPException(400, "Eigenen Account kann man nicht löschen")
+    result = await S.db.admin_users.delete_one({"email": email_lower})
+    if result.deleted_count == 0:
+        raise HTTPException(404, "Benutzer nicht gefunden")
+    return {"status": "ok", "deleted": email_lower}
+
+
+# ══════════════════════════════════════════════════════════════
+# WEBHOOK EVENT STORE (BLOCK F — DATA INTEGRITY)
+# ══════════════════════════════════════════════════════════════
+
+@router.get("/api/admin/webhooks/events")
+async def admin_webhook_events(limit: int = 50, current_user: dict = Depends(get_current_admin)):
+    """Webhook-Event-Store auflisten."""
+    events = []
+    async for evt in S.db.webhook_events.find({}, {"_id": 0}).sort("timestamp", -1).limit(limit):
+        events.append(evt)
+    return {"events": events, "count": len(events)}

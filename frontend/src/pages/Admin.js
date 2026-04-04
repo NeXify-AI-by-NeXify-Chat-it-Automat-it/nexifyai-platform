@@ -122,6 +122,12 @@ const Admin = () => {
   const [showOutreachForm, setShowOutreachForm] = useState(false);
   const [outboundBusy, setOutboundBusy] = useState('');
   const [complianceSummary, setComplianceSummary] = useState(null);
+  const [adminUsers, setAdminUsers] = useState([]);
+  const [adminUsersLoading, setAdminUsersLoading] = useState(false);
+  const [showCreateUser, setShowCreateUser] = useState(false);
+  const [newUserForm, setNewUserForm] = useState({ email: '', password: '', role: 'admin' });
+  const [webhookEvents, setWebhookEvents] = useState([]);
+  const [webhooksLoading, setWebhooksLoading] = useState(false);
   const [legalAudit, setLegalAudit] = useState([]);
   const [legalRisks, setLegalRisks] = useState([]);
   const [systemHealth, setSystemHealth] = useState(null);
@@ -2587,6 +2593,121 @@ const Admin = () => {
     setMonitorLoading(false);
   };
 
+  /* ══════════ ADMIN USERS GOVERNANCE (BLOCK D) ══════════ */
+  const loadAdminUsers = useCallback(async () => {
+    setAdminUsersLoading(true);
+    const d = await apiFetch('/api/admin/users');
+    if (d) setAdminUsers(d.users || []);
+    setAdminUsersLoading(false);
+  }, [apiFetch]);
+
+  const loadWebhookEvents = useCallback(async () => {
+    setWebhooksLoading(true);
+    const d = await apiFetch('/api/admin/webhooks/events?limit=50');
+    if (d) setWebhookEvents(d.events || []);
+    setWebhooksLoading(false);
+  }, [apiFetch]);
+
+  useEffect(() => {
+    if (!token || view !== 'users') return;
+    loadAdminUsers();
+  }, [token, view, loadAdminUsers]);
+
+  useEffect(() => {
+    if (!token || view !== 'webhooks') return;
+    loadWebhookEvents();
+  }, [token, view, loadWebhookEvents]);
+
+  const createAdminUser = async () => {
+    if (!newUserForm.email || !newUserForm.password) return;
+    const d = await apiFetch('/api/admin/users', { method: 'POST', body: JSON.stringify(newUserForm) });
+    if (d && !d.error) {
+      setShowCreateUser(false);
+      setNewUserForm({ email: '', password: '', role: 'admin' });
+      loadAdminUsers();
+    }
+  };
+
+  const deleteAdminUser = async (email) => {
+    if (!window.confirm(`Admin-Benutzer "${email}" wirklich löschen?`)) return;
+    const d = await apiFetch(`/api/admin/users/${email}`, { method: 'DELETE' });
+    if (d && !d.error) loadAdminUsers();
+  };
+
+  const UsersView = () => (
+    <div data-testid="admin-users">
+      <div className="adm-section-header">
+        <h2>Benutzerverwaltung</h2>
+        <button className="adm-btn adm-btn-primary" style={{padding:'8px 16px',width:'auto'}} onClick={() => setShowCreateUser(true)} data-testid="create-user-btn"><I n="person_add" /> Neuer Admin</button>
+      </div>
+      {showCreateUser && (
+        <div className="adm-form-card" style={{marginBottom:20}} data-testid="create-user-form">
+          <h3>Neuen Admin-Benutzer anlegen</h3>
+          <div className="adm-form-grid">
+            <div className="adm-field"><label>E-Mail *</label><input type="email" value={newUserForm.email} onChange={e => setNewUserForm({...newUserForm, email: e.target.value})} placeholder="admin@nexify.ai" data-testid="new-user-email" /></div>
+            <div className="adm-field"><label>Passwort *</label><input type="password" value={newUserForm.password} onChange={e => setNewUserForm({...newUserForm, password: e.target.value})} placeholder="Min. 8 Zeichen" data-testid="new-user-password" /></div>
+            <div className="adm-field"><label>Rolle</label><select className="adm-select" value={newUserForm.role} onChange={e => setNewUserForm({...newUserForm, role: e.target.value})}><option value="admin">Administrator</option><option value="staff">Staff</option><option value="readonly">Nur Lesen</option></select></div>
+          </div>
+          <div className="adm-form-actions">
+            <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'8px 20px'}} onClick={createAdminUser} disabled={!newUserForm.email||!newUserForm.password} data-testid="save-user-btn"><I n="check" /> Anlegen</button>
+            <button className="adm-btn adm-btn-secondary" onClick={() => setShowCreateUser(false)}>Abbrechen</button>
+          </div>
+        </div>
+      )}
+      <div className="adm-table-wrap">
+        <table className="adm-table" data-testid="admin-users-table">
+          <thead><tr><th>E-Mail</th><th>Rolle</th><th>Erstellt</th><th>Erstellt von</th><th></th></tr></thead>
+          <tbody>
+            {adminUsersLoading ? (
+              <tr><td colSpan="5" style={{textAlign:'center',padding:32,color:'#6b7b8d'}}>Lade...</td></tr>
+            ) : adminUsers.length === 0 ? (
+              <tr><td colSpan="5" style={{textAlign:'center',padding:32,color:'#4a5568'}}>Keine Admin-Benutzer</td></tr>
+            ) : adminUsers.map(u => (
+              <tr key={u.email} data-testid={`user-row-${u.email}`}>
+                <td style={{fontWeight:600,color:'#fff'}}>{u.email}</td>
+                <td><span className="adm-badge" style={{background:u.role==='admin'?'#ff9b7a22':'#3b82f622',color:u.role==='admin'?'#ff9b7a':'#3b82f6'}}>{u.role || 'admin'}</span></td>
+                <td style={{fontSize:'.75rem',color:'#6b7b8d'}}>{fmtDate(u.created_at)}</td>
+                <td style={{fontSize:'.75rem',color:'#6b7b8d'}}>{u.created_by || 'system'}</td>
+                <td>
+                  <button className="adm-btn-sm" style={{color:'#ef4444'}} onClick={() => deleteAdminUser(u.email)} data-testid={`delete-user-${u.email}`}><I n="delete" /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  const WebhookEventsView = () => (
+    <div data-testid="admin-webhooks">
+      <div className="adm-section-header">
+        <h2>Webhook Event Store</h2>
+        <button className="adm-btn adm-btn-secondary" style={{padding:'8px 16px',width:'auto'}} onClick={loadWebhookEvents} data-testid="refresh-webhooks"><I n="refresh" /> Aktualisieren</button>
+      </div>
+      <div className="adm-table-wrap">
+        <table className="adm-table" data-testid="webhook-events-table">
+          <thead><tr><th>Zeitpunkt</th><th>Typ</th><th>Source</th><th>Status</th><th>Details</th></tr></thead>
+          <tbody>
+            {webhooksLoading ? (
+              <tr><td colSpan="5" style={{textAlign:'center',padding:32,color:'#6b7b8d'}}>Lade...</td></tr>
+            ) : webhookEvents.length === 0 ? (
+              <tr><td colSpan="5" style={{textAlign:'center',padding:32,color:'#4a5568'}}>Keine Webhook-Events vorhanden</td></tr>
+            ) : webhookEvents.map((evt, i) => (
+              <tr key={evt.event_id || i}>
+                <td style={{fontSize:'.75rem',color:'#6b7b8d',whiteSpace:'nowrap'}}>{fmtTime(evt.timestamp)}</td>
+                <td><span className="adm-badge" style={{background:'#3b82f622',color:'#3b82f6'}}>{evt.event_type || '-'}</span></td>
+                <td style={{fontSize:'.75rem'}}>{evt.source || '-'}</td>
+                <td><span className="adm-badge" style={{background:evt.status==='processed'?'#10b98122':evt.status==='failed'?'#ef444422':'#f59e0b22',color:evt.status==='processed'?'#10b981':evt.status==='failed'?'#ef4444':'#f59e0b'}}>{evt.status || 'pending'}</span></td>
+                <td style={{fontSize:'.6875rem',color:'#6b7b8d',maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{JSON.stringify(evt.payload || {}).slice(0,80)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
   const MonitoringView = () => {
     if (monitorLoading) return <div className="adm-loading"><I n="sync" /> Lade Systemstatus...</div>;
     if (!monitorData) return <div className="adm-empty"><I n="monitor_heart" /><p>Systemstatus konnte nicht geladen werden.</p><button className="adm-btn adm-btn-primary" onClick={loadMonitoring}>Erneut laden</button></div>;
@@ -2692,6 +2813,8 @@ const Admin = () => {
     { id: 'calendar', icon: 'calendar_month', label: 'Kalender' },
     { id: 'customers', icon: 'person_search', label: 'Kunden' },
     { id: 'agents', icon: 'smart_toy', label: 'KI-Agenten' },
+    { id: 'users', icon: 'admin_panel_settings', label: 'Benutzer' },
+    { id: 'webhooks', icon: 'webhook', label: 'Webhooks' },
     { id: 'audit', icon: 'verified', label: 'Audit' },
     { id: 'monitoring', icon: 'monitor_heart', label: 'Monitoring' },
   ];
@@ -2735,6 +2858,8 @@ const Admin = () => {
           {view === 'calendar' && <CalendarView />}
           {view === 'customers' && <CustomersView />}
           {view === 'agents' && <AgentsView />}
+          {view === 'users' && <UsersView />}
+          {view === 'webhooks' && <WebhookEventsView />}
           {view === 'audit' && <AuditView />}
           {view === 'monitoring' && <MonitoringView />}
         </div>

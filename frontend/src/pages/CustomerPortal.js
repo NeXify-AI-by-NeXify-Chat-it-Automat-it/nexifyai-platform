@@ -47,6 +47,12 @@ const CustomerPortal = () => {
   const [projectChatMsg, setProjectChatMsg] = useState('');
   const [financeData, setFinanceData] = useState(null);
   const [financeLoading, setFinanceLoading] = useState(false);
+  const [profileData, setProfileData] = useState(null);
+  const [profileForm, setProfileForm] = useState({ first_name:'', last_name:'', phone:'', company:'', country:'DE' });
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [customerDocs, setCustomerDocs] = useState([]);
+  const [docsLoading, setDocsLoading] = useState(false);
+  const [consentsData, setConsentsData] = useState(null);
   const canvasRef = useRef(null);
   const isDrawingRef = useRef(false);
 
@@ -134,6 +140,54 @@ const CustomerPortal = () => {
       if (r.ok) { const d = await r.json(); setFinanceData(d); }
     } catch {} finally { setFinanceLoading(false); }
   }, [authToken]);
+
+  const loadProfile = useCallback(async () => {
+    if (!authToken) return;
+    try {
+      const r = await fetch(`${API}/api/customer/profile`, { headers: { Authorization: `Bearer ${authToken}` } });
+      if (r.ok) {
+        const d = await r.json();
+        setProfileData(d);
+        setProfileForm({ first_name: d.first_name||'', last_name: d.last_name||'', phone: d.phone||'', company: d.company||'', country: d.country||'DE' });
+      }
+    } catch {}
+  }, [authToken]);
+
+  const saveProfile = async () => {
+    setProfileSaving(true);
+    try {
+      const r = await fetch(`${API}/api/customer/profile`, {
+        method: 'PATCH', headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileForm),
+      });
+      if (r.ok) { loadProfile(); }
+    } catch {} finally { setProfileSaving(false); }
+  };
+
+  const loadDocuments = useCallback(async () => {
+    if (!authToken) return;
+    setDocsLoading(true);
+    try {
+      const r = await fetch(`${API}/api/customer/documents`, { headers: { Authorization: `Bearer ${authToken}` } });
+      if (r.ok) { const d = await r.json(); setCustomerDocs(d.documents || []); }
+    } catch {} finally { setDocsLoading(false); }
+  }, [authToken]);
+
+  const loadConsents = useCallback(async () => {
+    if (!authToken) return;
+    try {
+      const r = await fetch(`${API}/api/customer/consents`, { headers: { Authorization: `Bearer ${authToken}` } });
+      if (r.ok) { const d = await r.json(); setConsentsData(d); }
+    } catch {}
+  }, [authToken]);
+
+  const toggleOptOut = async (optOut) => {
+    const url = optOut ? `${API}/api/customer/consents/opt-out` : `${API}/api/customer/consents/opt-in`;
+    try {
+      await fetch(url, { method: 'POST', headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: 'customer_request' }) });
+      loadConsents();
+    } catch {}
+  };
 
   const loadProjectDetail = async (projectId) => {
     try {
@@ -328,8 +382,8 @@ const CustomerPortal = () => {
   }, []);
 
   useEffect(() => {
-    if (authToken) { loadContracts(); loadProjects(); loadFinance(); }
-  }, [authToken, loadContracts, loadProjects, loadFinance]);
+    if (authToken) { loadContracts(); loadProjects(); loadFinance(); loadProfile(); loadDocuments(); loadConsents(); }
+  }, [authToken, loadContracts, loadProjects, loadFinance, loadProfile, loadDocuments, loadConsents]);
 
   const logout = () => {
     localStorage.removeItem('nx_auth');
@@ -371,9 +425,11 @@ const CustomerPortal = () => {
     { id: 'projects', icon: 'folder_special', label: `Projekte (${projects.length})`, shortLabel: 'Projekte' },
     { id: 'quotes', icon: 'description', label: `Angebote (${data?.quotes?.length || 0})`, shortLabel: 'Angebote' },
     { id: 'invoices', icon: 'account_balance', label: `Finanzen (${financeData?.summary?.total_invoices || data?.invoices?.length || 0})`, shortLabel: 'Finanzen' },
+    { id: 'documents', icon: 'folder_open', label: 'Dokumente', shortLabel: 'Dokumente' },
     { id: 'bookings', icon: 'event', label: `Termine (${data?.bookings?.length || 0})`, shortLabel: 'Termine' },
     { id: 'communication', icon: 'forum', label: `Kommunikation (${data?.communications?.length || 0})`, shortLabel: 'Chat' },
     { id: 'timeline', icon: 'timeline', label: 'Aktivität', shortLabel: 'Aktivität' },
+    { id: 'settings', icon: 'settings', label: 'Einstellungen', shortLabel: 'Einst.' },
   ];
 
   return (
@@ -1050,6 +1106,120 @@ const CustomerPortal = () => {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* ══════════ DOCUMENTS TAB ══════════ */}
+        {tab === 'documents' && (
+          <div className="cp-documents" data-testid="cp-documents">
+            <h2>Meine Dokumente</h2>
+            {docsLoading ? (
+              <div className="cp-empty"><I n="hourglass_empty" /><p>Lade Dokumente...</p></div>
+            ) : customerDocs.length === 0 ? (
+              <div className="cp-empty"><I n="folder_off" /><p>Noch keine Dokumente vorhanden.</p></div>
+            ) : (
+              <div className="cp-doc-list">
+                {customerDocs.map((doc, i) => (
+                  <div key={doc.id + i} className="cp-card cp-doc-item" data-testid={`cp-doc-${doc.id}`}>
+                    <div className="cp-doc-icon">
+                      <I n={doc.type === 'contract' ? 'gavel' : doc.type === 'quote' ? 'description' : doc.type === 'invoice' ? 'receipt_long' : 'article'} />
+                    </div>
+                    <div className="cp-doc-info">
+                      <div className="cp-doc-label">{doc.label}</div>
+                      <div className="cp-doc-meta">
+                        <span className={`cp-badge ${doc.status === 'signed' || doc.status === 'paid' ? 'cp-badge-success' : doc.status === 'overdue' ? 'cp-badge-error' : 'cp-badge-neutral'}`}>
+                          {doc.type === 'contract' ? 'Vertrag' : doc.type === 'quote' ? 'Angebot' : doc.type === 'invoice' ? 'Rechnung' : 'Dokument'}
+                        </span>
+                        <span className="cp-doc-date">{fmtDate(doc.created_at)}</span>
+                      </div>
+                    </div>
+                    <a href={`${API}${doc.download_url}`} target="_blank" rel="noreferrer" className="cp-btn cp-btn-sm" data-testid={`cp-doc-dl-${doc.id}`}>
+                      <I n="download" /> PDF
+                    </a>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ══════════ SETTINGS TAB ══════════ */}
+        {tab === 'settings' && (
+          <div className="cp-settings" data-testid="cp-settings">
+            <h2>Einstellungen</h2>
+            
+            {/* Profile Section */}
+            <div className="cp-card cp-settings-section">
+              <h3><I n="person" /> Profildaten</h3>
+              <div className="cp-form-grid">
+                <div className="cp-field">
+                  <label>Vorname</label>
+                  <input value={profileForm.first_name} onChange={e => setProfileForm({...profileForm, first_name: e.target.value})} placeholder="Vorname" data-testid="cp-profile-first" />
+                </div>
+                <div className="cp-field">
+                  <label>Nachname</label>
+                  <input value={profileForm.last_name} onChange={e => setProfileForm({...profileForm, last_name: e.target.value})} placeholder="Nachname" data-testid="cp-profile-last" />
+                </div>
+                <div className="cp-field">
+                  <label>Firma</label>
+                  <input value={profileForm.company} onChange={e => setProfileForm({...profileForm, company: e.target.value})} placeholder="Firma" data-testid="cp-profile-company" />
+                </div>
+                <div className="cp-field">
+                  <label>Telefon</label>
+                  <input value={profileForm.phone} onChange={e => setProfileForm({...profileForm, phone: e.target.value})} placeholder="+49..." data-testid="cp-profile-phone" />
+                </div>
+                <div className="cp-field">
+                  <label>Land</label>
+                  <select value={profileForm.country} onChange={e => setProfileForm({...profileForm, country: e.target.value})} data-testid="cp-profile-country">
+                    <option value="DE">Deutschland</option><option value="AT">Österreich</option><option value="CH">Schweiz</option><option value="NL">Niederlande</option><option value="BE">Belgien</option>
+                  </select>
+                </div>
+                <div className="cp-field">
+                  <label>E-Mail</label>
+                  <input value={profileData?.email || ''} disabled style={{opacity:0.5}} />
+                </div>
+              </div>
+              <div style={{marginTop:16}}>
+                <button className="cp-btn cp-btn-primary" onClick={saveProfile} disabled={profileSaving} data-testid="cp-profile-save">
+                  <I n="save" /> {profileSaving ? 'Speichern...' : 'Profil speichern'}
+                </button>
+              </div>
+            </div>
+
+            {/* Consent Management */}
+            <div className="cp-card cp-settings-section" style={{marginTop:16}}>
+              <h3><I n="privacy_tip" /> Datenschutz & Einwilligungen</h3>
+              {consentsData ? (
+                <>
+                  <div className="cp-consent-row">
+                    <div>
+                      <div className="cp-consent-label">Marketing-Kommunikation</div>
+                      <div className="cp-consent-desc">Erhalten Sie Updates zu neuen Services und Angeboten.</div>
+                    </div>
+                    <button
+                      className={`cp-toggle ${!consentsData.opt_out ? 'cp-toggle-active' : ''}`}
+                      onClick={() => toggleOptOut(!consentsData.opt_out)}
+                      data-testid="cp-marketing-toggle"
+                    >
+                      <span className="cp-toggle-slider"></span>
+                    </button>
+                  </div>
+                  {consentsData.consents.length > 0 && (
+                    <div style={{marginTop:16}}>
+                      <h4 style={{fontSize:'.8125rem',color:'var(--cp-muted)',marginBottom:8}}>Erteilte Einwilligungen</h4>
+                      {consentsData.consents.map((c, i) => (
+                        <div key={i} className="cp-consent-entry">
+                          <I n="check_circle" style={{color:'var(--cp-success)',fontSize:'.875rem'}} />
+                          <span>Vertrag {c.contract_id} — {c.action} — {fmtDate(c.timestamp)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="cp-empty"><I n="hourglass_empty" /><p>Lade Einwilligungen...</p></div>
+              )}
+            </div>
           </div>
         )}
       </main>
