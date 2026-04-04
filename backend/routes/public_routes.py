@@ -302,6 +302,52 @@ async def request_individual_quote(data: QuoteRequest, request: Request):
             )
         except Exception:
             pass
+
+    # 5. E-Mail-Bestätigungen
+    asyncio.create_task(send_email(
+        [data.email],
+        f"Ihre Angebotsanfrage bei NeXifyAI [{quote_id}]",
+        email_template(
+            "Angebotsanfrage eingegangen",
+            f'''<h1 style="color:#fff;font-size:22px;margin:0 0 16px;">Ihre Angebotsanfrage ist eingegangen</h1>
+            <p>Guten Tag {data.vorname} {data.nachname},</p>
+            <p>vielen Dank für Ihr Interesse. Wir haben Ihre Anfrage erhalten und erstellen Ihnen ein individuelles Angebot.</p>
+            <div style="background:#252a32;padding:20px;margin:20px 0;border-left:3px solid #ffb599;">
+            <p style="margin:0 0 4px;font-size:12px;color:#8f9095;">ANFRAGE-ID</p>
+            <p style="margin:0 0 16px;color:#fff;font-weight:600;">{quote_id}</p>
+            {f'<p style="margin:0 0 4px;font-size:12px;color:#8f9095;">TARIF</p><p style="margin:0 0 16px;color:#ffb599;font-weight:700;">{data.tarif}</p>' if data.tarif else ''}
+            <p style="margin:0 0 4px;font-size:12px;color:#8f9095;">INTERESSE</p>
+            <p style="margin:0;color:#fff;">{data.interesse[:200]}</p>
+            </div>
+            <p><strong>Nächste Schritte:</strong></p>
+            <p>1. Unser Team prüft Ihre Anforderungen und erstellt ein maßgeschneidertes Angebot.<br>
+            2. Sie erhalten das Angebot innerhalb von 24 Stunden.<br>
+            3. Bei Rückfragen kontaktieren wir Sie direkt.</p>
+            <p>Mit freundlichen Grüßen,<br>Pascal Courbois<br>Geschäftsführer</p>'''
+        ),
+        category="quote_request",
+        ref_id=quote_id,
+    ))
+
+    asyncio.create_task(send_email(
+        S.NOTIFICATION_EMAILS,
+        f"[NeXifyAI] Neue Angebotsanfrage: {data.vorname} {data.nachname}",
+        email_template(
+            "Neue Angebotsanfrage",
+            f'''<h1 style="color:#fff;font-size:20px;margin:0 0 16px;">Neue Angebotsanfrage</h1>
+            <div style="background:#252a32;padding:20px;margin:16px 0;">
+            <p style="margin:0 0 8px;"><span style="color:#8f9095;font-size:12px;">ANFRAGE</span><br><strong style="color:#ffb599;">{quote_id}</strong></p>
+            <p style="margin:0 0 8px;"><span style="color:#8f9095;font-size:12px;">NAME</span><br><strong style="color:#fff;">{data.vorname} {data.nachname}</strong></p>
+            <p style="margin:0 0 8px;"><span style="color:#8f9095;font-size:12px;">E-MAIL</span><br><a href="mailto:{data.email}" style="color:#ffb599;">{data.email}</a></p>
+            {f'<p style="margin:0 0 8px;"><span style="color:#8f9095;font-size:12px;">TARIF</span><br><span style="color:#fff;">{data.tarif}</span></p>' if data.tarif else ''}
+            <p style="margin:0;"><span style="color:#8f9095;font-size:12px;">INTERESSE</span><br><span style="color:#fff;">{data.interesse[:300]}</span></p>
+            </div>''',
+            "https://nexifyai.de/admin",
+            "Im Admin öffnen"
+        ),
+        category="admin_notification",
+        ref_id=quote_id,
+    ))
     
     return {"quote_request_id": quote_id, "lead_id": lead_id, "status": "eingegangen",
             "message": "Ihre Angebotsanfrage wurde erfolgreich übermittelt. Wir melden uns innerhalb von 24 Stunden."}

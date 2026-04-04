@@ -1249,14 +1249,14 @@ async def email_stats(current_user: dict = Depends(get_current_admin)):
 
 @router.post("/api/admin/email/test")
 async def email_test(data: dict = None, current_user: dict = Depends(get_current_admin)):
-    """Test-E-Mail an Admin senden."""
+    """Test-E-Mail senden — nutzt SMTP (Hostinger) als primären Kanal."""
     to_email = (data or {}).get("to", current_user["email"])
     result = await send_email(
         [to_email],
         "NeXifyAI — E-Mail-Systemtest",
         email_template(
             "Systemtest erfolgreich",
-            f"<p>Diese E-Mail bestätigt die funktionierende E-Mail-Zustellung über Resend.</p>"
+            f"<p>Diese E-Mail bestätigt die funktionierende E-Mail-Zustellung.</p>"
             f"<p style='color:#6b7b8d;font-size:12px;'>Gesendet: {datetime.now(timezone.utc).strftime('%d.%m.%Y %H:%M UTC')}</p>",
         ),
         category="test",
@@ -1265,8 +1265,20 @@ async def email_test(data: dict = None, current_user: dict = Depends(get_current
     return {
         "sent": result is not None,
         "to": to_email,
-        "provider": "resend",
-        "resend_id": result.get("id") if isinstance(result, dict) else str(result) if result else None,
+        "provider": "smtp+resend",
+    }
+
+
+@router.get("/api/admin/email/health")
+async def email_health(current_user: dict = Depends(get_current_admin)):
+    """SMTP-Verbindungsstatus prüfen."""
+    from services.email_service import check_smtp_health
+    smtp_status = await check_smtp_health()
+    resend_ok = bool(S.RESEND_API_KEY)
+    return {
+        "smtp": smtp_status,
+        "resend": {"status": "configured" if resend_ok else "not_configured"},
+        "primary_channel": "smtp" if smtp_status.get("status") == "ok" else ("resend" if resend_ok else "none"),
     }
 
 

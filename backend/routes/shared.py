@@ -240,41 +240,61 @@ NeXify Automate — Graaf van Loonstraat 1E, 5921 JA Venlo, NL | KvK: 90483944 |
 
 
 async def send_email(to: List[str], subject: str, html: str, category: str = "transactional", ref_id: str = None):
-    """E-Mail über Resend versenden — mit Audit-Trail und Error-Tracking."""
-    if not S.RESEND_API_KEY:
-        logger.warning("Resend not configured — email not sent")
-        return None
+    """E-Mail versenden — SMTP (Hostinger) als primärer Kanal, Resend als Fallback."""
+    result = None
+    method = None
+
+    # 1. SMTP (Hostinger) — primärer Kanal
+    smtp_user = os.environ.get("SMTP_USER", "")
+    smtp_pass = os.environ.get("SMTP_PASSWORD", "")
+    if smtp_user and smtp_pass:
+        try:
+            from services.email_service import send_email as smtp_send
+            for recipient in to:
+                r = await smtp_send(
+                    to_email=recipient,
+                    subject=subject,
+                    html_body=html,
+                    reply_to="nexifyai@nexifyai.de",
+                )
+                if r.get("sent"):
+                    result = r
+                    method = "smtp"
+            if result:
+                logger.info(f"E-Mail via SMTP an {to} — {subject[:50]}")
+        except Exception as e:
+            logger.warning(f"SMTP-Fehler: {e} — versuche Resend-Fallback")
+            result = None
+
+    # 2. Resend — Fallback
+    if not result and S.RESEND_API_KEY:
+        try:
+            import asyncio
+            result = await asyncio.to_thread(resend.Emails.send, {
+                "from": f"NeXifyAI <{S.SENDER_EMAIL}>",
+                "to": to,
+                "subject": subject,
+                "html": html
+            })
+            method = "resend"
+            logger.info(f"E-Mail via Resend an {to} — {subject[:50]}")
+        except Exception as e:
+            logger.error(f"Resend-Fehler: {e}")
+            result = None
+
+    # 3. Audit-Trail
     try:
-        import asyncio
-        result = await asyncio.to_thread(resend.Emails.send, {
-            "from": f"NeXifyAI <{S.SENDER_EMAIL}>",
-            "to": to,
-            "subject": subject,
-            "html": html
+        await S.db.email_events.insert_one({
+            "to": to, "subject": subject, "category": category,
+            "ref_id": ref_id,
+            "status": "sent" if result else "failed",
+            "method": method or "none",
+            "sent_at": datetime.now(timezone.utc).isoformat(),
         })
-        logger.info(f"Email sent to {to} — subject: {subject[:50]}")
-        try:
-            await S.db.email_events.insert_one({
-                "to": to, "subject": subject, "category": category,
-                "ref_id": ref_id, "status": "sent",
-                "resend_id": result.get("id") if isinstance(result, dict) else str(result),
-                "sent_at": datetime.now(timezone.utc).isoformat(),
-            })
-        except Exception:
-            pass
-        return result
-    except Exception as e:
-        logger.error(f"Email error: {e}")
-        try:
-            await S.db.email_events.insert_one({
-                "to": to, "subject": subject, "category": category,
-                "ref_id": ref_id, "status": "failed",
-                "error": str(e)[:200],
-                "failed_at": datetime.now(timezone.utc).isoformat(),
-            })
-        except Exception:
-            pass
-        return None
+    except Exception:
+        pass
+
+    return result
 
 
 async def archive_pdf_to_storage(doc_type: str, ref_id: str, number: str, pdf_bytes: bytes, version: int = 1, extra_meta: dict = None):

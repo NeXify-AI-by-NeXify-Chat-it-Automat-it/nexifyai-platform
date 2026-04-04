@@ -99,6 +99,14 @@ async def admin_audit_health(current_user: dict = Depends(get_current_admin)):
         checks["memory"] = {"status": "ok", "entries": mem_count}
     else:
         checks["memory"] = {"status": "not_initialized"}
+
+    # 11. SMTP E-Mail
+    try:
+        from services.email_service import check_smtp_health
+        smtp_health = await check_smtp_health()
+        checks["email"] = smtp_health
+    except Exception as e:
+        checks["email"] = {"status": "error", "error": str(e)}
     
     overall = "healthy"
     for k, v in checks.items():

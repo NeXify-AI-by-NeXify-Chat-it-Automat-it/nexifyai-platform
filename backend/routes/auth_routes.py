@@ -49,12 +49,18 @@ async def auth_check_email(data: dict):
         raise HTTPException(400, "E-Mail ist Pflichtfeld")
     
     admin = await S.db.admin_users.find_one({"email": email})
-    if admin:
-        return {"role": "admin", "needs_password": True}
     
     contact = await S.db.contacts.find_one({"email": email})
     lead = await S.db.leads.find_one({"email": email})
-    if contact or lead:
+    is_customer = bool(contact or lead)
+    
+    if admin and is_customer:
+        return {"role": "dual", "needs_password": True, "needs_magic_link": True}
+    
+    if admin:
+        return {"role": "admin", "needs_password": True}
+    
+    if is_customer:
         return {"role": "customer", "needs_magic_link": True}
     
     return {"role": "unknown"}
@@ -93,19 +99,19 @@ async def auth_request_magic_link(data: dict, request: Request):
     magic_link = f"{base_url}/login/verify?token={token_data['token']}"
     
     # E-Mail senden
-    if S.RESEND_API_KEY:
-        try:
-            html = email_template(
-                "Ihr Portalzugang — NeXifyAI",
-                "<p>Hallo,</p>"
-                "<p>Sie haben einen Zugangslink für Ihr NeXifyAI-Kundenportal angefordert.</p>"
-                "<p>Klicken Sie auf den Button, um sich einzuloggen. Der Link ist 24 Stunden gültig.</p>",
-                magic_link,
-                "Zum Portal"
-            )
-            await send_email([email], "Ihr Portalzugang — NeXifyAI", html, category="portal_access", ref_id=email)
-        except Exception as e:
-            logger.error(f"Magic Link E-Mail Fehler: {e}")
+    # E-Mail senden (SMTP + Resend Fallback)
+    try:
+        html = email_template(
+            "Ihr Portalzugang — NeXifyAI",
+            "<p>Hallo,</p>"
+            "<p>Sie haben einen Zugangslink für Ihr NeXifyAI-Kundenportal angefordert.</p>"
+            "<p>Klicken Sie auf den Button, um sich einzuloggen. Der Link ist 24 Stunden gültig.</p>",
+            magic_link,
+            "Zum Portal"
+        )
+        await send_email([email], "Ihr Portalzugang — NeXifyAI", html, category="portal_access", ref_id=email)
+    except Exception as e:
+        logger.error(f"Magic Link E-Mail Fehler: {e}")
     
     await log_audit("magic_link_requested", email)
     

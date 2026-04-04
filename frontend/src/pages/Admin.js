@@ -2182,6 +2182,8 @@ const Admin = () => {
   };
 
   /* ══════════ MAIN LAYOUT ══════════ */
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
   const navItems = [
     { id: 'dashboard', icon: 'dashboard', label: 'Dashboard' },
     { id: 'projects', icon: 'folder_special', label: 'Projekte' },
@@ -2203,17 +2205,22 @@ const Admin = () => {
   ];
 
   return (
-    <div className="adm-layout" data-testid="admin-panel">
-      <aside className="adm-sidebar" data-testid="admin-sidebar">
-        <div className="adm-sidebar-logo"><img src="/icon-mark.svg" alt="" width="28" height="28" /><span>NeXify<em>AI</em></span></div>
+    <div className={`adm-layout ${sidebarOpen ? '' : 'adm-collapsed'}`} data-testid="admin-panel">
+      <aside className={`adm-sidebar ${sidebarOpen ? '' : 'collapsed'}`} data-testid="admin-sidebar">
+        <div className="adm-sidebar-top">
+          <div className="adm-sidebar-logo"><img src="/icon-mark.svg" alt="" width="28" height="28" /><span>NeXify<em>AI</em></span></div>
+          <button className="adm-collapse-btn" onClick={() => setSidebarOpen(!sidebarOpen)} data-testid="sidebar-toggle" title={sidebarOpen ? 'Einklappen' : 'Ausklappen'}>
+            <I n={sidebarOpen ? 'chevron_left' : 'chevron_right'} />
+          </button>
+        </div>
         <nav className="adm-sidebar-nav">
           {navItems.map(n => (
-            <button key={n.id} className={`adm-nav-item ${view === n.id ? 'active' : ''}`} onClick={() => { setView(n.id); setSelectedBooking(null); setCustDetail(null); setSelectedChat(null); setSelectedConvo(null); }} data-testid={`nav-${n.id}`}>
-              <I n={n.icon} /><span>{n.label}</span>
+            <button key={n.id} className={`adm-nav-item ${view === n.id ? 'active' : ''}`} onClick={() => { setView(n.id); setSelectedBooking(null); setCustDetail(null); setSelectedChat(null); setSelectedConvo(null); }} data-testid={`nav-${n.id}`} title={n.label}>
+              <I n={n.icon} /><span className="adm-nav-label">{n.label}</span>
             </button>
           ))}
         </nav>
-        <button className="adm-logout" onClick={logout} data-testid="admin-logout"><I n="logout" /> Abmelden</button>
+        <button className="adm-logout" onClick={logout} data-testid="admin-logout"><I n="logout" /> <span className="adm-nav-label">Abmelden</span></button>
       </aside>
       <main className="adm-main">
         <header className="adm-topbar">
