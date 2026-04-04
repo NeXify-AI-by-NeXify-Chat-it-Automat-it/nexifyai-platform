@@ -528,7 +528,7 @@ function App() {
         <Pricing onChat={openChat} onBook={openBooking} t={t} lang={lang} />
         <SEOProductSection onChat={openChat} />
         <ServicesAll onChat={openChat} />
-        <TrustSection t={t} />
+        <TrustSection />
         <FAQ t={t} />
         <Contact onChat={openChat} onBook={openBooking} t={t} lang={lang} />
       </main>
