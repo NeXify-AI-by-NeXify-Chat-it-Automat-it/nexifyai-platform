@@ -291,10 +291,8 @@ async def monitoring_status(current_user: dict = Depends(get_current_admin)):
 
     # Payment providers
     revolut_key = bool(os.environ.get("REVOLUT_SECRET_KEY", "").strip())
-    stripe_key = bool(os.environ.get("STRIPE_API_KEY", "").strip())
     payment_status = {
         "revolut": {"status": "configured" if revolut_key else "not_configured", "api_key_set": revolut_key},
-        "stripe": {"status": "configured" if stripe_key else "not_configured", "api_key_set": stripe_key, "webhook_secret_set": bool(os.environ.get("STRIPE_WEBHOOK_SECRET", "").strip())},
     }
 
     # Webhooks

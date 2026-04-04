@@ -286,9 +286,9 @@ async def admin_customers(user = Depends(get_current_admin), search: str = None)
         c["email"] = c.pop("_id")
         booking_count = await S.db.bookings.count_documents({"email": c["email"]})
         c["total_bookings"] = booking_count
-        if c.get("first_contact"):
+        if c.get("first_contact") and not isinstance(c["first_contact"], str):
             c["first_contact"] = c["first_contact"].isoformat()
-        if c.get("last_contact"):
+        if c.get("last_contact") and not isinstance(c["last_contact"], str):
             c["last_contact"] = c["last_contact"].isoformat()
     return {"customers": customers}
 
@@ -602,3 +602,167 @@ async def admin_add_lead_note(
 
 # --- Customer Portal: Enhanced ---
 
+
+# ══════════════════════════════════════════════════════════════
+# KUNDEN-FALLAKTE (Case File) — Vollständiges Detail
+# ══════════════════════════════════════════════════════════════
+
+@router.get("/api/admin/customers/{email}/casefile")
+async def get_customer_casefile(email: str, current_user: dict = Depends(get_current_admin)):
+    """Vollständige Kunden-Fallakte: Kontakt, Leads, Buchungen, Angebote, Rechnungen, Verträge, Kommunikation, Timeline, E-Mails."""
+    email_lower = email.lower()
+    
+    contact = await S.db.contacts.find_one({"email": email_lower}, {"_id": 0})
+    customer = await S.db.customers.find_one({"email": email_lower}, {"_id": 0})
+    
+    leads = []
+    async for l in S.db.leads.find({"email": email_lower}, {"_id": 0}).sort("created_at", -1):
+        leads.append(l)
+    
+    bookings = []
+    async for b in S.db.bookings.find({"email": email_lower}, {"_id": 0}).sort("created_at", -1):
+        bookings.append(b)
+    
+    quotes = []
+    async for q in S.db.quotes.find({"customer.email": email_lower}, {"_id": 0}).sort("created_at", -1):
+        quotes.append(q)
+    
+    invoices = []
+    async for inv in S.db.invoices.find({"customer.email": email_lower}, {"_id": 0}).sort("created_at", -1):
+        invoices.append(inv)
+    
+    contracts = []
+    async for c in S.db.contracts.find({"customer.email": email_lower}, {"_id": 0}).sort("created_at", -1):
+        contracts.append(c)
+    
+    conversations = []
+    async for conv in S.db.conversations.find({"user_email": email_lower}, {"_id": 0}).sort("created_at", -1).limit(20):
+        conversations.append(conv)
+    
+    timeline = []
+    async for t in S.db.timeline_events.find({"ref_id": {"$regex": email_lower, "$options": "i"}}, {"_id": 0}).sort("created_at", -1).limit(50):
+        timeline.append(t)
+    
+    emails_sent = []
+    async for e in S.db.email_events.find({"recipients": email_lower}, {"_id": 0}).sort("sent_at", -1).limit(30):
+        emails_sent.append(e)
+    
+    memory = []
+    async for m in S.db.customer_memory.find({"user_id": email_lower}, {"_id": 0}).sort("created_at", -1).limit(20):
+        memory.append(m)
+    
+    return {
+        "email": email_lower,
+        "contact": contact,
+        "customer": customer,
+        "leads": leads,
+        "bookings": bookings,
+        "quotes": quotes,
+        "invoices": invoices,
+        "contracts": contracts,
+        "conversations": conversations,
+        "timeline": timeline,
+        "emails_sent": emails_sent,
+        "memory": memory,
+        "stats": {
+            "total_leads": len(leads),
+            "total_bookings": len(bookings),
+            "total_quotes": len(quotes),
+            "total_invoices": len(invoices),
+            "total_contracts": len(contracts),
+            "total_emails": len(emails_sent),
+            "total_revenue": sum(inv.get("total_eur", 0) for inv in invoices if inv.get("payment_status") == "paid"),
+            "open_invoices": sum(1 for inv in invoices if inv.get("payment_status") != "paid"),
+        },
+    }
+
+
+@router.put("/api/admin/customers/{email}/contact")
+async def update_customer_contact(email: str, data: dict, current_user: dict = Depends(get_current_admin)):
+    """Kontaktdaten eines Kunden aktualisieren."""
+    email_lower = email.lower()
+    allowed = {"vorname", "nachname", "unternehmen", "telefon", "position", "branche", "website", "notizen"}
+    update_data = {k: v for k, v in data.items() if k in allowed and v is not None}
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    result = await S.db.contacts.update_one({"email": email_lower}, {"$set": update_data}, upsert=True)
+    await log_audit(current_user["email"], "contact_updated", f"Kontakt {email_lower} aktualisiert")
+    return {"status": "ok", "modified": result.modified_count}
+
+
+# ══════════════════════════════════════════════════════════════
+# DIREKT-E-MAIL-VERSAND (aus Fallakte heraus)
+# ══════════════════════════════════════════════════════════════
+
+class DirectEmailRequest(BaseModel):
+    to_email: str
+    subject: str
+    body: str
+    template: Optional[str] = "custom"
+
+@router.post("/api/admin/email/send")
+async def send_direct_email(req: DirectEmailRequest, current_user: dict = Depends(get_current_admin)):
+    """Direkt-E-Mail aus dem Admin-Bereich an einen Kunden senden."""
+    from services.email_service import send_email as smtp_send, _base_html
+    
+    body_html = req.body.replace("\n", "<br>")
+    html = _base_html(req.subject, f"<p>{body_html}</p>")
+    
+    result = await smtp_send(
+        to_email=req.to_email,
+        subject=req.subject,
+        html_body=html,
+        text_body=req.body,
+        reply_to="nexifyai@nexifyai.de",
+    )
+    
+    await S.db.email_events.insert_one({
+        "recipients": [req.to_email],
+        "subject": req.subject,
+        "body_preview": req.body[:200],
+        "template": req.template,
+        "sent_by": current_user["email"],
+        "sent_at": datetime.now(timezone.utc).isoformat(),
+        "result": result,
+    })
+    
+    await log_audit(current_user["email"], "email_sent", f"E-Mail an {req.to_email}: {req.subject}")
+    return {"status": "ok", "result": result}
+
+
+@router.post("/api/admin/customers/{email}/note")
+async def add_customer_note(email: str, data: dict, current_user: dict = Depends(get_current_admin)):
+    """Notiz zur Kunden-Fallakte hinzufügen."""
+    email_lower = email.lower()
+    note = {
+        "text": data.get("text", ""),
+        "author": current_user["email"],
+        "category": data.get("category", "allgemein"),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    
+    # Check if contact exists and if notes field needs migration from string to array
+    existing = await S.db.contacts.find_one({"email": email_lower})
+    if existing and isinstance(existing.get("notes"), str):
+        # Migrate string notes to array format
+        old_note = existing["notes"]
+        await S.db.contacts.update_one(
+            {"email": email_lower},
+            {"$set": {"notes": [{"text": old_note, "author": "system", "category": "legacy", "created_at": existing.get("created_at", datetime.now(timezone.utc).isoformat())}]}}
+        )
+    
+    await S.db.contacts.update_one(
+        {"email": email_lower},
+        {"$push": {"notes": note}, "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True,
+    )
+    
+    await S.db.timeline_events.insert_one({
+        "event": "note_added",
+        "ref_id": email_lower,
+        "actor": current_user["email"],
+        "detail": note["text"][:100],
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+    
+    return {"status": "ok", "note": note}

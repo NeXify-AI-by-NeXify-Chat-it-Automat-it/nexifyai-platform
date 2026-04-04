@@ -67,8 +67,6 @@ S.ACCESS_TOKEN_EXPIRE_MINUTES = 60
 S.NOTIFICATION_EMAILS = []
 S.EMERGENT_LLM_KEY = ""
 S.ADMIN_EMAIL = ""
-S.STRIPE_API_KEY = ""
-S.STRIPE_WEBHOOK_SECRET = ""
 S.ADVISOR_SYSTEM_PROMPT = ""
 
 
@@ -82,8 +80,6 @@ def init_config():
     S.NOTIFICATION_EMAILS = ["support@nexify-automate.com", "nexifyai@nexifyai.de"]
     S.EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
     S.ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "p.courbois@icloud.com")
-    S.STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY", "")
-    S.STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 
 
 # ══════════════════════════════════════════════════════════════

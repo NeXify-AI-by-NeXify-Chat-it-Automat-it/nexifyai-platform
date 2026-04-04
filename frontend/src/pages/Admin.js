@@ -282,8 +282,34 @@ const Admin = () => {
 
   /* ── Load customer detail ── */
   const loadCustomerDetail = async (email) => {
-    const d = await apiFetch(`/api/admin/customers/${encodeURIComponent(email)}`);
-    if (d) setCustDetail({ email, ...d });
+    const d = await apiFetch(`/api/admin/customers/${encodeURIComponent(email)}/casefile`);
+    if (d) setCustDetail(d);
+  };
+
+  const [caseTab, setCaseTab] = useState('uebersicht');
+  const [emailForm, setEmailForm] = useState({ subject: '', body: '' });
+  const [noteText, setNoteText] = useState('');
+
+  const sendDirectEmail = async () => {
+    if (!custDetail || !emailForm.subject.trim()) return;
+    const r = await apiFetch('/api/admin/email/send', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to_email: custDetail.email, subject: emailForm.subject, body: emailForm.body }),
+    });
+    if (r?.status === 'ok') {
+      setEmailForm({ subject: '', body: '' });
+      loadCustomerDetail(custDetail.email);
+    }
+  };
+
+  const addCaseNote = async () => {
+    if (!custDetail || !noteText.trim()) return;
+    await apiFetch(`/api/admin/customers/${encodeURIComponent(custDetail.email)}/note`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: noteText }),
+    });
+    setNoteText('');
+    loadCustomerDetail(custDetail.email);
   };
 
   /* ── Load chat detail ── */
@@ -836,7 +862,20 @@ const Admin = () => {
     const d = await apiFetch('/api/admin/customers/portal-access', { method: 'POST', body: JSON.stringify({ email }) });
     if (d?.portal_url) { navigator.clipboard?.writeText(d.portal_url); alert(`Portalzugang erstellt und kopiert:\n${d.portal_url}`); }
   };
-  const CustomersView = () => (
+  const CustomersView = () => {
+    const CASE_TABS = [
+      { id: 'uebersicht', icon: 'dashboard', label: 'Übersicht' },
+      { id: 'anfragen', icon: 'mail', label: 'Anfragen' },
+      { id: 'angebote', icon: 'request_quote', label: 'Angebote' },
+      { id: 'rechnungen', icon: 'receipt_long', label: 'Rechnungen' },
+      { id: 'vertraege', icon: 'description', label: 'Verträge' },
+      { id: 'email', icon: 'forward_to_inbox', label: 'E-Mail' },
+      { id: 'notizen', icon: 'edit_note', label: 'Notizen' },
+      { id: 'timeline', icon: 'timeline', label: 'Aktivität' },
+    ];
+    const cf = custDetail;
+    const con = cf?.contact || {};
+    return (
     <div className="adm-customers" data-testid="admin-customers">
       <div className="adm-leads-header">
         <h2>Kunden ({customers.length})</h2>
@@ -867,14 +906,14 @@ const Admin = () => {
           <thead><tr><th>Name</th><th>E-Mail</th><th>Unternehmen</th><th>Anfragen</th><th>Buchungen</th><th>Erster Kontakt</th><th>Aktionen</th></tr></thead>
           <tbody>
             {customers.map((c, i) => (
-              <tr key={i} className={custDetail?.email === c.email ? 'active' : ''} onClick={() => loadCustomerDetail(c.email)} data-testid={`customer-row-${i}`}>
+              <tr key={i} className={cf?.email === c.email ? 'active' : ''} onClick={() => { loadCustomerDetail(c.email); setCaseTab('uebersicht'); }} data-testid={`customer-row-${i}`}>
                 <td>{c.vorname} {c.nachname}</td><td>{c.email}</td><td>{c.unternehmen || '-'}</td>
                 <td><span className="adm-badge">{c.total_leads}</span></td>
                 <td><span className="adm-badge">{c.total_bookings}</span></td>
                 <td>{fmtDate(c.first_contact)}</td>
                 <td onClick={e => e.stopPropagation()} style={{display:'flex',gap:'4px'}}>
                   <button className="adm-btn-sm" onClick={() => setEditCustomer({email:c.email, vorname:c.vorname||'', nachname:c.nachname||'', unternehmen:c.unternehmen||'', telefon:c.telefon||'', branche:c.branche||''})} title="Bearbeiten" data-testid={`edit-customer-${i}`}><I n="edit" /></button>
-                  <button className="adm-btn-sm" style={{color:'#ff9b7a'}} onClick={() => generatePortalAccess(c.email)} title="Portalzugang" data-testid={`portal-btn-${i}`}><I n="link" /></button>
+                  <button className="adm-btn-sm" style={{color:'var(--nx-accent)'}} onClick={() => generatePortalAccess(c.email)} title="Portalzugang" data-testid={`portal-btn-${i}`}><I n="link" /></button>
                 </td>
               </tr>
             ))}
@@ -883,40 +922,222 @@ const Admin = () => {
       </div>
       {customers.length === 0 && <div className="adm-empty">Keine Kunden gefunden</div>}
 
-      {/* Customer Detail */}
-      {custDetail && (
-        <div className="adm-cust-detail" data-testid="customer-detail">
-          <div className="adm-detail-header">
-            <h3>{custDetail.email}</h3>
-            <div style={{display:'flex',gap:8}}>
-              <button className="adm-btn-sm" onClick={() => setEditCustomer({email:custDetail.email, vorname:'', nachname:'', unternehmen:'', telefon:'', branche:''})} title="Bearbeiten" data-testid="edit-customer-detail-btn"><I n="edit" /></button>
-              <button className="adm-btn-sm" style={{color:'#ff9b7a'}} onClick={() => generatePortalAccess(custDetail.email)} data-testid="portal-access-btn" title="Portalzugang erstellen"><I n="link" /> Portal</button>
-              <button className="adm-btn-icon" onClick={() => setCustDetail(null)}><I n="close" /></button>
+      {/* ══════════ KUNDEN-FALLAKTE ══════════ */}
+      {cf && (
+        <div className="adm-cust-detail" data-testid="customer-casefile" style={{marginTop:20}}>
+          {/* Header */}
+          <div className="adm-detail-header" style={{flexWrap:'wrap',gap:12}}>
+            <div style={{flex:1,minWidth:200}}>
+              <h3 style={{margin:0}}>{con.vorname || ''} {con.nachname || ''} {!con.vorname && cf.email}</h3>
+              <div style={{display:'flex',gap:16,marginTop:6,flexWrap:'wrap',fontSize:'.8125rem',color:'var(--nx-dim)'}}>
+                <span style={{display:'flex',alignItems:'center',gap:4}}><I n="mail" />{cf.email}</span>
+                {con.telefon && <span style={{display:'flex',alignItems:'center',gap:4}}><I n="phone" />{con.telefon}</span>}
+                {con.unternehmen && <span style={{display:'flex',alignItems:'center',gap:4}}><I n="business" />{con.unternehmen}</span>}
+              </div>
+            </div>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+              <button className="adm-btn-sm" onClick={() => setEditCustomer({email:cf.email, vorname:con.vorname||'', nachname:con.nachname||'', unternehmen:con.unternehmen||'', telefon:con.telefon||'', branche:con.branche||''})} data-testid="casefile-edit-btn"><I n="edit" /> Bearbeiten</button>
+              <button className="adm-btn-sm" style={{color:'var(--nx-accent)'}} onClick={() => generatePortalAccess(cf.email)} data-testid="casefile-portal-btn"><I n="link" /> Portalzugang</button>
+              <button className="adm-btn-icon" onClick={() => setCustDetail(null)} data-testid="casefile-close-btn"><I n="close" /></button>
             </div>
           </div>
-          <div className="adm-cust-tabs">
-            <div className="adm-cust-tab-content">
-              <h4><I n="mail" /> Anfragen ({custDetail.leads?.length || 0})</h4>
-              {custDetail.leads?.map((l, i) => (
-                <div key={i} className="adm-cust-item">
-                  <span className="adm-badge" style={{ background: STATUS_MAP[l.status]?.color + '22', color: STATUS_MAP[l.status]?.color }}>{STATUS_MAP[l.status]?.label || l.status}</span>
-                  <span>{l.source} — {fmtTime(l.created_at)}</span>
-                  {l.nachricht && <p className="adm-muted">{l.nachricht}</p>}
+
+          {/* Stat-Leiste */}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(100px,1fr))',gap:8,margin:'16px 0'}}>
+            {[
+              { icon: 'mail', label: 'Anfragen', val: cf.stats?.total_leads },
+              { icon: 'calendar_month', label: 'Buchungen', val: cf.stats?.total_bookings },
+              { icon: 'request_quote', label: 'Angebote', val: cf.stats?.total_quotes },
+              { icon: 'receipt_long', label: 'Rechnungen', val: cf.stats?.total_invoices },
+              { icon: 'description', label: 'Verträge', val: cf.stats?.total_contracts },
+              { icon: 'forward_to_inbox', label: 'E-Mails', val: cf.stats?.total_emails },
+            ].map((s, i) => (
+              <div key={i} style={{textAlign:'center',padding:'10px 8px',background:'rgba(255,255,255,0.02)',border:'1px solid var(--nx-border)',borderRadius:'var(--r-sm)'}}>
+                <I n={s.icon} style={{fontSize:'1rem',color:'var(--nx-accent)'}} />
+                <div style={{fontSize:'1.25rem',fontWeight:800,color:'#fff'}}>{s.val || 0}</div>
+                <div style={{fontSize:'.625rem',color:'var(--nx-dim)',textTransform:'uppercase',letterSpacing:'.04em'}}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Tab-Navigation */}
+          <div style={{display:'flex',gap:2,borderBottom:'1px solid var(--nx-border)',marginBottom:16,overflowX:'auto'}}>
+            {CASE_TABS.map(t => (
+              <button key={t.id} onClick={() => setCaseTab(t.id)} data-testid={`case-tab-${t.id}`}
+                style={{display:'flex',alignItems:'center',gap:6,padding:'10px 14px',background:'transparent',border:'none',borderBottom:caseTab===t.id?'2px solid var(--nx-accent)':'2px solid transparent',color:caseTab===t.id?'var(--nx-accent)':'var(--nx-dim)',fontSize:'.8125rem',fontWeight:caseTab===t.id?600:400,cursor:'pointer',whiteSpace:'nowrap',transition:'color 200ms,border-color 200ms'}}>
+                <I n={t.icon} style={{fontSize:'1rem'}} />{t.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Tab Content: Übersicht */}
+          {caseTab === 'uebersicht' && (
+            <div data-testid="case-uebersicht">
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+                <div>
+                  <h4 style={{fontSize:'.8125rem',color:'var(--nx-accent)',marginBottom:8}}><I n="person" /> Kontaktdaten</h4>
+                  <div style={{padding:14,background:'rgba(255,255,255,0.02)',border:'1px solid var(--nx-border)',borderRadius:'var(--r-md)',fontSize:'.8125rem'}}>
+                    {[['Vorname',con.vorname],['Nachname',con.nachname],['E-Mail',cf.email],['Telefon',con.telefon],['Unternehmen',con.unternehmen],['Branche',con.branche],['Position',con.position],['Website',con.website]].map(([l,v],i)=> v ? (
+                      <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid rgba(255,255,255,0.03)'}}>
+                        <span style={{color:'var(--nx-dim)'}}>{l}</span><span style={{color:'#fff',fontWeight:500}}>{v}</span>
+                      </div>
+                    ):null)}
+                  </div>
+                </div>
+                <div>
+                  <h4 style={{fontSize:'.8125rem',color:'var(--nx-accent)',marginBottom:8}}><I n="history" /> Letzte Aktivität</h4>
+                  <div style={{padding:14,background:'rgba(255,255,255,0.02)',border:'1px solid var(--nx-border)',borderRadius:'var(--r-md)',fontSize:'.8125rem',maxHeight:240,overflowY:'auto'}}>
+                    {(cf.timeline || []).slice(0, 8).map((t, i) => (
+                      <div key={i} style={{display:'flex',gap:8,padding:'6px 0',borderBottom:'1px solid rgba(255,255,255,0.03)'}}>
+                        <span style={{color:'var(--nx-accent)',fontSize:'.75rem'}}><I n="circle" style={{fontSize:8}} /></span>
+                        <span style={{flex:1,color:'#c8d1dc'}}>{t.event}</span>
+                        <span style={{color:'var(--nx-dim)',fontSize:'.6875rem',whiteSpace:'nowrap'}}>{fmtTime(t.created_at)}</span>
+                      </div>
+                    ))}
+                    {(!cf.timeline || cf.timeline.length === 0) && <span style={{color:'var(--nx-dim)'}}>Keine Aktivität vorhanden</span>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tab Content: Anfragen */}
+          {caseTab === 'anfragen' && (
+            <div data-testid="case-anfragen">
+              {(cf.leads || []).map((l, i) => (
+                <div key={i} style={{padding:14,background:'rgba(255,255,255,0.02)',border:'1px solid var(--nx-border)',borderRadius:'var(--r-md)',marginBottom:8}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+                    <span className="adm-badge" style={{background:(STATUS_MAP[l.status]?.color||'#6b7b8d')+'22',color:STATUS_MAP[l.status]?.color||'#6b7b8d'}}>{STATUS_MAP[l.status]?.label || l.status}</span>
+                    <span style={{fontSize:'.6875rem',color:'var(--nx-dim)'}}>{fmtTime(l.created_at)}</span>
+                  </div>
+                  <div style={{fontSize:'.8125rem',color:'#c8d1dc'}}>{l.source && <span style={{fontWeight:600}}>Quelle: {l.source}</span>}</div>
+                  {l.nachricht && <p style={{color:'var(--nx-dim)',fontSize:'.8125rem',marginTop:6,fontStyle:'italic'}}>"{l.nachricht}"</p>}
+                  {l.notes?.length > 0 && <div style={{marginTop:8,paddingTop:8,borderTop:'1px solid rgba(255,255,255,0.03)'}}>
+                    {l.notes.map((n, ni) => <div key={ni} style={{fontSize:'.75rem',color:'var(--nx-dim)',padding:'4px 0',borderLeft:'2px solid rgba(255,155,122,0.15)',paddingLeft:8,marginBottom:4}}>{n.text} <span style={{opacity:.5}}>— {fmtTime(n.date)}</span></div>)}
+                  </div>}
                 </div>
               ))}
-              <h4 style={{ marginTop: 20 }}><I n="calendar_month" /> Buchungen ({custDetail.bookings?.length || 0})</h4>
-              {custDetail.bookings?.map((b, i) => {
-                const st = BOOKING_STATUS[b.status] || BOOKING_STATUS.pending;
-                return (
-                  <div key={i} className="adm-cust-item">
-                    <span className="adm-badge" style={{ background: st.color + '22', color: st.color }}>{st.label}</span>
-                    <span>{fmtDate(b.date)} um {b.time}</span>
-                    {b.thema && <p className="adm-muted">{b.thema}</p>}
-                  </div>
-                );
-              })}
+              {(!cf.leads || cf.leads.length === 0) && <div className="adm-empty">Keine Anfragen</div>}
             </div>
-          </div>
+          )}
+
+          {/* Tab Content: Angebote */}
+          {caseTab === 'angebote' && (
+            <div data-testid="case-angebote">
+              {(cf.quotes || []).map((q, i) => (
+                <div key={i} style={{padding:14,background:'rgba(255,255,255,0.02)',border:'1px solid var(--nx-border)',borderRadius:'var(--r-md)',marginBottom:8}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+                    <span style={{fontWeight:700,color:'#fff'}}>{q.quote_number}</span>
+                    <span className="adm-badge" style={{background:q.status==='accepted'?'rgba(52,211,153,0.15)':'rgba(255,155,122,0.15)',color:q.status==='accepted'?'#34d399':'var(--nx-accent)'}}>{q.status}</span>
+                  </div>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,fontSize:'.8125rem'}}>
+                    <div><span style={{color:'var(--nx-dim)',fontSize:'.6875rem',display:'block'}}>Tarif</span><span style={{color:'#fff'}}>{q.calculation?.tier_name || '-'}</span></div>
+                    <div><span style={{color:'var(--nx-dim)',fontSize:'.6875rem',display:'block'}}>Gesamtwert</span><span style={{color:'var(--nx-accent)',fontWeight:700}}>{q.calculation?.total_contract_eur?.toLocaleString('de-DE')} EUR</span></div>
+                    <div><span style={{color:'var(--nx-dim)',fontSize:'.6875rem',display:'block'}}>Erstellt</span><span style={{color:'#c8d1dc'}}>{fmtDate(q.created_at)}</span></div>
+                  </div>
+                </div>
+              ))}
+              {(!cf.quotes || cf.quotes.length === 0) && <div className="adm-empty">Keine Angebote</div>}
+            </div>
+          )}
+
+          {/* Tab Content: Rechnungen */}
+          {caseTab === 'rechnungen' && (
+            <div data-testid="case-rechnungen">
+              {(cf.invoices || []).map((inv, i) => (
+                <div key={i} style={{padding:14,background:'rgba(255,255,255,0.02)',border:'1px solid var(--nx-border)',borderRadius:'var(--r-md)',marginBottom:8,borderColor:inv.payment_status==='overdue'?'rgba(248,113,113,0.25)':'var(--nx-border)'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+                    <span style={{fontWeight:700,color:'#fff'}}>{inv.invoice_number}</span>
+                    <span className="adm-badge" style={{background:inv.payment_status==='paid'?'rgba(52,211,153,0.15)':inv.payment_status==='overdue'?'rgba(248,113,113,0.15)':'rgba(251,191,36,0.15)',color:inv.payment_status==='paid'?'#34d399':inv.payment_status==='overdue'?'#f87171':'#fbbf24'}}>{inv.payment_status==='paid'?'Bezahlt':inv.payment_status==='overdue'?'Überfällig':'Offen'}</span>
+                  </div>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,fontSize:'.8125rem'}}>
+                    <div><span style={{color:'var(--nx-dim)',fontSize:'.6875rem',display:'block'}}>Betrag</span><span style={{color:'var(--nx-accent)',fontWeight:700}}>{inv.total_eur?.toLocaleString('de-DE')} EUR</span></div>
+                    <div><span style={{color:'var(--nx-dim)',fontSize:'.6875rem',display:'block'}}>Fällig</span><span style={{color:'#c8d1dc'}}>{fmtDate(inv.due_date)}</span></div>
+                    <div><span style={{color:'var(--nx-dim)',fontSize:'.6875rem',display:'block'}}>Erstellt</span><span style={{color:'#c8d1dc'}}>{fmtDate(inv.created_at)}</span></div>
+                  </div>
+                </div>
+              ))}
+              {(!cf.invoices || cf.invoices.length === 0) && <div className="adm-empty">Keine Rechnungen</div>}
+            </div>
+          )}
+
+          {/* Tab Content: Verträge */}
+          {caseTab === 'vertraege' && (
+            <div data-testid="case-vertraege">
+              {(cf.contracts || []).map((c, i) => (
+                <div key={i} style={{padding:14,background:'rgba(255,255,255,0.02)',border:'1px solid var(--nx-border)',borderRadius:'var(--r-md)',marginBottom:8}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+                    <span style={{fontWeight:700,color:'#fff'}}>{c.contract_number || `Vertrag ${i+1}`}</span>
+                    <span className="adm-badge" style={{background:c.status==='signed'?'rgba(52,211,153,0.15)':'rgba(255,155,122,0.15)',color:c.status==='signed'?'#34d399':'var(--nx-accent)'}}>{c.status}</span>
+                  </div>
+                  <div style={{fontSize:'.8125rem',color:'#c8d1dc'}}>Erstellt: {fmtDate(c.created_at)}</div>
+                </div>
+              ))}
+              {(!cf.contracts || cf.contracts.length === 0) && <div className="adm-empty">Keine Verträge</div>}
+            </div>
+          )}
+
+          {/* Tab Content: E-Mail */}
+          {caseTab === 'email' && (
+            <div data-testid="case-email">
+              <div style={{padding:16,background:'rgba(255,255,255,0.02)',border:'1px solid var(--nx-border)',borderRadius:'var(--r-md)',marginBottom:16}}>
+                <h4 style={{fontSize:'.8125rem',color:'var(--nx-accent)',marginBottom:12}}><I n="send" /> Direkt-E-Mail senden</h4>
+                <div className="adm-field"><label>Empfänger</label><input value={cf.email} disabled style={{opacity:.6}} /></div>
+                <div className="adm-field"><label>Betreff</label><input value={emailForm.subject} onChange={e => setEmailForm({...emailForm, subject: e.target.value})} placeholder="Betreff eingeben..." data-testid="case-email-subject" /></div>
+                <div className="adm-field"><label>Nachricht</label><textarea value={emailForm.body} onChange={e => setEmailForm({...emailForm, body: e.target.value})} placeholder="Ihre Nachricht..." rows={5} style={{resize:'vertical',width:'100%',background:'var(--nx-s1)',border:'1px solid var(--nx-border)',color:'#fff',padding:'10px 14px',fontSize:'.875rem',borderRadius:'var(--r-sm)'}} data-testid="case-email-body" /></div>
+                <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'10px 24px',marginTop:8}} onClick={sendDirectEmail} disabled={!emailForm.subject.trim()} data-testid="case-email-send-btn"><I n="send" /> E-Mail senden</button>
+              </div>
+              <h4 style={{fontSize:'.8125rem',color:'var(--nx-dim)',marginBottom:8}}>Gesendete E-Mails ({cf.emails_sent?.length || 0})</h4>
+              {(cf.emails_sent || []).map((e, i) => (
+                <div key={i} style={{padding:12,background:'rgba(255,255,255,0.02)',border:'1px solid var(--nx-border)',borderRadius:'var(--r-sm)',marginBottom:6}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                    <span style={{fontWeight:600,color:'#fff',fontSize:'.8125rem'}}>{e.subject}</span>
+                    <span style={{color:'var(--nx-dim)',fontSize:'.6875rem'}}>{fmtTime(e.sent_at)}</span>
+                  </div>
+                  {e.body_preview && <p style={{color:'var(--nx-dim)',fontSize:'.75rem',marginTop:4}}>{e.body_preview}</p>}
+                  <span style={{fontSize:'.625rem',color:e.result?.sent?'#34d399':'#f87171'}}>{e.result?.sent?'Gesendet':'Fehlgeschlagen'}</span>
+                </div>
+              ))}
+              {(!cf.emails_sent || cf.emails_sent.length === 0) && <div className="adm-empty" style={{padding:20}}>Noch keine E-Mails gesendet</div>}
+            </div>
+          )}
+
+          {/* Tab Content: Notizen */}
+          {caseTab === 'notizen' && (
+            <div data-testid="case-notizen">
+              <div style={{display:'flex',gap:8,marginBottom:16}}>
+                <input value={noteText} onChange={e => setNoteText(e.target.value)} placeholder="Notiz hinzufügen..." style={{flex:1,background:'var(--nx-s1)',border:'1px solid var(--nx-border)',color:'#fff',padding:'10px 14px',fontSize:'.875rem',borderRadius:'var(--r-sm)'}} data-testid="case-note-input" onKeyDown={e => e.key==='Enter' && addCaseNote()} />
+                <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'10px 20px'}} onClick={addCaseNote} disabled={!noteText.trim()} data-testid="case-note-add-btn"><I n="add" /> Hinzufügen</button>
+              </div>
+              {(con.notes || []).slice().reverse().map((n, i) => (
+                <div key={i} style={{padding:12,background:'rgba(255,255,255,0.02)',border:'1px solid var(--nx-border)',borderRadius:'var(--r-sm)',marginBottom:6,borderLeft:'3px solid rgba(255,155,122,0.2)'}}>
+                  <div style={{fontSize:'.8125rem',color:'#c8d1dc'}}>{n.text}</div>
+                  <div style={{fontSize:'.6875rem',color:'var(--nx-dim)',marginTop:4}}>{n.author} — {fmtTime(n.created_at || n.date)}</div>
+                </div>
+              ))}
+              {(!con.notes || con.notes.length === 0) && <div className="adm-empty" style={{padding:20}}>Keine Notizen vorhanden</div>}
+            </div>
+          )}
+
+          {/* Tab Content: Timeline */}
+          {caseTab === 'timeline' && (
+            <div data-testid="case-timeline">
+              <div className="adm-timeline-list">
+                {(cf.timeline || []).map((t, i) => (
+                  <div key={i} className="adm-timeline-item">
+                    <div className="adm-timeline-icon"><I n="circle" /></div>
+                    <div className="adm-timeline-content">
+                      <span className="adm-timeline-event">{t.event}</span>
+                      {t.detail && <span className="adm-timeline-ref">{t.detail}</span>}
+                      {t.actor && <span className="adm-timeline-actor">{t.actor}</span>}
+                    </div>
+                    <span className="adm-timeline-time">{fmtTime(t.created_at)}</span>
+                  </div>
+                ))}
+                {(!cf.timeline || cf.timeline.length === 0) && <div className="adm-empty">Keine Aktivität</div>}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -940,7 +1161,8 @@ const Admin = () => {
         </div>
       )}
     </div>
-  );
+    );
+  };
 
   /* ══════════ COMMERCIAL VIEW ══════════ */
   const createQuote = async (e) => {
@@ -2131,7 +2353,6 @@ const Admin = () => {
             {sys.llm?.metrics && <span>Calls: {sys.llm.metrics.calls} | Errors: {sys.llm.metrics.errors}</span>}
           </Card>
           <Card icon="payment" title="Revolut" status={sys.payments?.revolut?.status}><span>API-Key: {sys.payments?.revolut?.api_key_set ? 'Gesetzt' : 'Fehlt'}</span></Card>
-          <Card icon="credit_card" title="Stripe" status={sys.payments?.stripe?.status}><span>API-Key: {sys.payments?.stripe?.api_key_set ? 'Gesetzt' : 'Fehlt'}</span></Card>
           <Card icon="webhook" title="Webhooks" status="ok">
             <span>Events gesamt: {sys.webhooks?.total_events}</span>
           </Card>
@@ -2163,7 +2384,7 @@ const Admin = () => {
               { label: 'LLM Fallback', status: sys.llm?.active_provider === 'deepseek' ? 'DeepSeek primär' : 'Fallback aktiv (Emergent GPT)', ok: sys.llm?.active_provider === 'deepseek', action: sys.llm?.active_provider !== 'deepseek' ? 'DEEPSEEK_API_KEY setzen für Zielarchitektur' : null },
               { label: 'Dead Letter Queue', status: sys.dead_letter_queue?.count === 0 ? 'Leer — kein Handlungsbedarf' : `${sys.dead_letter_queue?.count} Jobs wartend`, ok: sys.dead_letter_queue?.count === 0, action: sys.dead_letter_queue?.count > 0 ? 'Dead-letter-Jobs in Admin prüfen und ggf. neu einreihen' : null },
               { label: 'E-Mail Delivery', status: sys.email?.api_key_set ? `${sys.email?.total_failed} Fehler von ${sys.email?.total_sent + sys.email?.total_failed} gesamt` : 'Nicht konfiguriert', ok: sys.email?.api_key_set && sys.email?.total_failed === 0, action: sys.email?.total_failed > 0 ? 'Fehlgeschlagene E-Mails in Email-Stats prüfen' : null },
-              { label: 'Payment Provider', status: sys.payments?.stripe?.api_key_set && sys.payments?.revolut?.api_key_set ? 'Stripe + Revolut aktiv' : sys.payments?.stripe?.api_key_set ? 'Stripe aktiv' : sys.payments?.revolut?.api_key_set ? 'Revolut aktiv' : 'Kein Provider', ok: sys.payments?.stripe?.api_key_set || sys.payments?.revolut?.api_key_set },
+              { label: 'Payment Provider', status: sys.payments?.revolut?.api_key_set ? 'Revolut aktiv' : 'Kein Provider', ok: sys.payments?.revolut?.api_key_set },
               { label: 'Object Storage', status: sys.object_storage?.initialized ? 'Initialisiert' : 'Nicht initialisiert — MongoDB-Fallback aktiv', ok: sys.object_storage?.initialized, action: !sys.object_storage?.initialized ? 'Wird bei nächster PDF-Generierung automatisch initialisiert' : null },
             ].map((item, idx) => (
               <div key={idx} className="adm-wa-card" style={{padding:'12px 16px'}}>
