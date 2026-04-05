@@ -1824,6 +1824,9 @@ const Admin = () => {
   const [nxProactive, setNxProactive] = useState(null);
   const [leitstelle, setLeitstelle] = useState(null);
   const [serviceTemplates, setServiceTemplates] = useState([]);
+  const [intelStatus, setIntelStatus] = useState(null);
+  const [crawlResult, setCrawlResult] = useState(null);
+  const [crawlUrl, setCrawlUrl] = useState('');
 
   const loadNxAgents = useCallback(async () => {
     const d = await apiFetch('/api/admin/nexify-ai/agents');
@@ -1859,6 +1862,33 @@ const Admin = () => {
   useEffect(() => {
     if (token && view === 'templates') loadServiceTemplates();
   }, [token, view, loadServiceTemplates]);
+
+  const loadIntelStatus = useCallback(async () => {
+    const d = await apiFetch('/api/admin/intelligence/status');
+    if (d) setIntelStatus(d);
+  }, [apiFetch]);
+
+  useEffect(() => {
+    if (token && view === 'intelligence') loadIntelStatus();
+  }, [token, view, loadIntelStatus]);
+
+  const handleCrawl = useCallback(async () => {
+    if (!crawlUrl) return;
+    setCrawlResult({loading: true});
+    const d = await apiFetch('/api/admin/intelligence/crawl', {
+      method: 'POST', body: JSON.stringify({url: crawlUrl, extract_mode: 'markdown'}),
+    });
+    setCrawlResult(d);
+  }, [apiFetch, crawlUrl]);
+
+  const handleResearchCompany = useCallback(async () => {
+    if (!crawlUrl) return;
+    setCrawlResult({loading: true});
+    const d = await apiFetch('/api/admin/intelligence/research-company', {
+      method: 'POST', body: JSON.stringify({url: crawlUrl}),
+    });
+    setCrawlResult(d);
+  }, [apiFetch, crawlUrl]);
 
   const toggleProactive = async (enabled) => {
     await apiFetch('/api/admin/nexify-ai/proactive', {
@@ -3527,6 +3557,7 @@ curl ${API}/api/v1/docs`}
           ) : (
             <div style={{display:'flex',flexDirection:'column',gap:4}}>
               {[
+                {n:'DeepSeek',ok:nxStatus.deepseek?.connected,cfg:nxStatus.deepseek?.configured},
                 {n:'Arcee AI',ok:nxStatus.arcee?.connected,cfg:nxStatus.arcee?.configured},
                 {n:'mem0 Brain',ok:nxStatus.mem0?.connected,cfg:nxStatus.mem0?.configured},
                 {n:'Supabase',ok:true,cfg:true},
@@ -3541,6 +3572,81 @@ curl ${API}/api/v1/docs`}
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+
+  const IntelligenceView = () => (
+    <div data-testid="intelligence-view">
+      <div className="adm-section-header">
+        <h2>Intelligence Center</h2>
+        <span style={{fontSize:'.8125rem',color:'#8a9bb0'}}>Crawl4AI + Nutrient AI</span>
+      </div>
+
+      {/* Service-Status */}
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:20}}>
+        <div className="adm-form-card" style={{borderLeft:'3px solid #10b981'}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+            <I n="travel_explore" />
+            <h3 style={{margin:0,fontSize:'.9375rem',color:'#fff'}}>Crawl4AI</h3>
+            <span style={{marginLeft:'auto',padding:'2px 8px',borderRadius:10,fontSize:'.625rem',fontWeight:600,background:intelStatus?.crawl4ai?.installed ? 'rgba(16,185,129,.15)' : 'rgba(239,68,68,.15)',color:intelStatus?.crawl4ai?.installed ? '#10b981' : '#ef4444'}}>{intelStatus?.crawl4ai?.installed ? 'Aktiv' : 'Nicht installiert'}</span>
+          </div>
+          <p style={{margin:0,fontSize:'.75rem',color:'#8a9bb0',lineHeight:1.5}}>Web-Crawling, Lead-Recherche, Wettbewerbsmonitoring. LLM-fertiges Markdown, strukturierte JSON-Extraktion.</p>
+          <div style={{marginTop:8,fontSize:'.6875rem',color:'#6b7b8d'}}>{intelStatus?.stats?.research_results || 0} Recherche-Ergebnisse | {intelStatus?.stats?.competitor_monitors || 0} Monitors</div>
+        </div>
+        <div className="adm-form-card" style={{borderLeft:'3px solid #8b5cf6'}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+            <I n="description" />
+            <h3 style={{margin:0,fontSize:'.9375rem',color:'#fff'}}>Nutrient AI</h3>
+            <span style={{marginLeft:'auto',padding:'2px 8px',borderRadius:10,fontSize:'.625rem',fontWeight:600,background:intelStatus?.nutrient?.configured ? 'rgba(16,185,129,.15)' : 'rgba(245,158,11,.15)',color:intelStatus?.nutrient?.configured ? '#10b981' : '#f59e0b'}}>{intelStatus?.nutrient?.configured ? 'Aktiv' : 'Key fehlt'}</span>
+          </div>
+          <p style={{margin:0,fontSize:'.75rem',color:'#8a9bb0',lineHeight:1.5}}>PDF-Analyse, Datenextraktion, Vertrags-Risikoscoring, Dokumenten-Chat, PII-Redaktion.</p>
+          {!intelStatus?.nutrient?.configured && <div style={{marginTop:8,fontSize:'.6875rem',color:'#f59e0b'}}>NUTRIENT_API_KEY in .env konfigurieren (nutrient.io/sdk/try)</div>}
+        </div>
+      </div>
+
+      {/* Crawl-Interface */}
+      <div className="adm-form-card" style={{marginBottom:20}}>
+        <h3 style={{margin:'0 0 12px',fontSize:'.9375rem',color:'#fff'}}>Web-Crawler</h3>
+        <div style={{display:'flex',gap:8,marginBottom:12}}>
+          <input
+            data-testid="crawl-url-input"
+            type="url"
+            value={crawlUrl}
+            onChange={e => setCrawlUrl(e.target.value)}
+            placeholder="https://example.com"
+            style={{flex:1,padding:'8px 12px',borderRadius:6,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(0,0,0,0.2)',color:'#fff',fontSize:'.8125rem'}}
+          />
+          <button className="adm-btn adm-btn-primary" onClick={handleCrawl} disabled={!crawlUrl || crawlResult?.loading} data-testid="crawl-btn">
+            <I n="search" /> Crawlen
+          </button>
+          <button className="adm-btn" onClick={handleResearchCompany} disabled={!crawlUrl || crawlResult?.loading} data-testid="research-btn" style={{background:'rgba(139,92,246,.15)',color:'#8b5cf6',border:'1px solid rgba(139,92,246,.2)'}}>
+            <I n="business" /> Firma analysieren
+          </button>
+        </div>
+
+        {crawlResult?.loading && <div style={{padding:20,textAlign:'center',color:'#8a9bb0'}}>Crawling...</div>}
+
+        {crawlResult && !crawlResult.loading && (
+          <div style={{padding:12,borderRadius:6,background:'rgba(0,0,0,0.2)',border:'1px solid rgba(255,255,255,0.04)'}}>
+            <div style={{display:'flex',gap:12,marginBottom:8,fontSize:'.75rem'}}>
+              <span style={{color:crawlResult.success ? '#10b981' : '#ef4444',fontWeight:600}}>{crawlResult.success ? 'Erfolgreich' : 'Fehlgeschlagen'}</span>
+              {crawlResult.title && <span style={{color:'#c8d1dc'}}>{crawlResult.title}</span>}
+              {crawlResult.content_length > 0 && <span style={{color:'#6b7b8d'}}>{crawlResult.content_length} Zeichen</span>}
+            </div>
+            {crawlResult.error && <div style={{color:'#ef4444',fontSize:'.75rem'}}>{crawlResult.error}</div>}
+            {crawlResult.content && (
+              <pre style={{margin:0,padding:8,borderRadius:4,background:'rgba(0,0,0,0.3)',color:'#8a9bb0',fontSize:'.6875rem',lineHeight:1.5,maxHeight:300,overflow:'auto',whiteSpace:'pre-wrap',wordBreak:'break-word'}}>{crawlResult.content.substring(0, 3000)}</pre>
+            )}
+            {crawlResult.company && (
+              <div style={{fontSize:'.75rem',color:'#c8d1dc',lineHeight:1.6}}>
+                <strong>Firma:</strong> {crawlResult.company.title}<br/>
+                <strong>Beschreibung:</strong> {crawlResult.company.description}<br/>
+                {crawlResult.company.content_preview && <pre style={{margin:'8px 0',padding:8,borderRadius:4,background:'rgba(0,0,0,0.3)',color:'#8a9bb0',fontSize:'.625rem',maxHeight:200,overflow:'auto',whiteSpace:'pre-wrap'}}>{crawlResult.company.content_preview.substring(0, 2000)}</pre>}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -3609,6 +3715,7 @@ curl ${API}/api/v1/docs`}
     { id: 'nexify_ai', icon: 'psychology', label: 'NeXify AI' },
     { id: 'oracle', icon: 'hub', label: 'Oracle System' },
     { id: 'templates', icon: 'inventory_2', label: 'Boilerplates' },
+    { id: 'intelligence', icon: 'travel_explore', label: 'Intelligence' },
     { id: 'dashboard', icon: 'dashboard', label: 'Dashboard' },
     { id: 'projects', icon: 'folder_special', label: 'Projekte' },
     { id: 'contracts', icon: 'gavel', label: 'Verträge' },
@@ -3658,6 +3765,7 @@ curl ${API}/api/v1/docs`}
           {view === 'nexify_ai' && <NeXifyAIView />}
           {view === 'oracle' && <OracleView token={token} />}
           {view === 'templates' && <ServiceTemplatesView />}
+          {view === 'intelligence' && <IntelligenceView />}
           {view === 'dashboard' && <DashboardView />}
           {view === 'projects' && <ProjectsView />}
           {view === 'contracts' && <ContractsView />}

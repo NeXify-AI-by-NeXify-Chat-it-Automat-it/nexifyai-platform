@@ -467,6 +467,7 @@ from routes.api_v1_routes import router as api_v1_router
 from routes.nexify_ai_routes import router as nexify_ai_router
 from routes.oracle_routes import router as oracle_router
 from routes.template_routes import router as template_router
+from routes.intelligence_routes import router as intelligence_router
 
 app.include_router(auth_router)
 app.include_router(public_router)
@@ -482,3 +483,4 @@ app.include_router(api_v1_router)
 app.include_router(nexify_ai_router)
 app.include_router(oracle_router)
 app.include_router(template_router)
+app.include_router(intelligence_router)

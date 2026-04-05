@@ -1,6 +1,6 @@
 """
 NeXifyAI — NeXify AI Master Chat Routes
-Arcee AI (trinity-large-preview) + mem0 Brain Integration
+DeepSeek (primary) + Arcee AI (fallback) + mem0 Brain Integration
 """
 import os
 import re
@@ -21,14 +21,27 @@ logger = logging.getLogger("nexifyai.nexify_ai")
 
 router = APIRouter(tags=["NeXify AI Master"])
 
+# DeepSeek (PRIMARY)
+DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
+DEEPSEEK_BASE_URL = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
+DEEPSEEK_MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-chat")
+DEEPSEEK_CHAT_URL = f"{DEEPSEEK_BASE_URL}/v1/chat/completions"
+
+# Arcee AI (FALLBACK)
 ARCEE_API_KEY = os.environ.get("ARCEE_API_KEY", "")
 ARCEE_MODEL = os.environ.get("ARCEE_MODEL", "trinity-large-preview")
 ARCEE_API_URL = os.environ.get("ARCEE_API_URL", "https://api.arcee.ai/api/v1/chat/completions")
+
+# mem0
 MEM0_API_KEY = os.environ.get("MEM0_API_KEY", "")
 MEM0_API_URL = os.environ.get("MEM0_API_URL", "https://api.mem0.ai")
 MEM0_USER_ID = os.environ.get("MEM0_USER_ID", "pascal-courbois")
 MEM0_AGENT_ID = os.environ.get("MEM0_AGENT_ID", "nexify-ai-master")
 MEM0_APP_ID = os.environ.get("MEM0_APP_ID", "nexify-automate-core")
+
+# Master LLM Config — DeepSeek primary, Arcee fallback
+MASTER_LLM = "deepseek" if DEEPSEEK_API_KEY else "arcee"
+logger.info(f"Master LLM: {MASTER_LLM.upper()} ({'DeepSeek primary' if DEEPSEEK_API_KEY else 'Arcee fallback'})")
 
 SYSTEM_PROMPT = """SYSTEM PROMPT — NeXify AI (Master)
 
@@ -102,7 +115,19 @@ Die Oracle Engine läuft 24/7. Als Master orchestrierst du:
 | Care | Customer Success | CRM, Support, Kundenbeziehungen, Retention |
 | Rank | SEO/Analytics | SEO, KPIs, Growth, Performance-Analyse |
 
-Alle Sub-Agenten laufen auf DeepSeek (deepseek-chat). Du (Master) läufst auf Arcee AI.
+Alle Sub-Agenten laufen auf DeepSeek (deepseek-chat). Du (Master) läufst auf DeepSeek (deepseek-chat), mit Arcee AI als Fallback.
+
+## Granulares Status-Modell (Zentrale Leitstelle)
+Jeder Task durchläuft diese 13 Status:
+erkannt → eingeplant → gestartet → in_bearbeitung → [wartet_auf_input | wartet_auf_freigabe | in_loop] → erfolgreich_abgeschlossen → erfolgreich_validiert | fehlgeschlagen | blockiert | abgebrochen | eskaliert
+
+WICHTIG: "abgeschlossen" ≠ "validiert". Ein Task ist erst VALIDIERT wenn ein unabhängiger Agent ihn gegengeprüft hat.
+
+## Intelligence-Fähigkeiten
+- **Crawl4AI**: Website-Crawling, Lead-Recherche, Wettbewerbsmonitoring
+  Tools: crawl_url, research_company, monitor_competitor
+- **Nutrient AI**: PDF-Analyse, Vertrags-Risikoscoring, Dokumenten-Chat
+  Tools: analyze_document, contract_risk_score, document_chat
 
 ## Verfügbare Tools
 Antworte mit einem JSON-Block im Format:
@@ -173,7 +198,7 @@ Das System führt das Tool serverseitig aus und gibt dir das Ergebnis automatisc
 - Backend: FastAPI (Port 8001), Python
 - Datenbank: MongoDB (CRM) + Supabase PostgreSQL (Oracle System, Brain, Knowledge, Tasks)
 - Auth: JWT (Admin) + Magic Links (Kunden) + API Keys (extern)
-- LLM Master: Arcee AI (trinity-large-preview) — Du
+- LLM Master: DeepSeek (deepseek-chat) — Du
 - LLM Fachagenten: DeepSeek (deepseek-chat) — Alle Sub-Agenten
 - Memory: mem0 Brain (user: pascal-courbois, agent: nexify-ai-master, app: nexify-automate-core)
 - Oracle: Supabase PostgreSQL — 2.624 Tasks, 10.144 Brain-Notes, 156 Knowledge, 33 AI-Agenten
@@ -432,30 +457,48 @@ async def _run_tool(tool_name: str, params: dict) -> dict:
     return await execute_tool(body, admin_fake)
 
 
-async def _call_arcee_sync(messages: list) -> str:
-    """Make a non-streaming call to Arcee and return the full text."""
-    try:
-        async with httpx.AsyncClient(timeout=90) as client:
-            resp = await client.post(
-                ARCEE_API_URL,
-                headers={"Authorization": f"Bearer {ARCEE_API_KEY}", "Content-Type": "application/json"},
-                json={"model": ARCEE_MODEL, "messages": messages, "stream": False, "temperature": 0.5}
-            )
-            if resp.status_code == 200:
-                data = resp.json()
-                return data.get("choices", [{}])[0].get("message", {}).get("content", "")
-            logger.error(f"Arcee follow-up error {resp.status_code}: {resp.text[:300]}")
-            return ""
-    except Exception as e:
-        logger.error(f"Arcee follow-up exception: {e}")
-        return ""
+async def _call_llm_sync(messages: list) -> str:
+    """Non-streaming LLM call. DeepSeek primary, Arcee fallback."""
+    # PRIMARY: DeepSeek
+    if DEEPSEEK_API_KEY:
+        try:
+            async with httpx.AsyncClient(timeout=90) as client:
+                resp = await client.post(
+                    DEEPSEEK_CHAT_URL,
+                    headers={"Authorization": f"Bearer {DEEPSEEK_API_KEY}", "Content-Type": "application/json"},
+                    json={"model": DEEPSEEK_MODEL, "messages": messages, "stream": False, "temperature": 0.5, "max_tokens": 6000}
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    return data.get("choices", [{}])[0].get("message", {}).get("content", "")
+                logger.warning(f"DeepSeek sync error {resp.status_code}, falling back to Arcee")
+        except Exception as e:
+            logger.warning(f"DeepSeek sync exception: {e}, falling back to Arcee")
+
+    # FALLBACK: Arcee
+    if ARCEE_API_KEY:
+        try:
+            async with httpx.AsyncClient(timeout=90) as client:
+                resp = await client.post(
+                    ARCEE_API_URL,
+                    headers={"Authorization": f"Bearer {ARCEE_API_KEY}", "Content-Type": "application/json"},
+                    json={"model": ARCEE_MODEL, "messages": messages, "stream": False, "temperature": 0.5}
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    return data.get("choices", [{}])[0].get("message", {}).get("content", "")
+                logger.error(f"Arcee fallback error {resp.status_code}: {resp.text[:300]}")
+        except Exception as e:
+            logger.error(f"Arcee fallback exception: {e}")
+
+    return ""
 
 
 @router.post("/api/admin/nexify-ai/chat")
 async def nexify_ai_chat(body: ChatRequest, request: Request, admin: dict = Depends(get_admin_from_token)):
-    """Stream a NeXify AI Master response with server-side tool execution."""
-    if not ARCEE_API_KEY:
-        raise HTTPException(500, "ARCEE_API_KEY nicht konfiguriert")
+    """Stream a NeXify AI Master response. DeepSeek primary, Arcee fallback."""
+    if not DEEPSEEK_API_KEY and not ARCEE_API_KEY:
+        raise HTTPException(500, "Kein LLM-Provider konfiguriert (DEEPSEEK_API_KEY oder ARCEE_API_KEY erforderlich)")
 
     conversation_id = body.conversation_id
     if not conversation_id:
@@ -505,16 +548,24 @@ async def nexify_ai_chat(body: ChatRequest, request: Request, admin: dict = Depe
 
     async def stream_response():
         full_response = ""
+        # Determine LLM endpoint
+        if DEEPSEEK_API_KEY:
+            llm_url = DEEPSEEK_CHAT_URL
+            llm_headers = {"Authorization": f"Bearer {DEEPSEEK_API_KEY}", "Content-Type": "application/json"}
+            llm_body = {"model": DEEPSEEK_MODEL, "messages": llm_messages, "stream": True, "temperature": 0.7, "max_tokens": 6000}
+            llm_name = "DeepSeek"
+        else:
+            llm_url = ARCEE_API_URL
+            llm_headers = {"Authorization": f"Bearer {ARCEE_API_KEY}", "Content-Type": "application/json"}
+            llm_body = {"model": ARCEE_MODEL, "messages": llm_messages, "stream": True, "temperature": 0.7}
+            llm_name = "Arcee"
+
         try:
             async with httpx.AsyncClient(timeout=120) as client:
-                async with client.stream(
-                    "POST", ARCEE_API_URL,
-                    headers={"Content-Type": "application/json", "Authorization": f"Bearer {ARCEE_API_KEY}"},
-                    json={"model": ARCEE_MODEL, "messages": llm_messages, "stream": True, "temperature": 0.7}
-                ) as resp:
+                async with client.stream("POST", llm_url, headers=llm_headers, json=llm_body) as resp:
                     if resp.status_code != 200:
                         error_body = await resp.aread()
-                        yield f"data: {json.dumps({'error': f'Arcee API Fehler ({resp.status_code}): {error_body.decode()[:300]}'})}\n\n"
+                        yield f"data: {json.dumps({'error': f'{llm_name} API Fehler ({resp.status_code}): {error_body.decode()[:300]}'})}\n\n"
                         return
                     async for line in resp.aiter_lines():
                         if not line or not line.startswith("data: "):
@@ -532,7 +583,7 @@ async def nexify_ai_chat(body: ChatRequest, request: Request, admin: dict = Depe
                         except json.JSONDecodeError:
                             continue
         except httpx.ReadTimeout:
-            yield f"data: {json.dumps({'error': 'Zeitüberschreitung bei Arcee API'})}\n\n"
+            yield f"data: {json.dumps({'error': f'Zeitüberschreitung bei {llm_name} API'})}\n\n"
         except Exception as e:
             logger.error(f"Streaming error: {e}")
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
@@ -563,10 +614,8 @@ async def nexify_ai_chat(body: ChatRequest, request: Request, admin: dict = Depe
             follow_text = ""
             try:
                 async with httpx.AsyncClient(timeout=90) as client:
-                    async with client.stream(
-                        "POST", ARCEE_API_URL,
-                        headers={"Content-Type": "application/json", "Authorization": f"Bearer {ARCEE_API_KEY}"},
-                        json={"model": ARCEE_MODEL, "messages": follow_msgs, "stream": True, "temperature": 0.5}
+                    async with client.stream("POST", llm_url, headers=llm_headers,
+                        json={**llm_body, "messages": follow_msgs, "temperature": 0.5, "stream": True}
                     ) as resp2:
                         if resp2.status_code == 200:
                             async for line2 in resp2.aiter_lines():
@@ -650,9 +699,27 @@ async def nexify_ai_status(admin: dict = Depends(get_admin_from_token)):
     msg_count = await S.db.nexify_ai_messages.count_documents({})
     conv_count = await S.db.nexify_ai_conversations.count_documents({})
 
-    # Arcee AI — real connectivity test (parallel with mem0)
-    arcee_status = {"configured": False, "connected": False, "model": ARCEE_MODEL, "url": ARCEE_API_URL, "error": None}
+    # DeepSeek + Arcee AI — real connectivity test (parallel with mem0)
+    deepseek_status = {"configured": False, "connected": False, "model": DEEPSEEK_MODEL, "primary": True, "error": None}
+    arcee_status = {"configured": False, "connected": False, "model": ARCEE_MODEL, "fallback": True, "error": None}
     mem0_status = {"configured": False, "connected": False, "user_id": MEM0_USER_ID, "agent_id": MEM0_AGENT_ID, "error": None}
+
+    async def check_deepseek():
+        if not DEEPSEEK_API_KEY:
+            return
+        deepseek_status["configured"] = True
+        try:
+            async with httpx.AsyncClient(timeout=8) as client:
+                resp = await client.post(
+                    DEEPSEEK_CHAT_URL,
+                    headers={"Authorization": f"Bearer {DEEPSEEK_API_KEY}", "Content-Type": "application/json"},
+                    json={"model": DEEPSEEK_MODEL, "messages": [{"role": "user", "content": "ping"}], "max_tokens": 1, "stream": False}
+                )
+                deepseek_status["connected"] = resp.status_code == 200
+                if resp.status_code != 200:
+                    deepseek_status["error"] = f"HTTP {resp.status_code}"
+        except Exception as e:
+            deepseek_status["error"] = str(e)[:80]
 
     async def check_arcee():
         if not ARCEE_API_KEY:
@@ -688,7 +755,7 @@ async def nexify_ai_status(admin: dict = Depends(get_admin_from_token)):
         except Exception as e:
             mem0_status["error"] = str(e)[:80]
 
-    await asyncio.gather(check_arcee(), check_mem0())
+    await asyncio.gather(check_deepseek(), check_arcee(), check_mem0())
 
     # WhatsApp session status
     wa_session = await S.db.whatsapp_sessions.find_one({}, {"_id": 0}, sort=[("created_at", -1)])
@@ -698,8 +765,10 @@ async def nexify_ai_status(admin: dict = Depends(get_admin_from_token)):
     db_connected = True
 
     return {
+        "deepseek": deepseek_status,
         "arcee": arcee_status,
         "mem0": mem0_status,
+        "master_llm": MASTER_LLM,
         "whatsapp": {"status": wa_status, "connected": wa_status == "connected"},
         "database": {"connected": db_connected},
         "stats": {"conversations": conv_count, "messages": msg_count}
@@ -767,6 +836,16 @@ AVAILABLE_TOOLS = {
     "oracle_list_tasks": "Oracle-Tasks auflisten (status, limit)",
     "oracle_create_brain_note": "Brain-Note speichern (title, content, note_type, tags)",
     "oracle_invoke_deepseek_agent": "Fachagenten über DeepSeek aufrufen (agent_name, message, context)",
+    # Intelligence — Crawl4AI
+    "crawl_url": "Website crawlen und Content extrahieren (url, extract_mode: markdown|structured|links)",
+    "research_company": "Firmen-Website analysieren für Lead-Recherche (url)",
+    "monitor_competitor": "Wettbewerber-Website überwachen (url, previous_hash)",
+    # Intelligence — Nutrient AI
+    "analyze_document": "PDF/Dokument analysieren (file_path, analysis_type: extract|pii_detect)",
+    "contract_risk_score": "Vertrags-Risikoscoring (file_path)",
+    "document_chat": "Frage an ein Dokument stellen (file_path, question)",
+    # Intelligence Status
+    "intelligence_status": "Status aller Intelligence-Dienste (Crawl4AI, Nutrient AI)",
 }
 
 
@@ -1385,6 +1464,62 @@ async def execute_tool(body: ToolRequest, admin: dict = Depends(get_admin_from_t
                 context=p.get("context", "")
             )
             return {**result, "tool": tool}
+
+        # ═══ Intelligence: Crawl4AI ═══
+        elif tool == "crawl_url":
+            from services.crawl4ai_service import crawl_url
+            result = await crawl_url(
+                url=p.get("url", ""),
+                extract_mode=p.get("extract_mode", "markdown"),
+                css_selector=p.get("css_selector"),
+            )
+            return {**result, "tool": tool}
+
+        elif tool == "research_company":
+            from services.crawl4ai_service import research_company
+            result = await research_company(p.get("url", ""))
+            if result.get("success"):
+                await S.db.intelligence_results.insert_one({
+                    "result_id": new_id("intel"), "type": "company_research",
+                    "url": p.get("url"), "data": result,
+                    "created_at": utcnow().isoformat(), "created_by": "nexify-ai-master",
+                })
+            return {**result, "tool": tool}
+
+        elif tool == "monitor_competitor":
+            from services.crawl4ai_service import monitor_competitor
+            result = await monitor_competitor(p.get("url", ""), p.get("previous_hash"))
+            return {**result, "tool": tool}
+
+        # ═══ Intelligence: Nutrient AI ═══
+        elif tool == "analyze_document":
+            from services.nutrient_service import analyze_document
+            result = await analyze_document(p.get("file_path", ""), p.get("analysis_type", "extract"))
+            return {**result, "tool": tool}
+
+        elif tool == "contract_risk_score":
+            from services.nutrient_service import contract_risk_score
+            result = await contract_risk_score(p.get("file_path", ""))
+            return {**result, "tool": tool}
+
+        elif tool == "document_chat":
+            from services.nutrient_service import document_chat
+            result = await document_chat(p.get("file_path", ""), p.get("question", ""))
+            return {**result, "tool": tool}
+
+        elif tool == "intelligence_status":
+            crawl4ai_ok = False
+            try:
+                from crawl4ai import AsyncWebCrawler
+                crawl4ai_ok = True
+            except ImportError:
+                pass
+            nutrient_ok = bool(os.environ.get("NUTRIENT_API_KEY", ""))
+            return {
+                "crawl4ai": {"installed": crawl4ai_ok, "status": "ok" if crawl4ai_ok else "not_installed"},
+                "nutrient": {"configured": nutrient_ok, "status": "ok" if nutrient_ok else "api_key_missing"},
+                "tool": tool,
+            }
 
         else:
             return {"error": f"Unbekanntes Tool: {tool}", "available": list(AVAILABLE_TOOLS.keys()), "tool": tool}
