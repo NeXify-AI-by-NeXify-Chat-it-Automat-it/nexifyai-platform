@@ -48,7 +48,7 @@ function NetworkNodes() {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={NODE_COUNT} array={positions} itemSize={3} />
       </bufferGeometry>
-      <pointsMaterial size={0.06} color="#FF6B00" transparent opacity={0.85} sizeAttenuation depthWrite={false} />
+      <pointsMaterial size={0.06} color="#FE9B7B" transparent opacity={0.85} sizeAttenuation depthWrite={false} />
     </points>
   );
 }
@@ -85,7 +85,7 @@ function NetworkEdges() {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={EDGE_COUNT * 2} array={positions} itemSize={3} />
       </bufferGeometry>
-      <lineBasicMaterial color="#FF6B00" transparent opacity={0.12} />
+      <lineBasicMaterial color="#FE9B7B" transparent opacity={0.12} />
     </lineSegments>
   );
 }
@@ -122,7 +122,7 @@ function FloatingCore() {
       {/* Outer wireframe shell — visible 3D structure */}
       <group ref={outerRef}>
         <Icosahedron args={[2, 1]}>
-          <meshBasicMaterial color="#FF6B00" wireframe transparent opacity={0.18} />
+          <meshBasicMaterial color="#FE9B7B" wireframe transparent opacity={0.18} />
         </Icosahedron>
       </group>
       {/* Mid shell — counter-rotating for depth */}
@@ -134,20 +134,20 @@ function FloatingCore() {
       {/* Inner distorted sphere */}
       <group ref={innerRef}>
         <Icosahedron args={[1.1, 0]}>
-          <MeshDistortMaterial color="#FF6B00" transparent opacity={0.1} distort={0.4} speed={2} />
+          <MeshDistortMaterial color="#FE9B7B" transparent opacity={0.1} distort={0.4} speed={2} />
         </Icosahedron>
       </group>
       {/* Bright core */}
       <Sphere args={[0.35, 24, 24]}>
-        <meshStandardMaterial color="#FF6B00" emissive="#FF6B00" emissiveIntensity={2} transparent opacity={0.35} />
+        <meshStandardMaterial color="#FE9B7B" emissive="#FE9B7B" emissiveIntensity={2} transparent opacity={0.35} />
       </Sphere>
       {/* Core inner glow */}
       <Sphere args={[0.15, 16, 16]}>
-        <meshStandardMaterial color="#ffffff" emissive="#FF6B00" emissiveIntensity={3} transparent opacity={0.6} />
+        <meshStandardMaterial color="#ffffff" emissive="#FE9B7B" emissiveIntensity={3} transparent opacity={0.6} />
       </Sphere>
       {/* Orbiting ring */}
       <Torus args={[1.8, 0.015, 8, 64]} rotation={[1.2, 0.5, 0]}>
-        <meshBasicMaterial color="#FF6B00" transparent opacity={0.25} />
+        <meshBasicMaterial color="#FE9B7B" transparent opacity={0.25} />
       </Torus>
       <Torus args={[1.3, 0.01, 8, 48]} rotation={[0.5, 1.5, 0.3]}>
         <meshBasicMaterial color="#FF8533" transparent opacity={0.15} />
@@ -203,31 +203,31 @@ function AccentGeometries() {
     <>
       <Float speed={0.6} rotationIntensity={0.3} floatIntensity={0.4}>
         <Sphere args={[0.18, 16, 16]} position={[4.5, 2.5, -2]}>
-          <meshStandardMaterial color="#FF6B00" emissive="#FF6B00" emissiveIntensity={1.2} transparent opacity={0.65} />
+          <meshStandardMaterial color="#FE9B7B" emissive="#FE9B7B" emissiveIntensity={1.2} transparent opacity={0.65} />
         </Sphere>
       </Float>
       <Float speed={0.5} rotationIntensity={0.2} floatIntensity={0.3}>
         <group ref={ref1} position={[-4.5, -2, 1]}>
           <Octahedron args={[0.35, 0]}>
-            <meshBasicMaterial color="#FF6B00" wireframe transparent opacity={0.2} />
+            <meshBasicMaterial color="#FE9B7B" wireframe transparent opacity={0.2} />
           </Octahedron>
         </group>
       </Float>
       <Float speed={0.7} rotationIntensity={0.25} floatIntensity={0.35}>
         <Torus args={[0.35, 0.08, 8, 24]} position={[4.5, -2.5, -1.5]} rotation={[1, 0.5, 0]}>
-          <meshStandardMaterial color="#FF6B00" emissive="#FF6B00" emissiveIntensity={0.5} transparent opacity={0.3} />
+          <meshStandardMaterial color="#FE9B7B" emissive="#FE9B7B" emissiveIntensity={0.5} transparent opacity={0.3} />
         </Torus>
       </Float>
       <Float speed={0.4} rotationIntensity={0.15} floatIntensity={0.2}>
         <group ref={ref2} position={[-3.5, 2.5, -1.5]}>
           <Icosahedron args={[0.2, 0]}>
-            <meshBasicMaterial color="#FF6B00" wireframe transparent opacity={0.2} />
+            <meshBasicMaterial color="#FE9B7B" wireframe transparent opacity={0.2} />
           </Icosahedron>
         </group>
       </Float>
       <Float speed={0.8} rotationIntensity={0.3} floatIntensity={0.3}>
         <Sphere args={[0.1, 8, 8]} position={[2.5, -3.5, 0.5]}>
-          <meshStandardMaterial color="#FF6B00" emissive="#FF6B00" emissiveIntensity={2} transparent opacity={0.55} />
+          <meshStandardMaterial color="#FE9B7B" emissive="#FE9B7B" emissiveIntensity={2} transparent opacity={0.55} />
         </Sphere>
       </Float>
       <Float speed={0.3} rotationIntensity={0.1} floatIntensity={0.2}>
@@ -248,8 +248,8 @@ export function HeroScene() {
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       >
         <ambientLight intensity={0.35} />
-        <pointLight position={[6, 4, 6]} intensity={0.8} color="#FF6B00" distance={25} decay={2} />
-        <pointLight position={[-5, -3, 4]} intensity={0.4} color="#FF6B00" distance={18} decay={2} />
+        <pointLight position={[6, 4, 6]} intensity={0.8} color="#FE9B7B" distance={25} decay={2} />
+        <pointLight position={[-5, -3, 4]} intensity={0.4} color="#FE9B7B" distance={18} decay={2} />
         <pointLight position={[0, -6, 5]} intensity={0.25} color="#FF8533" distance={15} decay={2} />
         <pointLight position={[3, 5, -2]} intensity={0.2} color="#ff6b4a" distance={12} decay={2} />
         <Suspense fallback={null}>
@@ -276,26 +276,26 @@ function GlobeWireframe() {
   return (
     <group ref={ref}>
       <Sphere args={[2, 32, 32]}>
-        <meshBasicMaterial color="#FF6B00" wireframe transparent opacity={0.12} />
+        <meshBasicMaterial color="#FE9B7B" wireframe transparent opacity={0.12} />
       </Sphere>
       <Sphere args={[2.15, 20, 20]}>
-        <meshBasicMaterial color="#FF6B00" wireframe transparent opacity={0.05} />
+        <meshBasicMaterial color="#FE9B7B" wireframe transparent opacity={0.05} />
       </Sphere>
       {/* Equatorial ring */}
       <Torus args={[2.08, 0.018, 8, 64]} rotation={[Math.PI / 2, 0, 0]}>
-        <meshBasicMaterial color="#FF6B00" transparent opacity={0.3} />
+        <meshBasicMaterial color="#FE9B7B" transparent opacity={0.3} />
       </Torus>
       {/* Polar ring */}
       <Torus args={[2.08, 0.012, 8, 64]} rotation={[0, 0, 0]}>
-        <meshBasicMaterial color="#FF6B00" transparent opacity={0.15} />
+        <meshBasicMaterial color="#FE9B7B" transparent opacity={0.15} />
       </Torus>
       {/* Angled ring */}
       <Torus args={[2.08, 0.01, 8, 64]} rotation={[Math.PI / 3, Math.PI / 4, 0]}>
-        <meshBasicMaterial color="#FF6B00" transparent opacity={0.1} />
+        <meshBasicMaterial color="#FE9B7B" transparent opacity={0.1} />
       </Torus>
       {/* Central glow — much brighter */}
       <Sphere args={[0.25, 16, 16]}>
-        <meshStandardMaterial color="#FF6B00" emissive="#FF6B00" emissiveIntensity={2} transparent opacity={0.4} />
+        <meshStandardMaterial color="#FE9B7B" emissive="#FE9B7B" emissiveIntensity={2} transparent opacity={0.4} />
       </Sphere>
     </group>
   );
@@ -329,7 +329,7 @@ function GlobeNodes() {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} />
       </bufferGeometry>
-      <pointsMaterial size={0.1} color="#FF6B00" transparent opacity={0.95} sizeAttenuation />
+      <pointsMaterial size={0.1} color="#FE9B7B" transparent opacity={0.95} sizeAttenuation />
     </points>
   );
 }
@@ -367,7 +367,7 @@ function ConnectionArcs() {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={arcs.length / 3} array={arcs} itemSize={3} />
       </bufferGeometry>
-      <lineBasicMaterial color="#FF6B00" transparent opacity={0.25} />
+      <lineBasicMaterial color="#FE9B7B" transparent opacity={0.25} />
     </line>
   );
 }
@@ -414,7 +414,7 @@ export function IntegrationsGlobe() {
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       >
         <ambientLight intensity={0.2} />
-        <pointLight position={[5, 3, 5]} intensity={0.6} color="#FF6B00" distance={18} decay={2} />
+        <pointLight position={[5, 3, 5]} intensity={0.6} color="#FE9B7B" distance={18} decay={2} />
         <pointLight position={[-3, -2, 4]} intensity={0.3} color="#FF8533" distance={15} decay={2} />
         <pointLight position={[0, 0, 6]} intensity={0.15} color="#ff6b4a" distance={10} decay={2} />
         <Suspense fallback={null}>
@@ -452,22 +452,22 @@ function ProcessHub({ position }) {
     <group position={position}>
       {/* Outer glow */}
       <Sphere args={[0.7, 20, 20]}>
-        <meshStandardMaterial color="#FF6B00" emissive="#FF6B00" emissiveIntensity={0.25} transparent opacity={0.06} />
+        <meshStandardMaterial color="#FE9B7B" emissive="#FE9B7B" emissiveIntensity={0.25} transparent opacity={0.06} />
       </Sphere>
       {/* Wireframe icosahedron */}
       <group ref={ref}>
         <Icosahedron args={[0.5, 1]}>
-          <meshBasicMaterial color="#FF6B00" wireframe transparent opacity={0.25} />
+          <meshBasicMaterial color="#FE9B7B" wireframe transparent opacity={0.25} />
         </Icosahedron>
       </group>
       {/* Inner bright core */}
       <Sphere args={[0.15, 16, 16]}>
-        <meshStandardMaterial color="#FF6B00" emissive="#FF6B00" emissiveIntensity={2.5} transparent opacity={0.7} />
+        <meshStandardMaterial color="#FE9B7B" emissive="#FE9B7B" emissiveIntensity={2.5} transparent opacity={0.7} />
       </Sphere>
       {/* Orbiting rings — two axes for clear 3D */}
       <group ref={ringRef}>
         <Torus args={[0.6, 0.01, 6, 40]} rotation={[Math.PI / 2.5, 0, 0]}>
-          <meshBasicMaterial color="#FF6B00" transparent opacity={0.3} />
+          <meshBasicMaterial color="#FE9B7B" transparent opacity={0.3} />
         </Torus>
       </group>
       <group ref={ring2Ref}>
@@ -521,7 +521,7 @@ function FlowStream({ from, to }) {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={particleCount} array={positions} itemSize={3} />
       </bufferGeometry>
-      <pointsMaterial size={0.06} color="#FF6B00" transparent opacity={0.85} sizeAttenuation depthWrite={false} />
+      <pointsMaterial size={0.06} color="#FE9B7B" transparent opacity={0.85} sizeAttenuation depthWrite={false} />
     </points>
   );
 }
@@ -543,7 +543,7 @@ function FlowConnector({ from, to }) {
   const geo = useMemo(() => new THREE.BufferGeometry().setFromPoints(points), [points]);
   return (
     <line geometry={geo}>
-      <lineBasicMaterial color="#FF6B00" transparent opacity={0.3} />
+      <lineBasicMaterial color="#FE9B7B" transparent opacity={0.3} />
     </line>
   );
 }
@@ -570,7 +570,7 @@ function ProcessAmbient() {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} />
       </bufferGeometry>
-      <pointsMaterial size={0.03} color="#FF6B00" transparent opacity={0.35} sizeAttenuation />
+      <pointsMaterial size={0.03} color="#FE9B7B" transparent opacity={0.35} sizeAttenuation />
     </points>
   );
 }
@@ -585,7 +585,7 @@ export function ProcessScene() {
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       >
         <ambientLight intensity={0.3} />
-        <pointLight position={[0, 4, 5]} intensity={0.7} color="#FF6B00" distance={18} decay={2} />
+        <pointLight position={[0, 4, 5]} intensity={0.7} color="#FE9B7B" distance={18} decay={2} />
         <pointLight position={[-5, -1, 4]} intensity={0.25} color="#FF8533" distance={12} decay={2} />
         <pointLight position={[5, -1, 4]} intensity={0.25} color="#FF8533" distance={12} decay={2} />
         <Suspense fallback={null}>
@@ -615,12 +615,12 @@ export function AccentShapes() {
         <Suspense fallback={null}>
           <Float speed={0.4} rotationIntensity={0.5} floatIntensity={0.6}>
             <Torus args={[1, 0.04, 8, 30]} position={[4, 2, -2]} rotation={[1, 0, 0.5]}>
-              <meshBasicMaterial color="#FF6B00" transparent opacity={0.08} />
+              <meshBasicMaterial color="#FE9B7B" transparent opacity={0.08} />
             </Torus>
           </Float>
           <Float speed={0.3} rotationIntensity={0.3} floatIntensity={0.4}>
             <Box args={[0.4, 0.4, 0.4]} position={[-4, -1, -1]} rotation={[0.7, 0.3, 0]}>
-              <meshBasicMaterial color="#FF6B00" transparent opacity={0.06} wireframe />
+              <meshBasicMaterial color="#FE9B7B" transparent opacity={0.06} wireframe />
             </Box>
           </Float>
         </Suspense>

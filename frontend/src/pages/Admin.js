@@ -1106,7 +1106,7 @@ const Admin = () => {
                   <div style={{fontSize:'.8125rem',color:'#c8d1dc'}}>{l.source && <span style={{fontWeight:600}}>Quelle: {l.source}</span>}</div>
                   {l.nachricht && <p style={{color:'var(--nx-dim)',fontSize:'.8125rem',marginTop:6,fontStyle:'italic'}}>"{l.nachricht}"</p>}
                   {l.notes?.length > 0 && <div style={{marginTop:8,paddingTop:8,borderTop:'1px solid rgba(255,255,255,0.03)'}}>
-                    {l.notes.map((n, ni) => <div key={ni} style={{fontSize:'.75rem',color:'var(--nx-dim)',padding:'4px 0',borderLeft:'2px solid rgba(255,107,0,0.15)',paddingLeft:8,marginBottom:4}}>{n.text} <span style={{opacity:.5}}>— {fmtTime(n.date)}</span></div>)}
+                    {l.notes.map((n, ni) => <div key={ni} style={{fontSize:'.75rem',color:'var(--nx-dim)',padding:'4px 0',borderLeft:'2px solid rgba(254,155,123,0.15)',paddingLeft:8,marginBottom:4}}>{n.text} <span style={{opacity:.5}}>— {fmtTime(n.date)}</span></div>)}
                   </div>}
                 </div>
               ))}
@@ -1121,7 +1121,7 @@ const Admin = () => {
                 <div key={i} style={{padding:14,background:'rgba(255,255,255,0.02)',border:'1px solid var(--nx-border)',borderRadius:'var(--r-md)',marginBottom:8}}>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
                     <span style={{fontWeight:700,color:'#fff'}}>{q.quote_number}</span>
-                    <span className="adm-badge" style={{background:q.status==='accepted'?'rgba(52,211,153,0.15)':'rgba(255,107,0,0.15)',color:q.status==='accepted'?'#34d399':'var(--nx-accent)'}}>{q.status}</span>
+                    <span className="adm-badge" style={{background:q.status==='accepted'?'rgba(52,211,153,0.15)':'rgba(254,155,123,0.15)',color:q.status==='accepted'?'#34d399':'var(--nx-accent)'}}>{q.status}</span>
                   </div>
                   <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,fontSize:'.8125rem'}}>
                     <div><span style={{color:'var(--nx-dim)',fontSize:'.6875rem',display:'block'}}>Tarif</span><span style={{color:'#fff'}}>{q.calculation?.tier_name || '-'}</span></div>
@@ -1161,7 +1161,7 @@ const Admin = () => {
                 <div key={i} style={{padding:14,background:'rgba(255,255,255,0.02)',border:'1px solid var(--nx-border)',borderRadius:'var(--r-md)',marginBottom:8}}>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
                     <span style={{fontWeight:700,color:'#fff'}}>{c.contract_number || `Vertrag ${i+1}`}</span>
-                    <span className="adm-badge" style={{background:c.status==='signed'?'rgba(52,211,153,0.15)':'rgba(255,107,0,0.15)',color:c.status==='signed'?'#34d399':'var(--nx-accent)'}}>{c.status}</span>
+                    <span className="adm-badge" style={{background:c.status==='signed'?'rgba(52,211,153,0.15)':'rgba(254,155,123,0.15)',color:c.status==='signed'?'#34d399':'var(--nx-accent)'}}>{c.status}</span>
                   </div>
                   <div style={{fontSize:'.8125rem',color:'#c8d1dc'}}>Erstellt: {fmtDate(c.created_at)}</div>
                 </div>
@@ -1203,7 +1203,7 @@ const Admin = () => {
                 <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'10px 20px'}} onClick={addCaseNote} disabled={!noteText.trim()} data-testid="case-note-add-btn"><I n="add" /> Hinzufügen</button>
               </div>
               {(con.notes || []).slice().reverse().map((n, i) => (
-                <div key={i} style={{padding:12,background:'rgba(255,255,255,0.02)',border:'1px solid var(--nx-border)',borderRadius:'var(--r-sm)',marginBottom:6,borderLeft:'3px solid rgba(255,107,0,0.2)'}}>
+                <div key={i} style={{padding:12,background:'rgba(255,255,255,0.02)',border:'1px solid var(--nx-border)',borderRadius:'var(--r-sm)',marginBottom:6,borderLeft:'3px solid rgba(254,155,123,0.2)'}}>
                   <div style={{fontSize:'.8125rem',color:'#c8d1dc'}}>{n.text}</div>
                   <div style={{fontSize:'.6875rem',color:'var(--nx-dim)',marginTop:4}}>{n.author} — {fmtTime(n.created_at || n.date)}</div>
                 </div>
@@ -1328,7 +1328,7 @@ const Admin = () => {
             </div>
             <div className="adm-field" style={{marginTop:'12px'}}><label>Use Case</label><input value={quoteForm.use_case} onChange={e=>setQuoteForm({...quoteForm,use_case:e.target.value})} placeholder="Beschreiben Sie den geplanten Einsatz" data-testid="quote-usecase" /></div>
             <div className="adm-field" style={{marginTop:'12px'}}><label>Interne Notizen</label><textarea value={quoteForm.notes} onChange={e=>setQuoteForm({...quoteForm,notes:e.target.value})} rows={2} placeholder="Interne Bemerkungen (nicht im Angebot sichtbar)" data-testid="quote-notes" style={{width:'100%',resize:'vertical'}} /></div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 2fr',gap:'12px',marginTop:'12px',padding:'14px',background:'rgba(255,107,0,0.04)',borderRadius:8,border:'1px solid rgba(255,107,0,0.08)'}}>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 2fr',gap:'12px',marginTop:'12px',padding:'14px',background:'rgba(254,155,123,0.04)',borderRadius:8,border:'1px solid rgba(254,155,123,0.08)'}}>
               <div className="adm-field"><label>Rabatt (%)</label><input type="number" min="0" max="25" step="0.5" value={quoteForm.discount_percent} onChange={e=>setQuoteForm({...quoteForm,discount_percent:parseFloat(e.target.value)||0})} data-testid="quote-discount" /></div>
               <div className="adm-field"><label>Rabattgrund (Pflicht bei Rabatt)</label><input value={quoteForm.discount_reason} onChange={e=>setQuoteForm({...quoteForm,discount_reason:e.target.value})} placeholder="z.B. Frühbucher, Partner-Rabatt, Verhandlung" data-testid="quote-discount-reason" /></div>
             </div>
@@ -1432,7 +1432,7 @@ const Admin = () => {
               <div className="adm-field"><label>Unternehmen</label><input value={editQuote.customer_company} onChange={e => setEditQuote({...editQuote, customer_company: e.target.value})} /></div>
             </div>
             <div className="adm-field" style={{marginTop:8}}><label>Use Case</label><input value={editQuote.use_case} onChange={e => setEditQuote({...editQuote, use_case: e.target.value})} style={{width:'100%'}} /></div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 2fr',gap:'12px',marginTop:12,padding:'12px',background:'rgba(255,107,0,0.04)',borderRadius:8,border:'1px solid rgba(255,107,0,0.08)'}}>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 2fr',gap:'12px',marginTop:12,padding:'12px',background:'rgba(254,155,123,0.04)',borderRadius:8,border:'1px solid rgba(254,155,123,0.08)'}}>
               <div className="adm-field"><label>Rabatt (%)</label><input type="number" min="0" max="25" step="0.5" value={editQuote.discount_percent} onChange={e => setEditQuote({...editQuote, discount_percent:parseFloat(e.target.value)||0})} /></div>
               <div className="adm-field"><label>Rabattgrund</label><input value={editQuote.discount_reason} onChange={e => setEditQuote({...editQuote, discount_reason: e.target.value})} placeholder="Pflicht bei Rabatt" /></div>
             </div>
@@ -1962,12 +1962,12 @@ const Admin = () => {
             <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Kunde</div><div style={{color:'#fff',fontSize:'.8125rem',fontWeight:600}}>{pd.customer_email}</div></div>
             <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Tarif</div><div style={{color:'#fff',fontSize:'.8125rem',fontWeight:600}}>{pd.tier || '-'}</div></div>
             <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Version</div><div style={{color:'#fff',fontSize:'.8125rem',fontWeight:600}}>v{pd.build_handover_version || 0}</div></div>
-            <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Vollständigkeit</div><div style={{color:'#FF6B00',fontSize:'1rem',fontWeight:700}}>{completeness}%</div></div>
+            <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Vollständigkeit</div><div style={{color:'#FE9B7B',fontSize:'1rem',fontWeight:700}}>{completeness}%</div></div>
           </div>
 
           {/* Progress Bar */}
           <div style={{background:'rgba(255,255,255,0.04)',borderRadius:6,height:8,marginBottom:20,overflow:'hidden'}}>
-            <div style={{background:'linear-gradient(90deg,#FF6B00,#FF8533)',height:'100%',width:`${completeness}%`,borderRadius:6,transition:'width .5s'}}></div>
+            <div style={{background:'linear-gradient(90deg,#FE9B7B,#FF8533)',height:'100%',width:`${completeness}%`,borderRadius:6,transition:'width .5s'}}></div>
           </div>
 
           {/* Sections Grid */}
@@ -2042,7 +2042,7 @@ const Admin = () => {
           <div className="adm-wa-card" style={{marginBottom:16}}>
             <div style={{maxHeight:320,overflowY:'auto',marginBottom:12}}>
               {(pd.chat || []).map(m => (
-                <div key={m.message_id} style={{marginBottom:10,padding:'8px 12px',background:m.sender_type==='customer'?'rgba(59,130,246,0.08)':'rgba(255,107,0,0.06)',borderRadius:6,borderLeft:`3px solid ${m.sender_type==='customer'?'#3b82f6':'#FF6B00'}`}}>
+                <div key={m.message_id} style={{marginBottom:10,padding:'8px 12px',background:m.sender_type==='customer'?'rgba(59,130,246,0.08)':'rgba(254,155,123,0.06)',borderRadius:6,borderLeft:`3px solid ${m.sender_type==='customer'?'#3b82f6':'#FE9B7B'}`}}>
                   <div style={{display:'flex',justifyContent:'space-between',fontSize:'.6875rem',color:'#6b7b8d',marginBottom:4}}>
                     <span>{m.sender} ({m.sender_type})</span>
                     <span>{fmtTime(m.timestamp)}</span>
@@ -2143,7 +2143,7 @@ const Admin = () => {
             <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Kunde</div><div style={{color:'#fff',fontSize:'.8125rem',fontWeight:600}}>{cd.customer?.name||cd.customer?.email}</div><div style={{fontSize:'.6875rem',color:'#6b7b8d'}}>{cd.customer?.company}</div></div>
             <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Tarif</div><div style={{color:'#fff',fontSize:'.8125rem',fontWeight:600}}>{cd.calculation?.tier_name || cd.tier_key || '-'}</div></div>
             <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Version</div><div style={{color:'#fff',fontSize:'.8125rem',fontWeight:600}}>v{cd.version||1}</div></div>
-            <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Hash</div><div style={{color:'#FF6B00',fontSize:'.6875rem',fontFamily:'monospace',wordBreak:'break-all'}}>{cd.document_hash?.slice(0,16)}...</div></div>
+            <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Hash</div><div style={{color:'#FE9B7B',fontSize:'.6875rem',fontFamily:'monospace',wordBreak:'break-all'}}>{cd.document_hash?.slice(0,16)}...</div></div>
           </div>
           {/* Calculation */}
           {cd.calculation && cd.calculation.total_contract_eur && (
@@ -2151,7 +2151,7 @@ const Admin = () => {
               <h3 style={{margin:'0 0 12px',fontSize:'.9375rem'}}>Kommerzielle Konditionen</h3>
               <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:10}}>
                 <div><span style={{fontSize:'.6875rem',color:'#6b7b8d'}}>Gesamtvertragswert</span><br/><span style={{color:'#fff',fontWeight:600}}>{(cd.calculation.total_contract_eur||0).toLocaleString('de-DE',{style:'currency',currency:'EUR'})}</span></div>
-                <div><span style={{fontSize:'.6875rem',color:'#6b7b8d'}}>Aktivierungsanzahlung</span><br/><span style={{color:'#FF6B00',fontWeight:600}}>{(cd.calculation.upfront_eur||0).toLocaleString('de-DE',{style:'currency',currency:'EUR'})}</span></div>
+                <div><span style={{fontSize:'.6875rem',color:'#6b7b8d'}}>Aktivierungsanzahlung</span><br/><span style={{color:'#FE9B7B',fontWeight:600}}>{(cd.calculation.upfront_eur||0).toLocaleString('de-DE',{style:'currency',currency:'EUR'})}</span></div>
                 <div><span style={{fontSize:'.6875rem',color:'#6b7b8d'}}>Monatsrate</span><br/><span style={{color:'#fff',fontWeight:600}}>{(cd.calculation.recurring_eur||0).toLocaleString('de-DE',{style:'currency',currency:'EUR'})}</span></div>
                 <div><span style={{fontSize:'.6875rem',color:'#6b7b8d'}}>Laufzeit</span><br/><span style={{color:'#fff',fontWeight:600}}>{cd.calculation.contract_months||0} Monate</span></div>
               </div>
@@ -2180,7 +2180,7 @@ const Admin = () => {
             <div key={a.appendix_id} className="adm-wa-card" style={{marginBottom:8,borderLeft:`3px solid ${a.appendix_type==='custom'?'#f59e0b':'#3b82f6'}`}} data-testid={`appendix-${a.appendix_id}`}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                 <div><span style={{fontWeight:600,color:'#fff',fontSize:'.8125rem'}}>{a.title}</span> <span className="adm-badge" style={{background:'rgba(59,130,246,0.12)',color:'#3b82f6',fontSize:'.625rem'}}>{APX_TYPE_MAP[a.appendix_type]||a.appendix_type}</span></div>
-                {a.pricing?.amount > 0 && <span style={{color:'#FF6B00',fontWeight:600,fontSize:'.8125rem'}}>{parseFloat(a.pricing.amount).toLocaleString('de-DE',{style:'currency',currency:'EUR'})}</span>}
+                {a.pricing?.amount > 0 && <span style={{color:'#FE9B7B',fontWeight:600,fontSize:'.8125rem'}}>{parseFloat(a.pricing.amount).toLocaleString('de-DE',{style:'currency',currency:'EUR'})}</span>}
               </div>
               {a.content?.description && <p style={{margin:'6px 0 0',fontSize:'.75rem',color:'#6b7b8d'}}>{a.content.description}</p>}
             </div>
@@ -2211,7 +2211,7 @@ const Admin = () => {
                     <div><span style={{color:'#6b7b8d'}}>Zeitstempel:</span> <span style={{color:'#fff'}}>{fmtTime(ev.timestamp)}</span></div>
                     <div><span style={{color:'#6b7b8d'}}>IP:</span> <span style={{color:'#fff'}}>{ev.ip_address}</span></div>
                     <div><span style={{color:'#6b7b8d'}}>Signaturtyp:</span> <span style={{color:'#fff'}}>{ev.signature_type||'-'}</span></div>
-                    <div style={{gridColumn:'1/-1'}}><span style={{color:'#6b7b8d'}}>Dokument-Hash:</span> <span style={{color:'#FF6B00',fontFamily:'monospace',fontSize:'.6875rem'}}>{ev.document_hash}</span></div>
+                    <div style={{gridColumn:'1/-1'}}><span style={{color:'#6b7b8d'}}>Dokument-Hash:</span> <span style={{color:'#FE9B7B',fontFamily:'monospace',fontSize:'.6875rem'}}>{ev.document_hash}</span></div>
                     <div style={{gridColumn:'1/-1'}}><span style={{color:'#6b7b8d'}}>User Agent:</span> <span style={{color:'#c8d1dc',fontSize:'.6875rem'}}>{ev.user_agent?.slice(0,80)}</span></div>
                   </div>
                 </div>
@@ -2293,7 +2293,7 @@ const Admin = () => {
           <div className="adm-stat-card"><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Angebote</div><div style={{fontSize:'1.5rem',fontWeight:700,color:'#fff'}}>{bs.quotes?.total || 0}</div><div style={{fontSize:'.75rem',color:'#10b981'}}>davon akzeptiert: {bs.quotes?.accepted || 0}</div></div>
           <div className="adm-stat-card"><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Rechnungen</div><div style={{fontSize:'1.5rem',fontWeight:700,color:'#fff'}}>{bs.invoices?.total || 0}</div><div style={{fontSize:'.75rem',color:'#10b981'}}>bezahlt: {bs.invoices?.paid || 0}</div><div style={{fontSize:'.75rem',color:'#f59e0b'}}>offen: {bs.invoices?.pending || 0}</div><div style={{fontSize:'.75rem',color:'#ef4444'}}>überfällig: {bs.invoices?.overdue || 0}</div></div>
           <div className="adm-stat-card"><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Verträge</div><div style={{fontSize:'1.5rem',fontWeight:700,color:'#fff'}}>{bs.contracts?.total || 0}</div><div style={{fontSize:'.75rem',color:'#10b981'}}>aktiv: {bs.contracts?.active || 0}</div></div>
-          <div className="adm-stat-card"><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Umsatz</div><div style={{fontSize:'1.5rem',fontWeight:700,color:'#FF6B00'}}>{(bs.revenue?.total_gross||0).toLocaleString('de-DE',{style:'currency',currency:'EUR'})}</div><div style={{fontSize:'.75rem',color:'#f59e0b'}}>offen: {(bs.revenue?.total_open||0).toLocaleString('de-DE',{style:'currency',currency:'EUR'})}</div></div>
+          <div className="adm-stat-card"><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Umsatz</div><div style={{fontSize:'1.5rem',fontWeight:700,color:'#FE9B7B'}}>{(bs.revenue?.total_gross||0).toLocaleString('de-DE',{style:'currency',currency:'EUR'})}</div><div style={{fontSize:'.75rem',color:'#f59e0b'}}>offen: {(bs.revenue?.total_open||0).toLocaleString('de-DE',{style:'currency',currency:'EUR'})}</div></div>
         </div>
       </div>
     );
@@ -2324,7 +2324,7 @@ const Admin = () => {
           <div style={{display:'flex',gap:16,alignItems:'center',marginBottom:16,flexWrap:'wrap'}}>
             <h2 style={{margin:0,fontSize:'1.25rem'}}>{ld.company_name || 'Unbekannt'}</h2>
             <span className="adm-badge" style={{background:st.c+'22',color:st.c}}><I n={st.icon} /> {st.l}</span>
-            <span className="adm-badge" style={{background:'rgba(255,107,0,0.12)',color:'#FF6B00'}}>Score: {ld.score || 0}</span>
+            <span className="adm-badge" style={{background:'rgba(254,155,123,0.12)',color:'#FE9B7B'}}>Score: {ld.score || 0}</span>
           </div>
           {/* Meta */}
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:8,marginBottom:20}}>
@@ -2381,7 +2381,7 @@ const Admin = () => {
                 </>
               )}
             </div>
-            {outboundBusy && <div style={{marginTop:8,fontSize:'.75rem',color:'#FF6B00'}}>Aktion wird ausgeführt...</div>}
+            {outboundBusy && <div style={{marginTop:8,fontSize:'.75rem',color:'#FE9B7B'}}>Aktion wird ausgeführt...</div>}
           </div>
           {/* Outreach Form */}
           {showOutreachForm && (
@@ -2458,7 +2458,7 @@ const Admin = () => {
           <div style={{marginBottom:24}}>
             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:8,marginBottom:16}}>
               <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Gesamt</div><div style={{fontSize:'1.25rem',fontWeight:700,color:'#fff'}}>{op.total || 0}</div></div>
-              <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Konversionsrate</div><div style={{fontSize:'1.25rem',fontWeight:700,color:'#FF6B00'}}>{(op.conversion_rate || 0).toFixed(1)}%</div></div>
+              <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Konversionsrate</div><div style={{fontSize:'1.25rem',fontWeight:700,color:'#FE9B7B'}}>{(op.conversion_rate || 0).toFixed(1)}%</div></div>
               <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Qualifiziert</div><div style={{fontSize:'1.25rem',fontWeight:700,color:'#10b981'}}>{(op.pipeline||[]).find(s=>s.key==='qualified')?.count||0}</div></div>
               <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Kontaktiert</div><div style={{fontSize:'1.25rem',fontWeight:700,color:'#06b6d4'}}>{(op.pipeline||[]).find(s=>s.key==='contacted')?.count||0}</div></div>
               <div className="adm-stat-card" style={{padding:'12px 16px'}}><div style={{fontSize:'.6875rem',color:'#6b7b8d',textTransform:'uppercase'}}>Termine</div><div style={{fontSize:'1.25rem',fontWeight:700,color:'#10b981'}}>{(op.pipeline||[]).find(s=>s.key==='meeting_booked')?.count||0}</div></div>
@@ -2731,6 +2731,33 @@ const Admin = () => {
     return html;
   };
 
+  const executeNxTool = async (toolName, params) => {
+    try {
+      const resp = await fetch(`${API}/api/admin/nexify-ai/execute-tool`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tool: toolName, params })
+      });
+      return await resp.json();
+    } catch (e) { return { error: e.message }; }
+  };
+
+  const extractAndRunTools = async (text) => {
+    const toolRegex = /```tool\s*\n?([\s\S]*?)```/g;
+    let match;
+    const toolCalls = [];
+    while ((match = toolRegex.exec(text)) !== null) {
+      try { toolCalls.push(JSON.parse(match[1].trim())); } catch (e) { /* skip invalid */ }
+    }
+    if (toolCalls.length === 0) return null;
+    const results = [];
+    for (const tc of toolCalls) {
+      const r = await executeNxTool(tc.tool, tc.params || {});
+      results.push({ tool: tc.tool, ...r });
+    }
+    return results;
+  };
+
   const sendNxMessage = async () => {
     const msg = nxInput.trim();
     if (!msg || nxStreaming) return;
@@ -2770,10 +2797,15 @@ const Admin = () => {
             }
             if (data.conversation_id) newConvoId = data.conversation_id;
             if (data.done) {
-              setNxMessages(prev => [...prev, { role: 'assistant', content: fullText, created_at: new Date().toISOString() }]);
+              // Check for tool calls in the response
+              const toolResults = await extractAndRunTools(fullText);
+              let finalContent = fullText;
+              if (toolResults) {
+                finalContent += '\n\n---\n**Tool-Ergebnisse:**\n```json\n' + JSON.stringify(toolResults, null, 2) + '\n```';
+              }
+              setNxMessages(prev => [...prev, { role: 'assistant', content: finalContent, created_at: new Date().toISOString(), tools_used: !!toolResults }]);
               setNxStreamText('');
               if (!nxActiveConvo && newConvoId) setNxActiveConvo(newConvoId);
-              loadNxConversations();
             }
             if (data.error) {
               setNxMessages(prev => [...prev, { role: 'assistant', content: `Fehler: ${data.error}`, created_at: new Date().toISOString() }]);
@@ -2787,6 +2819,7 @@ const Admin = () => {
     }
     setNxStreaming(false);
     setTimeout(nxScrollToBottom, 200);
+    loadNxConversations();
   };
 
   const handleNxKeyDown = (e) => {
@@ -2826,7 +2859,7 @@ const Admin = () => {
             ) : adminUsers.map(u => (
               <tr key={u.email} data-testid={`user-row-${u.email}`}>
                 <td style={{fontWeight:600,color:'#fff'}}>{u.email}</td>
-                <td><span className="adm-badge" style={{background:u.role==='admin'?'#FF6B0022':'#3b82f622',color:u.role==='admin'?'#FF6B00':'#3b82f6'}}>{u.role || 'admin'}</span></td>
+                <td><span className="adm-badge" style={{background:u.role==='admin'?'#FE9B7B22':'#3b82f622',color:u.role==='admin'?'#FE9B7B':'#3b82f6'}}>{u.role || 'admin'}</span></td>
                 <td style={{fontSize:'.75rem',color:'#6b7b8d'}}>{fmtDate(u.created_at)}</td>
                 <td style={{fontSize:'.75rem',color:'#6b7b8d'}}>{u.created_by || 'system'}</td>
                 <td>
@@ -2878,7 +2911,7 @@ const Admin = () => {
       <div className="adm-wa-card" style={{padding:'16px 18px'}} data-testid={`monitor-${title.toLowerCase().replace(/\s/g,'-')}`}>
         <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
           <StatusDot s={status} />
-          <I n={icon} style={{fontSize:18,color:'#FF6B00'}} />
+          <I n={icon} style={{fontSize:18,color:'#FE9B7B'}} />
           <span style={{fontWeight:600,color:'#fff',fontSize:'.875rem'}}>{title}</span>
           <span className="adm-badge" style={{marginLeft:'auto',background:status==='ok'||status==='configured'||status==='healthy'?'#10b98122':'#f59e0b22',color:status==='ok'||status==='configured'||status==='healthy'?'#10b981':'#f59e0b',fontSize:'.625rem'}}>{status}</span>
         </div>
@@ -2964,15 +2997,15 @@ const Admin = () => {
         <h2>API-Zugang</h2>
         <button className="adm-btn adm-btn-primary" style={{padding:'8px 16px',width:'auto'}} onClick={() => { setShowCreateApiKey(true); setNewApiKeyResult(null); }} data-testid="create-api-key-btn"><I n="vpn_key" /> Neuer API-Key</button>
       </div>
-      <div className="adm-form-card" style={{marginBottom:20,borderLeft:'3px solid #FF6B00'}}>
+      <div className="adm-form-card" style={{marginBottom:20,borderLeft:'3px solid #FE9B7B'}}>
         <div style={{display:'flex',gap:8,alignItems:'flex-start'}}>
-          <I n="info" style={{color:'#FF6B00',flexShrink:0}} />
+          <I n="info" style={{color:'#FE9B7B',flexShrink:0}} />
           <div style={{fontSize:'.8125rem',color:'#c8d1dc',lineHeight:1.6}}>
             <strong style={{color:'#fff'}}>Externer API-Zugang</strong><br/>
             Über die API v1 können externe Systeme programmatisch auf NeXifyAI zugreifen.<br/>
-            Base URL: <code style={{background:'rgba(255,255,255,0.06)',padding:'2px 6px',borderRadius:3,fontSize:'.75rem',color:'#FF6B00'}}>{API}/api/v1</code><br/>
-            Header: <code style={{background:'rgba(255,255,255,0.06)',padding:'2px 6px',borderRadius:3,fontSize:'.75rem',color:'#FF6B00'}}>X-API-Key: nxa_live_...</code><br/>
-            <a href={`${API}/api/v1/docs`} target="_blank" rel="noopener noreferrer" style={{color:'#FF6B00',fontWeight:600}}>API-Dokumentation ansehen</a>
+            Base URL: <code style={{background:'rgba(255,255,255,0.06)',padding:'2px 6px',borderRadius:3,fontSize:'.75rem',color:'#FE9B7B'}}>{API}/api/v1</code><br/>
+            Header: <code style={{background:'rgba(255,255,255,0.06)',padding:'2px 6px',borderRadius:3,fontSize:'.75rem',color:'#FE9B7B'}}>X-API-Key: nxa_live_...</code><br/>
+            <a href={`${API}/api/v1/docs`} target="_blank" rel="noopener noreferrer" style={{color:'#FE9B7B',fontWeight:600}}>API-Dokumentation ansehen</a>
           </div>
         </div>
       </div>
@@ -3027,10 +3060,10 @@ const Admin = () => {
             ) : apiKeys.map(k => (
               <tr key={k.key_id} data-testid={`api-key-row-${k.key_id}`}>
                 <td style={{fontWeight:600,color:'#fff'}}>{k.name}{k.description && <div style={{fontSize:'.6875rem',color:'#6b7b8d',fontWeight:400}}>{k.description}</div>}</td>
-                <td><code style={{fontSize:'.75rem',color:'#FF6B00',fontFamily:'monospace'}}>{k.key_prefix}</code></td>
+                <td><code style={{fontSize:'.75rem',color:'#FE9B7B',fontFamily:'monospace'}}>{k.key_prefix}</code></td>
                 <td style={{fontSize:'.75rem'}}>{k.scopes?.join(', ')}</td>
                 <td style={{fontSize:'.75rem'}}>{k.rate_limit_per_hour}/h</td>
-                <td style={{fontSize:'.75rem',color:'#FF6B00',fontWeight:600}}>{k.total_requests || 0}</td>
+                <td style={{fontSize:'.75rem',color:'#FE9B7B',fontWeight:600}}>{k.total_requests || 0}</td>
                 <td style={{fontSize:'.75rem',color:'#6b7b8d'}}>{k.last_used_at ? fmtTime(k.last_used_at) : 'Nie'}</td>
                 <td>
                   <span className="adm-badge" style={{background:k.is_active?'#10b98122':'#ef444422',color:k.is_active?'#10b981':'#ef4444',cursor:'pointer'}} onClick={() => toggleApiKey(k.key_id, k.is_active)} data-testid={`toggle-key-${k.key_id}`}>{k.is_active ? 'Aktiv' : 'Deaktiviert'}</span>
@@ -3092,7 +3125,7 @@ curl ${API}/api/v1/docs`}
       <div className="nxai-main">
         <div className="nxai-topbar">
           <div style={{display:'flex',alignItems:'center',gap:8}}>
-            <div style={{width:28,height:28,borderRadius:6,background:'rgba(255,107,0,.12)',display:'flex',alignItems:'center',justifyContent:'center'}}><I n="psychology" /></div>
+            <div style={{width:28,height:28,borderRadius:6,background:'rgba(254,155,123,.12)',display:'flex',alignItems:'center',justifyContent:'center'}}><I n="psychology" /></div>
             <span className="nxai-topbar-title">{nxActiveConvo ? (nxConversations.find(c => c.conversation_id === nxActiveConvo)?.title || 'Konversation') : 'NeXify AI Master'}</span>
           </div>
           <button className={`nxai-mem-badge ${nxUseMemory ? '' : 'off'}`} onClick={() => setNxUseMemory(!nxUseMemory)} data-testid="nxai-memory-toggle" title={nxUseMemory ? 'Brain aktiv — klicken zum Deaktivieren' : 'Brain inaktiv — klicken zum Aktivieren'}>
@@ -3107,7 +3140,21 @@ curl ${API}/api/v1/docs`}
               <p>Operatives Gehirn und zentrale Koordinationsinstanz. Brain-gestützt, kontextbewusst, handlungsfähig.</p>
               <div style={{display:'flex',gap:8,flexWrap:'wrap',justifyContent:'center',marginTop:8}}>
                 {['Projektstatus', 'Angebotsentwurf', 'Lead-Analyse', 'Systemstatus'].map(s => (
-                  <button key={s} style={{background:'rgba(255,107,0,.06)',border:'1px solid rgba(255,107,0,.12)',color:'#FF6B00',padding:'6px 14px',borderRadius:20,fontSize:'.75rem',cursor:'pointer',transition:'all 200ms'}} onClick={() => { setNxInput(s); }} data-testid={`nxai-quick-${s}`}>{s}</button>
+                  <button key={s} style={{background:'rgba(254,155,123,.06)',border:'1px solid rgba(254,155,123,.12)',color:'#FE9B7B',padding:'6px 14px',borderRadius:20,fontSize:'.75rem',cursor:'pointer',transition:'all 200ms'}} onClick={() => { setNxInput(s); }} data-testid={`nxai-quick-${s}`}>{s}</button>
+                ))}
+              </div>
+              <div style={{display:'flex',gap:6,flexWrap:'wrap',justifyContent:'center',marginTop:12}}>
+                <span style={{fontSize:'.6875rem',color:'#3a4550',width:'100%',textAlign:'center',marginBottom:4}}>Direkte Tools</span>
+                {[
+                  {l:'Kontakte',i:'contacts',t:'Zeige mir alle Kontakte'},
+                  {l:'Leads',i:'group',t:'Zeige mir alle aktuellen Leads'},
+                  {l:'Statistiken',i:'analytics',t:'Gib mir die kompletten Systemstatistiken'},
+                  {l:'Brain',i:'psychology',t:'Durchsuche das Brain nach den wichtigsten Informationen'},
+                  {l:'Web-Suche',i:'search',t:'Suche im Web nach:'},
+                ].map(b => (
+                  <button key={b.l} style={{background:'rgba(255,255,255,.03)',border:'1px solid rgba(255,255,255,.06)',color:'#6b7b8d',padding:'5px 10px',borderRadius:16,fontSize:'.6875rem',cursor:'pointer',display:'flex',alignItems:'center',gap:4,transition:'all 200ms'}} onClick={() => setNxInput(b.t)}>
+                    <I n={b.i} />{b.l}
+                  </button>
                 ))}
               </div>
             </div>
@@ -3125,7 +3172,7 @@ curl ${API}/api/v1/docs`}
             <div className="nxai-msg assistant">
               <div className="nxai-msg-avatar">NX</div>
               <div>
-                <div className="nxai-msg-bubble" dangerouslySetInnerHTML={{ __html: renderMarkdown(nxStreamText) }} />
+                <div className="nxai-msg-bubble nxai-streaming-text">{nxStreamText}</div>
               </div>
             </div>
           )}
@@ -3180,7 +3227,6 @@ curl ${API}/api/v1/docs`}
     <div className={`adm-layout ${sidebarOpen ? '' : 'adm-collapsed'}`} data-testid="admin-panel">
       <aside className={`adm-sidebar ${sidebarOpen ? '' : 'collapsed'}`} data-testid="admin-sidebar">
         <div className="adm-sidebar-top">
-          <div className="adm-sidebar-logo"><img src="/icon-mark.svg" alt="" width="28" height="28" /><span>NeXify<em>AI</em></span></div>
         </div>
         <button className="adm-collapse-btn" onClick={() => setSidebarOpen(!sidebarOpen)} data-testid="sidebar-toggle" title={sidebarOpen ? 'Einklappen' : 'Ausklappen'}>
           <I n={sidebarOpen ? 'chevron_left' : 'chevron_right'} />
@@ -3196,6 +3242,7 @@ curl ${API}/api/v1/docs`}
       </aside>
       <main className="adm-main">
         <header className="adm-topbar">
+          <div className="adm-topbar-brand"><img src="/icon-mark.svg" alt="" width="24" height="24" /><span>NeXify<em>AI</em></span></div>
           <h1 className="adm-topbar-title">{navItems.find(n => n.id === view)?.label}</h1>
           <div className="adm-topbar-user"><I n="account_circle" /> Administration</div>
         </header>

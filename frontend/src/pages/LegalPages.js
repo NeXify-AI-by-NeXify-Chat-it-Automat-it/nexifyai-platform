@@ -232,11 +232,11 @@ const DatenschutzContent = {
         <h2>§ 4 Auftragsverarbeiter und Datenübermittlung</h2>
         <p>Wir setzen folgende Auftragsverarbeiter gemäß Art. 28 DSGVO ein:</p>
         <table style={{width:'100%',borderCollapse:'collapse',marginBottom:16}}>
-          <thead><tr style={{borderBottom:'2px solid rgba(255,107,0,0.2)'}}>
-            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FF6B00'}}>Dienstleister</th>
-            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FF6B00'}}>Zweck</th>
-            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FF6B00'}}>Standort</th>
-            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FF6B00'}}>Garantien</th>
+          <thead><tr style={{borderBottom:'2px solid rgba(254,155,123,0.2)'}}>
+            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FE9B7B'}}>Dienstleister</th>
+            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FE9B7B'}}>Zweck</th>
+            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FE9B7B'}}>Standort</th>
+            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FE9B7B'}}>Garantien</th>
           </tr></thead>
           <tbody style={{fontSize:'.8125rem'}}>
             <tr style={{borderBottom:'1px solid rgba(255,255,255,0.05)'}}><td style={{padding:'8px 12px'}}>MongoDB, Inc.</td><td style={{padding:'8px 12px'}}>Datenbankhaltung</td><td style={{padding:'8px 12px'}}>EU (Frankfurt)</td><td style={{padding:'8px 12px'}}>AES-256 at rest, TLS in transit</td></tr>
@@ -288,11 +288,11 @@ const DatenschutzContent = {
         <h2>§ 8 Cookies und lokale Speicherung</h2>
         <p>Wir verwenden ausschließlich technisch notwendige Cookies und localStorage-Einträge gemäß § 25 Abs. 2 Nr. 2 TDDDG (Deutschland), Art. 11.7a Abs. 3 Telecommunicatiewet (Niederlande) und § 165 Abs. 3 TKG 2021 (Österreich):</p>
         <table style={{width:'100%',borderCollapse:'collapse',marginBottom:16}}>
-          <thead><tr style={{borderBottom:'2px solid rgba(255,107,0,0.2)'}}>
-            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FF6B00'}}>Name</th>
-            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FF6B00'}}>Typ</th>
-            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FF6B00'}}>Zweck</th>
-            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FF6B00'}}>Dauer</th>
+          <thead><tr style={{borderBottom:'2px solid rgba(254,155,123,0.2)'}}>
+            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FE9B7B'}}>Name</th>
+            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FE9B7B'}}>Typ</th>
+            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FE9B7B'}}>Zweck</th>
+            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FE9B7B'}}>Dauer</th>
           </tr></thead>
           <tbody style={{fontSize:'.8125rem'}}>
             <tr style={{borderBottom:'1px solid rgba(255,255,255,0.05)'}}><td style={{padding:'8px 12px'}}>nx_cookie_consent</td><td style={{padding:'8px 12px'}}>localStorage</td><td style={{padding:'8px 12px'}}>Speichert Ihre Cookie-Präferenz</td><td style={{padding:'8px 12px'}}>Unbegrenzt (manuell löschbar)</td></tr>
@@ -740,12 +740,12 @@ const CookieContent = {
       <section>
         <h2>§ 3 Eingesetzte Technologien im Detail</h2>
         <table style={{width:'100%',borderCollapse:'collapse',marginBottom:16}}>
-          <thead><tr style={{borderBottom:'2px solid rgba(255,107,0,0.2)'}}>
-            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FF6B00'}}>Name</th>
-            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FF6B00'}}>Typ</th>
-            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FF6B00'}}>Zweck</th>
-            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FF6B00'}}>Speicherdauer</th>
-            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FF6B00'}}>Kategorie</th>
+          <thead><tr style={{borderBottom:'2px solid rgba(254,155,123,0.2)'}}>
+            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FE9B7B'}}>Name</th>
+            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FE9B7B'}}>Typ</th>
+            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FE9B7B'}}>Zweck</th>
+            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FE9B7B'}}>Speicherdauer</th>
+            <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FE9B7B'}}>Kategorie</th>
           </tr></thead>
           <tbody style={{fontSize:'.8125rem'}}>
             <tr style={{borderBottom:'1px solid rgba(255,255,255,0.05)'}}><td style={{padding:'8px 12px'}}>nx_cookie_consent</td><td style={{padding:'8px 12px'}}>localStorage</td><td style={{padding:'8px 12px'}}>Speichert Ihre Cookie-Einstellungen (Werte: „all" oder „essential")</td><td style={{padding:'8px 12px'}}>Persistent (manuell löschbar)</td><td style={{padding:'8px 12px'}}>Notwendig</td></tr>

@@ -460,7 +460,7 @@ const CustomerPortal = () => {
                 <button className="cp-btn cp-btn-primary" onClick={() => setShowNewRequest(true)} data-testid="cp-new-request-btn"><I n="add" /> Neue Anfrage</button>
               </div>
               {showNewRequest && (
-                <div className="cp-card" style={{marginBottom:20,borderColor:'rgba(255,107,0,0.2)'}} data-testid="cp-request-form">
+                <div className="cp-card" style={{marginBottom:20,borderColor:'rgba(254,155,123,0.2)'}} data-testid="cp-request-form">
                   <h3 style={{margin:'0 0 16px',fontSize:'.9375rem'}}>Neue Anfrage erstellen</h3>
                   <div className="cp-form">
                     <div className="cp-form-grid">
@@ -537,7 +537,7 @@ const CustomerPortal = () => {
                         <h3 style={{margin:'0 0 12px',fontSize:'.9375rem'}}>Kommerzielle Konditionen</h3>
                         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:12}}>
                           <div><div className="cp-meta-label">Gesamtvertragswert</div><div className="cp-meta-val" style={{fontSize:'1.125rem',fontWeight:700,color:'#fff'}}>{fmtEur(cd.calculation.total_contract_eur)}</div></div>
-                          <div><div className="cp-meta-label">Aktivierungsanzahlung (30%)</div><div className="cp-meta-val" style={{color:'#FF6B00',fontWeight:600}}>{fmtEur(cd.calculation.upfront_eur)}</div></div>
+                          <div><div className="cp-meta-label">Aktivierungsanzahlung (30%)</div><div className="cp-meta-val" style={{color:'#FE9B7B',fontWeight:600}}>{fmtEur(cd.calculation.upfront_eur)}</div></div>
                           <div><div className="cp-meta-label">Monatsrate</div><div className="cp-meta-val">{fmtEur(cd.calculation.recurring_eur)}/Monat</div></div>
                           <div><div className="cp-meta-label">Laufzeit</div><div className="cp-meta-val">{cd.calculation.contract_months || 0} Monate</div></div>
                         </div>
@@ -548,7 +548,7 @@ const CustomerPortal = () => {
                         <h3 style={{margin:'0 0 12px',fontSize:'.9375rem'}}>Vertragsanlagen</h3>
                         {cd.appendices_detail.map(a => (
                           <div key={a.appendix_id} style={{padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,0.03)'}} data-testid={`cp-appendix-${a.appendix_id}`}>
-                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><span style={{fontWeight:600,color:'#fff',fontSize:'.8125rem'}}>{a.title}</span>{a.pricing?.amount > 0 && <span style={{color:'#FF6B00',fontWeight:600}}>{fmtEur(a.pricing.amount)}</span>}</div>
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><span style={{fontWeight:600,color:'#fff',fontSize:'.8125rem'}}>{a.title}</span>{a.pricing?.amount > 0 && <span style={{color:'#FE9B7B',fontWeight:600}}>{fmtEur(a.pricing.amount)}</span>}</div>
                             {a.content?.description && <p style={{margin:'4px 0 0',fontSize:'.75rem',color:'#6b7b8d'}}>{a.content.description}</p>}
                           </div>
                         ))}
@@ -670,10 +670,10 @@ const CustomerPortal = () => {
                     <button className="cp-btn cp-btn-secondary cp-btn-sm" onClick={() => { setSelectedProject(null); setProjectDetail(null); }} data-testid="cp-project-back"><I n="arrow_back" /> Alle Projekte</button>
                     <div style={{display:'flex',alignItems:'center',gap:12,margin:'20px 0 16px',flexWrap:'wrap'}}>
                       <h2 style={{margin:0}}>{pd.title}</h2><span className="cp-badge" style={{background:st.c+'22',color:st.c}}>{st.l}</span>
-                      <span className="cp-badge" style={{background:'rgba(255,107,0,0.12)',color:'#FF6B00'}}>{pd.completeness||0}% abgeschlossen</span>
+                      <span className="cp-badge" style={{background:'rgba(254,155,123,0.12)',color:'#FE9B7B'}}>{pd.completeness||0}% abgeschlossen</span>
                     </div>
                     <div style={{background:'rgba(255,255,255,0.04)',borderRadius:6,height:8,marginBottom:20,overflow:'hidden'}}>
-                      <div style={{background:'linear-gradient(90deg,#FF6B00,#FF8533)',height:'100%',width:`${pd.completeness||0}%`,borderRadius:6,transition:'width .5s'}}></div>
+                      <div style={{background:'linear-gradient(90deg,#FE9B7B,#FF8533)',height:'100%',width:`${pd.completeness||0}%`,borderRadius:6,transition:'width .5s'}}></div>
                     </div>
                     {(pd.sections || []).length > 0 && (
                       <div style={{marginBottom:24}}><h3 style={{fontSize:'.9375rem',marginBottom:12}}>Projektdokumentation</h3>
@@ -689,7 +689,7 @@ const CustomerPortal = () => {
                     <div className="cp-card">
                       <div style={{maxHeight:300,overflowY:'auto',marginBottom:12}}>
                         {(pd.chat || []).map(m => (
-                          <div key={m.message_id} style={{marginBottom:8,padding:'8px 12px',background:m.sender_type==='customer'?'rgba(255,107,0,0.06)':'rgba(59,130,246,0.06)',borderRadius:6,borderLeft:`3px solid ${m.sender_type==='customer'?'#FF6B00':'#3b82f6'}`}}>
+                          <div key={m.message_id} style={{marginBottom:8,padding:'8px 12px',background:m.sender_type==='customer'?'rgba(254,155,123,0.06)':'rgba(59,130,246,0.06)',borderRadius:6,borderLeft:`3px solid ${m.sender_type==='customer'?'#FE9B7B':'#3b82f6'}`}}>
                             <div style={{display:'flex',justifyContent:'space-between',fontSize:'.6875rem',color:'#6b7b8d',marginBottom:2}}><span>{m.sender_type==='customer'?'Sie':'NeXifyAI'}</span><span>{fmtTime(m.timestamp)}</span></div>
                             <div style={{fontSize:'.8125rem',color:'#c8d1dc',whiteSpace:'pre-wrap'}}>{m.content}</div>
                           </div>
@@ -712,7 +712,7 @@ const CustomerPortal = () => {
                     return (
                       <div key={p.project_id} className="cp-card" style={{cursor:'pointer'}} onClick={() => loadProjectDetail(p.project_id)} data-testid={`cp-project-${p.project_id}`}>
                         <div className="cp-card-header"><span className="cp-card-title">{p.title}</span><span className="cp-badge" style={{background:st.c+'22',color:st.c}}>{st.l}</span></div>
-                        <div className="cp-card-body"><span>{p.tier||'-'}</span><span style={{color:'#FF6B00',fontWeight:600}}>{p.completeness||0}%</span></div>
+                        <div className="cp-card-body"><span>{p.tier||'-'}</span><span style={{color:'#FE9B7B',fontWeight:600}}>{p.completeness||0}%</span></div>
                         <div className="cp-card-footer"><span>{fmtDate(p.created_at)}</span></div>
                       </div>
                     );
@@ -818,7 +818,7 @@ const CustomerPortal = () => {
                 <button className="cp-btn cp-btn-primary" onClick={() => setShowNewBooking(true)} data-testid="cp-new-booking-btn"><I n="calendar_add_on"/> Termin buchen</button>
               </div>
               {showNewBooking && (
-                <div className="cp-card" style={{marginBottom:20,borderColor:'rgba(255,107,0,0.2)'}} data-testid="cp-booking-form">
+                <div className="cp-card" style={{marginBottom:20,borderColor:'rgba(254,155,123,0.2)'}} data-testid="cp-booking-form">
                   <h3 style={{margin:'0 0 16px',fontSize:'.9375rem'}}>Neuen Termin buchen</h3>
                   <div className="cp-form">
                     <div className="cp-form-grid">
@@ -853,7 +853,7 @@ const CustomerPortal = () => {
                 <button className="cp-btn cp-btn-primary" onClick={() => setShowNewMessage(true)} data-testid="cp-new-message-btn"><I n="edit"/> Neue Nachricht</button>
               </div>
               {showNewMessage && (
-                <div className="cp-card" style={{marginBottom:20,borderColor:'rgba(255,107,0,0.2)'}} data-testid="cp-message-form">
+                <div className="cp-card" style={{marginBottom:20,borderColor:'rgba(254,155,123,0.2)'}} data-testid="cp-message-form">
                   <h3 style={{margin:'0 0 16px',fontSize:'.9375rem'}}>Nachricht an das Team</h3>
                   <div className="cp-form">
                     <div className="cp-form-grid">
@@ -871,7 +871,7 @@ const CustomerPortal = () => {
                 <div className="cp-empty"><I n="chat"/><p>Noch keine Nachrichten gesendet.</p></div>
               ) : customerMessages.map(m => {
                 const catMap = { general:'Allgemein', project:'Projekt', billing:'Rechnung', feedback:'Feedback' };
-                const stMap = { unread:{l:'Gesendet',c:'#3b82f6'}, read:{l:'Gelesen',c:'#10b981'}, replied:{l:'Beantwortet',c:'#FF6B00'} };
+                const stMap = { unread:{l:'Gesendet',c:'#3b82f6'}, read:{l:'Gelesen',c:'#10b981'}, replied:{l:'Beantwortet',c:'#FE9B7B'} };
                 const st = stMap[m.status] || stMap.unread;
                 return (
                   <div key={m.message_id} className="cp-card" data-testid={`cp-msg-${m.message_id}`}>
@@ -892,7 +892,7 @@ const CustomerPortal = () => {
                 <button className="cp-btn cp-btn-primary" onClick={() => setShowNewTicket(true)} data-testid="cp-new-ticket-btn"><I n="add"/> Neues Ticket</button>
               </div>
               {showNewTicket && (
-                <div className="cp-card" style={{marginBottom:20,borderColor:'rgba(255,107,0,0.2)'}} data-testid="cp-ticket-form">
+                <div className="cp-card" style={{marginBottom:20,borderColor:'rgba(254,155,123,0.2)'}} data-testid="cp-ticket-form">
                   <h3 style={{margin:'0 0 16px',fontSize:'.9375rem'}}>Support-Ticket erstellen</h3>
                   <div className="cp-form">
                     <div className="cp-form-grid">
@@ -963,7 +963,7 @@ const CustomerPortal = () => {
                   {customerDocs.map(doc => (
                     <div key={doc.document_id} className="cp-card cp-doc-item" data-testid={`cp-doc-${doc.document_id}`}>
                       <div className="cp-doc-icon"><I n={{pdf:'picture_as_pdf',contract:'gavel',invoice:'receipt',quote:'description'}[doc.type]||'description'}/></div>
-                      <div className="cp-doc-info"><div className="cp-doc-label">{doc.title || doc.document_id}</div><div className="cp-doc-meta"><span className="cp-badge cp-badge-sm" style={{background:'rgba(255,107,0,0.1)',color:'#FF6B00'}}>{doc.type}</span><span className="cp-doc-date">{fmtDate(doc.created_at)}</span></div></div>
+                      <div className="cp-doc-info"><div className="cp-doc-label">{doc.title || doc.document_id}</div><div className="cp-doc-meta"><span className="cp-badge cp-badge-sm" style={{background:'rgba(254,155,123,0.1)',color:'#FE9B7B'}}>{doc.type}</span><span className="cp-doc-date">{fmtDate(doc.created_at)}</span></div></div>
                       {doc.download_url && <a href={`${API}${doc.download_url}`} target="_blank" rel="noreferrer" className="cp-btn cp-btn-sm"><I n="download"/> Herunterladen</a>}
                     </div>
                   ))}
@@ -983,7 +983,7 @@ const CustomerPortal = () => {
                       <div className="cp-timeline-dot"></div>
                       <div className="cp-timeline-content">
                         <span className="cp-timeline-action">{ev.action}</span>
-                        {ev.entity_type && <span className="cp-badge cp-badge-sm" style={{background:'rgba(255,107,0,0.1)',color:'#FF6B00'}}>{ev.entity_type}</span>}
+                        {ev.entity_type && <span className="cp-badge cp-badge-sm" style={{background:'rgba(254,155,123,0.1)',color:'#FE9B7B'}}>{ev.entity_type}</span>}
                         <span className="cp-timeline-date">{fmtTime(ev.timestamp || ev.created_at)}</span>
                       </div>
                     </div>

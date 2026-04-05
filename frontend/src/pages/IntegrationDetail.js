@@ -97,7 +97,7 @@ export default function IntegrationDetail() {
               <span>{integration.name}</span>
             </div>
             <div className="intd-hero-content">
-              <div className="intd-hero-icon" style={{ borderColor: featured?.color ? `${featured.color}33` : 'rgba(255,107,0,0.15)' }}>
+              <div className="intd-hero-icon" style={{ borderColor: featured?.color ? `${featured.color}33` : 'rgba(254,155,123,0.15)' }}>
                 <I n={featured?.logo || integration.category.icon} c="intd-hero-icon-inner" />
               </div>
               <div>
@@ -166,7 +166,7 @@ export default function IntegrationDetail() {
                 const cf = getFeaturedDetail(cSlug);
                 return (
                   <Link key={cSlug} to={`/integrationen/${cSlug}`} className="intd-combined-card" data-testid={`intd-combined-${cSlug}`}>
-                    <div className="intd-combined-icon" style={{ borderColor: cf?.color ? `${cf.color}33` : 'rgba(255,107,0,0.15)' }}>
+                    <div className="intd-combined-icon" style={{ borderColor: cf?.color ? `${cf.color}33` : 'rgba(254,155,123,0.15)' }}>
                       <I n={cf?.logo || ci.category.icon} />
                     </div>
                     <div className="intd-combined-name">{ci.name}</div>

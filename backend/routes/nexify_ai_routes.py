@@ -94,6 +94,34 @@ Operativ: 1. Ziel 2. Geladener Kontext 3. Verifizierte Fakten 4. Offene Punkte 5
 ## Kommunikationsstandard
 Klar, direkt, priorisiert, sachlich, präzise, handlungsorientiert. Keine Floskeln. Keine generische KI-Sprache. Sprache: Deutsch.
 
+## Verfügbare Tools
+Du kannst folgende operative Tools nutzen. Um ein Tool auszuführen, antworte mit einem JSON-Block im Format:
+```tool
+{"tool": "tool_name", "params": {"key": "value"}}
+```
+
+Verfügbare Tools:
+- **list_contacts** — Kontakte auflisten (params: search, limit)
+- **create_contact** — Neuen Kontakt anlegen (params: email, first_name, last_name, company, phone)
+- **list_leads** — Leads auflisten (params: status, limit)
+- **create_lead** — Neuen Lead anlegen (params: email, vorname, nachname, unternehmen, nachricht)
+- **list_quotes** — Angebote auflisten (params: status, limit)
+- **list_contracts** — Verträge auflisten (params: status)
+- **list_projects** — Projekte auflisten (params: status)
+- **list_invoices** — Rechnungen auflisten (params: status)
+- **system_stats** — Systemstatistiken abrufen
+- **send_email** — E-Mail senden (params: to, subject, body)
+- **search_brain** — mem0 Brain durchsuchen (params: query)
+- **store_brain** — Wissen im Brain speichern (params: content, scope)
+- **audit_log** — Audit-Einträge abrufen (params: limit)
+- **list_api_keys** — API-Keys auflisten
+- **db_query** — MongoDB-Abfrage (params: collection, query, projection, limit)
+- **worker_status** — Worker/Scheduler-Status abrufen
+- **timeline** — Timeline-Events abrufen (params: ref_id, limit)
+- **web_search** — Web-Suche (params: query)
+
+Wenn du ein Tool nutzen willst, schreibe den Tool-Aufruf in einen ```tool``` Code-Block. Das System führt das Tool automatisch aus und liefert dir das Ergebnis.
+
 ## Unternehmenskontext
 NeXify Automate — Eenmanszaak, KvK 90483944, BTW-ID NL865786276B01
 Hauptsitz: Graaf van Loonstraat 1E, 5921 JA Venlo, Niederlande
@@ -457,3 +485,258 @@ async def nexify_ai_status(admin: dict = Depends(get_admin_from_token)):
         "mem0": {"configured": mem0_ok, "user_id": MEM0_USER_ID, "agent_id": MEM0_AGENT_ID},
         "stats": {"conversations": conv_count, "messages": msg_count}
     }
+
+
+# ══════════════════════════════════════════════════════════════
+# TOOL EXECUTION — NeXify AI Internal Tools
+# ══════════════════════════════════════════════════════════════
+
+AVAILABLE_TOOLS = {
+    "list_contacts": "Kontakte auflisten (optional: search, limit)",
+    "create_contact": "Neuen Kontakt anlegen (email, first_name, last_name, company, phone)",
+    "list_leads": "Leads auflisten (optional: status, limit)",
+    "create_lead": "Neuen Lead anlegen (email, vorname, nachname, unternehmen, nachricht)",
+    "list_quotes": "Angebote auflisten (optional: status, limit)",
+    "list_contracts": "Verträge auflisten (optional: status)",
+    "list_projects": "Projekte auflisten (optional: status)",
+    "list_invoices": "Rechnungen auflisten (optional: status)",
+    "system_stats": "Systemstatistiken abrufen",
+    "send_email": "E-Mail senden (to, subject, body)",
+    "search_brain": "mem0 Brain durchsuchen (query)",
+    "store_brain": "Wissen im Brain speichern (content, scope)",
+    "list_conversations": "NeXify AI Konversationen auflisten",
+    "audit_log": "Letzte Audit-Einträge abrufen (limit)",
+    "list_api_keys": "Aktive API-Keys auflisten",
+    "db_query": "MongoDB-Abfrage auf beliebige Collection (collection, query, projection, limit)",
+    "worker_status": "Worker/Scheduler-Status abrufen",
+    "timeline": "Timeline-Events für einen Kunden/Lead (ref_id, limit)",
+    "web_search": "Web-Suche durchführen (query)",
+}
+
+
+class ToolRequest(BaseModel):
+    tool: str
+    params: dict = {}
+
+
+@router.get("/api/admin/nexify-ai/tools")
+async def list_tools(admin: dict = Depends(get_admin_from_token)):
+    """Liste aller verfügbaren Tools."""
+    return {"tools": AVAILABLE_TOOLS}
+
+
+@router.post("/api/admin/nexify-ai/execute-tool")
+async def execute_tool(body: ToolRequest, admin: dict = Depends(get_admin_from_token)):
+    """Ein Tool ausführen und Ergebnis zurückgeben."""
+    tool = body.tool
+    p = body.params
+
+    try:
+        if tool == "list_contacts":
+            query = {}
+            if p.get("search"):
+                query["$or"] = [
+                    {"email": {"$regex": p["search"], "$options": "i"}},
+                    {"first_name": {"$regex": p["search"], "$options": "i"}},
+                    {"last_name": {"$regex": p["search"], "$options": "i"}},
+                    {"company": {"$regex": p["search"], "$options": "i"}},
+                ]
+            items = []
+            limit = min(int(p.get("limit", 20)), 100)
+            async for c in S.db.contacts.find(query, {"_id": 0}).sort("created_at", -1).limit(limit):
+                items.append(c)
+            return {"result": items, "count": len(items), "tool": tool}
+
+        elif tool == "create_contact":
+            from routes.shared import new_id
+            cid = new_id("con")
+            doc = {
+                "contact_id": cid, "email": p.get("email", "").lower(),
+                "first_name": p.get("first_name", ""), "last_name": p.get("last_name", ""),
+                "company": p.get("company", ""), "phone": p.get("phone", ""),
+                "source": "nexify_ai", "created_at": utcnow().isoformat(),
+                "updated_at": utcnow().isoformat(), "tags": p.get("tags", []),
+            }
+            await S.db.contacts.insert_one(doc)
+            doc.pop("_id", None)
+            return {"result": doc, "tool": tool}
+
+        elif tool == "list_leads":
+            query = {}
+            if p.get("status"): query["status"] = p["status"]
+            items = []
+            limit = min(int(p.get("limit", 20)), 100)
+            async for l in S.db.leads.find(query, {"_id": 0}).sort("created_at", -1).limit(limit):
+                items.append(l)
+            return {"result": items, "count": len(items), "tool": tool}
+
+        elif tool == "create_lead":
+            lid = new_id("lead")
+            doc = {
+                "lead_id": lid, "email": p.get("email", "").lower(),
+                "vorname": p.get("vorname", ""), "nachname": p.get("nachname", ""),
+                "unternehmen": p.get("unternehmen", ""), "telefon": p.get("telefon", ""),
+                "nachricht": p.get("nachricht", ""), "source": "nexify_ai",
+                "kanal": "nexify_ai", "status": "new",
+                "created_at": utcnow().isoformat(),
+            }
+            await S.db.leads.insert_one(doc)
+            doc.pop("_id", None)
+            return {"result": doc, "tool": tool}
+
+        elif tool == "list_quotes":
+            query = {}
+            if p.get("status"): query["status"] = p["status"]
+            items = []
+            async for q in S.db.quotes.find(query, {"_id": 0}).sort("created_at", -1).limit(int(p.get("limit", 20))):
+                items.append(q)
+            return {"result": items, "count": len(items), "tool": tool}
+
+        elif tool == "list_contracts":
+            query = {}
+            if p.get("status"): query["status"] = p["status"]
+            items = []
+            async for c in S.db.contracts.find(query, {"_id": 0}).sort("created_at", -1).limit(20):
+                items.append(c)
+            return {"result": items, "count": len(items), "tool": tool}
+
+        elif tool == "list_projects":
+            query = {}
+            if p.get("status"): query["status"] = p["status"]
+            items = []
+            async for pr in S.db.projects.find(query, {"_id": 0}).sort("created_at", -1).limit(20):
+                items.append(pr)
+            return {"result": items, "count": len(items), "tool": tool}
+
+        elif tool == "list_invoices":
+            query = {}
+            if p.get("status"): query["status"] = p["status"]
+            items = []
+            async for inv in S.db.invoices.find(query, {"_id": 0}).sort("created_at", -1).limit(20):
+                items.append(inv)
+            return {"result": items, "count": len(items), "tool": tool}
+
+        elif tool == "system_stats":
+            stats = {
+                "contacts": await S.db.contacts.count_documents({}),
+                "leads": await S.db.leads.count_documents({}),
+                "quotes": await S.db.quotes.count_documents({}),
+                "contracts": await S.db.contracts.count_documents({}),
+                "projects": await S.db.projects.count_documents({}),
+                "invoices": await S.db.invoices.count_documents({}),
+                "api_keys": await S.db.api_keys.count_documents({"is_active": True}),
+                "conversations": await S.db.nexify_ai_conversations.count_documents({}),
+                "admin_users": await S.db.admin_users.count_documents({}),
+                "timestamp": utcnow().isoformat(),
+            }
+            return {"result": stats, "tool": tool}
+
+        elif tool == "send_email":
+            from routes.shared import send_email
+            to_addr = p.get("to", "")
+            subject = p.get("subject", "")
+            body_html = p.get("body", "").replace("\n", "<br>")
+            if not to_addr or not subject:
+                return {"error": "Felder 'to' und 'subject' sind erforderlich", "tool": tool}
+            result = await send_email([to_addr], subject, body_html, category="nexify_ai")
+            return {"result": "E-Mail gesendet" if result else "E-Mail-Versand fehlgeschlagen", "tool": tool}
+
+        elif tool == "search_brain":
+            memories = await mem0_search(p.get("query", ""), int(p.get("top_k", 5)))
+            return {"result": memories, "count": len(memories), "tool": tool}
+
+        elif tool == "store_brain":
+            content = p.get("content", "")
+            scope = p.get("scope", "operational")
+            if not content:
+                return {"error": "Feld 'content' ist erforderlich", "tool": tool}
+            result = await mem0_store(
+                messages=[
+                    {"role": "user", "content": f"Speichere im Brain: {content}"},
+                    {"role": "assistant", "content": f"Gespeichert: {content}"}
+                ],
+                metadata={"scope": scope, "memory_layer": "KNOWLEDGE", "source": "nexify_ai_tool"}
+            )
+            return {"result": "Im Brain gespeichert" if result else "Speichern fehlgeschlagen", "tool": tool}
+
+        elif tool == "list_conversations":
+            items = []
+            async for c in S.db.nexify_ai_conversations.find({}, {"_id": 0}).sort("updated_at", -1).limit(20):
+                items.append(c)
+            return {"result": items, "count": len(items), "tool": tool}
+
+        elif tool == "audit_log":
+            items = []
+            limit = min(int(p.get("limit", 20)), 50)
+            async for a in S.db.audit_log.find({}, {"_id": 0}).sort("timestamp", -1).limit(limit):
+                items.append(a)
+            return {"result": items, "count": len(items), "tool": tool}
+
+        elif tool == "list_api_keys":
+            items = []
+            async for k in S.db.api_keys.find({"is_active": True}, {"_id": 0, "key_hash": 0}).sort("created_at", -1):
+                items.append(k)
+            return {"result": items, "count": len(items), "tool": tool}
+
+        elif tool == "db_query":
+            coll_name = p.get("collection", "")
+            if not coll_name:
+                return {"error": "Feld 'collection' ist erforderlich", "tool": tool}
+            blocked = {"admin_users"}
+            if coll_name in blocked:
+                return {"error": f"Zugriff auf '{coll_name}' nicht erlaubt", "tool": tool}
+            query = p.get("query", {})
+            projection = p.get("projection", {"_id": 0})
+            projection["_id"] = 0
+            limit = min(int(p.get("limit", 10)), 50)
+            coll = S.db[coll_name]
+            items = []
+            async for doc in coll.find(query, projection).limit(limit):
+                items.append(doc)
+            return {"result": items, "count": len(items), "collection": coll_name, "tool": tool}
+
+        elif tool == "worker_status":
+            from workers.manager import WorkerManager
+            try:
+                wm = WorkerManager.instance if hasattr(WorkerManager, 'instance') else None
+                if wm:
+                    return {"result": {"status": "running", "jobs": wm.get_status()}, "tool": tool}
+                return {"result": {"status": "not_initialized"}, "tool": tool}
+            except Exception as e:
+                return {"result": {"status": "error", "detail": str(e)}, "tool": tool}
+
+        elif tool == "timeline":
+            ref_id = p.get("ref_id", "")
+            if not ref_id:
+                return {"error": "Feld 'ref_id' ist erforderlich", "tool": tool}
+            items = []
+            limit = min(int(p.get("limit", 20)), 50)
+            async for ev in S.db.timeline_events.find({"ref_id": ref_id}, {"_id": 0}).sort("timestamp", -1).limit(limit):
+                items.append(ev)
+            return {"result": items, "count": len(items), "tool": tool}
+
+        elif tool == "web_search":
+            query_text = p.get("query", "")
+            if not query_text:
+                return {"error": "Feld 'query' ist erforderlich", "tool": tool}
+            jina_key = os.environ.get("JINA_API_KEY", "")
+            if not jina_key:
+                return {"error": "JINA_API_KEY nicht konfiguriert", "tool": tool}
+            try:
+                async with httpx.AsyncClient(timeout=15) as client:
+                    resp = await client.get(
+                        f"https://s.jina.ai/{query_text}",
+                        headers={"Authorization": f"Bearer {jina_key}", "Accept": "application/json"}
+                    )
+                    if resp.status_code == 200:
+                        return {"result": resp.json(), "tool": tool}
+                    return {"result": f"Suche fehlgeschlagen: {resp.status_code}", "tool": tool}
+            except Exception as e:
+                return {"error": str(e), "tool": tool}
+
+        else:
+            return {"error": f"Unbekanntes Tool: {tool}", "available": list(AVAILABLE_TOOLS.keys()), "tool": tool}
+
+    except Exception as e:
+        logger.error(f"Tool execution error ({tool}): {e}")
+        return {"error": str(e), "tool": tool}

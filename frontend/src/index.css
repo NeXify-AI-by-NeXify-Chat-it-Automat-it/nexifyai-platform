@@ -15,10 +15,10 @@
   --nx-muted: #94a3b8;
   --nx-dim: #64748b;
   /* ── CI-Oranje (Primär-Akzent, niederländisches Orange) ── */
-  --nx-accent: #FF6B00;
-  --nx-accent-h: #FF8533;
-  --nx-accent-bg: rgba(255,107,0,0.07);
-  --nx-accent-b: rgba(255,107,0,0.18);
+  --nx-accent: #FE9B7B;
+  --nx-accent-h: #FEAF96;
+  --nx-accent-bg: rgba(254,155,123,0.07);
+  --nx-accent-b: rgba(254,155,123,0.18);
   /* ── CI-Blau (Sekundär, Information) ── */
   --nx-blue: #2563EB;
   --nx-blue-h: #3B82F6;

@@ -106,7 +106,7 @@
 }
 
 .ul-visual-ai {
-  color: var(--nx-accent, #FF6B00);
+  color: var(--nx-accent, #FE9B7B);
   font-style: normal;
 }
 
@@ -404,7 +404,7 @@
 
 .ul-field label {
   font-family: var(--f-display, 'Plus Jakarta Sans', sans-serif);
-  color: var(--nx-accent, #FF6B00);
+  color: var(--nx-accent, #FE9B7B);
   font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -495,7 +495,7 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  background: var(--nx-accent, #FF6B00);
+  background: var(--nx-accent, #FE9B7B);
   color: #0c1117;
   font-family: var(--f-display, 'Plus Jakarta Sans', sans-serif);
   font-weight: 700;
@@ -617,7 +617,7 @@
   width: 36px;
   height: 36px;
   border: 2.5px solid rgba(255, 255, 255, 0.06);
-  border-top-color: var(--nx-accent, #FF6B00);
+  border-top-color: var(--nx-accent, #FE9B7B);
   border-radius: 50%;
   animation: ul-spin 0.7s linear infinite;
   margin: 0 auto;
@@ -804,11 +804,11 @@
   margin: 4px 0;
 }
 .ul-checkbox input[type="checkbox"] {
-  accent-color: var(--nx-accent, #FF6B00);
+  accent-color: var(--nx-accent, #FE9B7B);
   width: 16px; height: 16px; margin-top: 1px; flex-shrink: 0;
   cursor: pointer;
 }
-.ul-checkbox a { color: var(--nx-accent, #FF6B00); text-decoration: underline; }
+.ul-checkbox a { color: var(--nx-accent, #FE9B7B); text-decoration: underline; }
 .ul-trust-row {
   display: flex; justify-content: center; gap: 16px;
   font-size: .6875rem; color: rgba(255,255,255,.25);
