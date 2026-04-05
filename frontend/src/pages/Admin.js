@@ -136,7 +136,7 @@ const Admin = () => {
   const [copiedKey, setCopiedKey] = useState(false);
   /* NeXify AI Chat State */
   const [nxConversations, setNxConversations] = useState([]);
-  const [nxActiveConvo, setNxActiveConvo] = useState(null);
+  const [nxActiveConvo, setNxActiveConvo] = useState(() => localStorage.getItem('nx_active_convo') || null);
   const [nxMessages, setNxMessages] = useState([]);
   const [nxInput, setNxInput] = useState('');
   const [nxStreaming, setNxStreaming] = useState(false);
@@ -145,6 +145,13 @@ const Admin = () => {
   const [nxStatus, setNxStatus] = useState(null);
   const nxMessagesEndRef = useRef(null);
   const nxTextareaRef = useRef(null);
+  const nxMessagesContainerRef = useRef(null);
+
+  // Persist active conversation
+  useEffect(() => {
+    if (nxActiveConvo) localStorage.setItem('nx_active_convo', nxActiveConvo);
+    else localStorage.removeItem('nx_active_convo');
+  }, [nxActiveConvo]);
   const [webhooksLoading, setWebhooksLoading] = useState(false);
   const [legalAudit, setLegalAudit] = useState([]);
   const [legalRisks, setLegalRisks] = useState([]);
@@ -567,7 +574,7 @@ const Admin = () => {
 
   useEffect(() => { if (token && view === 'monitoring') loadMonitoring(); }, [token, view]); // eslint-disable-line
   useEffect(() => { if (token && view === 'api_keys') loadApiKeys(); }, [token, view]); // eslint-disable-line
-  useEffect(() => { if (token && view === 'nexify_ai') { loadNxConversations(); loadNxStatus(); } }, [token, view]); // eslint-disable-line
+  useEffect(() => { if (token && view === 'nexify_ai') { loadNxConversations(); loadNxStatus(); if (nxActiveConvo) loadNxConversation(nxActiveConvo); } }, [token, view]); // eslint-disable-line
 
   const logout = () => { setToken(''); localStorage.removeItem('nx_admin_token'); localStorage.removeItem('nx_auth'); };
 
@@ -2711,7 +2718,11 @@ const Admin = () => {
   }, [apiFetch]);
 
   const nxScrollToBottom = () => {
-    if (nxMessagesEndRef.current) nxMessagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    requestAnimationFrame(() => {
+      if (nxMessagesContainerRef.current) {
+        nxMessagesContainerRef.current.scrollTop = nxMessagesContainerRef.current.scrollHeight;
+      }
+    });
   };
 
   const renderMarkdown = (text) => {
@@ -3132,7 +3143,7 @@ curl ${API}/api/v1/docs`}
             <I n={nxUseMemory ? 'psychology' : 'psychology_alt'} />{nxUseMemory ? 'Brain aktiv' : 'Brain aus'}
           </button>
         </div>
-        <div className="nxai-messages" data-testid="nxai-messages">
+        <div className="nxai-messages" data-testid="nxai-messages" ref={nxMessagesContainerRef}>
           {nxMessages.length === 0 && !nxStreamText && (
             <div className="nxai-empty">
               <I n="psychology" />

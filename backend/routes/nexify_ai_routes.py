@@ -100,25 +100,51 @@ Du kannst folgende operative Tools nutzen. Um ein Tool auszuführen, antworte mi
 {"tool": "tool_name", "params": {"key": "value"}}
 ```
 
-Verfügbare Tools:
+### CRM & Daten
 - **list_contacts** — Kontakte auflisten (params: search, limit)
-- **create_contact** — Neuen Kontakt anlegen (params: email, first_name, last_name, company, phone)
-- **list_leads** — Leads auflisten (params: status, limit)
-- **create_lead** — Neuen Lead anlegen (params: email, vorname, nachname, unternehmen, nachricht)
-- **list_quotes** — Angebote auflisten (params: status, limit)
-- **list_contracts** — Verträge auflisten (params: status)
-- **list_projects** — Projekte auflisten (params: status)
-- **list_invoices** — Rechnungen auflisten (params: status)
-- **system_stats** — Systemstatistiken abrufen
+- **create_contact** — Kontakt anlegen (params: email, first_name, last_name, company, phone)
+- **list_leads** / **create_lead** — Leads verwalten
+- **list_quotes** / **list_contracts** / **list_projects** / **list_invoices** — Geschäftsdaten lesen
+- **system_stats** — Systemstatistiken
+
+### Kommunikation
 - **send_email** — E-Mail senden (params: to, subject, body)
-- **search_brain** — mem0 Brain durchsuchen (params: query)
-- **store_brain** — Wissen im Brain speichern (params: content, scope)
-- **audit_log** — Audit-Einträge abrufen (params: limit)
-- **list_api_keys** — API-Keys auflisten
-- **db_query** — MongoDB-Abfrage (params: collection, query, projection, limit)
-- **worker_status** — Worker/Scheduler-Status abrufen
-- **timeline** — Timeline-Events abrufen (params: ref_id, limit)
+- **http_request** — HTTP-Anfrage (params: url, method, headers, body)
+
+### Brain & Memory
+- **search_brain** — mem0 Brain durchsuchen (params: query, top_k)
+- **store_brain** — Wissen speichern (params: content, scope)
+
+### Code & Automation
+- **execute_python** — Python-Code ausführen (params: code) — max 30s
+- **execute_shell** — Shell-Befehl ausführen (params: command) — max 15s
+
+### Web & Recherche
 - **web_search** — Web-Suche (params: query)
+- **scrape_url** — Webseite abrufen und Inhalt extrahieren (params: url)
+
+### Agenten-Management
+- **list_agents** — Alle AI-Agenten auflisten
+- **create_agent** — Neuen Agenten erstellen (params: name, role, system_prompt, tools, model)
+- **update_agent** / **delete_agent** — Agenten verwalten
+- **invoke_agent** — Fachagenten mit Auftrag aufrufen (params: agent_id, message)
+
+### Scheduling
+- **schedule_task** — Geplante Aufgabe erstellen (params: name, cron, tool, params)
+- **list_scheduled_tasks** / **delete_scheduled_task** — Aufgaben verwalten
+
+### Datenbank
+- **db_query** — MongoDB lesen (params: collection, query, projection, limit)
+- **db_write** — MongoDB schreiben (params: collection, operation: insert/update/delete, doc, query)
+
+### Dateien
+- **read_file** / **write_file** / **list_files** — Dateien im Arbeitsverzeichnis verwalten
+
+### Administration
+- **audit_log** — Audit-Einträge abrufen
+- **list_api_keys** — API-Keys auflisten
+- **self_status** — Eigenen Status und Konfiguration abrufen
+- **update_config** — Eigene Konfiguration ändern
 
 Wenn du ein Tool nutzen willst, schreibe den Tool-Aufruf in einen ```tool``` Code-Block. Das System führt das Tool automatisch aus und liefert dir das Ergebnis.
 
@@ -492,6 +518,7 @@ async def nexify_ai_status(admin: dict = Depends(get_admin_from_token)):
 # ══════════════════════════════════════════════════════════════
 
 AVAILABLE_TOOLS = {
+    # CRM & Daten
     "list_contacts": "Kontakte auflisten (optional: search, limit)",
     "create_contact": "Neuen Kontakt anlegen (email, first_name, last_name, company, phone)",
     "list_leads": "Leads auflisten (optional: status, limit)",
@@ -501,16 +528,43 @@ AVAILABLE_TOOLS = {
     "list_projects": "Projekte auflisten (optional: status)",
     "list_invoices": "Rechnungen auflisten (optional: status)",
     "system_stats": "Systemstatistiken abrufen",
+    # Kommunikation
     "send_email": "E-Mail senden (to, subject, body)",
+    # Brain & Memory
     "search_brain": "mem0 Brain durchsuchen (query)",
     "store_brain": "Wissen im Brain speichern (content, scope)",
+    # Administration
     "list_conversations": "NeXify AI Konversationen auflisten",
     "audit_log": "Letzte Audit-Einträge abrufen (limit)",
     "list_api_keys": "Aktive API-Keys auflisten",
     "db_query": "MongoDB-Abfrage auf beliebige Collection (collection, query, projection, limit)",
+    "db_write": "MongoDB-Dokument einfügen oder aktualisieren (collection, operation: insert/update/delete, doc, query)",
     "worker_status": "Worker/Scheduler-Status abrufen",
     "timeline": "Timeline-Events für einen Kunden/Lead (ref_id, limit)",
+    # Externes
     "web_search": "Web-Suche durchführen (query)",
+    "http_request": "HTTP-Anfrage an beliebige URL senden (url, method, headers, body)",
+    "scrape_url": "Webseite abrufen und Inhalt extrahieren (url)",
+    # Code & Automation
+    "execute_python": "Python-Code ausführen (code) — Sandbox, max 30s",
+    "execute_shell": "Shell-Befehl ausführen (command) — eingeschränkt, max 15s",
+    # Agenten-Management
+    "list_agents": "Alle konfigurierten AI-Agenten auflisten",
+    "create_agent": "Neuen AI-Agenten erstellen (name, role, system_prompt, tools, model)",
+    "update_agent": "Agenten aktualisieren (agent_id, updates)",
+    "delete_agent": "Agenten löschen (agent_id)",
+    "invoke_agent": "Einen Fachagenten mit einem Auftrag aufrufen (agent_id, message)",
+    # Scheduling & Automation
+    "schedule_task": "Geplante Aufgabe erstellen (name, cron, tool, params, description)",
+    "list_scheduled_tasks": "Alle geplanten Aufgaben auflisten",
+    "delete_scheduled_task": "Geplante Aufgabe löschen (task_id)",
+    # Dateien
+    "read_file": "Datei lesen (path) — nur im Arbeitsverzeichnis",
+    "write_file": "Datei schreiben (path, content) — nur im Arbeitsverzeichnis",
+    "list_files": "Dateien in einem Verzeichnis auflisten (path)",
+    # Selbstoptimierung
+    "self_status": "Eigenen Status, Konfiguration und Performance abrufen",
+    "update_config": "Eigene Konfiguration aktualisieren (key, value)",
 }
 
 
@@ -548,7 +602,6 @@ async def execute_tool(body: ToolRequest, admin: dict = Depends(get_admin_from_t
             return {"result": items, "count": len(items), "tool": tool}
 
         elif tool == "create_contact":
-            from routes.shared import new_id
             cid = new_id("con")
             doc = {
                 "contact_id": cid, "email": p.get("email", "").lower(),
@@ -733,6 +786,318 @@ async def execute_tool(body: ToolRequest, admin: dict = Depends(get_admin_from_t
                     return {"result": f"Suche fehlgeschlagen: {resp.status_code}", "tool": tool}
             except Exception as e:
                 return {"error": str(e), "tool": tool}
+
+        # ──────── HTTP REQUEST ────────
+        elif tool == "http_request":
+            url = p.get("url", "")
+            method = p.get("method", "GET").upper()
+            headers = p.get("headers", {})
+            body_data = p.get("body")
+            if not url:
+                return {"error": "Feld 'url' ist erforderlich", "tool": tool}
+            try:
+                async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
+                    kwargs = {"headers": headers}
+                    if body_data and method in ("POST", "PUT", "PATCH"):
+                        kwargs["json"] = body_data if isinstance(body_data, dict) else {"data": body_data}
+                    resp = await client.request(method, url, **kwargs)
+                    try:
+                        result_body = resp.json()
+                    except Exception:
+                        result_body = resp.text[:3000]
+                    return {"result": {"status": resp.status_code, "body": result_body, "headers": dict(resp.headers)}, "tool": tool}
+            except Exception as e:
+                return {"error": str(e), "tool": tool}
+
+        # ──────── SCRAPE URL ────────
+        elif tool == "scrape_url":
+            url = p.get("url", "")
+            if not url:
+                return {"error": "Feld 'url' ist erforderlich", "tool": tool}
+            jina_key = os.environ.get("JINA_API_KEY", "")
+            try:
+                async with httpx.AsyncClient(timeout=20) as client:
+                    headers = {"Accept": "application/json"}
+                    if jina_key:
+                        headers["Authorization"] = f"Bearer {jina_key}"
+                    resp = await client.get(f"https://r.jina.ai/{url}", headers=headers)
+                    if resp.status_code == 200:
+                        return {"result": resp.json() if 'json' in resp.headers.get('content-type', '') else resp.text[:5000], "tool": tool}
+                    return {"error": f"Scrape fehlgeschlagen: {resp.status_code}", "tool": tool}
+            except Exception as e:
+                return {"error": str(e), "tool": tool}
+
+        # ──────── EXECUTE PYTHON ────────
+        elif tool == "execute_python":
+            code = p.get("code", "")
+            if not code:
+                return {"error": "Feld 'code' ist erforderlich", "tool": tool}
+            import subprocess
+            try:
+                result = subprocess.run(
+                    ["python3", "-c", code],
+                    capture_output=True, text=True, timeout=30,
+                    cwd="/tmp", env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
+                )
+                return {
+                    "result": {
+                        "stdout": result.stdout[:5000],
+                        "stderr": result.stderr[:2000],
+                        "exit_code": result.returncode
+                    }, "tool": tool
+                }
+            except subprocess.TimeoutExpired:
+                return {"error": "Zeitüberschreitung (max 30s)", "tool": tool}
+            except Exception as e:
+                return {"error": str(e), "tool": tool}
+
+        # ──────── EXECUTE SHELL ────────
+        elif tool == "execute_shell":
+            command = p.get("command", "")
+            if not command:
+                return {"error": "Feld 'command' ist erforderlich", "tool": tool}
+            blocked_cmds = ["rm -rf /", "mkfs", "dd if=", "shutdown", "reboot", "> /dev/"]
+            if any(b in command for b in blocked_cmds):
+                return {"error": "Befehl aus Sicherheitsgründen blockiert", "tool": tool}
+            import subprocess
+            try:
+                result = subprocess.run(
+                    command, shell=True, capture_output=True, text=True,
+                    timeout=15, cwd="/tmp"
+                )
+                return {
+                    "result": {
+                        "stdout": result.stdout[:5000],
+                        "stderr": result.stderr[:2000],
+                        "exit_code": result.returncode
+                    }, "tool": tool
+                }
+            except subprocess.TimeoutExpired:
+                return {"error": "Zeitüberschreitung (max 15s)", "tool": tool}
+            except Exception as e:
+                return {"error": str(e), "tool": tool}
+
+        # ──────── DB WRITE ────────
+        elif tool == "db_write":
+            coll_name = p.get("collection", "")
+            operation = p.get("operation", "insert")
+            if not coll_name:
+                return {"error": "Feld 'collection' ist erforderlich", "tool": tool}
+            blocked_colls = {"admin_users"}
+            if coll_name in blocked_colls:
+                return {"error": f"Schreibzugriff auf '{coll_name}' nicht erlaubt", "tool": tool}
+            coll = S.db[coll_name]
+            if operation == "insert":
+                doc = p.get("doc", {})
+                if not doc:
+                    return {"error": "Feld 'doc' für insert erforderlich", "tool": tool}
+                doc["_created_by"] = "nexify_ai"
+                doc["_created_at"] = utcnow().isoformat()
+                await coll.insert_one(doc)
+                doc.pop("_id", None)
+                return {"result": doc, "operation": "insert", "tool": tool}
+            elif operation == "update":
+                query = p.get("query", {})
+                updates = p.get("doc", {})
+                if not query or not updates:
+                    return {"error": "Felder 'query' und 'doc' für update erforderlich", "tool": tool}
+                r = await coll.update_many(query, {"$set": updates})
+                return {"result": {"matched": r.matched_count, "modified": r.modified_count}, "tool": tool}
+            elif operation == "delete":
+                query = p.get("query", {})
+                if not query:
+                    return {"error": "Feld 'query' für delete erforderlich", "tool": tool}
+                r = await coll.delete_many(query)
+                return {"result": {"deleted": r.deleted_count}, "tool": tool}
+            return {"error": f"Unbekannte Operation: {operation}", "tool": tool}
+
+        # ──────── AGENT MANAGEMENT ────────
+        elif tool == "list_agents":
+            agents = []
+            async for a in S.db.ai_agents.find({}, {"_id": 0}).sort("created_at", -1):
+                agents.append(a)
+            return {"result": agents, "count": len(agents), "tool": tool}
+
+        elif tool == "create_agent":
+            name = p.get("name", "")
+            if not name:
+                return {"error": "Feld 'name' ist erforderlich", "tool": tool}
+            agent_id = new_id("agt")
+            doc = {
+                "agent_id": agent_id,
+                "name": name,
+                "role": p.get("role", "specialist"),
+                "system_prompt": p.get("system_prompt", ""),
+                "tools": p.get("tools", []),
+                "model": p.get("model", ARCEE_MODEL),
+                "status": "active",
+                "created_at": utcnow().isoformat(),
+                "created_by": "nexify_ai_master",
+                "config": p.get("config", {}),
+                "stats": {"invocations": 0, "last_invoked": None},
+            }
+            await S.db.ai_agents.insert_one(doc)
+            doc.pop("_id", None)
+            return {"result": doc, "tool": tool}
+
+        elif tool == "update_agent":
+            agent_id = p.get("agent_id", "")
+            updates = {k: v for k, v in p.items() if k not in ("agent_id", "_id")}
+            if not agent_id or not updates:
+                return {"error": "agent_id und mindestens ein Feld zum Aktualisieren erforderlich", "tool": tool}
+            updates["updated_at"] = utcnow().isoformat()
+            r = await S.db.ai_agents.update_one({"agent_id": agent_id}, {"$set": updates})
+            if r.matched_count == 0:
+                return {"error": "Agent nicht gefunden", "tool": tool}
+            return {"result": "Agent aktualisiert", "tool": tool}
+
+        elif tool == "delete_agent":
+            agent_id = p.get("agent_id", "")
+            if not agent_id:
+                return {"error": "Feld 'agent_id' erforderlich", "tool": tool}
+            r = await S.db.ai_agents.delete_one({"agent_id": agent_id})
+            return {"result": "Gelöscht" if r.deleted_count > 0 else "Nicht gefunden", "tool": tool}
+
+        elif tool == "invoke_agent":
+            agent_id = p.get("agent_id", "")
+            message = p.get("message", "")
+            if not agent_id or not message:
+                return {"error": "Felder 'agent_id' und 'message' erforderlich", "tool": tool}
+            agent = await S.db.ai_agents.find_one({"agent_id": agent_id}, {"_id": 0})
+            if not agent:
+                return {"error": "Agent nicht gefunden", "tool": tool}
+            # Call Arcee with the agent's system prompt
+            try:
+                async with httpx.AsyncClient(timeout=60) as client:
+                    resp = await client.post(
+                        ARCEE_API_URL,
+                        headers={"Authorization": f"Bearer {ARCEE_API_KEY}", "Content-Type": "application/json"},
+                        json={
+                            "model": agent.get("model", ARCEE_MODEL),
+                            "messages": [
+                                {"role": "system", "content": agent.get("system_prompt", f"Du bist {agent['name']}, ein Fachagent für {agent.get('role', 'general')}.")},
+                                {"role": "user", "content": message}
+                            ],
+                            "temperature": 0.7
+                        }
+                    )
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        answer = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+                        await S.db.ai_agents.update_one(
+                            {"agent_id": agent_id},
+                            {"$inc": {"stats.invocations": 1}, "$set": {"stats.last_invoked": utcnow().isoformat()}}
+                        )
+                        return {"result": {"agent": agent["name"], "response": answer}, "tool": tool}
+                    return {"error": f"Agent-Aufruf fehlgeschlagen: {resp.status_code}", "tool": tool}
+            except Exception as e:
+                return {"error": str(e), "tool": tool}
+
+        # ──────── SCHEDULED TASKS ────────
+        elif tool == "schedule_task":
+            name = p.get("name", "")
+            cron = p.get("cron", "")
+            task_tool = p.get("tool", "")
+            task_params = p.get("params", {})
+            if not name or not cron or not task_tool:
+                return {"error": "Felder 'name', 'cron' und 'tool' sind erforderlich", "tool": tool}
+            task_id = new_id("tsk")
+            doc = {
+                "task_id": task_id, "name": name, "cron": cron,
+                "tool": task_tool, "params": task_params,
+                "description": p.get("description", ""),
+                "status": "active", "created_at": utcnow().isoformat(),
+                "created_by": "nexify_ai_master",
+                "last_run": None, "next_run": None, "run_count": 0, "errors": [],
+            }
+            await S.db.scheduled_tasks.insert_one(doc)
+            doc.pop("_id", None)
+            return {"result": doc, "tool": tool}
+
+        elif tool == "list_scheduled_tasks":
+            tasks = []
+            async for t in S.db.scheduled_tasks.find({}, {"_id": 0}).sort("created_at", -1):
+                tasks.append(t)
+            return {"result": tasks, "count": len(tasks), "tool": tool}
+
+        elif tool == "delete_scheduled_task":
+            task_id = p.get("task_id", "")
+            if not task_id:
+                return {"error": "Feld 'task_id' erforderlich", "tool": tool}
+            r = await S.db.scheduled_tasks.delete_one({"task_id": task_id})
+            return {"result": "Gelöscht" if r.deleted_count > 0 else "Nicht gefunden", "tool": tool}
+
+        # ──────── FILE MANAGEMENT ────────
+        elif tool == "read_file":
+            fpath = p.get("path", "")
+            if not fpath:
+                return {"error": "Feld 'path' erforderlich", "tool": tool}
+            safe_base = "/tmp/nexify_workspace"
+            os.makedirs(safe_base, exist_ok=True)
+            full_path = os.path.join(safe_base, fpath.lstrip("/"))
+            if not os.path.exists(full_path):
+                return {"error": f"Datei nicht gefunden: {fpath}", "tool": tool}
+            try:
+                with open(full_path, "r") as f:
+                    content = f.read(50000)
+                return {"result": {"path": fpath, "content": content, "size": os.path.getsize(full_path)}, "tool": tool}
+            except Exception as e:
+                return {"error": str(e), "tool": tool}
+
+        elif tool == "write_file":
+            fpath = p.get("path", "")
+            content = p.get("content", "")
+            if not fpath:
+                return {"error": "Feld 'path' erforderlich", "tool": tool}
+            safe_base = "/tmp/nexify_workspace"
+            os.makedirs(safe_base, exist_ok=True)
+            full_path = os.path.join(safe_base, fpath.lstrip("/"))
+            os.makedirs(os.path.dirname(full_path), exist_ok=True)
+            try:
+                with open(full_path, "w") as f:
+                    f.write(content)
+                return {"result": {"path": fpath, "size": len(content), "written": True}, "tool": tool}
+            except Exception as e:
+                return {"error": str(e), "tool": tool}
+
+        elif tool == "list_files":
+            fpath = p.get("path", "")
+            safe_base = "/tmp/nexify_workspace"
+            os.makedirs(safe_base, exist_ok=True)
+            full_path = os.path.join(safe_base, fpath.lstrip("/")) if fpath else safe_base
+            if not os.path.isdir(full_path):
+                return {"error": f"Verzeichnis nicht gefunden: {fpath}", "tool": tool}
+            items = []
+            for item in os.listdir(full_path):
+                item_path = os.path.join(full_path, item)
+                items.append({"name": item, "type": "dir" if os.path.isdir(item_path) else "file", "size": os.path.getsize(item_path) if os.path.isfile(item_path) else 0})
+            return {"result": items, "count": len(items), "tool": tool}
+
+        # ──────── SELF-OPTIMIZATION ────────
+        elif tool == "self_status":
+            config = await S.db.nexify_ai_config.find_one({"config_id": "master"}, {"_id": 0}) or {}
+            agent_count = await S.db.ai_agents.count_documents({})
+            task_count = await S.db.scheduled_tasks.count_documents({"status": "active"})
+            conv_count = await S.db.nexify_ai_conversations.count_documents({})
+            msg_count = await S.db.nexify_ai_messages.count_documents({})
+            return {"result": {
+                "model": ARCEE_MODEL, "brain": {"user_id": MEM0_USER_ID, "agent_id": MEM0_AGENT_ID},
+                "agents": agent_count, "active_tasks": task_count,
+                "conversations": conv_count, "messages": msg_count,
+                "config": config, "tools_available": len(AVAILABLE_TOOLS),
+            }, "tool": tool}
+
+        elif tool == "update_config":
+            key = p.get("key", "")
+            value = p.get("value")
+            if not key:
+                return {"error": "Feld 'key' erforderlich", "tool": tool}
+            await S.db.nexify_ai_config.update_one(
+                {"config_id": "master"},
+                {"$set": {key: value, "updated_at": utcnow().isoformat()}},
+                upsert=True
+            )
+            return {"result": f"Config '{key}' aktualisiert", "tool": tool}
 
         else:
             return {"error": f"Unbekanntes Tool: {tool}", "available": list(AVAILABLE_TOOLS.keys()), "tool": tool}
