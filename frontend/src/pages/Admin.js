@@ -140,12 +140,13 @@ const Admin = () => {
   const [nxMessages, setNxMessages] = useState([]);
   const [nxInput, setNxInput] = useState('');
   const [nxStreaming, setNxStreaming] = useState(false);
-  const [nxStreamText, setNxStreamText] = useState('');
   const [nxUseMemory, setNxUseMemory] = useState(true);
   const [nxStatus, setNxStatus] = useState(null);
   const nxMessagesEndRef = useRef(null);
   const nxTextareaRef = useRef(null);
   const nxMessagesContainerRef = useRef(null);
+  const nxStreamRef = useRef(null);
+  const nxStreamTextRef = useRef('');
 
   // Persist active conversation
   useEffect(() => {
@@ -1811,56 +1812,121 @@ const Admin = () => {
     } catch (e) { console.error(e); } finally { setAgentLoading(false); }
   };
 
+  const [nxAgents, setNxAgents] = useState([]);
+  const [nxEditAgent, setNxEditAgent] = useState(null); // null = closed, 'new' = create mode, agent_id = edit mode
+  const [nxAgentForm, setNxAgentForm] = useState({ name: '', role: '', system_prompt: '', model: '', tools: [], status: 'active' });
+  const [showAgentForm, setShowAgentForm] = useState(false);
+
+  const loadNxAgents = useCallback(async () => {
+    const d = await apiFetch('/api/admin/nexify-ai/agents');
+    if (d?.agents) setNxAgents(d.agents);
+  }, [apiFetch]);
+
+  useEffect(() => { if (token && view === 'agents') loadNxAgents(); }, [token, view, loadNxAgents]);
+
+  const saveNxAgent = async () => {
+    if (nxEditAgent && nxEditAgent !== 'new') {
+      await apiFetch(`/api/admin/nexify-ai/agents/${nxEditAgent}`, { method: 'PUT', body: JSON.stringify(nxAgentForm) });
+    } else {
+      await apiFetch('/api/admin/nexify-ai/agents', { method: 'POST', body: JSON.stringify(nxAgentForm) });
+    }
+    setNxEditAgent(null);
+    setShowAgentForm(false);
+    setNxAgentForm({ name: '', role: '', system_prompt: '', model: '', tools: [], status: 'active' });
+    loadNxAgents();
+  };
+
+  const deleteNxAgent = async (id) => {
+    if (!window.confirm('Agent wirklich löschen?')) return;
+    await apiFetch(`/api/admin/nexify-ai/agents/${id}`, { method: 'DELETE' });
+    loadNxAgents();
+  };
+
+  const startEditAgent = (agent) => {
+    setNxEditAgent(agent.agent_id);
+    setShowAgentForm(true);
+    setNxAgentForm({
+      name: agent.name || '',
+      role: agent.role || '',
+      system_prompt: agent.system_prompt || '',
+      model: agent.model || '',
+      tools: agent.tools || [],
+      status: agent.status || 'active',
+    });
+  };
+
   const AgentsView = () => (
-    <div className="adm-agents" data-testid="admin-agents">
-      <div className="adm-section-header">
-        <h2>KI-Agenten</h2>
-        {agentsList?.orchestrator && <span className="adm-badge" style={{background:'#10b98122',color:'#10b981'}}>Orchestrator aktiv — {agentsList.orchestrator.model}</span>}
+    <div data-testid="admin-agents">
+      <div className="adm-section-header" style={{marginBottom:20}}>
+        <h2>KI-Agenten & Einstellungen</h2>
+        <button className="adm-btn adm-btn-primary" style={{padding:'8px 16px',width:'auto'}} onClick={() => { setNxEditAgent('new'); setShowAgentForm(true); setNxAgentForm({ name: '', role: '', system_prompt: '', model: '', tools: [], status: 'active' }); }} data-testid="create-agent-btn"><I n="add" /> Neuer Agent</button>
       </div>
 
-      {/* Agent Cards */}
-      <div className="adm-wa-grid" style={{marginBottom:24}}>
-        {agentsList?.agents && Object.entries(agentsList.agents).map(([name, info]) => (
-          <div key={name} className="adm-wa-card" style={{cursor:'pointer'}} onClick={() => setAgentTarget(name)}>
-            <h3 style={{textTransform:'capitalize'}}>{name}</h3>
-            <p style={{fontSize:'.8125rem',color:'#c8d1dc'}}>{info.role}</p>
-            <span className="adm-badge" style={{background:'#10b98122',color:'#10b981',marginTop:8,display:'inline-block'}}>{info.status}</span>
+      {/* Agent Form */}
+      {showAgentForm && !nxAgents.find(a => a.agent_id === nxEditAgent && a.is_master) && (
+        <div className="adm-form-card" style={{marginBottom:20,padding:20,background:'var(--nx-glass)',border:'1px solid var(--nx-border)',borderRadius:'var(--r-md)'}} data-testid="agent-form">
+          <h3 style={{marginBottom:12}}>{nxEditAgent && nxEditAgent !== 'new' ? 'Agent bearbeiten' : 'Neuen Agenten erstellen'}</h3>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:12}}>
+            <div className="adm-field"><label>Name</label><input value={nxAgentForm.name} onChange={e => setNxAgentForm(p => ({...p, name: e.target.value}))} placeholder="z.B. Sales Agent" data-testid="agent-name-input" /></div>
+            <div className="adm-field"><label>Rolle</label><input value={nxAgentForm.role} onChange={e => setNxAgentForm(p => ({...p, role: e.target.value}))} placeholder="z.B. sales, pm, code" data-testid="agent-role-input" /></div>
+            <div className="adm-field"><label>Modell</label><input value={nxAgentForm.model} onChange={e => setNxAgentForm(p => ({...p, model: e.target.value}))} placeholder="trinity-large-preview" data-testid="agent-model-input" /></div>
+            <div className="adm-field"><label>Status</label>
+              <select value={nxAgentForm.status} onChange={e => setNxAgentForm(p => ({...p, status: e.target.value}))} data-testid="agent-status-select" style={{width:'100%',padding:'10px 12px',background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)',color:'#e2e8f0',borderRadius:6}}>
+                <option value="active">Aktiv</option>
+                <option value="paused">Pausiert</option>
+                <option value="disabled">Deaktiviert</option>
+              </select>
+            </div>
+          </div>
+          <div className="adm-field" style={{marginBottom:12}}><label>System-Prompt</label><textarea value={nxAgentForm.system_prompt} onChange={e => setNxAgentForm(p => ({...p, system_prompt: e.target.value}))} rows={6} placeholder="Instruktionen für diesen Agenten..." style={{width:'100%',resize:'vertical'}} data-testid="agent-prompt-input" /></div>
+          <div style={{display:'flex',gap:8}}>
+            <button className="adm-btn adm-btn-primary" style={{padding:'8px 20px',width:'auto'}} onClick={saveNxAgent} disabled={!nxAgentForm.name.trim()} data-testid="agent-save-btn"><I n="save" /> Speichern</button>
+            <button className="adm-btn adm-btn-secondary" style={{padding:'8px 20px',width:'auto'}} onClick={() => { setNxEditAgent(null); setShowAgentForm(false); setNxAgentForm({ name: '', role: '', system_prompt: '', model: '', tools: [], status: 'active' }); }}><I n="close" /> Abbrechen</button>
+          </div>
+        </div>
+      )}
+
+      {/* Agent List */}
+      <div style={{display:'grid',gap:12}}>
+        {nxAgents.map(agent => (
+          <div key={agent.agent_id} className="adm-form-card" style={{padding:16,background:'var(--nx-glass)',border:'1px solid var(--nx-border)',borderRadius:'var(--r-md)',display:'flex',alignItems:'flex-start',gap:16}} data-testid={`agent-card-${agent.agent_id}`}>
+            <div style={{width:40,height:40,borderRadius:8,background: agent.is_master ? 'rgba(254,155,123,.12)' : 'rgba(255,255,255,.04)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+              <I n={agent.is_master ? 'psychology' : 'smart_toy'} />
+            </div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                <strong style={{color:'#fff',fontSize:'.875rem'}}>{agent.name}</strong>
+                <span style={{fontSize:'.6875rem',padding:'2px 8px',borderRadius:10,background: agent.status === 'active' ? 'rgba(16,185,129,.1)' : 'rgba(255,255,255,.04)',color: agent.status === 'active' ? '#10b981' : '#6b7b8d',border:'1px solid ' + (agent.status === 'active' ? 'rgba(16,185,129,.2)' : 'rgba(255,255,255,.06)')}}>{agent.status}</span>
+                {agent.is_master && <span style={{fontSize:'.6875rem',padding:'2px 8px',borderRadius:10,background:'rgba(254,155,123,.1)',color:'#FE9B7B',border:'1px solid rgba(254,155,123,.2)'}}>Master</span>}
+              </div>
+              <div style={{fontSize:'.75rem',color:'#6b7b8d',marginBottom:4}}>Rolle: {agent.role} | Modell: {agent.model}</div>
+              {agent.is_master && <div style={{fontSize:'.75rem',color:'#4a5568'}}>{agent.tools_count} Tools | {agent.stats?.conversations} Konversationen | {agent.stats?.messages} Nachrichten</div>}
+              {agent.stats?.invocations != null && <div style={{fontSize:'.75rem',color:'#4a5568'}}>{agent.stats.invocations} Aufrufe{agent.stats.last_invoked ? ` | Letzter: ${fmtTime(agent.stats.last_invoked)}` : ''}</div>}
+              {agent.system_prompt && !agent.is_master && <div style={{fontSize:'.6875rem',color:'#3a4550',marginTop:4,fontStyle:'italic',maxHeight:40,overflow:'hidden',textOverflow:'ellipsis'}}>{agent.system_prompt.slice(0, 120)}...</div>}
+            </div>
+            <div style={{display:'flex',gap:4,flexShrink:0}}>
+              <button className="adm-btn adm-btn-secondary" style={{padding:'6px 10px',width:'auto',fontSize:'.75rem'}} onClick={() => startEditAgent(agent)} data-testid={`agent-edit-${agent.agent_id}`}><I n="edit" /></button>
+              {!agent.is_master && <button className="adm-btn" style={{padding:'6px 10px',width:'auto',fontSize:'.75rem',color:'#ef4444',background:'rgba(239,68,68,.06)',border:'1px solid rgba(239,68,68,.15)'}} onClick={() => deleteNxAgent(agent.agent_id)} data-testid={`agent-delete-${agent.agent_id}`}><I n="delete" /></button>}
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Task Input */}
-      <div className="adm-wa-card" style={{marginBottom:24}}>
-        <h3>Aufgabe an Agenten senden</h3>
-        <div className="adm-field" style={{marginBottom:8}}>
-          <label>Kunden-E-Mail (optional)</label>
-          <input value={agentTarget} onChange={e => setAgentTarget(e.target.value)} placeholder="kunde@firma.de" data-testid="agent-customer-email" />
-        </div>
-        <div className="adm-field" style={{marginBottom:12}}>
-          <label>Aufgabe</label>
-          <textarea value={agentTask} onChange={e => setAgentTask(e.target.value)} rows={4} placeholder="z.B.: Erstelle eine personalisierte Erstansprache..." style={{width:'100%',resize:'vertical'}} data-testid="agent-task-input" />
-        </div>
-        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-          <button className="adm-btn adm-btn-primary" onClick={() => executeAgent('orchestrator')} disabled={agentLoading || !agentTask.trim()} data-testid="agent-route-btn">
-            <I n="route" /> {agentLoading ? 'Verarbeite...' : 'Orchestrator'}
-          </button>
-          {agentsList?.agents && Object.keys(agentsList.agents).map(name => (
-            <button key={name} className="adm-btn adm-btn-secondary" onClick={() => executeAgent(name)} disabled={agentLoading || !agentTask.trim()} data-testid={`agent-exec-${name}`} style={{textTransform:'capitalize'}}>
-              {name}
+      {/* Legacy Agent Task Execution */}
+      {agentsList?.agents && Object.keys(agentsList.agents).length > 0 && (
+        <div style={{marginTop:24,padding:20,background:'var(--nx-glass)',border:'1px solid var(--nx-border)',borderRadius:'var(--r-md)'}}>
+          <h3 style={{marginBottom:12}}>Aufgabe an Agenten senden</h3>
+          <div className="adm-field" style={{marginBottom:12}}>
+            <textarea value={agentTask} onChange={e => setAgentTask(e.target.value)} rows={3} placeholder="z.B.: Erstelle eine personalisierte Erstansprache..." style={{width:'100%',resize:'vertical'}} data-testid="agent-task-input" />
+          </div>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            <button className="adm-btn adm-btn-primary" onClick={() => executeAgent('orchestrator')} disabled={agentLoading || !agentTask.trim()} data-testid="agent-route-btn" style={{padding:'8px 16px',width:'auto'}}>
+              <I n="route" /> {agentLoading ? 'Verarbeite...' : 'Orchestrator'}
             </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Result */}
-      {agentResult && (
-        <div className="adm-wa-card">
-          <h3>Ergebnis {agentResult.agent && <span style={{fontWeight:400,fontSize:'.75rem',color:'#6b7b8d'}}>({agentResult.agent})</span>}</h3>
-          {agentResult.error ? (
-            <p style={{color:'#ef4444'}}>{agentResult.error}</p>
-          ) : (
-            <pre style={{background:'rgba(19,26,34,0.6)',padding:16,borderRadius:8,fontSize:'.8125rem',color:'#c8d1dc',overflow:'auto',maxHeight:400,whiteSpace:'pre-wrap',wordBreak:'break-word'}} data-testid="agent-result">
-              {typeof agentResult.response === 'string' ? agentResult.response : typeof agentResult.routing === 'object' ? JSON.stringify(agentResult.routing, null, 2) : JSON.stringify(agentResult, null, 2)}
+          </div>
+          {agentResult && (
+            <pre style={{background:'rgba(19,26,34,0.6)',padding:16,borderRadius:8,fontSize:'.8125rem',color:'#c8d1dc',overflow:'auto',maxHeight:300,whiteSpace:'pre-wrap',wordBreak:'break-word',marginTop:12}} data-testid="agent-result">
+              {typeof agentResult.response === 'string' ? agentResult.response : JSON.stringify(agentResult, null, 2)}
             </pre>
           )}
         </div>
@@ -2746,12 +2812,17 @@ const Admin = () => {
     return html;
   };
 
+  const nxUpdateStream = (text) => {
+    nxStreamTextRef.current = text;
+    if (nxStreamRef.current) nxStreamRef.current.textContent = text;
+  };
+
   const sendNxMessage = async () => {
     const msg = nxInput.trim();
     if (!msg || nxStreaming) return;
     setNxInput('');
     setNxStreaming(true);
-    setNxStreamText('');
+    nxUpdateStream('');
 
     const userMsg = { role: 'user', content: msg, created_at: new Date().toISOString(), _key: 'u_' + Date.now() };
     setNxMessages(prev => [...prev, userMsg]);
@@ -2782,56 +2853,54 @@ const Admin = () => {
             const data = JSON.parse(line.slice(6));
             if (data.content) {
               fullText += data.content;
-              setNxStreamText(fullText);
+              nxUpdateStream(fullText);
               nxScrollToBottom();
             }
             if (data.follow_content) {
               if (!inFollowUp) {
                 inFollowUp = true;
-                // Strip tool blocks from displayed text
                 const clean = fullText.replace(/```tool\s*\n?[\s\S]*?```/g, '').trim();
                 fullText = clean + '\n\n';
-                setNxStreamText(fullText);
               }
               followText += data.follow_content;
-              setNxStreamText(fullText + followText);
+              nxUpdateStream(fullText + followText);
               nxScrollToBottom();
             }
             if (data.tool_status === 'executing') {
-              setNxStreamText(prev => prev + '\n\n⏳ Tools werden ausgeführt...\n');
+              nxUpdateStream(nxStreamTextRef.current + '\n\nTools werden ausgefuehrt...\n');
               nxScrollToBottom();
             }
             if (data.tool_status === 'interpreting') {
-              // Clear the "executing" indicator and prepare for follow-up
-              const clean = fullText.replace(/```tool\s*\n?[\s\S]*?```/g, '').replace(/⏳.*\n?/g, '').trim();
+              const clean = fullText.replace(/```tool\s*\n?[\s\S]*?```/g, '').replace(/Tools werden.*\n?/g, '').trim();
               fullText = clean + '\n\n';
-              setNxStreamText(fullText);
+              nxUpdateStream(fullText);
             }
             if (data.conversation_id) newConvoId = data.conversation_id;
             if (data.done) {
               const finalContent = inFollowUp ? (fullText + followText).trim() : fullText.trim();
+              nxUpdateStream('');
               setNxMessages(prev => [...prev, {
                 role: 'assistant',
                 content: finalContent,
                 created_at: new Date().toISOString(),
                 _key: 'a_' + Date.now()
               }]);
-              setNxStreamText('');
               if (!nxActiveConvo && newConvoId) setNxActiveConvo(newConvoId);
             }
             if (data.error) {
+              nxUpdateStream('');
               setNxMessages(prev => [...prev, {
                 role: 'assistant',
                 content: `Fehler: ${data.error}`,
                 created_at: new Date().toISOString(),
                 _key: 'e_' + Date.now()
               }]);
-              setNxStreamText('');
             }
           } catch (e) { /* skip parse errors */ }
         }
       }
     } catch (e) {
+      nxUpdateStream('');
       setNxMessages(prev => [...prev, {
         role: 'assistant',
         content: `Verbindungsfehler: ${e.message}`,
@@ -2848,7 +2917,7 @@ const Admin = () => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendNxMessage(); }
   };
 
-  const startNewNxChat = () => { setNxActiveConvo(null); setNxMessages([]); setNxStreamText(''); setNxInput(''); };
+  const startNewNxChat = () => { setNxActiveConvo(null); setNxMessages([]); nxUpdateStream(''); setNxInput(''); };
 
   const UsersView = () => (
     <div data-testid="admin-users">
@@ -3155,7 +3224,7 @@ curl ${API}/api/v1/docs`}
           </button>
         </div>
         <div className="nxai-messages" data-testid="nxai-messages" ref={nxMessagesContainerRef}>
-          {nxMessages.length === 0 && !nxStreamText && (
+          {nxMessages.length === 0 && !nxStreaming && (
             <div className="nxai-empty">
               <I n="psychology" />
               <h3>NeXify AI Master</h3>
@@ -3190,18 +3259,12 @@ curl ${API}/api/v1/docs`}
               </div>
             </div>
           ))}
-          {nxStreamText && (
+          {nxStreaming && (
             <div className="nxai-msg assistant">
               <div className="nxai-msg-avatar">NX</div>
               <div>
-                <div className="nxai-msg-bubble nxai-streaming-text">{nxStreamText}</div>
+                <div className="nxai-msg-bubble nxai-streaming-text" ref={nxStreamRef} />
               </div>
-            </div>
-          )}
-          {nxStreaming && !nxStreamText && (
-            <div className="nxai-msg assistant">
-              <div className="nxai-msg-avatar">NX</div>
-              <div className="nxai-msg-bubble"><div className="nxai-typing"><span /><span /><span /></div></div>
             </div>
           )}
           <div ref={nxMessagesEndRef} />
@@ -3268,7 +3331,7 @@ curl ${API}/api/v1/docs`}
           <h1 className="adm-topbar-title">{navItems.find(n => n.id === view)?.label}</h1>
           <div className="adm-topbar-user"><I n="account_circle" /> Administration</div>
         </header>
-        <div className="adm-content">
+        <div className={`adm-content ${view === 'nexify_ai' ? 'adm-content--fullbleed' : ''}`}>
           {view === 'nexify_ai' && <NeXifyAIView />}
           {view === 'dashboard' && <DashboardView />}
           {view === 'projects' && <ProjectsView />}
