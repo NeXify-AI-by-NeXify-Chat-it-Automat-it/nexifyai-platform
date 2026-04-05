@@ -459,6 +459,66 @@ async def trigger_knowledge_sync(admin: dict = Depends(get_admin)):
         raise HTTPException(500, str(e))
 
 
+# ════════════════════════════════════════════════════════════
+# ZENTRALE LEITSTELLE — Live-Daten für Command Center
+# ════════════════════════════════════════════════════════════
+
+@router.get("/api/admin/oracle/leitstelle")
+async def oracle_leitstelle(admin: dict = Depends(get_admin)):
+    """Zentrale Leitstelle: Echtzeit-Statusübersicht aller Tasks, Agenten, Loops, Eskalationen."""
+    try:
+        from services.oracle_engine import OracleEngine
+        data = await OracleEngine.get_leitstelle_data()
+        return _serialize(data)
+    except Exception as e:
+        logger.error(f"Leitstelle error: {e}")
+        raise HTTPException(500, str(e))
+
+
+@router.get("/api/admin/oracle/tasks/{task_id}/transitions")
+async def task_transitions(task_id: str, admin: dict = Depends(get_admin)):
+    """Statusübergänge eines einzelnen Tasks."""
+    try:
+        from services.oracle_engine import OracleEngine
+        data = await OracleEngine.get_task_transitions(task_id)
+        return _serialize(data)
+    except Exception as e:
+        raise HTTPException(500, str(e))
+
+
+@router.post("/api/admin/oracle/tasks/{task_id}/escalate")
+async def escalate_task(task_id: str, admin: dict = Depends(get_admin)):
+    """Manuell einen Task eskalieren."""
+    try:
+        from services.oracle_engine import OracleEngine, STATUS
+        engine = OracleEngine(S.db)
+        await engine._transition(
+            task_id, STATUS["ESKALIERT"],
+            reason="Manuelle Eskalation durch Admin",
+            agent="admin",
+            extra={"escalation_reason": "Manuell eskaliert durch Admin-Panel"}
+        )
+        return {"escalated": True, "task_id": task_id}
+    except Exception as e:
+        raise HTTPException(500, str(e))
+
+
+@router.post("/api/admin/oracle/tasks/{task_id}/cancel")
+async def cancel_task(task_id: str, admin: dict = Depends(get_admin)):
+    """Manuell einen Task abbrechen."""
+    try:
+        from services.oracle_engine import OracleEngine, STATUS
+        engine = OracleEngine(S.db)
+        await engine._transition(
+            task_id, STATUS["ABGEBROCHEN"],
+            reason="Manueller Abbruch durch Admin",
+            agent="admin"
+        )
+        return {"cancelled": True, "task_id": task_id}
+    except Exception as e:
+        raise HTTPException(500, str(e))
+
+
 # ── Serialization helper ──
 def _serialize(obj):
     """Convert asyncpg Record / datetime to JSON-safe dict."""

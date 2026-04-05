@@ -1,8 +1,10 @@
 """
 NeXifyAI — Oracle Autonomous Engine
-24/7 autonomes Task-Processing mit Verifikation, Wissensaggregation und Selbstoptimierung.
+24/7 autonomes Task-Processing mit granularem Status-Modell, Loop-Evidence und Validierung.
 
-Lifecycle: PENDING → ASSIGNED → RUNNING → REVIEW → VERIFIED/FAILED → (REASSIGNED if failed)
+Status-Lifecycle (Zentrale Leitstelle):
+  erkannt → eingeplant → gestartet → in_bearbeitung → [wartet_auf_input | wartet_auf_freigabe | in_loop]
+  → erfolgreich_abgeschlossen → erfolgreich_validiert | fehlgeschlagen | blockiert | abgebrochen | eskaliert
 """
 import os
 import json
@@ -16,19 +18,64 @@ from services import deepseek_provider as deepseek
 
 logger = logging.getLogger("nexifyai.oracle.engine")
 
-# Konfiguration
 MAX_RETRIES = 3
 PROCESSING_BATCH = 5
-VERIFICATION_TIMEOUT = 30
+MAX_LOOP_ITERATIONS = 5
+
+# Granulares Status-Modell (DE)
+STATUS = {
+    "ERKANNT": "erkannt",
+    "EINGEPLANT": "eingeplant",
+    "GESTARTET": "gestartet",
+    "IN_BEARBEITUNG": "in_bearbeitung",
+    "WARTET_AUF_INPUT": "wartet_auf_input",
+    "WARTET_AUF_FREIGABE": "wartet_auf_freigabe",
+    "IN_LOOP": "in_loop",
+    "ERFOLGREICH_ABGESCHLOSSEN": "erfolgreich_abgeschlossen",
+    "ERFOLGREICH_VALIDIERT": "erfolgreich_validiert",
+    "FEHLGESCHLAGEN": "fehlgeschlagen",
+    "BLOCKIERT": "blockiert",
+    "ABGEBROCHEN": "abgebrochen",
+    "ESKALIERT": "eskaliert",
+}
+
+STATUS_LABELS = {
+    "erkannt": "Erkannt",
+    "eingeplant": "Eingeplant",
+    "gestartet": "Gestartet",
+    "in_bearbeitung": "In Bearbeitung",
+    "wartet_auf_input": "Wartet auf Input",
+    "wartet_auf_freigabe": "Wartet auf Freigabe",
+    "in_loop": "In Loop",
+    "erfolgreich_abgeschlossen": "Erfolgreich abgeschlossen",
+    "erfolgreich_validiert": "Erfolgreich validiert",
+    "fehlgeschlagen": "Fehlgeschlagen",
+    "blockiert": "Blockiert",
+    "abgebrochen": "Abgebrochen",
+    "eskaliert": "Eskaliert",
+}
+
+# Legacy-Status-Mapping (alte → neue)
+LEGACY_MAP = {
+    "pending": "erkannt",
+    "assigned": "eingeplant",
+    "running": "in_bearbeitung",
+    "completed": "erfolgreich_abgeschlossen",
+    "failed": "fehlgeschlagen",
+    "cancelled": "abgebrochen",
+    "blocked": "blockiert",
+    "review": "wartet_auf_freigabe",
+    "open": "erkannt",
+}
 
 
 class OracleEngine:
-    """Autonome Orchestrierungs-Engine. Verarbeitet Oracle-Tasks über DeepSeek-Agenten."""
+    """Autonome Orchestrierungs-Engine mit granularem Status-Tracking und Loop-Evidence."""
 
     def __init__(self, db):
         self.db = db
         self._running = False
-        self._stats = {"processed": 0, "verified": 0, "failed": 0, "reassigned": 0, "cycle": 0}
+        self._stats = {"processed": 0, "verified": 0, "failed": 0, "reassigned": 0, "cycle": 0, "loops": 0}
 
     async def start(self):
         self._running = True
@@ -39,30 +86,100 @@ class OracleEngine:
         logger.info("Oracle Engine gestoppt")
 
     # ═══════════════════════════════════════════════════════════
+    # STATUS-TRANSITION — Zentrale Statusübergangslogik
+    # ═══════════════════════════════════════════════════════════
+
+    async def _transition(self, task_id, new_status: str, reason: str = "", agent: str = "", extra: dict = None):
+        """Statusübergang mit History-Tracking und Audit."""
+        now = datetime.now(timezone.utc).isoformat()
+        entry = json.dumps([{"status": new_status, "at": now, "reason": reason, "agent": agent}])
+        audit_text = f"[{now}] {new_status.upper()}: {reason}"
+
+        set_clauses = ["status=$1"]
+        params = [new_status]
+        idx = 2
+
+        # Status-History JSONB append
+        ph = f"${idx}"
+        set_clauses.append(f"status_history = COALESCE(status_history, '[]'::jsonb) || {ph}::jsonb")
+        params.append(entry)
+        idx += 1
+
+        # Audit-Log
+        ph = f"${idx}"
+        set_clauses.append(f"audit_log = array_append(COALESCE(audit_log, ARRAY[]::jsonb[]), to_jsonb({ph}::text))")
+        params.append(audit_text)
+        idx += 1
+
+        if agent:
+            set_clauses.append(f"current_agent=${idx}")
+            params.append(agent)
+            idx += 1
+
+        if extra:
+            for k, v in extra.items():
+                if k in ("started_at", "completed_at"):
+                    set_clauses.append(f"{k}=NOW()")
+                elif k in ("loop_count", "retry_count"):
+                    set_clauses.append(f"{k}=${idx}")
+                    params.append(int(v))
+                    idx += 1
+                elif k in ("loop_reason", "exit_condition", "error_message", "escalation_reason", "owner_agent"):
+                    set_clauses.append(f"{k}=${idx}")
+                    params.append(str(v)[:500])
+                    idx += 1
+                elif k == "verification_score":
+                    set_clauses.append(f"verification_score=${idx}")
+                    params.append(float(v))
+                    idx += 1
+                elif k in ("evidence", "result"):
+                    set_clauses.append(f"{k}=${idx}::jsonb")
+                    params.append(json.dumps(v, default=str, ensure_ascii=False))
+                    idx += 1
+                elif k == "owner_agent":
+                    set_clauses.append(f"owner_agent=${idx}")
+                    params.append(v)
+                    idx += 1
+
+        params.append(task_id)
+        sql = f"UPDATE oracle_tasks SET {', '.join(set_clauses)} WHERE id=${idx}"
+        await supa.execute(sql, *params)
+
+    # ═══════════════════════════════════════════════════════════
     # HAUPTZYKLUS — Aufgerufen vom Scheduler (alle 90s)
     # ═══════════════════════════════════════════════════════════
 
     async def process_cycle(self):
-        """Ein kompletter Verarbeitungszyklus."""
+        """Ein kompletter Verarbeitungszyklus mit granularem Status-Tracking."""
         if not self._running:
             return
         self._stats["cycle"] += 1
         cycle = self._stats["cycle"]
 
         try:
-            # 0. Stuck Tasks zurücksetzen (running > 30min)
+            # 0. Stuck Tasks zurücksetzen (in_bearbeitung/gestartet > 30min)
             try:
-                await supa.execute(
-                    "UPDATE oracle_tasks SET status='pending', error_message='Auto-Reset: Stuck im running Status' WHERE status='running' AND started_at < NOW() - INTERVAL '30 minutes'"
+                stuck = await supa.fetch(
+                    """SELECT id FROM oracle_tasks
+                       WHERE status IN ('running','in_bearbeitung','gestartet')
+                       AND started_at < NOW() - INTERVAL '30 minutes'
+                       LIMIT 10"""
                 )
+                for s in stuck:
+                    await self._transition(
+                        s["id"], STATUS["ERKANNT"],
+                        reason="Auto-Reset: Stuck > 30min",
+                        extra={"error_message": "Auto-Reset: Task hing > 30 Minuten im Bearbeitungsstatus"}
+                    )
             except Exception:
                 pass
 
-            # 1. Pending Tasks holen
+            # 1. Tasks holen: alte (pending/assigned) + neue (erkannt/eingeplant)
             pending = await supa.fetch(
-                """SELECT id, type, priority, title, description, payload, tags, retry_count, owner_agent, created_at
+                """SELECT id, type, priority, title, description, payload, tags, retry_count, owner_agent, created_at, loop_count
                    FROM oracle_tasks
-                   WHERE status IN ('pending', 'assigned') AND retry_count < $1
+                   WHERE status IN ('pending', 'assigned', 'erkannt', 'eingeplant')
+                   AND COALESCE(retry_count, 0) < $1
                    ORDER BY priority DESC, created_at ASC
                    LIMIT $2""",
                 MAX_RETRIES, PROCESSING_BATCH
@@ -81,35 +198,44 @@ class OracleEngine:
             await self._audit("cycle_error", {"cycle": cycle, "error": str(e)[:500]})
 
     # ═══════════════════════════════════════════════════════════
-    # TASK-VERARBEITUNG
+    # TASK-VERARBEITUNG — Granularer Lifecycle
     # ═══════════════════════════════════════════════════════════
 
     async def _process_task(self, task: dict):
-        """Einzelnen Task verarbeiten: Assign → Execute → Verify."""
-        task_id = str(task["id"])
+        """Task-Lifecycle: erkannt → eingeplant → gestartet → in_bearbeitung → validiert/fehlgeschlagen."""
+        task_id = task["id"]
         task_type = task.get("type", "general")
         title = task.get("title") or task.get("description", "")[:100] or "Unbenannt"
         description = task.get("description", "")
         retry_count = task.get("retry_count", 0)
+        loop_count = task.get("loop_count", 0) or 0
 
         try:
-            # 1. ASSIGN — Agent bestimmen
+            # ── EINGEPLANT: Agent bestimmen ──
             agent = await self._select_agent(task_type, title)
-            now_iso = datetime.now(timezone.utc).isoformat()
-
-            await supa.execute(
-                """UPDATE oracle_tasks SET status='running', owner_agent=$1, started_at=NOW(),
-                   audit_log = array_append(COALESCE(audit_log, ARRAY[]::jsonb[]), to_jsonb($2::text))
-                   WHERE id=$3""",
-                agent["name"],
-                f"[{now_iso}] ASSIGNED to {agent['name']} ({agent['role']})",
-                task["id"]
+            await self._transition(
+                task_id, STATUS["EINGEPLANT"],
+                reason=f"Zugewiesen an {agent['name']} ({agent['role']})",
+                agent=agent["name"],
+                extra={"owner_agent": agent["name"]}
             )
 
-            # 2. KNOWLEDGE — Kontext aggregieren
+            # ── GESTARTET: Knowledge-Aggregation ──
+            await self._transition(
+                task_id, STATUS["GESTARTET"],
+                reason="Wissensaggregation gestartet",
+                agent=agent["name"],
+                extra={"started_at": True}
+            )
             knowledge_ctx = await self._aggregate_knowledge(title, description, task_type)
 
-            # 3. EXECUTE — DeepSeek-Agent ausführen
+            # ── IN BEARBEITUNG: DeepSeek-Agent ausführen ──
+            await self._transition(
+                task_id, STATUS["IN_BEARBEITUNG"],
+                reason=f"DeepSeek-Ausführung durch {agent['name']}",
+                agent=agent["name"]
+            )
+
             execution_prompt = self._build_execution_prompt(task, knowledge_ctx)
             result = await deepseek.invoke_agent(
                 agent_name=agent["name"],
@@ -125,79 +251,138 @@ class OracleEngine:
 
             response_text = result.get("response", "")
 
-            # 4. VERIFY — Ergebnis prüfen
+            # ── ERFOLGREICH ABGESCHLOSSEN: Ergebnis liegt vor ──
+            await self._transition(
+                task_id, STATUS["ERFOLGREICH_ABGESCHLOSSEN"],
+                reason=f"Ausführung durch {agent['name']} abgeschlossen, Ergebnis liegt vor",
+                agent=agent["name"],
+                extra={"result": {
+                    "agent": agent["name"],
+                    "model": result.get("model", "deepseek-chat"),
+                    "response": response_text[:2000],
+                    "completed_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+
+            # ── VERIFIKATION: Unabhängige Gegenprüfung ──
+            await self._transition(
+                task_id, STATUS["WARTET_AUF_FREIGABE"],
+                reason="Unabhängige Verifikation gestartet",
+                agent=agent["name"]
+            )
+
             verification = await self._verify_result(task, response_text, agent["name"])
+            score = verification.get("score", 0)
 
             if verification["passed"]:
-                # COMPLETED
-                await supa.execute(
-                    """UPDATE oracle_tasks SET status='completed', completed_at=NOW(),
-                       result=$1::jsonb,
-                       audit_log = array_append(COALESCE(audit_log, ARRAY[]::jsonb[]), to_jsonb($2::text))
-                       WHERE id=$3""",
-                    json.dumps({
-                        "agent": agent["name"],
-                        "model": result.get("model", "deepseek-chat"),
-                        "response": response_text[:2000],
-                        "verification": verification,
-                        "completed_at": datetime.now(timezone.utc).isoformat()
-                    }),
-                    f"[{datetime.now(timezone.utc).isoformat()}] VERIFIED by {verification['verified_by']} — PASSED",
-                    task["id"]
+                # ── ERFOLGREICH VALIDIERT: Beweis erbracht ──
+                evidence = {
+                    "executor": agent["name"],
+                    "verifier": verification.get("verified_by", "system"),
+                    "score": score,
+                    "reason": verification.get("reason", ""),
+                    "verified_at": verification.get("verified_at", datetime.now(timezone.utc).isoformat()),
+                    "model": result.get("model", "deepseek-chat"),
+                    "response_length": len(response_text),
+                }
+
+                await self._transition(
+                    task_id, STATUS["ERFOLGREICH_VALIDIERT"],
+                    reason=f"Validiert von {verification.get('verified_by', 'system')} — Score {score}/10",
+                    agent=verification.get("verified_by", "system"),
+                    extra={
+                        "completed_at": True,
+                        "verification_score": float(score),
+                        "evidence": evidence,
+                        "result": {
+                            "agent": agent["name"],
+                            "model": result.get("model", "deepseek-chat"),
+                            "response": response_text[:2000],
+                            "verification": verification,
+                            "completed_at": datetime.now(timezone.utc).isoformat()
+                        }
+                    }
                 )
                 self._stats["verified"] += 1
-                logger.info(f"Task {task_id[:8]} VERIFIED: {title[:60]}")
+                logger.info(f"Task {str(task_id)[:8]} VALIDIERT: {title[:60]} (Score {score})")
 
-                # Brain-Note speichern für Lernen
+                # Brain-Note für Lernen
                 await self._store_learning(task, response_text, verification)
 
             else:
-                # FAILED — Reassign oder Dead
+                # ── LOOP oder FEHLGESCHLAGEN ──
                 if retry_count < MAX_RETRIES:
-                    await supa.execute(
-                        """UPDATE oracle_tasks SET status='pending', retry_count=$1,
-                           error_message=$2,
-                           audit_log = array_append(COALESCE(audit_log, ARRAY[]::jsonb[]), to_jsonb($3::text))
-                           WHERE id=$4""",
-                        retry_count + 1,
-                        verification.get("reason", "Verifikation fehlgeschlagen")[:500],
-                        f"[{datetime.now(timezone.utc).isoformat()}] FAILED verification — Reassigned (Retry {retry_count + 1}/{MAX_RETRIES}): {verification.get('reason', '')[:200]}",
-                        task["id"]
-                    )
-                    self._stats["reassigned"] += 1
-                    logger.warning(f"Task {task_id[:8]} REASSIGNED (retry {retry_count + 1}): {title[:60]}")
+                    new_loop = loop_count + 1
+                    loop_reason = f"Verifikation fehlgeschlagen (Score {score}/10): {verification.get('reason', '')[:200]}"
+                    exit_cond = f"Score >= 5 bei Versuch {new_loop + 1}/{MAX_RETRIES} oder Eskalation nach {MAX_RETRIES} Versuchen"
+
+                    if new_loop >= MAX_LOOP_ITERATIONS:
+                        # Eskalation
+                        await self._transition(
+                            task_id, STATUS["ESKALIERT"],
+                            reason=f"Max Loop-Iterationen ({MAX_LOOP_ITERATIONS}) erreicht. Manuelle Prüfung erforderlich.",
+                            agent="system",
+                            extra={
+                                "escalation_reason": f"Task hat {new_loop} Loops durchlaufen ohne Validierung. Letzter Score: {score}/10. Grund: {verification.get('reason', '')[:200]}",
+                                "loop_count": new_loop,
+                                "error_message": loop_reason
+                            }
+                        )
+                        self._stats["failed"] += 1
+                    else:
+                        # In Loop: Zurück in Queue
+                        await self._transition(
+                            task_id, STATUS["IN_LOOP"],
+                            reason=loop_reason,
+                            agent=agent["name"],
+                            extra={
+                                "loop_count": new_loop,
+                                "loop_reason": loop_reason,
+                                "exit_condition": exit_cond,
+                                "retry_count": retry_count + 1
+                            }
+                        )
+                        # Direkt zurück auf erkannt für nächsten Zyklus
+                        await self._transition(
+                            task_id, STATUS["ERKANNT"],
+                            reason=f"Loop {new_loop}: Reassigned für erneuten Versuch",
+                            agent="system"
+                        )
+                        self._stats["reassigned"] += 1
+                        self._stats["loops"] += 1
+                        logger.warning(f"Task {str(task_id)[:8]} LOOP {new_loop}: {title[:60]}")
                 else:
-                    await supa.execute(
-                        """UPDATE oracle_tasks SET status='failed', completed_at=NOW(),
-                           error_message=$1,
-                           audit_log = array_append(COALESCE(audit_log, ARRAY[]::jsonb[]), to_jsonb($2::text))
-                           WHERE id=$3""",
-                        f"Max Retries ({MAX_RETRIES}) erreicht. Letzter Fehler: {verification.get('reason', '')[:300]}",
-                        f"[{datetime.now(timezone.utc).isoformat()}] DEAD — Max retries exhausted",
-                        task["id"]
+                    await self._transition(
+                        task_id, STATUS["FEHLGESCHLAGEN"],
+                        reason=f"Max Retries ({MAX_RETRIES}) erreicht. Letzter Fehler: {verification.get('reason', '')[:200]}",
+                        agent="system",
+                        extra={
+                            "completed_at": True,
+                            "error_message": f"Max Retries ({MAX_RETRIES}) erreicht. Score: {score}/10"
+                        }
                     )
                     self._stats["failed"] += 1
-                    logger.error(f"Task {task_id[:8]} DEAD after {MAX_RETRIES} retries: {title[:60]}")
+                    logger.error(f"Task {str(task_id)[:8]} FEHLGESCHLAGEN: {title[:60]}")
 
             self._stats["processed"] += 1
 
         except Exception as e:
-            logger.error(f"Task {task_id[:8]} Execution Error: {e}")
+            logger.error(f"Task {str(task_id)[:8]} Execution Error: {e}")
             try:
-                await supa.execute(
-                    """UPDATE oracle_tasks SET status='pending', retry_count=COALESCE(retry_count,0)+1,
-                       error_message=$1,
-                       audit_log = array_append(COALESCE(audit_log, ARRAY[]::jsonb[]), to_jsonb($2::text))
-                       WHERE id=$3""",
-                    str(e)[:500],
-                    f"[{datetime.now(timezone.utc).isoformat()}] EXECUTION ERROR: {str(e)[:200]}",
-                    task["id"]
+                await self._transition(
+                    task_id, STATUS["FEHLGESCHLAGEN"] if retry_count >= MAX_RETRIES - 1 else STATUS["ERKANNT"],
+                    reason=f"Execution Error: {str(e)[:300]}",
+                    agent="system",
+                    extra={
+                        "error_message": str(e)[:500],
+                        "retry_count": retry_count + 1
+                    }
                 )
             except Exception:
                 pass
 
     # ═══════════════════════════════════════════════════════════
-    # AGENT SELECTION — Intelligente Agentenauswahl
+    # AGENT SELECTION
     # ═══════════════════════════════════════════════════════════
 
     AGENT_ROUTING = {
@@ -222,8 +407,6 @@ class OracleEngine:
     }
 
     async def _select_agent(self, task_type: str, title: str) -> dict:
-        """Besten Agenten für den Task-Typ auswählen. Keyword-basiertes Smart-Routing."""
-        # Smart routing: Keywords in Titel prüfen für bessere Agentenauswahl
         title_lower = (title or "").lower()
         if any(kw in title_lower for kw in ["deploy", "docker", "coolify", "server", "infra", "gitlab", "repo", "ci/cd", "backup"]):
             agent = {"name": "Forge", "role": "Tech Lead — Infrastructure, Deployment, DevOps"}
@@ -242,7 +425,6 @@ class OracleEngine:
         else:
             agent = self.AGENT_ROUTING.get(task_type, self.AGENT_ROUTING["general"])
 
-        # Supabase-Agenten-Details anreichern
         try:
             details = await supa.fetch(
                 "SELECT description, capabilities FROM ai_agents WHERE name=$1 AND is_active=true LIMIT 1",
@@ -257,15 +439,13 @@ class OracleEngine:
         return agent
 
     # ═══════════════════════════════════════════════════════════
-    # KNOWLEDGE AGGREGATION — Wissen aus allen Quellen
+    # KNOWLEDGE AGGREGATION
     # ═══════════════════════════════════════════════════════════
 
     async def _aggregate_knowledge(self, title: str, description: str, task_type: str) -> str:
-        """Aggregiert Wissen aus Brain, Knowledge, Memory, und MongoDB."""
         parts = []
         query = f"{title} {description}"[:200]
 
-        # 1. Brain-Notes (Supabase)
         try:
             brain = await supa.brain_search(query, limit=5)
             if brain:
@@ -274,7 +454,6 @@ class OracleEngine:
         except Exception:
             pass
 
-        # 2. Knowledge-Base (Supabase)
         try:
             knowledge = await supa.knowledge_search(limit=10)
             if knowledge:
@@ -283,7 +462,6 @@ class OracleEngine:
         except Exception:
             pass
 
-        # 3. Memory-Entries (Supabase)
         try:
             memory = await supa.memory_entries(limit=10)
             if memory:
@@ -292,7 +470,6 @@ class OracleEngine:
         except Exception:
             pass
 
-        # 4. MongoDB — Aktuelle Systemdaten
         try:
             stats = {}
             for col in ["leads", "contacts", "quotes", "contracts", "invoices"]:
@@ -304,14 +481,13 @@ class OracleEngine:
         return "\n\n".join(parts)
 
     # ═══════════════════════════════════════════════════════════
-    # EXECUTION PROMPT — Strukturierter Auftrag
+    # EXECUTION PROMPT
     # ═══════════════════════════════════════════════════════════
 
     def _build_execution_prompt(self, task: dict, knowledge: str) -> str:
         title_lower = (task.get('title', '') or '').lower()
         is_infra = any(kw in title_lower for kw in ["deploy", "docker", "coolify", "server", "infra", "gitlab", "backup", "ci/cd"])
 
-        task_guidance = ""
         if is_infra:
             task_guidance = """AUFTRAGSTYP: Infrastruktur/Deployment-Analyse
 Liefere: Vollständige Analyse + Schritt-für-Schritt-Anleitung + Konfigurationsvorschläge.
@@ -343,21 +519,15 @@ Tags: {', '.join(task.get('tags', []))}
 Sprache: Deutsch. Qualität: Professionell und vollständig."""
 
     # ═══════════════════════════════════════════════════════════
-    # VERIFIKATION — e2e Gegenprüfung
+    # VERIFIKATION
     # ═══════════════════════════════════════════════════════════
 
     async def _verify_result(self, task: dict, result: str, executor_agent: str) -> dict:
-        """Verifiziert das Ergebnis eines Tasks durch einen unabhängigen Agenten."""
         if not result or len(result.strip()) < 20:
-            return {"passed": False, "reason": "Ergebnis zu kurz oder leer", "verified_by": "system"}
+            return {"passed": False, "score": 1, "reason": "Ergebnis zu kurz oder leer", "verified_by": "system"}
 
-        task_type = task.get("type", "general")
         title_lower = (task.get("title", "") or "").lower()
-
-        # Infrastructure/Deployment-Tasks: Analyse+Empfehlung reicht, keine echte Server-Aktion möglich
         is_infra = any(kw in title_lower for kw in ["deploy", "docker", "coolify", "server", "infra", "gitlab", "backup", "ci/cd"])
-
-        # Verifikation durch DeepSeek mit anderem Agenten
         verifier = "Lexi" if executor_agent != "Lexi" else "Strategist"
 
         try:
@@ -366,8 +536,8 @@ Sprache: Deutsch. Qualität: Professionell und vollständig."""
                 agent_role="Qualitätsprüfer & Verifikation",
                 system_prompt=f"""Du bist der Qualitätsprüfer im NeXifyAI-Team.
 Bewerte das Ergebnis nach: Vollständigkeit der Analyse, Korrektheit, Umsetzbarkeit der Empfehlungen.
-{"WICHTIG: Dies ist ein Infrastruktur/Deployment-Auftrag. Der Agent analysiert und empfiehlt — er kann KEINE echten Server-Aktionen ausführen. Eine vollständige Analyse mit konkreten Schritten, Konfigurationsempfehlungen und Abhängigkeiten gilt als BESTANDEN." if is_infra else ""}
-BEWERTUNG: Wenn das Ergebnis eine strukturierte Analyse mit [ANALYSE], [LÖSUNG] und [NÄCHSTE SCHRITTE] enthält, und die Empfehlungen fachlich korrekt sind, dann ist es BESTANDEN.
+{"WICHTIG: Dies ist ein Infrastruktur/Deployment-Auftrag. Eine vollständige Analyse mit konkreten Schritten gilt als BESTANDEN." if is_infra else ""}
+BEWERTUNG: Wenn das Ergebnis eine strukturierte Analyse mit [ANALYSE], [LÖSUNG] und [NÄCHSTE SCHRITTE] enthält, dann ist es BESTANDEN.
 Antworte NUR mit JSON: {{"passed": true/false, "score": 1-10, "reason": "..."}}""",
                 user_message=f"""AUFTRAG: {task.get('title', '')}
 Typ: {task.get('type', '')}
@@ -382,20 +552,15 @@ Bewerte: Ist das Ergebnis vollständig, korrekt und umsetzbar?""",
             )
 
             resp = verification.get("response", "")
-
-            # Parse JSON aus Antwort
             try:
-                # Versuche JSON zu extrahieren
                 json_start = resp.find("{")
                 json_end = resp.rfind("}") + 1
                 if json_start >= 0 and json_end > json_start:
                     v_data = json.loads(resp[json_start:json_end])
                     score = v_data.get("score", 5)
-                    # Score ≥ 5 = passed (Analyse/Empfehlung akzeptiert)
                     passed = score >= 5 or v_data.get("passed", False)
                     return {
-                        "passed": passed,
-                        "score": score,
+                        "passed": passed, "score": score,
                         "reason": v_data.get("reason", ""),
                         "verified_by": verifier,
                         "verified_at": datetime.now(timezone.utc).isoformat()
@@ -403,36 +568,30 @@ Bewerte: Ist das Ergebnis vollständig, korrekt und umsetzbar?""",
             except (json.JSONDecodeError, ValueError):
                 pass
 
-            # Fallback: Prüfe ob "passed": true irgendwo vorkommt
             passed = "true" in resp.lower() and "passed" in resp.lower()
             return {
-                "passed": passed,
-                "score": 7 if passed else 3,
-                "reason": resp[:300],
-                "verified_by": verifier,
+                "passed": passed, "score": 7 if passed else 3,
+                "reason": resp[:300], "verified_by": verifier,
                 "verified_at": datetime.now(timezone.utc).isoformat()
             }
 
         except Exception as e:
             logger.error(f"Verification error: {e}")
-            # Bei Verifikationsfehler: Task als bestanden markieren wenn Ergebnis substantiell
             return {
-                "passed": len(result) > 100,
-                "score": 5,
+                "passed": len(result) > 100, "score": 5,
                 "reason": f"Verifikation fehlgeschlagen: {str(e)[:200]}. Auto-passed basierend auf Ergebnislänge.",
                 "verified_by": "system-fallback",
                 "verified_at": datetime.now(timezone.utc).isoformat()
             }
 
     # ═══════════════════════════════════════════════════════════
-    # LERNEN — Ergebnisse als Brain-Notes speichern
+    # LERNEN
     # ═══════════════════════════════════════════════════════════
 
     async def _store_learning(self, task: dict, result: str, verification: dict):
-        """Speichert erfolgreiche Ergebnisse als Lernmaterial im Brain."""
         try:
             score = verification.get("score", 0)
-            if score >= 7:  # Nur hochwertige Ergebnisse
+            if score >= 7:
                 await supa.store_brain_note(
                     title=f"Oracle-Ergebnis: {task.get('title', '')[:100]}",
                     content=f"Typ: {task.get('type', '')}\nAgent: {verification.get('verified_by', '')}\nScore: {score}/10\n\n{result[:1500]}",
@@ -444,24 +603,111 @@ Bewerte: Ist das Ergebnis vollständig, korrekt und umsetzbar?""",
             pass
 
     # ═══════════════════════════════════════════════════════════
-    # FONT-AUDIT — Schriften systemweit scannen
+    # LEITSTELLE — Live-Daten für das Command Center
+    # ═══════════════════════════════════════════════════════════
+
+    @staticmethod
+    async def get_leitstelle_data() -> dict:
+        """Aggregierte Live-Daten für die Zentrale Leitstelle."""
+        # Status-Verteilung (alle Statuses)
+        status_dist = await supa.fetch(
+            "SELECT status, count(*) as cnt FROM oracle_tasks GROUP BY status ORDER BY cnt DESC"
+        )
+
+        # Aktive Bots (aktuell arbeitende Agenten)
+        active_bots = await supa.fetch(
+            """SELECT current_agent as agent, status, title, id, started_at, loop_count
+               FROM oracle_tasks
+               WHERE status IN ('gestartet', 'in_bearbeitung', 'wartet_auf_input', 'wartet_auf_freigabe', 'in_loop', 'running', 'assigned')
+               AND current_agent IS NOT NULL
+               ORDER BY started_at DESC LIMIT 20"""
+        )
+
+        # Loop-Monitor: Tasks die aktuell loopen
+        loop_tasks = await supa.fetch(
+            """SELECT id, title, status, current_agent, loop_count, loop_reason, exit_condition, retry_count, started_at
+               FROM oracle_tasks
+               WHERE loop_count > 0 AND status NOT IN ('erfolgreich_validiert', 'fehlgeschlagen', 'abgebrochen', 'completed', 'failed', 'cancelled')
+               ORDER BY loop_count DESC LIMIT 15"""
+        )
+
+        # Eskalationen
+        escalations = await supa.fetch(
+            """SELECT id, title, status, escalation_reason, current_agent, created_at
+               FROM oracle_tasks
+               WHERE status IN ('eskaliert', 'blockiert')
+               ORDER BY created_at DESC LIMIT 10"""
+        )
+
+        # Letzte Validierungen (Evidenz)
+        recent_validated = await supa.fetch(
+            """SELECT id, title, current_agent, verification_score, evidence, completed_at, status
+               FROM oracle_tasks
+               WHERE status IN ('erfolgreich_validiert', 'completed') AND verification_score IS NOT NULL
+               ORDER BY completed_at DESC LIMIT 10"""
+        )
+
+        # Letzte Statusübergänge (globaler Audit-Trail)
+        recent_transitions = await supa.fetch(
+            """SELECT id, title, status, current_agent, status_history, started_at, completed_at
+               FROM oracle_tasks
+               WHERE status_history IS NOT NULL AND status_history != '[]'::jsonb
+               ORDER BY COALESCE(completed_at, started_at, created_at) DESC LIMIT 15"""
+        )
+
+        # Pipeline-Statistiken
+        pipeline = {
+            "total": await supa.fetchval("SELECT count(*) FROM oracle_tasks"),
+            "erkannt": await supa.fetchval("SELECT count(*) FROM oracle_tasks WHERE status IN ('erkannt', 'pending')"),
+            "in_arbeit": await supa.fetchval("SELECT count(*) FROM oracle_tasks WHERE status IN ('gestartet', 'in_bearbeitung', 'running', 'assigned', 'eingeplant')"),
+            "wartend": await supa.fetchval("SELECT count(*) FROM oracle_tasks WHERE status IN ('wartet_auf_input', 'wartet_auf_freigabe')"),
+            "in_loop": await supa.fetchval("SELECT count(*) FROM oracle_tasks WHERE status = 'in_loop'"),
+            "validiert_24h": await supa.fetchval("SELECT count(*) FROM oracle_tasks WHERE status IN ('erfolgreich_validiert', 'completed') AND completed_at > NOW() - INTERVAL '24 hours'"),
+            "fehlgeschlagen_24h": await supa.fetchval("SELECT count(*) FROM oracle_tasks WHERE status IN ('fehlgeschlagen', 'failed') AND completed_at > NOW() - INTERVAL '24 hours'"),
+            "eskaliert": await supa.fetchval("SELECT count(*) FROM oracle_tasks WHERE status IN ('eskaliert', 'blockiert')"),
+        }
+
+        return {
+            "pipeline": pipeline,
+            "status_distribution": [dict(s) for s in status_dist],
+            "active_bots": [dict(b) for b in active_bots],
+            "loop_monitor": [dict(l) for l in loop_tasks],
+            "escalations": [dict(e) for e in escalations],
+            "recent_validated": [dict(v) for v in recent_validated],
+            "recent_transitions": [dict(t) for t in recent_transitions],
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+    @staticmethod
+    async def get_task_transitions(task_id: str) -> dict:
+        """Statusübergänge eines einzelnen Tasks."""
+        task = await supa.fetchrow(
+            """SELECT id, type, priority, status, title, description, owner_agent, current_agent,
+                      created_at, started_at, completed_at, retry_count, loop_count, loop_reason,
+                      exit_condition, evidence, status_history, verification_score, escalation_reason,
+                      error_message, audit_log, result, tags
+               FROM oracle_tasks WHERE id::text=$1""",
+            task_id
+        )
+        if not task:
+            return {"error": "Task nicht gefunden"}
+        return dict(task)
+
+    # ═══════════════════════════════════════════════════════════
+    # FONT-AUDIT
     # ═══════════════════════════════════════════════════════════
 
     async def run_font_audit(self) -> dict:
-        """Scannt alle CSS-Dateien und erstellt einen Font-Audit."""
         import glob
         import re
-
         fonts_found = {}
         files_scanned = 0
         issues = []
-
         for css_file in glob.glob("/app/frontend/src/**/*.css", recursive=True):
             files_scanned += 1
             try:
                 with open(css_file, "r") as f:
                     content = f.read()
-                # Find font-family declarations
                 for match in re.finditer(r'font-family\s*:\s*([^;}{]+)', content):
                     font_val = match.group(1).strip()
                     file_rel = css_file.replace("/app/frontend/src/", "")
@@ -470,65 +716,42 @@ Bewerte: Ist das Ergebnis vollständig, korrekt und umsetzbar?""",
                     fonts_found[font_val].append(file_rel)
             except Exception:
                 continue
-
-        # Analyse: Welche Schriften sind inkonsistent?
         standard_fonts = {"'Manrope','Plus Jakarta Sans','Inter',sans-serif", "var(--f-display)", "var(--f-body)", "var(--f-mono)", "inherit"}
         for font, files in fonts_found.items():
             clean = font.strip().rstrip(",").strip()
             if clean not in standard_fonts and "var(--f-" not in clean and clean != "inherit":
-                issues.append({
-                    "font": font,
-                    "files": files,
-                    "severity": "warning" if "var(" in font else "error"
-                })
-
+                issues.append({"font": font, "files": files, "severity": "warning" if "var(" in font else "error"})
         audit = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "files_scanned": files_scanned,
-            "unique_fonts": len(fonts_found),
+            "files_scanned": files_scanned, "unique_fonts": len(fonts_found),
             "fonts": {k: v for k, v in fonts_found.items()},
-            "issues": issues,
-            "issue_count": len(issues),
+            "issues": issues, "issue_count": len(issues),
             "standard": ["--f-display: Manrope", "--f-body: Inter", "--f-mono: JetBrains Mono"]
         }
-
-        # In Supabase speichern
         try:
             await supa.store_brain_note(
                 title=f"Font-Audit {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')}",
                 content=json.dumps(audit, indent=2, ensure_ascii=False),
-                note_type="audit",
-                tags=["font-audit", "system-audit", "design"],
+                note_type="other", tags=["font-audit", "system-audit", "design"],
                 created_by="oracle-engine"
             )
-            await self._audit("font_audit_completed", {
-                "files_scanned": files_scanned,
-                "unique_fonts": len(fonts_found),
-                "issues": len(issues)
-            })
+            await self._audit("font_audit_completed", {"files_scanned": files_scanned, "unique_fonts": len(fonts_found), "issues": len(issues)})
         except Exception:
             pass
-
         return audit
 
     # ═══════════════════════════════════════════════════════════
-    # KNOWLEDGE SYNC — Wissen aus MongoDB → Supabase synchronisieren
+    # KNOWLEDGE SYNC
     # ═══════════════════════════════════════════════════════════
 
     async def sync_knowledge(self):
-        """Synchronisiert aktuelle Betriebsdaten als Knowledge in Supabase."""
         try:
-            # Aktuelle Stats
             stats = {}
             for col in ["leads", "contacts", "quotes", "contracts", "invoices", "bookings"]:
                 stats[col] = await self.db[col].count_documents({})
-
-            # Aktuelle Agenten aus MongoDB
             agents = []
             async for a in self.db.ai_agents.find({"status": "active"}, {"_id": 0, "name": 1, "role": 1}):
                 agents.append(f"{a.get('name','')}: {a.get('role','')}")
-
-            # Als Brain-Note speichern
             await supa.store_brain_note(
                 title=f"Betriebsstatus {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')}",
                 content=f"""IST-STATUS NeXifyAI Platform:
@@ -541,48 +764,35 @@ Bookings: {stats.get('bookings', 0)}
 
 Aktive MongoDB-Agenten: {len(agents)}
 {chr(10).join(agents[:20])}""",
-                note_type="other",
-                tags=["sync", "status", "betrieb"],
-                created_by="oracle-engine"
+                note_type="other", tags=["sync", "status", "betrieb"], created_by="oracle-engine"
             )
-
             await self._audit("knowledge_sync", {"collections_synced": len(stats), "agents_synced": len(agents)})
             logger.info(f"Knowledge-Sync abgeschlossen: {stats}")
-
         except Exception as e:
             logger.error(f"Knowledge-Sync Fehler: {e}")
 
     # ═══════════════════════════════════════════════════════════
-    # TASK DERIVATION — Aus Daten neue sinnvolle Tasks ableiten
+    # TASK DERIVATION
     # ═══════════════════════════════════════════════════════════
 
     async def derive_tasks(self):
-        """Analysiert aktuelle Daten und leitet neue Tasks ab."""
         try:
-            # Prüfe ob kürzlich schon Tasks abgeleitet wurden
             recent = await supa.fetchval(
                 "SELECT count(*) FROM oracle_tasks WHERE created_by='oracle-engine' AND created_at > NOW() - INTERVAL '6 hours'"
             )
             if recent > 10:
-                return  # Zu viele kürzlich erstellte Tasks
-
-            # Analysiere ausstehende Tasks
-            pending_count = await supa.fetchval("SELECT count(*) FROM oracle_tasks WHERE status='pending'")
-            failed_count = await supa.fetchval("SELECT count(*) FROM oracle_tasks WHERE status='failed' AND completed_at > NOW() - INTERVAL '24 hours'")
-
-            # Wenn zu viele fehlgeschlagene Tasks: Verbesserungsauftrag
+                return
+            pending_count = await supa.fetchval("SELECT count(*) FROM oracle_tasks WHERE status IN ('pending', 'erkannt')")
+            failed_count = await supa.fetchval("SELECT count(*) FROM oracle_tasks WHERE status IN ('failed', 'fehlgeschlagen') AND completed_at > NOW() - INTERVAL '24 hours'")
             if failed_count > 5:
                 await supa.insert_oracle_task(
                     task_type="improvement",
                     title=f"Fehleranalyse: {failed_count} fehlgeschlagene Tasks in 24h",
-                    description=f"Analysiere die {failed_count} fehlgeschlagenen Tasks der letzten 24 Stunden. Identifiziere Muster, Ursachen und Verbesserungsvorschläge.",
-                    priority=8,
-                    owner_agent="oracle-engine",
+                    description=f"Analysiere die {failed_count} fehlgeschlagenen Tasks der letzten 24 Stunden.",
+                    priority=8, owner_agent="oracle-engine",
                     tags=["auto-derived", "improvement", "error-analysis"]
                 )
-
             await self._audit("task_derivation", {"pending": pending_count, "failed_24h": failed_count})
-
         except Exception as e:
             logger.error(f"Task-Derivation Fehler: {e}")
 
@@ -591,7 +801,6 @@ Aktive MongoDB-Agenten: {len(agents)}
     # ═══════════════════════════════════════════════════════════
 
     async def _audit(self, action: str, details: dict):
-        """Schreibt Audit-Eintrag in Supabase."""
         try:
             from routes.shared import new_id
             await supa.execute(

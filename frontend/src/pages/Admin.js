@@ -1822,6 +1822,8 @@ const Admin = () => {
   const [nxAgentForm, setNxAgentForm] = useState({ name: '', role: '', system_prompt: '', model: '', tools: [], status: 'active' });
   const [showAgentForm, setShowAgentForm] = useState(false);
   const [nxProactive, setNxProactive] = useState(null);
+  const [leitstelle, setLeitstelle] = useState(null);
+  const [serviceTemplates, setServiceTemplates] = useState([]);
 
   const loadNxAgents = useCallback(async () => {
     const d = await apiFetch('/api/admin/nexify-ai/agents');
@@ -1834,6 +1836,29 @@ const Admin = () => {
   }, [apiFetch]);
 
   useEffect(() => { if (token && (view === 'agents' || view === 'nexify_ai')) { loadNxAgents(); loadNxProactive(); } }, [token, view, loadNxAgents, loadNxProactive]);
+
+  // Leitstelle-Daten laden (Command Center)
+  const loadLeitstelle = useCallback(async () => {
+    const d = await apiFetch('/api/admin/oracle/leitstelle');
+    if (d) setLeitstelle(d);
+  }, [apiFetch]);
+
+  const loadServiceTemplates = useCallback(async () => {
+    const d = await apiFetch('/api/admin/service-templates');
+    if (d?.templates) setServiceTemplates(d.templates);
+  }, [apiFetch]);
+
+  useEffect(() => {
+    if (token && view === 'nexify_ai') {
+      loadLeitstelle();
+      const interval = setInterval(loadLeitstelle, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [token, view, loadLeitstelle]);
+
+  useEffect(() => {
+    if (token && view === 'templates') loadServiceTemplates();
+  }, [token, view, loadServiceTemplates]);
 
   const toggleProactive = async (enabled) => {
     await apiFetch('/api/admin/nexify-ai/proactive', {
@@ -3381,77 +3406,138 @@ curl ${API}/api/v1/docs`}
           </div>
         </div>
       </div>
-      {/* ── Rechte Leitstelle / Command Center ── */}
+      {/* ── Rechte Leitstelle / Zentrale Leitstelle ── */}
       <div className="nxai-control" data-testid="nxai-control-panel">
+        {/* Pipeline-Status */}
         <div className="nxai-ctrl-section">
-          <h4>System-Status</h4>
-          <div className="nxai-ctrl-stat"><span className="label">Leads</span><span className="value">{stats?.leads_total ?? '—'}</span></div>
-          <div className="nxai-ctrl-stat"><span className="label">Kontakte</span><span className="value">{stats?.contacts_total ?? '—'}</span></div>
-          <div className="nxai-ctrl-stat"><span className="label">Angebote</span><span className="value">{stats?.quotes_total ?? '—'}</span></div>
-          <div className="nxai-ctrl-stat"><span className="label">Verträge</span><span className="value">{stats?.contracts_total ?? '—'}</span></div>
-          <div className="nxai-ctrl-stat"><span className="label">Rechnungen</span><span className="value">{stats?.invoices_total ?? '—'}</span></div>
-        </div>
-        <div className="nxai-ctrl-section">
-          <h4>KI-Agenten</h4>
-          {nxAgents.length > 0 ? nxAgents.slice(0, 6).map(a => (
-            <div key={a.agent_id} className="nxai-ctrl-item" onClick={() => { setNxInput(`@${a.name}: `); nxTextareaRef.current?.focus(); }}>
-              <span className="nxai-ctrl-dot" style={{background: a.status === 'active' ? '#10b981' : '#6b7b8d'}} />
-              <span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.name}</span>
-              <span style={{fontSize:'.625rem',color:'#4a5568'}}>{a.role}</span>
+          <h4>Pipeline-Status</h4>
+          {leitstelle?.pipeline ? (
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
+              {[
+                {l:'Erkannt',v:leitstelle.pipeline.erkannt,c:'#3b82f6',ic:'visibility'},
+                {l:'In Arbeit',v:leitstelle.pipeline.in_arbeit,c:'#f59e0b',ic:'engineering'},
+                {l:'Wartend',v:leitstelle.pipeline.wartend,c:'#8b5cf6',ic:'hourglass_top'},
+                {l:'In Loop',v:leitstelle.pipeline.in_loop,c:'#ef4444',ic:'loop'},
+                {l:'Validiert (24h)',v:leitstelle.pipeline.validiert_24h,c:'#10b981',ic:'verified'},
+                {l:'Fehlgeschl. (24h)',v:leitstelle.pipeline.fehlgeschlagen_24h,c:'#ef4444',ic:'error'},
+                {l:'Eskaliert',v:leitstelle.pipeline.eskaliert,c:'#dc2626',ic:'priority_high'},
+                {l:'Gesamt',v:leitstelle.pipeline.total,c:'#6b7b8d',ic:'database'},
+              ].map(s => (
+                <div key={s.l} style={{display:'flex',alignItems:'center',gap:6,padding:'4px 0'}}>
+                  <I n={s.ic} />
+                  <span style={{flex:1,fontSize:'.6875rem',color:'#8a9bb0'}}>{s.l}</span>
+                  <span style={{fontSize:'.8125rem',fontWeight:700,color:s.c,fontFamily:'var(--f-mono)'}}>{s.v ?? 0}</span>
+                </div>
+              ))}
             </div>
-          )) : <div style={{fontSize:'.6875rem',color:'#4a5568'}}>Lade Agenten...</div>}
+          ) : <div style={{fontSize:'.6875rem',color:'#4a5568'}}>Lade Pipeline...</div>}
         </div>
+
+        {/* Aktive Agenten */}
+        <div className="nxai-ctrl-section">
+          <h4>Aktive Agenten</h4>
+          {leitstelle?.active_bots?.length > 0 ? leitstelle.active_bots.slice(0, 6).map(b => (
+            <div key={String(b.id)} className="nxai-ctrl-item" style={{cursor:'default'}}>
+              <span className="nxai-ctrl-dot" style={{background:'#10b981',animation:'pulse 2s infinite'}} />
+              <span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:'.6875rem'}}>{b.agent}</span>
+              <span style={{fontSize:'.5625rem',color:'#f59e0b',textTransform:'uppercase'}}>{b.status}</span>
+            </div>
+          )) : (
+            <div style={{fontSize:'.6875rem',color:'#4a5568',display:'flex',alignItems:'center',gap:6}}>
+              <span className="nxai-ctrl-dot" style={{background:'#6b7b8d'}} />Keine aktiven Tasks
+            </div>
+          )}
+          {nxAgents.length > 0 && (
+            <div style={{marginTop:8,paddingTop:8,borderTop:'1px solid rgba(255,255,255,0.04)'}}>
+              <div style={{fontSize:'.5625rem',color:'#4a5568',marginBottom:4,textTransform:'uppercase',letterSpacing:'.5px'}}>Team-Register</div>
+              {nxAgents.slice(0, 9).map(a => (
+                <div key={a.agent_id} style={{display:'flex',alignItems:'center',gap:6,padding:'2px 0',cursor:'pointer'}} onClick={() => { setNxInput(`@${a.name}: `); nxTextareaRef.current?.focus(); }}>
+                  <span style={{width:5,height:5,borderRadius:'50%',background: a.status === 'active' ? '#10b981' : '#3a4550',flexShrink:0}} />
+                  <span style={{fontSize:'.625rem',color:'#8a9bb0',flex:1}}>{a.name}</span>
+                  <span style={{fontSize:'.5rem',color:'#3a4550'}}>{a.role?.split('—')[0]?.trim()}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Loop-Monitor */}
+        {leitstelle?.loop_monitor?.length > 0 && (
+          <div className="nxai-ctrl-section">
+            <h4 style={{color:'#ef4444'}}>Loop-Monitor</h4>
+            {leitstelle.loop_monitor.slice(0, 5).map(l => (
+              <div key={String(l.id)} style={{padding:'6px 0',borderBottom:'1px solid rgba(255,255,255,0.03)'}}>
+                <div style={{fontSize:'.6875rem',color:'#c8d1dc',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.title?.substring(0, 40)}</div>
+                <div style={{display:'flex',gap:8,marginTop:2,fontSize:'.5625rem'}}>
+                  <span style={{color:'#ef4444'}}>Loop {l.loop_count}x</span>
+                  <span style={{color:'#8a9bb0'}}>{l.current_agent}</span>
+                  <span style={{color:'#6b7b8d'}}>Retry {l.retry_count}/{3}</span>
+                </div>
+                {l.exit_condition && <div style={{fontSize:'.5625rem',color:'#4a5568',marginTop:2}}>Exit: {l.exit_condition?.substring(0, 60)}</div>}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Eskalationen */}
+        {leitstelle?.escalations?.length > 0 && (
+          <div className="nxai-ctrl-section">
+            <h4 style={{color:'#dc2626'}}>Eskalationen</h4>
+            {leitstelle.escalations.slice(0, 4).map(e => (
+              <div key={String(e.id)} style={{padding:'6px 0',borderBottom:'1px solid rgba(255,255,255,0.03)'}}>
+                <div style={{fontSize:'.6875rem',color:'#fff',fontWeight:600}}>{e.title?.substring(0, 40)}</div>
+                <div style={{fontSize:'.5625rem',color:'#dc2626',marginTop:2}}>{e.escalation_reason?.substring(0, 80)}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Letzte Validierungen (Evidenz) */}
+        <div className="nxai-ctrl-section">
+          <h4>Letzte Validierungen</h4>
+          {leitstelle?.recent_validated?.length > 0 ? leitstelle.recent_validated.slice(0, 5).map(v => (
+            <div key={String(v.id)} style={{display:'flex',alignItems:'center',gap:6,padding:'3px 0'}}>
+              <span style={{width:16,height:16,borderRadius:3,background: (v.verification_score||0) >= 7 ? 'rgba(16,185,129,.15)' : 'rgba(245,158,11,.15)',color:(v.verification_score||0) >= 7 ? '#10b981' : '#f59e0b',fontSize:'.5625rem',fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'var(--f-mono)'}}>{v.verification_score||'?'}</span>
+              <span style={{flex:1,fontSize:'.625rem',color:'#8a9bb0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{v.title?.substring(0, 35)}</span>
+              <span style={{fontSize:'.5rem',color:'#3a4550'}}>{v.current_agent}</span>
+            </div>
+          )) : <div style={{fontSize:'.6875rem',color:'#4a5568'}}>Noch keine Validierungen</div>}
+        </div>
+
+        {/* Schnellaktionen */}
         <div className="nxai-ctrl-section">
           <h4>Schnellaktionen</h4>
           {[
             {l:'Morgen-Briefing',i:'wb_sunny',t:'Erstelle ein Morgen-Briefing: Neue Leads, offene Angebote, fällige Termine'},
             {l:'Lead-Analyse',i:'analytics',t:'Analysiere die aktuelle Lead-Pipeline mit Empfehlungen'},
             {l:'System-Check',i:'monitor_heart',t:'Führe einen vollständigen System-Health-Check durch'},
-            {l:'Brain durchsuchen',i:'psychology',t:'Durchsuche das Brain nach den wichtigsten aktuellen Informationen'},
-            {l:'E-Mail entwerfen',i:'email',t:'Entwirf eine professionelle E-Mail an:'},
-            {l:'Angebot erstellen',i:'receipt_long',t:'Erstelle ein Angebot für:'},
+            {l:'Oracle-Status',i:'hub',t:'Zeige den aktuellen Oracle-Status: Tasks, Agenten, Brain'},
           ].map(a => (
             <div key={a.l} className="nxai-ctrl-item" onClick={() => { setNxInput(a.t); nxTextareaRef.current?.focus(); }}>
               <I n={a.i} /><span>{a.l}</span>
             </div>
           ))}
         </div>
-        <div className="nxai-ctrl-section">
-          <h4>Proaktiv</h4>
-          <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:8}}>
-            <span className="nxai-ctrl-dot" style={{background: nxProactive?.enabled ? '#10b981' : '#6b7b8d'}} />
-            <span style={{fontSize:'.75rem',color: nxProactive?.enabled ? '#10b981' : '#6b7b8d'}}>{nxProactive?.enabled ? 'Autonomer Modus aktiv' : 'Inaktiv'}</span>
-          </div>
-          {nxProactive?.history?.slice(-3).reverse().map((h, i) => (
-            <div key={i} style={{fontSize:'.625rem',color:'#4a5568',padding:'2px 0'}}>{fmtTime(h.triggered_at)} — {h.name}</div>
-          ))}
-        </div>
+
+        {/* Verbindung */}
         <div className="nxai-ctrl-section" style={{borderBottom:'none'}}>
           <h4>Verbindung</h4>
           {!nxStatus ? (
             <div style={{fontSize:'.6875rem',color:'#4a5568'}}>Prüfe Verbindungen...</div>
           ) : (
             <div style={{display:'flex',flexDirection:'column',gap:4}}>
-              <div style={{display:'flex',alignItems:'center',gap:6,fontSize:'.6875rem'}}>
-                <span className="nxai-ctrl-dot" style={{background:nxStatus.arcee?.connected?'#10b981':nxStatus.arcee?.configured?'#f59e0b':'#ef4444'}} />
-                <span style={{color:'#c8d1dc'}}>Arcee AI</span>
-                <span style={{fontSize:'.5625rem',color:'#4a5568',marginLeft:'auto'}}>{nxStatus.arcee?.connected?'verbunden':nxStatus.arcee?.configured?'konfiguriert':'fehlt'}</span>
-              </div>
-              <div style={{display:'flex',alignItems:'center',gap:6,fontSize:'.6875rem'}}>
-                <span className="nxai-ctrl-dot" style={{background:nxStatus.mem0?.connected?'#10b981':nxStatus.mem0?.configured?'#f59e0b':'#ef4444'}} />
-                <span style={{color:'#c8d1dc'}}>mem0 Brain</span>
-                <span style={{fontSize:'.5625rem',color:'#4a5568',marginLeft:'auto'}}>{nxStatus.mem0?.connected?'verbunden':nxStatus.mem0?.configured?'konfiguriert':'fehlt'}</span>
-              </div>
-              <div style={{display:'flex',alignItems:'center',gap:6,fontSize:'.6875rem'}}>
-                <span className="nxai-ctrl-dot" style={{background:nxStatus.whatsapp?.connected?'#10b981':'#ef4444'}} />
-                <span style={{color:'#c8d1dc'}}>WhatsApp</span>
-                <span style={{fontSize:'.5625rem',color:'#4a5568',marginLeft:'auto'}}>{nxStatus.whatsapp?.status||'nicht verbunden'}</span>
-              </div>
-              <div style={{display:'flex',alignItems:'center',gap:6,fontSize:'.6875rem'}}>
-                <span className="nxai-ctrl-dot" style={{background:'#10b981'}} />
-                <span style={{color:'#c8d1dc'}}>MongoDB</span>
-                <span style={{fontSize:'.5625rem',color:'#4a5568',marginLeft:'auto'}}>verbunden</span>
-              </div>
+              {[
+                {n:'Arcee AI',ok:nxStatus.arcee?.connected,cfg:nxStatus.arcee?.configured},
+                {n:'mem0 Brain',ok:nxStatus.mem0?.connected,cfg:nxStatus.mem0?.configured},
+                {n:'Supabase',ok:true,cfg:true},
+                {n:'MongoDB',ok:true,cfg:true},
+              ].map(s => (
+                <div key={s.n} style={{display:'flex',alignItems:'center',gap:6,fontSize:'.6875rem'}}>
+                  <span className="nxai-ctrl-dot" style={{background:s.ok?'#10b981':s.cfg?'#f59e0b':'#ef4444'}} />
+                  <span style={{color:'#c8d1dc'}}>{s.n}</span>
+                  <span style={{fontSize:'.5625rem',color:'#4a5568',marginLeft:'auto'}}>{s.ok?'verbunden':s.cfg?'konfiguriert':'fehlt'}</span>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -3459,9 +3545,70 @@ curl ${API}/api/v1/docs`}
     </div>
   );
 
+  const TIER_COLORS = {
+    starter: '#3b82f6', growth: '#10b981', seo_starter: '#f59e0b', seo_growth: '#8b5cf6',
+    website_starter: '#06b6d4', website_professional: '#ec4899', website_enterprise: '#dc2626',
+    app_mvp: '#f97316', app_professional: '#6366f1',
+  };
+
+  const ServiceTemplatesView = () => (
+    <div data-testid="service-templates">
+      <div className="adm-section-header">
+        <h2>Service-Boilerplates</h2>
+        <span style={{fontSize:'.8125rem',color:'#8a9bb0'}}>{serviceTemplates.length} vorgefertigte Konzepte</span>
+      </div>
+      <div className="adm-form-card" style={{marginBottom:20,borderLeft:'3px solid #FE9B7B'}}>
+        <div style={{display:'flex',gap:8,alignItems:'flex-start'}}>
+          <I n="rocket_launch" />
+          <div style={{fontSize:'.8125rem',color:'#c8d1dc',lineHeight:1.6}}>
+            <strong style={{color:'#fff'}}>Agentur-Boilerplates</strong><br/>
+            Jedes Template enthält: Meilensteine, Deliverables, Agenten-Zuweisungen, Standard-Content und Automatisierungsregeln.
+            Kundenbestellungen werden in unter 3 Stunden aus Templates instanziiert.
+          </div>
+        </div>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(340px,1fr))',gap:16}}>
+        {serviceTemplates.map(t => (
+          <div key={t.key} className="adm-form-card" style={{borderLeft:`3px solid ${TIER_COLORS[t.tier] || '#6b7b8d'}`}} data-testid={`template-${t.key}`}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
+              <div>
+                <h3 style={{margin:0,fontSize:'.9375rem',color:'#fff'}}>{t.name}</h3>
+                <span style={{fontSize:'.6875rem',color:TIER_COLORS[t.tier] || '#8a9bb0',fontWeight:600,textTransform:'uppercase',letterSpacing:'.5px'}}>{t.tier?.replace('_',' ')}</span>
+              </div>
+              <div style={{textAlign:'right'}}>
+                {t.price_monthly && <div style={{fontSize:'1rem',fontWeight:700,color:'#FE9B7B',fontFamily:'var(--f-mono)'}}>{new Intl.NumberFormat('de-DE').format(t.price_monthly)} EUR<span style={{fontSize:'.625rem',color:'#6b7b8d'}}>/Monat</span></div>}
+                {t.price_fixed && <div style={{fontSize:'1rem',fontWeight:700,color:'#FE9B7B',fontFamily:'var(--f-mono)'}}>{new Intl.NumberFormat('de-DE').format(t.price_fixed)} EUR</div>}
+                {t.duration_months && <div style={{fontSize:'.625rem',color:'#4a5568'}}>{t.duration_months} Monate Laufzeit</div>}
+                {t.deposit_amount > 0 && <div style={{fontSize:'.625rem',color:'#f59e0b'}}>Anzahlung: {new Intl.NumberFormat('de-DE').format(t.deposit_amount)} EUR</div>}
+              </div>
+            </div>
+            <p style={{margin:'8px 0',fontSize:'.75rem',color:'#8a9bb0',lineHeight:1.5}}>{t.description}</p>
+            <div style={{display:'flex',gap:12,fontSize:'.6875rem',color:'#6b7b8d',marginTop:8}}>
+              <span><I n="checklist" /> {t.deliverables_count} Deliverables</span>
+              <span><I n="flag" /> {t.milestones_count} Phasen</span>
+            </div>
+            <div style={{display:'flex',gap:4,flexWrap:'wrap',marginTop:8}}>
+              {t.agents_assigned?.map(a => (
+                <span key={a} style={{padding:'2px 8px',borderRadius:10,background:'rgba(254,155,123,.08)',color:'#FE9B7B',fontSize:'.5625rem',fontWeight:600}}>{a}</span>
+              ))}
+            </div>
+            <button className="adm-btn adm-btn-primary" style={{marginTop:12,width:'auto',padding:'6px 16px',fontSize:'.75rem'}} onClick={() => {
+              setNxInput(`Instanziiere das Template "${t.name}" für einen neuen Kunden. Erstelle Projekt mit allen Meilensteinen und Tasks.`);
+              setView('nexify_ai');
+              nxTextareaRef.current?.focus();
+            }} data-testid={`instantiate-${t.key}`}>
+              <I n="play_arrow" /> Projekt starten
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   const navItems = [
     { id: 'nexify_ai', icon: 'psychology', label: 'NeXify AI' },
     { id: 'oracle', icon: 'hub', label: 'Oracle System' },
+    { id: 'templates', icon: 'inventory_2', label: 'Boilerplates' },
     { id: 'dashboard', icon: 'dashboard', label: 'Dashboard' },
     { id: 'projects', icon: 'folder_special', label: 'Projekte' },
     { id: 'contracts', icon: 'gavel', label: 'Verträge' },
@@ -3510,6 +3657,7 @@ curl ${API}/api/v1/docs`}
         <div className={`adm-content ${view === 'nexify_ai' ? 'adm-content--fullbleed' : ''}`}>
           {view === 'nexify_ai' && <NeXifyAIView />}
           {view === 'oracle' && <OracleView token={token} />}
+          {view === 'templates' && <ServiceTemplatesView />}
           {view === 'dashboard' && <DashboardView />}
           {view === 'projects' && <ProjectsView />}
           {view === 'contracts' && <ContractsView />}
