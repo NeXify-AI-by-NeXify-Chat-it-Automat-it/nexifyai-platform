@@ -39,7 +39,7 @@ const Admin = () => {
     } catch {}
     return '';
   });
-  const [view, setView] = useState('dashboard');
+  const [view, setView] = useState(() => localStorage.getItem('nx_admin_view') || 'dashboard');
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [loginErr, setLoginErr] = useState('');
   const [loginBusy, setLoginBusy] = useState(false);
@@ -597,6 +597,10 @@ const Admin = () => {
       <div className="adm-stat-grid">
         <div className="adm-stat-card"><div className="adm-stat-icon"><I n="people" /></div><div className="adm-stat-val">{stats?.leads_total || 0}</div><div className="adm-stat-label">Leads gesamt</div></div>
         <div className="adm-stat-card hl"><div className="adm-stat-icon"><I n="trending_up" /></div><div className="adm-stat-val">{stats?.leads_new || 0}</div><div className="adm-stat-label">Neue Leads</div></div>
+        <div className="adm-stat-card"><div className="adm-stat-icon"><I n="contacts" /></div><div className="adm-stat-val">{stats?.contacts_total || 0}</div><div className="adm-stat-label">Kontakte</div></div>
+        <div className="adm-stat-card"><div className="adm-stat-icon"><I n="description" /></div><div className="adm-stat-val">{stats?.quotes_total || 0}</div><div className="adm-stat-label">Angebote</div></div>
+        <div className="adm-stat-card"><div className="adm-stat-icon"><I n="gavel" /></div><div className="adm-stat-val">{stats?.contracts_total || 0}</div><div className="adm-stat-label">Verträge</div></div>
+        <div className="adm-stat-card"><div className="adm-stat-icon"><I n="receipt_long" /></div><div className="adm-stat-val">{stats?.invoices_total || 0}</div><div className="adm-stat-label">Rechnungen</div></div>
         <div className="adm-stat-card"><div className="adm-stat-icon"><I n="calendar_month" /></div><div className="adm-stat-val">{stats?.bookings_total || 0}</div><div className="adm-stat-label">Buchungen</div></div>
         <div className="adm-stat-card"><div className="adm-stat-icon"><I n="forum" /></div><div className="adm-stat-val">{stats?.chat_sessions_total || 0}</div><div className="adm-stat-label">Chat-Sessions</div></div>
       </div>
@@ -1828,7 +1832,7 @@ const Admin = () => {
     if (d) setNxProactive(d);
   }, [apiFetch]);
 
-  useEffect(() => { if (token && view === 'agents') { loadNxAgents(); loadNxProactive(); } }, [token, view, loadNxAgents, loadNxProactive]);
+  useEffect(() => { if (token && (view === 'agents' || view === 'nexify_ai')) { loadNxAgents(); loadNxProactive(); } }, [token, view, loadNxAgents, loadNxProactive]);
 
   const toggleProactive = async (enabled) => {
     await apiFetch('/api/admin/nexify-ai/proactive', {
@@ -2902,8 +2906,8 @@ const Admin = () => {
     if (nxStreamRef.current) nxStreamRef.current.textContent = text;
   };
 
-  const sendNxMessage = async () => {
-    const msg = nxInput.trim();
+  const sendNxMessage = async (directMsg) => {
+    const msg = (directMsg || nxInput).trim();
     if (!msg || nxStreaming) return;
     setNxInput('');
     setNxStreaming(true);
@@ -3057,19 +3061,19 @@ const Admin = () => {
       </div>
       <div className="adm-table-wrap">
         <table className="adm-table" data-testid="webhook-events-table">
-          <thead><tr><th>Zeitpunkt</th><th>Typ</th><th>Source</th><th>Status</th><th>Details</th></tr></thead>
+          <thead><tr><th>Zeitpunkt</th><th>Event</th><th>Order ID</th><th>Status</th><th>Details</th></tr></thead>
           <tbody>
             {webhooksLoading ? (
               <tr><td colSpan="5" style={{textAlign:'center',padding:32,color:'#6b7b8d'}}>Lade...</td></tr>
             ) : webhookEvents.length === 0 ? (
               <tr><td colSpan="5" style={{textAlign:'center',padding:32,color:'#4a5568'}}>Keine Webhook-Events vorhanden</td></tr>
             ) : webhookEvents.map((evt, i) => (
-              <tr key={evt.event_id || i}>
-                <td style={{fontSize:'.75rem',color:'#6b7b8d',whiteSpace:'nowrap'}}>{fmtTime(evt.timestamp)}</td>
-                <td><span className="adm-badge" style={{background:'#3b82f622',color:'#3b82f6'}}>{evt.event_type || '-'}</span></td>
-                <td style={{fontSize:'.75rem'}}>{evt.source || '-'}</td>
-                <td><span className="adm-badge" style={{background:evt.status==='processed'?'#10b98122':evt.status==='failed'?'#ef444422':'#f59e0b22',color:evt.status==='processed'?'#10b981':evt.status==='failed'?'#ef4444':'#f59e0b'}}>{evt.status || 'pending'}</span></td>
-                <td style={{fontSize:'.6875rem',color:'#6b7b8d',maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{JSON.stringify(evt.payload || {}).slice(0,80)}</td>
+              <tr key={evt.event_id || evt.order_id || i}>
+                <td style={{fontSize:'.75rem',color:'#6b7b8d',whiteSpace:'nowrap'}}>{fmtTime(evt.processed_at || evt.timestamp || evt.created_at)}</td>
+                <td><span className="adm-badge" style={{background:'#3b82f622',color:'#3b82f6'}}>{evt.event || evt.event_type || '-'}</span></td>
+                <td style={{fontSize:'.75rem'}}>{evt.order_id || evt.source || '-'}</td>
+                <td><span className="adm-badge" style={{background: evt.error ? '#ef444422' : '#10b98122', color: evt.error ? '#ef4444' : '#10b981'}}>{evt.error ? 'Fehler' : 'Verarbeitet'}</span></td>
+                <td style={{fontSize:'.6875rem',color:'#6b7b8d',maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{JSON.stringify(evt.data || evt.payload || {}).slice(0,80)}</td>
               </tr>
             ))}
           </tbody>
@@ -3316,7 +3320,7 @@ curl ${API}/api/v1/docs`}
               <p>Operatives Gehirn und zentrale Koordinationsinstanz. Brain-gestützt, kontextbewusst, handlungsfähig.</p>
               <div style={{display:'flex',gap:8,flexWrap:'wrap',justifyContent:'center',marginTop:8}}>
                 {['Projektstatus', 'Angebotsentwurf', 'Lead-Analyse', 'Systemstatus'].map(s => (
-                  <button key={s} style={{background:'rgba(254,155,123,.06)',border:'1px solid rgba(254,155,123,.12)',color:'#FE9B7B',padding:'6px 14px',borderRadius:20,fontSize:'.75rem',cursor:'pointer',transition:'all 200ms'}} onClick={() => { setNxInput(s); }} data-testid={`nxai-quick-${s}`}>{s}</button>
+                  <button key={s} style={{background:'rgba(254,155,123,.06)',border:'1px solid rgba(254,155,123,.12)',color:'#FE9B7B',padding:'6px 14px',borderRadius:20,fontSize:'.75rem',cursor:'pointer',transition:'all 200ms'}} onClick={() => sendNxMessage(s)} data-testid={`nxai-quick-${s}`}>{s}</button>
                 ))}
               </div>
               <div style={{display:'flex',gap:6,flexWrap:'wrap',justifyContent:'center',marginTop:12}}>
@@ -3366,6 +3370,71 @@ curl ${API}/api/v1/docs`}
           </div>
         </div>
       </div>
+      {/* ── Rechte Leitstelle / Command Center ── */}
+      <div className="nxai-control" data-testid="nxai-control-panel">
+        <div className="nxai-ctrl-section">
+          <h4>System-Status</h4>
+          <div className="nxai-ctrl-stat"><span className="label">Leads</span><span className="value">{stats?.leads_total ?? '—'}</span></div>
+          <div className="nxai-ctrl-stat"><span className="label">Kontakte</span><span className="value">{stats?.contacts_total ?? '—'}</span></div>
+          <div className="nxai-ctrl-stat"><span className="label">Angebote</span><span className="value">{stats?.quotes_total ?? '—'}</span></div>
+          <div className="nxai-ctrl-stat"><span className="label">Verträge</span><span className="value">{stats?.contracts_total ?? '—'}</span></div>
+          <div className="nxai-ctrl-stat"><span className="label">Rechnungen</span><span className="value">{stats?.invoices_total ?? '—'}</span></div>
+        </div>
+        <div className="nxai-ctrl-section">
+          <h4>KI-Agenten</h4>
+          {nxAgents.length > 0 ? nxAgents.slice(0, 6).map(a => (
+            <div key={a.agent_id} className="nxai-ctrl-item" onClick={() => { setNxInput(`@${a.name}: `); nxTextareaRef.current?.focus(); }}>
+              <span className="nxai-ctrl-dot" style={{background: a.status === 'active' ? '#10b981' : '#6b7b8d'}} />
+              <span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.name}</span>
+              <span style={{fontSize:'.625rem',color:'#4a5568'}}>{a.role}</span>
+            </div>
+          )) : <div style={{fontSize:'.6875rem',color:'#4a5568'}}>Lade Agenten...</div>}
+        </div>
+        <div className="nxai-ctrl-section">
+          <h4>Schnellaktionen</h4>
+          {[
+            {l:'Morgen-Briefing',i:'wb_sunny',t:'Erstelle ein Morgen-Briefing: Neue Leads, offene Angebote, fällige Termine'},
+            {l:'Lead-Analyse',i:'analytics',t:'Analysiere die aktuelle Lead-Pipeline mit Empfehlungen'},
+            {l:'System-Check',i:'monitor_heart',t:'Führe einen vollständigen System-Health-Check durch'},
+            {l:'Brain durchsuchen',i:'psychology',t:'Durchsuche das Brain nach den wichtigsten aktuellen Informationen'},
+            {l:'E-Mail entwerfen',i:'email',t:'Entwirf eine professionelle E-Mail an:'},
+            {l:'Angebot erstellen',i:'receipt_long',t:'Erstelle ein Angebot für:'},
+          ].map(a => (
+            <div key={a.l} className="nxai-ctrl-item" onClick={() => { setNxInput(a.t); nxTextareaRef.current?.focus(); }}>
+              <I n={a.i} /><span>{a.l}</span>
+            </div>
+          ))}
+        </div>
+        <div className="nxai-ctrl-section">
+          <h4>Proaktiv</h4>
+          <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:8}}>
+            <span className="nxai-ctrl-dot" style={{background: nxProactive?.enabled ? '#10b981' : '#6b7b8d'}} />
+            <span style={{fontSize:'.75rem',color: nxProactive?.enabled ? '#10b981' : '#6b7b8d'}}>{nxProactive?.enabled ? 'Autonomer Modus aktiv' : 'Inaktiv'}</span>
+          </div>
+          {nxProactive?.history?.slice(-3).reverse().map((h, i) => (
+            <div key={i} style={{fontSize:'.625rem',color:'#4a5568',padding:'2px 0'}}>{fmtTime(h.triggered_at)} — {h.name}</div>
+          ))}
+        </div>
+        <div className="nxai-ctrl-section" style={{borderBottom:'none'}}>
+          <h4>Verbindung</h4>
+          <div style={{display:'flex',flexDirection:'column',gap:4}}>
+            {nxStatus && <>
+              <div style={{display:'flex',alignItems:'center',gap:6,fontSize:'.6875rem'}}>
+                <span className="nxai-ctrl-dot" style={{background:nxStatus.arcee?.configured?'#10b981':'#ef4444'}} />
+                <span style={{color:'#c8d1dc'}}>Arcee AI</span>
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:6,fontSize:'.6875rem'}}>
+                <span className="nxai-ctrl-dot" style={{background:nxStatus.mem0?.configured?'#10b981':'#ef4444'}} />
+                <span style={{color:'#c8d1dc'}}>mem0 Brain</span>
+              </div>
+            </>}
+            <div style={{display:'flex',alignItems:'center',gap:6,fontSize:'.6875rem'}}>
+              <span className="nxai-ctrl-dot" style={{background:'#10b981'}} />
+              <span style={{color:'#c8d1dc'}}>MongoDB</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 
@@ -3403,7 +3472,7 @@ curl ${API}/api/v1/docs`}
         </button>
         <nav className="adm-sidebar-nav">
           {navItems.map(n => (
-            <button key={n.id} className={`adm-nav-item ${view === n.id ? 'active' : ''}`} onClick={() => { setView(n.id); setSelectedBooking(null); setCustDetail(null); setSelectedChat(null); setSelectedConvo(null); }} data-testid={`nav-${n.id}`} title={n.label}>
+            <button key={n.id} className={`adm-nav-item ${view === n.id ? 'active' : ''}`} onClick={() => { setView(n.id); localStorage.setItem('nx_admin_view', n.id); setSelectedBooking(null); setCustDetail(null); setSelectedChat(null); setSelectedConvo(null); }} data-testid={`nav-${n.id}`} title={n.label}>
               <I n={n.icon} /><span className="adm-nav-label">{n.label}</span>
             </button>
           ))}

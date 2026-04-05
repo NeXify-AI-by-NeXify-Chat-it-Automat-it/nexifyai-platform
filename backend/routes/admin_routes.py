@@ -53,6 +53,11 @@ async def admin_stats(user = Depends(get_current_admin)):
     bookings_total = await S.db.bookings.count_documents({})
     upcoming = await S.db.bookings.count_documents({"date": {"$gte": today.strftime("%Y-%m-%d")}})
     chat_total = await S.db.conversations.count_documents({})
+    contacts_total = await S.db.contacts.count_documents({})
+    quotes_total = await S.db.quotes.count_documents({})
+    contracts_total = await S.db.contracts.count_documents({})
+    invoices_total = await S.db.invoices.count_documents({})
+    projects_total = await S.db.projects.count_documents({})
     
     status_agg = await S.db.leads.aggregate([{"$group": {"_id": "$status", "count": {"$sum": 1}}}]).to_list(20)
     
@@ -67,6 +72,11 @@ async def admin_stats(user = Depends(get_current_admin)):
         "bookings_total": bookings_total,
         "bookings_upcoming": upcoming,
         "chat_sessions_total": chat_total,
+        "contacts_total": contacts_total,
+        "quotes_total": quotes_total,
+        "contracts_total": contracts_total,
+        "invoices_total": invoices_total,
+        "projects_total": projects_total,
         "by_status": {s["_id"]: s["count"] for s in status_agg if s["_id"]},
         "recent_leads": recent_leads,
         "total_leads": total,

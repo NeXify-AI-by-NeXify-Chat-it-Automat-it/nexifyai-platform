@@ -320,8 +320,9 @@
 
 
 /* ══════════ NEXIFY AI CHAT ══════════ */
-.nxai-chat{display:grid;grid-template-columns:260px 1fr;height:100%;gap:0;overflow:hidden}
-@media(max-width:900px){.nxai-chat{grid-template-columns:1fr;grid-template-rows:auto 1fr}}
+.nxai-chat{display:grid;grid-template-columns:260px 1fr 280px;height:100%;gap:0;overflow:hidden}
+@media(max-width:1200px){.nxai-chat{grid-template-columns:220px 1fr 0px}.nxai-control{display:none}}
+@media(max-width:900px){.nxai-chat{grid-template-columns:1fr;grid-template-rows:auto 1fr}.nxai-control{display:none}}
 .nxai-sidebar{background:#0a0f16;border-right:1px solid rgba(255,255,255,0.04);display:flex;flex-direction:column;overflow:hidden}
 .nxai-sidebar-header{padding:16px;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:space-between}
 .nxai-sidebar-header h3{font-size:.8125rem;font-weight:700;color:#fff;margin:0}
@@ -386,3 +387,15 @@
 .nxai-convo-item:hover .nxai-del-btn{opacity:1}
 .nxai-del-btn .material-symbols-outlined{font-size:14px}
 .nxai-streaming-text{white-space:pre-wrap;word-break:break-word}
+
+/* ── NEXIFY AI CONTROL PANEL (Right Sidebar) ── */
+.nxai-control{border-left:1px solid rgba(255,255,255,.04);background:rgba(12,17,23,.6);display:flex;flex-direction:column;overflow-y:auto}
+.nxai-ctrl-section{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.04)}
+.nxai-ctrl-section h4{font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7b8d;margin:0 0 10px}
+.nxai-ctrl-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;transition:background 150ms;font-size:.75rem;color:#c8d1dc}
+.nxai-ctrl-item:hover{background:rgba(254,155,123,.04)}
+.nxai-ctrl-item .material-symbols-outlined{font-size:16px;color:#6b7b8d}
+.nxai-ctrl-stat{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:.75rem}
+.nxai-ctrl-stat .label{color:#6b7b8d}
+.nxai-ctrl-stat .value{color:#fff;font-weight:600}
+.nxai-ctrl-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
