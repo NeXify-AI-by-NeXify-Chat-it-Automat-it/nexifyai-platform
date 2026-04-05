@@ -389,7 +389,7 @@ Bewerte: Ist das Ergebnis vollständig, korrekt und umsetzbar?""",
                 await supa.store_brain_note(
                     title=f"Oracle-Ergebnis: {task.get('title', '')[:100]}",
                     content=f"Typ: {task.get('type', '')}\nAgent: {verification.get('verified_by', '')}\nScore: {score}/10\n\n{result[:1500]}",
-                    note_type="oracle_learning",
+                    note_type="learning",
                     tags=["oracle", "verified", task.get("type", "general")],
                     created_by="oracle-engine"
                 )
@@ -494,7 +494,7 @@ Bookings: {stats.get('bookings', 0)}
 
 Aktive MongoDB-Agenten: {len(agents)}
 {chr(10).join(agents[:20])}""",
-                note_type="operational",
+                note_type="other",
                 tags=["sync", "status", "betrieb"],
                 created_by="oracle-engine"
             )

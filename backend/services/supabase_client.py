@@ -192,13 +192,15 @@ async def update_oracle_task_status(task_id: str, status: str, result: dict = No
         )
 
 
-async def store_brain_note(title: str, content: str, note_type: str = "operational", tags: list = None, created_by: str = "nexify-ai-master") -> str:
-    """Store a new brain note in Supabase."""
+async def store_brain_note(title: str, content: str, note_type: str = "other", tags: list = None, created_by: str = "nexify-ai-master") -> str:
+    """Store a new brain note in Supabase. Valid types: architecture, decision, runbook, schema, prompt, incident, imported_requirement, learning, other."""
     import uuid
+    VALID_NOTE_TYPES = {'architecture', 'decision', 'runbook', 'schema', 'prompt', 'incident', 'imported_requirement', 'learning', 'other'}
+    safe_type = note_type if note_type in VALID_NOTE_TYPES else 'other'
     note_id = str(uuid.uuid4())
     await execute(
         """INSERT INTO brain_notes (id, title, content, note_type, tags, created_by, created_at, updated_at, is_global)
            VALUES ($1::uuid, $2, $3, $4, $5, $6, NOW(), NOW(), true)""",
-        note_id, title, content, note_type, tags or [], created_by
+        note_id, title, content, safe_type, tags or [], created_by
     )
     return note_id
