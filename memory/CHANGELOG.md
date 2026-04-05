@@ -2,20 +2,25 @@
 
 ## 2026-04-04
 
-### P0 Rechtstexte — Verifizierung (Iteration 62)
-- Verified all 21 legal page routes (7 documents x 3 languages: DE/NL/EN)
-- Footer shows all 7 legal links correctly
-- Language switcher works on legal pages
-- Legacy redirects (/impressum -> /de/impressum) functional
-- Invalid slug redirects to homepage
+### External API v1 — Vollständig implementiert (Iteration 64)
+- **Neues Feature**: Externe API v1 mit API-Key-Authentifizierung
+  - `/api/v1/health`, `/api/v1/docs` (öffentlich)
+  - Contacts CRUD: GET/POST/PUT `/api/v1/contacts`
+  - Leads CRUD: GET/POST `/api/v1/leads`
+  - Read-Only: `/api/v1/quotes`, `/api/v1/contracts`, `/api/v1/projects`, `/api/v1/invoices`
+  - System Stats: `/api/v1/stats`
+  - Webhooks: GET/POST/DELETE `/api/v1/webhooks`
+- **API-Key-System**: SHA-256 Hash-Speicherung, Rate-Limiting, Scope-basierte Berechtigungen, Ablaufdatum
+- **Admin-Panel**: API-Zugang View mit Key-Verwaltung, cURL-Beispiele, API-Dokumentation Link
+- Neue Dateien: `/app/backend/routes/api_v1_routes.py`, Tests: `/app/backend/tests/test_api_v1_external.py`
 
 ### P1 Content & Copywriting Overhaul (Iteration 63)
-- **BUGFIX**: TrustSection i18n — was always showing German text regardless of language setting
-  - Root cause: Used `t.lang` which was `undefined` (the `t` translations object has no `.lang` property)
-  - Fix: Refactored TrustSection.js to use `useLanguage()` hook directly, with structured T translation object
-  - Removed `t` prop from TrustSection in App.js
-- Enhanced TrustSection copy in all 3 languages (deeper descriptions for security features, GDPR references, OWASP standards)
-- All 14 sections render correctly across DE/NL/EN
+- **BUGFIX**: TrustSection i18n — war immer Deutsch, jetzt korrekt DE/NL/EN via `useLanguage()` Hook
+- Erweiterte Trust-Copy in 3 Sprachen (DSGVO, EU AI Act, ISO 27001/27701 Referenzen)
+
+### P0 Rechtstexte — Verifizierung (Iteration 62)
+- 21 Legal-Routen verifiziert (7 Dokumente x 3 Sprachen)
+- Footer-Links, Legacy-Redirects, Sprachumschalter getestet
 
 ## 2026-04-03
 
