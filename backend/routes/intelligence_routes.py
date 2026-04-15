@@ -187,8 +187,8 @@ async def contract_risk_endpoint(
             if len(text_content.strip()) < 100:
                 return {"success": False, "error": "NUTRIENT_API_KEY nicht konfiguriert und Dokument ist nicht textbasiert."}
 
-            from services import deepseek_provider as deepseek
-            scoring = await deepseek.chat_completion(
+            from services import deepseek_provider as openrouter_llm
+            scoring = await openrouter_llm.chat_completion(
                 messages=[
                     {"role": "system", "content": "Du bist ein Vertrags-Risikobewertungs-Experte. Analysiere und bewerte den Vertrag. Antwort als JSON: {\"score\": N, \"risks\": [...], \"missing\": [...], \"recommendations\": [...]}"},
                     {"role": "user", "content": f"Vertragstext:\n{text_content}"}

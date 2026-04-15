@@ -91,7 +91,7 @@ async def analyze_document(file_path: str, analysis_type: str = "extract") -> di
 async def contract_risk_score(file_path: str) -> dict:
     """
     Vertrags-Risikoscoring: Analysiert ein Vertragsdokument und bewertet Risiken.
-    Nutzt Nutrient für Extraktion + DeepSeek für Scoring.
+    Nutzt Nutrient für Extraktion + OpenRouter für Scoring.
     """
     extraction = await analyze_document(file_path, "extract")
     if not extraction.get("success"):
@@ -100,8 +100,8 @@ async def contract_risk_score(file_path: str) -> dict:
     extracted_text = json.dumps(extraction.get("result", {}), ensure_ascii=False)[:8000]
 
     try:
-        from services import deepseek_provider as deepseek
-        scoring = await deepseek.chat_completion(
+        from services import deepseek_provider as openrouter_llm
+        scoring = await openrouter_llm.chat_completion(
             messages=[
                 {"role": "system", "content": """Du bist ein Vertrags-Risikobewertungs-Experte.
 Analysiere den extrahierten Vertragstext und bewerte:
@@ -135,7 +135,7 @@ Antwort als JSON: {"score": N, "risks": [...], "missing": [...], "recommendation
                     "analysis": scoring["content"],
                     "scored_at": datetime.now(timezone.utc).isoformat()
                 }
-        return {"success": False, "error": scoring.get("error", "DeepSeek scoring failed")}
+        return {"success": False, "error": scoring.get("error", "OpenRouter scoring failed")}
     except Exception as e:
         logger.error(f"Contract risk scoring error: {e}")
         return {"success": False, "error": str(e)[:500]}
@@ -144,7 +144,7 @@ Antwort als JSON: {"score": N, "risks": [...], "missing": [...], "recommendation
 async def document_chat(file_path: str, question: str) -> dict:
     """
     Dokumenten-Chat: Frage an ein PDF-Dokument stellen.
-    Extrahiert via Nutrient, antwortet via DeepSeek.
+    Extrahiert via Nutrient, antwortet via OpenRouter.
     """
     extraction = await analyze_document(file_path, "extract")
     if not extraction.get("success"):
@@ -153,8 +153,8 @@ async def document_chat(file_path: str, question: str) -> dict:
     extracted_text = json.dumps(extraction.get("result", {}), ensure_ascii=False)[:10000]
 
     try:
-        from services import deepseek_provider as deepseek
-        answer = await deepseek.chat_completion(
+        from services import deepseek_provider as openrouter_llm
+        answer = await openrouter_llm.chat_completion(
             messages=[
                 {"role": "system", "content": """Du bist ein Dokumenten-Analyst. Beantworte Fragen basierend auf dem extrahierten Dokumenteninhalt. Zitiere relevante Textstellen. Wenn die Antwort nicht im Dokument steht, sage das klar."""},
                 {"role": "user", "content": f"DOKUMENT:\n{extracted_text}\n\nFRAGE: {question}"}

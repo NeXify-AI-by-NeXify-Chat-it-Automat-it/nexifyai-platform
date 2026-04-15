@@ -1,6 +1,6 @@
 """
-NeXifyAI — DeepSeek LLM Provider
-DeepSeek = Primary Master + alle Sub-Agenten. Arcee AI = Fallback.
+NeXifyAI — OpenRouter LLM Provider (MiniMax M2.7)
+OpenRouter = Primary Master + alle Sub-Agenten. Arcee AI = Fallback.
 """
 import os
 import json
@@ -9,15 +9,15 @@ from typing import Optional, AsyncGenerator
 
 import httpx
 
-logger = logging.getLogger("nexifyai.services.deepseek")
+logger = logging.getLogger("nexifyai.services.openrouter")
 
-DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
-DEEPSEEK_BASE_URL = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
-DEEPSEEK_MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-chat")
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+OPENROUTER_BASE_URL = os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "minimax/minimax-m2.7")
 
 
 def is_configured() -> bool:
-    return bool(DEEPSEEK_API_KEY)
+    return bool(OPENROUTER_API_KEY)
 
 
 async def chat_completion(
@@ -27,20 +27,22 @@ async def chat_completion(
     max_tokens: int = 4096,
     stream: bool = False
 ) -> dict:
-    """Non-streaming chat completion via DeepSeek."""
-    if not DEEPSEEK_API_KEY:
-        return {"error": "DEEPSEEK_API_KEY nicht konfiguriert"}
+    """Non-streaming chat completion via OpenRouter."""
+    if not OPENROUTER_API_KEY:
+        return {"error": "OPENROUTER_API_KEY nicht konfiguriert"}
 
     try:
         async with httpx.AsyncClient(timeout=90) as client:
             resp = await client.post(
-                f"{DEEPSEEK_BASE_URL}/v1/chat/completions",
+                f"{OPENROUTER_BASE_URL}/chat/completions",
                 headers={
-                    "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
-                    "Content-Type": "application/json"
+                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://nexifyai.de",
+                    "X-Title": "NeXifyAI"
                 },
                 json={
-                    "model": model or DEEPSEEK_MODEL,
+                    "model": model or OPENROUTER_MODEL,
                     "messages": messages,
                     "temperature": temperature,
                     "max_tokens": max_tokens,
@@ -51,11 +53,11 @@ async def chat_completion(
                 data = resp.json()
                 content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
                 usage = data.get("usage", {})
-                return {"content": content, "usage": usage, "model": model or DEEPSEEK_MODEL}
-            logger.error(f"DeepSeek error {resp.status_code}: {resp.text[:300]}")
-            return {"error": f"DeepSeek API Fehler ({resp.status_code})"}
+                return {"content": content, "usage": usage, "model": model or OPENROUTER_MODEL}
+            logger.error(f"OpenRouter error {resp.status_code}: {resp.text[:300]}")
+            return {"error": f"OpenRouter API Fehler ({resp.status_code})"}
     except Exception as e:
-        logger.error(f"DeepSeek exception: {e}")
+        logger.error(f"OpenRouter exception: {e}")
         return {"error": str(e)}
 
 
@@ -65,22 +67,24 @@ async def stream_completion(
     temperature: float = 0.7,
     max_tokens: int = 4096
 ) -> AsyncGenerator[str, None]:
-    """Streaming chat completion via DeepSeek. Yields content chunks."""
-    if not DEEPSEEK_API_KEY:
-        yield json.dumps({"error": "DEEPSEEK_API_KEY nicht konfiguriert"})
+    """Streaming chat completion via OpenRouter. Yields content chunks."""
+    if not OPENROUTER_API_KEY:
+        yield json.dumps({"error": "OPENROUTER_API_KEY nicht konfiguriert"})
         return
 
     try:
         async with httpx.AsyncClient(timeout=120) as client:
             async with client.stream(
                 "POST",
-                f"{DEEPSEEK_BASE_URL}/v1/chat/completions",
+                f"{OPENROUTER_BASE_URL}/chat/completions",
                 headers={
-                    "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
-                    "Content-Type": "application/json"
+                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://nexifyai.de",
+                    "X-Title": "NeXifyAI"
                 },
                 json={
-                    "model": model or DEEPSEEK_MODEL,
+                    "model": model or OPENROUTER_MODEL,
                     "messages": messages,
                     "temperature": temperature,
                     "max_tokens": max_tokens,
@@ -89,7 +93,7 @@ async def stream_completion(
             ) as resp:
                 if resp.status_code != 200:
                     error_body = await resp.aread()
-                    yield json.dumps({"error": f"DeepSeek ({resp.status_code}): {error_body.decode()[:300]}"})
+                    yield json.dumps({"error": f"OpenRouter ({resp.status_code}): {error_body.decode()[:300]}"})
                     return
                 async for line in resp.aiter_lines():
                     if not line or not line.startswith("data: "):
@@ -106,7 +110,7 @@ async def stream_completion(
                     except json.JSONDecodeError:
                         continue
     except Exception as e:
-        logger.error(f"DeepSeek stream error: {e}")
+        logger.error(f"OpenRouter stream error: {e}")
         yield json.dumps({"error": str(e)})
 
 
@@ -119,7 +123,7 @@ async def invoke_agent(
     model: str = None,
     temperature: float = 0.5
 ) -> dict:
-    """Invoke a sub-agent with DeepSeek. Returns the agent's response."""
+    """Invoke a sub-agent with OpenRouter. Returns the agent's response."""
     full_system = f"""Du bist {agent_name}, ein spezialisierter KI-Agent im NeXifyAI-Team.
 Rolle: {agent_role}
 Arbeitssprache: Deutsch
@@ -139,6 +143,6 @@ Qualitätsstandard: Professionell, präzise, handlungsorientiert.
         "agent": agent_name,
         "role": agent_role,
         "response": result["content"],
-        "model": result.get("model", DEEPSEEK_MODEL),
+        "model": result.get("model", OPENROUTER_MODEL),
         "usage": result.get("usage", {})
     }

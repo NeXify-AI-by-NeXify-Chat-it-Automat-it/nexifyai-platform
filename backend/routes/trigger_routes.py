@@ -145,7 +145,7 @@ async def trigger_status(admin: dict = Depends(get_admin)):
 
 async def _execute_locally(task_id: str, payload: dict, admin: dict) -> dict:
     """Fallback: Task lokal über DeepSeek ausführen wenn Trigger.dev nicht konfiguriert."""
-    from services import deepseek_provider as deepseek
+    from services import deepseek_provider as openrouter_llm
     from services.trigger_service import TRIGGER_TASKS
 
     task_info = TRIGGER_TASKS.get(task_id)
@@ -167,7 +167,7 @@ async def _execute_locally(task_id: str, payload: dict, admin: dict) -> dict:
     prompt = task_prompts.get(task_id, f"Führe folgenden Task aus: {task_id}. Payload: {json.dumps(payload, ensure_ascii=False)[:3000]}")
 
     try:
-        result = await deepseek.chat_completion(
+        result = await openrouter_llm.chat_completion(
             messages=[
                 {"role": "system", "content": f"Du bist ein spezialisierter NeXifyAI-Agent für '{task_info['name']}'. {task_info['description']}. Sprache: Deutsch. Liefere strukturierte, professionelle Ergebnisse."},
                 {"role": "user", "content": prompt}
@@ -183,7 +183,7 @@ async def _execute_locally(task_id: str, payload: dict, admin: dict) -> dict:
             "payload": payload,
             "status": "completed" if "error" not in result else "failed",
             "result": result.get("content", ""),
-            "model": result.get("model", "deepseek-chat"),
+            "model": result.get("model", "minimax/minimax-m2.7"),
             "fallback": True,
             "triggered_at": utcnow().isoformat(),
             "completed_at": utcnow().isoformat(),

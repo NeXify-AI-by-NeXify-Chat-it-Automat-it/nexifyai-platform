@@ -3218,10 +3218,10 @@ const Admin = () => {
             <span>Fehler: {sys.email?.total_failed}</span>
             <span>API-Key: {sys.email?.api_key_set ? 'Gesetzt' : 'Fehlt'}</span>
           </Card>
-          <Card icon="smart_toy" title="LLM / DeepSeek" status={sys.llm?.active_provider === 'deepseek' ? 'ok' : 'fallback'}>
+          <Card icon="smart_toy" title="LLM / OpenRouter" status={sys.llm?.active_provider === 'openrouter' ? 'ok' : 'fallback'}>
             <span>Provider: {sys.llm?.active_provider}</span>
             <span>Ziel-Architektur: {sys.llm?.is_target_architecture ? 'Ja' : 'Nein (Fallback)'}</span>
-            <span>DeepSeek Key: {sys.llm?.providers?.deepseek?.api_key_set ? 'Gesetzt' : 'Fehlt'}</span>
+            <span>OpenRouter Key: {sys.llm?.providers?.openrouter?.api_key_set ? 'Gesetzt' : 'Fehlt'}</span>
             {sys.llm?.metrics && <span>Calls: {sys.llm.metrics.calls} | Errors: {sys.llm.metrics.errors}</span>}
           </Card>
           <Card icon="payment" title="Revolut" status={sys.payments?.revolut?.status}><span>API-Key: {sys.payments?.revolut?.api_key_set ? 'Gesetzt' : 'Fehlt'}</span></Card>
@@ -3258,7 +3258,7 @@ const Admin = () => {
           <h3 style={{marginBottom:12}}>Recovery & Self-Healing</h3>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:12}}>
             {[
-              { label: 'LLM Fallback', status: sys.llm?.active_provider === 'deepseek' ? 'DeepSeek primär' : 'Fallback aktiv (Emergent GPT)', ok: sys.llm?.active_provider === 'deepseek', action: sys.llm?.active_provider !== 'deepseek' ? 'DEEPSEEK_API_KEY setzen für Zielarchitektur' : null },
+              { label: 'LLM Fallback', status: sys.llm?.active_provider === 'openrouter' ? 'OpenRouter primär' : 'Fallback aktiv (Emergent GPT)', ok: sys.llm?.active_provider === 'openrouter', action: sys.llm?.active_provider !== 'openrouter' ? 'OPENROUTER_API_KEY setzen für Zielarchitektur' : null },
               { label: 'Dead Letter Queue', status: sys.dead_letter_queue?.count === 0 ? 'Leer — kein Handlungsbedarf' : `${sys.dead_letter_queue?.count} Jobs wartend`, ok: sys.dead_letter_queue?.count === 0, action: sys.dead_letter_queue?.count > 0 ? 'Dead-letter-Jobs in Admin prüfen und ggf. neu einreihen' : null },
               { label: 'E-Mail Delivery', status: sys.email?.api_key_set ? `${sys.email?.total_failed} Fehler von ${sys.email?.total_sent + sys.email?.total_failed} gesamt` : 'Nicht konfiguriert', ok: sys.email?.api_key_set && sys.email?.total_failed === 0, action: sys.email?.total_failed > 0 ? 'Fehlgeschlagene E-Mails in Email-Stats prüfen' : null },
               { label: 'Payment Provider', status: sys.payments?.revolut?.api_key_set ? 'Revolut aktiv' : 'Kein Provider', ok: sys.payments?.revolut?.api_key_set },
@@ -3601,7 +3601,7 @@ curl ${API}/api/v1/docs`}
           ) : (
             <div style={{display:'flex',flexDirection:'column',gap:4}}>
               {[
-                {n:'DeepSeek',ok:nxStatus.deepseek?.connected,cfg:nxStatus.deepseek?.configured},
+                {n:'OpenRouter',ok:nxStatus.openrouter?.connected,cfg:nxStatus.openrouter?.configured},
                 {n:'Arcee AI',ok:nxStatus.arcee?.connected,cfg:nxStatus.arcee?.configured},
                 {n:'mem0 Brain',ok:nxStatus.mem0?.connected,cfg:nxStatus.mem0?.configured},
                 {n:'Supabase',ok:true,cfg:true},
@@ -3652,8 +3652,8 @@ curl ${API}/api/v1/docs`}
       <div className="adm-form-card" style={{marginBottom:20,borderLeft:`3px solid ${triggerStatus?.configured ? '#10b981' : '#f59e0b'}`,display:'flex',alignItems:'center',gap:12}}>
         <I n={triggerStatus?.configured ? 'cloud_done' : 'cloud_off'} />
         <div>
-          <div style={{fontSize:'.8125rem',color:'#fff',fontWeight:600}}>{triggerStatus?.configured ? 'Trigger.dev Cloud verbunden' : 'Fallback-Modus (DeepSeek lokal)'}</div>
-          <div style={{fontSize:'.6875rem',color:'#8a9bb0'}}>{triggerStatus?.configured ? 'Tasks werden über Trigger.dev Cloud ausgeführt' : 'Kein TRIGGER_DEV_API_KEY — Tasks laufen lokal über DeepSeek'}</div>
+          <div style={{fontSize:'.8125rem',color:'#fff',fontWeight:600}}>{triggerStatus?.configured ? 'Trigger.dev Cloud verbunden' : 'Fallback-Modus (OpenRouter lokal)'}</div>
+          <div style={{fontSize:'.6875rem',color:'#8a9bb0'}}>{triggerStatus?.configured ? 'Tasks werden über Trigger.dev Cloud ausgeführt' : 'Kein TRIGGER_DEV_API_KEY — Tasks laufen lokal über OpenRouter'}</div>
         </div>
         <div style={{marginLeft:'auto',display:'flex',gap:16,fontSize:'.75rem',color:'#6b7b8d'}}>
           <span data-testid="tasks-total-runs">{triggerStatus?.total_runs || 0} Runs gesamt</span>
@@ -3699,7 +3699,7 @@ curl ${API}/api/v1/docs`}
           </div>
           {triggerRunResult?.result && (
             <div style={{marginTop:12,padding:12,borderRadius:6,background:'rgba(0,0,0,0.2)',border:'1px solid rgba(255,255,255,0.04)'}}>
-              <div style={{fontSize:'.6875rem',color:'#8a9bb0',marginBottom:4}}>Ergebnis{triggerRunResult.fallback ? ' (Fallback — lokal via DeepSeek)':''}</div>
+              <div style={{fontSize:'.6875rem',color:'#8a9bb0',marginBottom:4}}>Ergebnis{triggerRunResult.fallback ? ' (Fallback — lokal via OpenRouter)':''}</div>
               <pre style={{margin:0,fontSize:'.6875rem',color:'#c8d1dc',lineHeight:1.5,maxHeight:300,overflow:'auto',whiteSpace:'pre-wrap',wordBreak:'break-word'}}>{typeof triggerRunResult.result==='string'?triggerRunResult.result:JSON.stringify(triggerRunResult.result,null,2)}</pre>
             </div>
           )}

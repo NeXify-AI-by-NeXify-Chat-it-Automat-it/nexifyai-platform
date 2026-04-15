@@ -13,7 +13,7 @@ from pydantic import BaseModel
 
 from routes.shared import S, utcnow, new_id
 from services import supabase_client as supa
-from services import deepseek_provider as deepseek
+from services import deepseek_provider as openrouter_llm
 
 logger = logging.getLogger("nexifyai.routes.oracle")
 
@@ -239,10 +239,10 @@ class AgentInvokeRequest(BaseModel):
 
 
 @router.post("/api/admin/oracle/invoke-agent")
-async def invoke_deepseek_agent(body: AgentInvokeRequest, admin: dict = Depends(get_admin)):
-    """Fachagenten über DeepSeek aufrufen (nicht Master)."""
-    if not deepseek.is_configured():
-        raise HTTPException(500, "DeepSeek API nicht konfiguriert")
+async def invoke_openrouter_agent(body: AgentInvokeRequest, admin: dict = Depends(get_admin)):
+    """Fachagenten über OpenRouter aufrufen (nicht Master)."""
+    if not openrouter_llm.is_configured():
+        raise HTTPException(500, "OpenRouter API nicht konfiguriert")
 
     # Look up agent in Supabase first, then MongoDB
     agent_info = None
@@ -284,7 +284,7 @@ async def invoke_deepseek_agent(body: AgentInvokeRequest, admin: dict = Depends(
         except Exception:
             pass
 
-    result = await deepseek.invoke_agent(
+    result = await openrouter_llm.invoke_agent(
         agent_name=agent_info.get("name", body.agent_name),
         agent_role=str(agent_info.get("role", "specialist")),
         system_prompt=str(agent_info.get("description", "")),
@@ -341,10 +341,10 @@ async def list_nexify_tasks(status: str = None, limit: int = 50, admin: dict = D
 
 @router.get("/api/admin/oracle/health")
 async def oracle_health(admin: dict = Depends(get_admin)):
-    """Prüfe Supabase und DeepSeek Konnektivität."""
+    """Prüfe Supabase und OpenRouter Konnektivität."""
     result = {
         "supabase": {"connected": False, "error": None},
-        "deepseek": {"configured": deepseek.is_configured(), "connected": False, "model": deepseek.DEEPSEEK_MODEL, "error": None},
+        "openrouter": {"configured": openrouter_llm.is_configured(), "connected": False, "model": openrouter_llm.OPENROUTER_MODEL, "error": None},
         "timestamp": utcnow().isoformat()
     }
 
@@ -355,18 +355,18 @@ async def oracle_health(admin: dict = Depends(get_admin)):
     except Exception as e:
         result["supabase"]["error"] = str(e)[:100]
 
-    # DeepSeek check
-    if deepseek.is_configured():
+    # OpenRouter check
+    if openrouter_llm.is_configured():
         try:
-            resp = await deepseek.chat_completion(
+            resp = await openrouter_llm.chat_completion(
                 [{"role": "user", "content": "ping"}],
                 max_tokens=5, temperature=0
             )
-            result["deepseek"]["connected"] = "error" not in resp
+            result["openrouter"]["connected"] = "error" not in resp
             if "error" in resp:
-                result["deepseek"]["error"] = resp["error"][:100]
+                result["openrouter"]["error"] = resp["error"][:100]
         except Exception as e:
-            result["deepseek"]["error"] = str(e)[:100]
+            result["openrouter"]["error"] = str(e)[:100]
 
     return result
 

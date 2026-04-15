@@ -55,7 +55,7 @@ async def admin_audit_health(current_user: dict = Depends(get_current_admin)):
         checks["llm"] = {
             "status": "ok",
             "provider": S.llm_provider.get_provider_name(),
-            "is_target": S.llm_provider.get_provider_name() == "deepseek",
+            "is_target": S.llm_provider.get_provider_name() == "openrouter",
         }
     else:
         checks["llm"] = {"status": "not_initialized"}
@@ -350,7 +350,7 @@ async def monitoring_status(current_user: dict = Depends(get_current_admin)):
 
 @router.get("/api/admin/llm/status")
 async def llm_status(current_user: dict = Depends(get_current_admin)):
-    """LLM-Provider-Status, Metriken und DeepSeek-Migrationsstatus."""
+    """LLM-Provider-Status, Metriken und OpenRouter-Migrationsstatus."""
     from services.llm_provider import get_provider_status
     if S.llm_provider:
         return get_provider_status(S.llm_provider)
@@ -365,7 +365,7 @@ async def llm_health(current_user: dict = Depends(get_current_admin)):
         raise HTTPException(503, "LLM-Provider nicht initialisiert")
     result = await S.llm_provider.health_check()
     result["provider"] = S.llm_provider.get_provider_name()
-    result["is_target_architecture"] = S.llm_provider.get_provider_name() == "deepseek"
+    result["is_target_architecture"] = S.llm_provider.get_provider_name() == "openrouter"
     return result
 
 
@@ -376,7 +376,7 @@ async def llm_test(data: dict = None, current_user: dict = Depends(get_current_a
     if not S.llm_provider:
         raise HTTPException(503, "LLM-Provider nicht initialisiert")
     model = (data or {}).get("model")
-    prompt = (data or {}).get("prompt", "Antworte kurz: Wer ist DeepSeek?")
+    prompt = (data or {}).get("prompt", "Antworte kurz: Antworte kurz: MiniMax M2.7 OpenRouter Test.")
     from services.llm_provider import LLMMessage
     try:
         response = await S.llm_provider.chat(

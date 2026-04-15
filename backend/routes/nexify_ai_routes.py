@@ -21,11 +21,12 @@ logger = logging.getLogger("nexifyai.nexify_ai")
 
 router = APIRouter(tags=["NeXify AI Master"])
 
-# DeepSeek (PRIMARY)
-DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
-DEEPSEEK_BASE_URL = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
-DEEPSEEK_MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-chat")
-DEEPSEEK_CHAT_URL = f"{DEEPSEEK_BASE_URL}/v1/chat/completions"
+# OpenRouter (PRIMARY) — MiniMax M2.7
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+OPENROUTER_BASE_URL = os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "minimax/minimax-m2.7")
+OPENROUTER_CHAT_URL = f"{OPENROUTER_BASE_URL}/chat/completions"
+OPENROUTER_HEADERS_EXTRA = {"HTTP-Referer": "https://nexifyai.de", "X-Title": "NeXifyAI"}
 
 # Arcee AI (FALLBACK)
 ARCEE_API_KEY = os.environ.get("ARCEE_API_KEY", "")
@@ -39,9 +40,9 @@ MEM0_USER_ID = os.environ.get("MEM0_USER_ID", "pascal-courbois")
 MEM0_AGENT_ID = os.environ.get("MEM0_AGENT_ID", "nexify-ai-master")
 MEM0_APP_ID = os.environ.get("MEM0_APP_ID", "nexify-automate-core")
 
-# Master LLM Config — DeepSeek primary, Arcee fallback
-MASTER_LLM = "deepseek" if DEEPSEEK_API_KEY else "arcee"
-logger.info(f"Master LLM: {MASTER_LLM.upper()} ({'DeepSeek primary' if DEEPSEEK_API_KEY else 'Arcee fallback'})")
+# Master LLM Config — OpenRouter primary, Arcee fallback
+MASTER_LLM = "openrouter" if OPENROUTER_API_KEY else "arcee"
+logger.info(f"Master LLM: {MASTER_LLM.upper()} ({'OpenRouter/MiniMax primary' if OPENROUTER_API_KEY else 'Arcee fallback'})")
 
 SYSTEM_PROMPT = """SYSTEM PROMPT — NeXify AI (Operativer Assistent)
 
@@ -124,7 +125,7 @@ Die Oracle Engine läuft 24/7. Als Master orchestrierst du:
 | Care | Customer Success | CRM, Support, Kundenbeziehungen, Retention |
 | Rank | SEO/Analytics | SEO, KPIs, Growth, Performance-Analyse |
 
-Alle Sub-Agenten laufen auf DeepSeek (deepseek-chat). Du (Master) läufst auf DeepSeek (deepseek-chat), mit Arcee AI als Fallback.
+Alle Sub-Agenten laufen auf OpenRouter (minimax/minimax-m2.7). Du (Master) läufst auf OpenRouter (minimax/minimax-m2.7), mit Arcee AI als Fallback.
 
 ## Granulares Status-Modell (Zentrale Leitstelle)
 Jeder Task durchläuft diese 13 Status:
@@ -205,7 +206,7 @@ Das System führt das Tool serverseitig aus und gibt dir das Ergebnis automatisc
 - **oracle_create_task** — Neuen Oracle-Task erstellen (title, description, priority, owner_agent, tags)
 - **oracle_list_tasks** — Oracle-Tasks auflisten (status, limit) — 2.624+ Tasks
 - **oracle_create_brain_note** — Brain-Note speichern (title, content, note_type, tags)
-- **oracle_invoke_deepseek_agent** — Fachagenten über DeepSeek aufrufen (agent_name, message, context) — Nicht Master!
+- **oracle_invoke_agent** — Fachagenten über OpenRouter aufrufen (agent_name, message, context) — Nicht Master!
 
 ### Administration
 - **audit_log** / **list_api_keys** / **self_status** / **update_config**
@@ -217,8 +218,8 @@ Das System führt das Tool serverseitig aus und gibt dir das Ergebnis automatisc
 - Backend: FastAPI (Port 8001), Python
 - Datenbank: MongoDB (CRM) + Supabase PostgreSQL (Oracle System, Brain, Knowledge, Tasks)
 - Auth: JWT (Admin) + Magic Links (Kunden) + API Keys (extern)
-- LLM Master: DeepSeek (deepseek-chat) — Du
-- LLM Fachagenten: DeepSeek (deepseek-chat) — Alle Sub-Agenten
+- LLM Master: OpenRouter (minimax/minimax-m2.7) — Du
+- LLM Fachagenten: OpenRouter (minimax/minimax-m2.7) — Alle Sub-Agenten
 - Memory: mem0 Brain (user: pascal-courbois, agent: nexify-ai-master, app: nexify-automate-core)
 - Oracle: Supabase PostgreSQL — 2.624 Tasks, 10.144 Brain-Notes, 156 Knowledge, 33 AI-Agenten
 - Workers: APScheduler (Hintergrund-Jobs)
@@ -477,22 +478,22 @@ async def _run_tool(tool_name: str, params: dict) -> dict:
 
 
 async def _call_llm_sync(messages: list) -> str:
-    """Non-streaming LLM call. DeepSeek primary, Arcee fallback."""
-    # PRIMARY: DeepSeek
-    if DEEPSEEK_API_KEY:
+    """Non-streaming LLM call. OpenRouter primary, Arcee fallback."""
+    # PRIMARY: OpenRouter
+    if OPENROUTER_API_KEY:
         try:
             async with httpx.AsyncClient(timeout=90) as client:
                 resp = await client.post(
-                    DEEPSEEK_CHAT_URL,
-                    headers={"Authorization": f"Bearer {DEEPSEEK_API_KEY}", "Content-Type": "application/json"},
-                    json={"model": DEEPSEEK_MODEL, "messages": messages, "stream": False, "temperature": 0.5, "max_tokens": 6000}
+                    OPENROUTER_CHAT_URL,
+                    headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}", "Content-Type": "application/json", **OPENROUTER_HEADERS_EXTRA},
+                    json={"model": OPENROUTER_MODEL, "messages": messages, "stream": False, "temperature": 0.5, "max_tokens": 6000}
                 )
                 if resp.status_code == 200:
                     data = resp.json()
                     return data.get("choices", [{}])[0].get("message", {}).get("content", "")
-                logger.warning(f"DeepSeek sync error {resp.status_code}, falling back to Arcee")
+                logger.warning(f"OpenRouter sync error {resp.status_code}, falling back to Arcee")
         except Exception as e:
-            logger.warning(f"DeepSeek sync exception: {e}, falling back to Arcee")
+            logger.warning(f"OpenRouter sync exception: {e}, falling back to Arcee")
 
     # FALLBACK: Arcee
     if ARCEE_API_KEY:
@@ -515,9 +516,9 @@ async def _call_llm_sync(messages: list) -> str:
 
 @router.post("/api/admin/nexify-ai/chat")
 async def nexify_ai_chat(body: ChatRequest, request: Request, admin: dict = Depends(get_admin_from_token)):
-    """Stream a NeXify AI Master response. DeepSeek primary, Arcee fallback."""
-    if not DEEPSEEK_API_KEY and not ARCEE_API_KEY:
-        raise HTTPException(500, "Kein LLM-Provider konfiguriert (DEEPSEEK_API_KEY oder ARCEE_API_KEY erforderlich)")
+    """Stream a NeXify AI Master response. OpenRouter primary, Arcee fallback."""
+    if not OPENROUTER_API_KEY and not ARCEE_API_KEY:
+        raise HTTPException(500, "Kein LLM-Provider konfiguriert (OPENROUTER_API_KEY oder ARCEE_API_KEY erforderlich)")
 
     conversation_id = body.conversation_id
     if not conversation_id:
@@ -568,11 +569,11 @@ async def nexify_ai_chat(body: ChatRequest, request: Request, admin: dict = Depe
     async def stream_response():
         full_response = ""
         # Determine LLM endpoint
-        if DEEPSEEK_API_KEY:
-            llm_url = DEEPSEEK_CHAT_URL
-            llm_headers = {"Authorization": f"Bearer {DEEPSEEK_API_KEY}", "Content-Type": "application/json"}
-            llm_body = {"model": DEEPSEEK_MODEL, "messages": llm_messages, "stream": True, "temperature": 0.7, "max_tokens": 6000}
-            llm_name = "DeepSeek"
+        if OPENROUTER_API_KEY:
+            llm_url = OPENROUTER_CHAT_URL
+            llm_headers = {"Authorization": f"Bearer {OPENROUTER_API_KEY}", "Content-Type": "application/json", **OPENROUTER_HEADERS_EXTRA}
+            llm_body = {"model": OPENROUTER_MODEL, "messages": llm_messages, "stream": True, "temperature": 0.7, "max_tokens": 6000}
+            llm_name = "OpenRouter"
         else:
             llm_url = ARCEE_API_URL
             llm_headers = {"Authorization": f"Bearer {ARCEE_API_KEY}", "Content-Type": "application/json"}
@@ -718,27 +719,27 @@ async def nexify_ai_status(admin: dict = Depends(get_admin_from_token)):
     msg_count = await S.db.nexify_ai_messages.count_documents({})
     conv_count = await S.db.nexify_ai_conversations.count_documents({})
 
-    # DeepSeek + Arcee AI — real connectivity test (parallel with mem0)
-    deepseek_status = {"configured": False, "connected": False, "model": DEEPSEEK_MODEL, "primary": True, "error": None}
+    # OpenRouter + Arcee AI — real connectivity test (parallel with mem0)
+    openrouter_status = {"configured": False, "connected": False, "model": OPENROUTER_MODEL, "primary": True, "error": None}
     arcee_status = {"configured": False, "connected": False, "model": ARCEE_MODEL, "fallback": True, "error": None}
     mem0_status = {"configured": False, "connected": False, "user_id": MEM0_USER_ID, "agent_id": MEM0_AGENT_ID, "error": None}
 
-    async def check_deepseek():
-        if not DEEPSEEK_API_KEY:
+    async def check_openrouter():
+        if not OPENROUTER_API_KEY:
             return
-        deepseek_status["configured"] = True
+        openrouter_status["configured"] = True
         try:
-            async with httpx.AsyncClient(timeout=8) as client:
+            async with httpx.AsyncClient(timeout=10) as client:
                 resp = await client.post(
-                    DEEPSEEK_CHAT_URL,
-                    headers={"Authorization": f"Bearer {DEEPSEEK_API_KEY}", "Content-Type": "application/json"},
-                    json={"model": DEEPSEEK_MODEL, "messages": [{"role": "user", "content": "ping"}], "max_tokens": 1, "stream": False}
+                    OPENROUTER_CHAT_URL,
+                    headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}", "Content-Type": "application/json", **OPENROUTER_HEADERS_EXTRA},
+                    json={"model": OPENROUTER_MODEL, "messages": [{"role": "user", "content": "ping"}], "max_tokens": 1, "stream": False}
                 )
-                deepseek_status["connected"] = resp.status_code == 200
+                openrouter_status["connected"] = resp.status_code == 200
                 if resp.status_code != 200:
-                    deepseek_status["error"] = f"HTTP {resp.status_code}"
+                    openrouter_status["error"] = f"HTTP {resp.status_code}"
         except Exception as e:
-            deepseek_status["error"] = str(e)[:80]
+            openrouter_status["error"] = str(e)[:80]
 
     async def check_arcee():
         if not ARCEE_API_KEY:
@@ -774,7 +775,7 @@ async def nexify_ai_status(admin: dict = Depends(get_admin_from_token)):
         except Exception as e:
             mem0_status["error"] = str(e)[:80]
 
-    await asyncio.gather(check_deepseek(), check_arcee(), check_mem0())
+    await asyncio.gather(check_openrouter(), check_arcee(), check_mem0())
 
     # WhatsApp session status
     wa_session = await S.db.whatsapp_sessions.find_one({}, {"_id": 0}, sort=[("created_at", -1)])
@@ -784,7 +785,7 @@ async def nexify_ai_status(admin: dict = Depends(get_admin_from_token)):
     db_connected = True
 
     return {
-        "deepseek": deepseek_status,
+        "openrouter": openrouter_status,
         "arcee": arcee_status,
         "mem0": mem0_status,
         "master_llm": MASTER_LLM,
@@ -854,7 +855,7 @@ AVAILABLE_TOOLS = {
     "oracle_create_task": "Neuen Oracle-Task erstellen (title, description, priority, owner_agent, tags)",
     "oracle_list_tasks": "Oracle-Tasks auflisten (status, limit)",
     "oracle_create_brain_note": "Brain-Note speichern (title, content, note_type, tags)",
-    "oracle_invoke_deepseek_agent": "Fachagenten über DeepSeek aufrufen (agent_name, message, context)",
+    "oracle_invoke_agent": "Fachagenten über OpenRouter aufrufen (agent_name, message, context)",
     # Intelligence — Crawl4AI
     "crawl_url": "Website crawlen und Content extrahieren (url, extract_mode: markdown|structured|links)",
     "research_company": "Firmen-Website analysieren für Lead-Recherche (url)",
@@ -1269,22 +1270,22 @@ async def execute_tool(body: ToolRequest, admin: dict = Depends(get_admin_from_t
             agent = await S.db.ai_agents.find_one({"agent_id": agent_id}, {"_id": 0})
             if not agent:
                 return {"error": "Agent nicht gefunden", "tool": tool}
-            # DeepSeek primary, Arcee fallback (Agent Zero Hierarchie)
+            # OpenRouter primary, Arcee fallback (Agent Zero Hierarchie)
             agent_sys = agent.get("system_prompt", f"Du bist {agent['name']}, ein Fachagent für {agent.get('role', 'general')}.")
             agent_msgs = [{"role": "system", "content": agent_sys}, {"role": "user", "content": message}]
             answer = ""
             used_model = ""
             try:
-                if DEEPSEEK_API_KEY:
+                if OPENROUTER_API_KEY:
                     async with httpx.AsyncClient(timeout=60) as client:
                         resp = await client.post(
-                            DEEPSEEK_CHAT_URL,
-                            headers={"Authorization": f"Bearer {DEEPSEEK_API_KEY}", "Content-Type": "application/json"},
-                            json={"model": DEEPSEEK_MODEL, "messages": agent_msgs, "temperature": 0.7, "max_tokens": 4000, "stream": False}
+                            OPENROUTER_CHAT_URL,
+                            headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}", "Content-Type": "application/json", **OPENROUTER_HEADERS_EXTRA},
+                            json={"model": OPENROUTER_MODEL, "messages": agent_msgs, "temperature": 0.7, "max_tokens": 4000, "stream": False}
                         )
                         if resp.status_code == 200:
                             answer = resp.json().get("choices", [{}])[0].get("message", {}).get("content", "")
-                            used_model = DEEPSEEK_MODEL
+                            used_model = OPENROUTER_MODEL
                 if not answer and ARCEE_API_KEY:
                     async with httpx.AsyncClient(timeout=60) as client:
                         resp = await client.post(
@@ -1481,13 +1482,13 @@ async def execute_tool(body: ToolRequest, admin: dict = Depends(get_admin_from_t
             )
             return {"note_id": note_id, "stored": True, "tool": tool}
 
-        elif tool == "oracle_invoke_deepseek_agent":
-            from services import deepseek_provider as deepseek
+        elif tool == "oracle_invoke_agent":
+            from services import deepseek_provider as openrouter_llm
             agent_name = p.get("agent_name", "")
             message = p.get("message", "")
             if not agent_name or not message:
                 return {"error": "Felder 'agent_name' und 'message' erforderlich", "tool": tool}
-            result = await deepseek.invoke_agent(
+            result = await openrouter_llm.invoke_agent(
                 agent_name=agent_name,
                 agent_role=p.get("role", "Fachagent"),
                 system_prompt=p.get("context", ""),

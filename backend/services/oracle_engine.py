@@ -14,7 +14,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional
 
 from services import supabase_client as supa
-from services import deepseek_provider as deepseek
+from services import deepseek_provider as openrouter_llm
 
 logger = logging.getLogger("nexifyai.oracle.engine")
 
@@ -229,15 +229,15 @@ class OracleEngine:
             )
             knowledge_ctx = await self._aggregate_knowledge(title, description, task_type)
 
-            # ── IN BEARBEITUNG: DeepSeek-Agent ausführen ──
+            # ── IN BEARBEITUNG: OpenRouter-Agent ausführen ──
             await self._transition(
                 task_id, STATUS["IN_BEARBEITUNG"],
-                reason=f"DeepSeek-Ausführung durch {agent['name']}",
+                reason=f"OpenRouter-Ausführung durch {agent['name']}",
                 agent=agent["name"]
             )
 
             execution_prompt = self._build_execution_prompt(task, knowledge_ctx)
-            result = await deepseek.invoke_agent(
+            result = await openrouter_llm.invoke_agent(
                 agent_name=agent["name"],
                 agent_role=agent["role"],
                 system_prompt=agent.get("system_prompt", ""),
@@ -258,7 +258,7 @@ class OracleEngine:
                 agent=agent["name"],
                 extra={"result": {
                     "agent": agent["name"],
-                    "model": result.get("model", "deepseek-chat"),
+                    "model": result.get("model", "minimax/minimax-m2.7"),
                     "response": response_text[:2000],
                     "completed_at": datetime.now(timezone.utc).isoformat()
                 }}
@@ -282,7 +282,7 @@ class OracleEngine:
                     "score": score,
                     "reason": verification.get("reason", ""),
                     "verified_at": verification.get("verified_at", datetime.now(timezone.utc).isoformat()),
-                    "model": result.get("model", "deepseek-chat"),
+                    "model": result.get("model", "minimax/minimax-m2.7"),
                     "response_length": len(response_text),
                 }
 
@@ -296,7 +296,7 @@ class OracleEngine:
                         "evidence": evidence,
                         "result": {
                             "agent": agent["name"],
-                            "model": result.get("model", "deepseek-chat"),
+                            "model": result.get("model", "minimax/minimax-m2.7"),
                             "response": response_text[:2000],
                             "verification": verification,
                             "completed_at": datetime.now(timezone.utc).isoformat()
@@ -531,7 +531,7 @@ Sprache: Deutsch. Qualität: Professionell und vollständig."""
         verifier = "Lexi" if executor_agent != "Lexi" else "Strategist"
 
         try:
-            verification = await deepseek.invoke_agent(
+            verification = await openrouter_llm.invoke_agent(
                 agent_name=verifier,
                 agent_role="Qualitätsprüfer & Verifikation",
                 system_prompt=f"""Du bist der Qualitätsprüfer im NeXifyAI-Team.

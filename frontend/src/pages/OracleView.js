@@ -159,15 +159,15 @@ const OracleView = ({ token }) => {
           <span className="ora-icon material-symbols-outlined">hub</span>
           <div>
             <h2 className="ora-title">Oracle Command Center</h2>
-            <p className="ora-subtitle">Supabase + DeepSeek + Brain — Live-Daten</p>
+            <p className="ora-subtitle">Supabase + OpenRouter + Brain — Live-Daten</p>
           </div>
         </div>
         <div className="ora-health-pills">
           <span className={`ora-pill ${health?.supabase?.connected ? 'ora-pill--ok' : 'ora-pill--err'}`} data-testid="oracle-supabase-status">
             <span className="ora-pill-dot" /> Supabase
           </span>
-          <span className={`ora-pill ${health?.deepseek?.connected ? 'ora-pill--ok' : 'ora-pill--err'}`} data-testid="oracle-deepseek-status">
-            <span className="ora-pill-dot" /> DeepSeek
+          <span className={`ora-pill ${health?.openrouter?.connected ? 'ora-pill--ok' : 'ora-pill--err'}`} data-testid="oracle-openrouter-status">
+            <span className="ora-pill-dot" /> OpenRouter
           </span>
         </div>
       </div>
@@ -383,7 +383,7 @@ const OracleView = ({ token }) => {
       {/* ═══ INVOKE AGENT ═══ */}
       {tab === 'invoke' && (
         <div className="ora-section" data-testid="oracle-invoke-section">
-          <h3>DeepSeek-Agent aufrufen</h3>
+          <h3>OpenRouter-Agent aufrufen</h3>
           <div className="ora-invoke-form">
             <input className="ora-input" placeholder="Agent-Name (z.B. Strategist, Architect)..." value={agentInvoke.agent} onChange={e => setAgentInvoke({ ...agentInvoke, agent: e.target.value })} data-testid="oracle-invoke-agent" />
             <textarea className="ora-textarea" placeholder="Nachricht an den Agenten..." value={agentInvoke.message} onChange={e => setAgentInvoke({ ...agentInvoke, message: e.target.value })} rows={4} data-testid="oracle-invoke-message" />

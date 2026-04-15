@@ -161,7 +161,7 @@ async def health():
 
     # API-Key Checks
     for key_name, label in [
-        ("DEEPSEEK_API_KEY", "deepseek"), ("ARCEE_API_KEY", "arcee"),
+        ("OPENROUTER_API_KEY", "openrouter"), ("ARCEE_API_KEY", "arcee"),
         ("MEM0_API_KEY", "mem0"), ("RESEND_API_KEY", "resend"),
         ("REVOLUT_SECRET_KEY", "revolut"),
     ]:
