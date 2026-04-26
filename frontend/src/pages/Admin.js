@@ -3474,7 +3474,7 @@ curl ${API}/api/v1/docs`}
             <button className="nxai-send-btn" onClick={() => sendNxMessage()} disabled={!nxInput.trim() || nxStreaming} data-testid="nxai-send"><I n="send" /></button>
           </div>
           <div className="nxai-status-bar">
-            <span>Arcee trinity-large-preview</span>
+            <span>OpenRouter deepseek-v4-flash</span>
             <span>|</span>
             <span>{nxUseMemory ? 'mem0 Brain aktiv' : 'Ohne Brain'}</span>
           </div>
@@ -3926,31 +3926,31 @@ curl ${API}/api/v1/docs`}
           <div className="adm-topbar-user"><I n="account_circle" /> Administration</div>
         </header>
         <div className={`adm-content ${view === 'nexify_ai' ? 'adm-content--fullbleed' : ''}`}>
-          {view === 'nexify_ai' && <NeXifyAIView />}
+          {view === 'nexify_ai' && NeXifyAIView()}
           {view === 'oracle' && <OracleView token={token} />}
-          {view === 'templates' && <ServiceTemplatesView />}
-          {view === 'intelligence' && <IntelligenceView />}
-          {view === 'tasks' && <TasksView />}
-          {view === 'dashboard' && <DashboardView />}
-          {view === 'projects' && <ProjectsView />}
-          {view === 'contracts' && <ContractsView />}
-          {view === 'billing' && <BillingView />}
-          {view === 'outbound_pipeline' && <OutboundPipelineView />}
-          {view === 'legal' && <LegalView />}
-          {view === 'commercial' && <CommercialView />}
-          {view === 'leads' && <LeadsView />}
-          {view === 'conversations' && <ConversationsView />}
-          {view === 'chats' && <ChatsView />}
-          {view === 'whatsapp' && <WhatsAppView />}
-          {view === 'timeline' && <TimelineView />}
-          {view === 'calendar' && <CalendarView />}
-          {view === 'customers' && <CustomersView />}
-          {view === 'agents' && <AgentsView />}
-          {view === 'users' && <UsersView />}
-          {view === 'api_keys' && <ApiKeysView />}
-          {view === 'webhooks' && <WebhookEventsView />}
-          {view === 'audit' && <AuditView />}
-          {view === 'monitoring' && <MonitoringView />}
+          {view === 'templates' && ServiceTemplatesView()}
+          {view === 'intelligence' && IntelligenceView()}
+          {view === 'tasks' && TasksView()}
+          {view === 'dashboard' && DashboardView()}
+          {view === 'projects' && ProjectsView()}
+          {view === 'contracts' && ContractsView()}
+          {view === 'billing' && BillingView()}
+          {view === 'outbound_pipeline' && OutboundPipelineView()}
+          {view === 'legal' && LegalView()}
+          {view === 'commercial' && CommercialView()}
+          {view === 'leads' && LeadsView()}
+          {view === 'conversations' && ConversationsView()}
+          {view === 'chats' && ChatsView()}
+          {view === 'whatsapp' && WhatsAppView()}
+          {view === 'timeline' && TimelineView()}
+          {view === 'calendar' && CalendarView()}
+          {view === 'customers' && CustomersView()}
+          {view === 'agents' && AgentsView()}
+          {view === 'users' && UsersView()}
+          {view === 'api_keys' && ApiKeysView()}
+          {view === 'webhooks' && WebhookEventsView()}
+          {view === 'audit' && AuditView()}
+          {view === 'monitoring' && MonitoringView()}
         </div>
       </main>
     </div>
