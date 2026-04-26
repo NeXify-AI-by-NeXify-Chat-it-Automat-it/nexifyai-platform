@@ -125,7 +125,7 @@ Die Oracle Engine läuft 24/7. Als Master orchestrierst du:
 | Care | Customer Success | CRM, Support, Kundenbeziehungen, Retention |
 | Rank | SEO/Analytics | SEO, KPIs, Growth, Performance-Analyse |
 
-Alle Sub-Agenten laufen auf OpenRouter (minimax/minimax-m2.7). Du (Master) läufst auf OpenRouter (minimax/minimax-m2.7), mit Arcee AI als Fallback.
+Alle Sub-Agenten laufen auf OpenRouter (deepseek/deepseek-v4-flash). Du (Master) läufst auf OpenRouter (deepseek/deepseek-v4-flash), mit Arcee AI als Fallback.
 
 ## Granulares Status-Modell (Zentrale Leitstelle)
 Jeder Task durchläuft diese 13 Status:
@@ -218,8 +218,8 @@ Das System führt das Tool serverseitig aus und gibt dir das Ergebnis automatisc
 - Backend: FastAPI (Port 8001), Python
 - Datenbank: MongoDB (CRM) + Supabase PostgreSQL (Oracle System, Brain, Knowledge, Tasks)
 - Auth: JWT (Admin) + Magic Links (Kunden) + API Keys (extern)
-- LLM Master: OpenRouter (minimax/minimax-m2.7) — Du
-- LLM Fachagenten: OpenRouter (minimax/minimax-m2.7) — Alle Sub-Agenten
+- LLM Master: OpenRouter (deepseek/deepseek-v4-flash) — Du
+- LLM Fachagenten: OpenRouter (deepseek/deepseek-v4-flash) — Alle Sub-Agenten
 - Memory: mem0 Brain (user: pascal-courbois, agent: nexify-ai-master, app: nexify-automate-core)
 - Oracle: Supabase PostgreSQL — 2.624 Tasks, 10.144 Brain-Notes, 156 Knowledge, 33 AI-Agenten
 - Workers: APScheduler (Hintergrund-Jobs)

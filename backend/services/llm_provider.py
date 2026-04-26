@@ -65,13 +65,13 @@ class OpenRouterProvider(LLMProvider):
     """
 
     MODELS = {
-        "minimax/minimax-m2.7": "MiniMax M2.7 (Standard)",
+        "deepseek/deepseek-v4-flash": "DeepSeek V4 Flash (Standard)",
     }
 
     def __init__(self):
         self._api_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
         self._base_url = os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
-        self._default_model = os.environ.get("OPENROUTER_MODEL", "minimax/minimax-m2.7")
+        self._default_model = os.environ.get("OPENROUTER_MODEL", "deepseek/deepseek-v4-flash")
         self._sessions: Dict[str, list] = {}
         self._metrics = {"calls": 0, "errors": 0, "total_latency_ms": 0}
         self._max_retries = 3
@@ -348,11 +348,11 @@ def create_llm_provider() -> LLMProvider:
     emergent_key = os.environ.get("EMERGENT_LLM_KEY", "").strip()
 
     if provider_name in ("openrouter", "deepseek") and openrouter_key:
-        logger.info("LLM-Provider: OpenRouter/MiniMax (PRIMÄR — Ziel-Architektur)")
+        logger.info("LLM-Provider: OpenRouter/DeepSeek V4 Flash (PRIMÄR — Ziel-Architektur)")
         return OpenRouterProvider()
 
     if provider_name == "auto" and openrouter_key:
-        logger.info("LLM-Provider: OpenRouter/MiniMax (auto-detected, PRIMÄR)")
+        logger.info("LLM-Provider: OpenRouter/DeepSeek V4 Flash (auto-detected, PRIMÄR)")
         return OpenRouterProvider()
 
     if emergent_key:
@@ -389,7 +389,7 @@ def get_provider_status(provider: LLMProvider) -> dict:
         "migration_ready": openrouter_key,
         "env_config": {
             "LLM_PROVIDER": os.environ.get("LLM_PROVIDER", "auto"),
-            "OPENROUTER_MODEL": os.environ.get("OPENROUTER_MODEL", "minimax/minimax-m2.7"),
+            "OPENROUTER_MODEL": os.environ.get("OPENROUTER_MODEL", "deepseek/deepseek-v4-flash"),
         },
     }
 
