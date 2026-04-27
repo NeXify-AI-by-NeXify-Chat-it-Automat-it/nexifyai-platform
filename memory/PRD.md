@@ -65,6 +65,37 @@ cd /tmp/vercel-deploy && npx vercel deploy --prod --prebuilt --token <TOKEN>
 
 ## Testing: Iteration 82, 100% Pass
 
+## Health-Alert-System (27.04.2026 — DONE)
+
+**Feature**: Automatische Benachrichtigung bei System-Health-Failures per E-Mail + optional Slack.
+
+**Architektur**:
+- `vercel-config/functions/api/cron/health-monitor.func/` ruft alle 5 Minuten `/api/health` am Backend ab
+- Bei Unhealthy-Services wird `/api/internal/alerts/health` (mit `CRON_SECRET` Bearer-Auth) benachrichtigt
+- Backend dedupliziert (60 min Cooldown pro Service), sendet E-Mail an `NOTIFICATION_EMAILS` (+ Slack wenn `SLACK_WEBHOOK_URL` gesetzt), persistiert in `health_alerts` + `health_alert_state`
+- Recovery-Notifications senden sich automatisch, sobald ein Service wieder gesund ist
+
+**Neue Endpoints**:
+- `POST /api/internal/alerts/health` — Cron-only (CRON_SECRET Bearer)
+- `GET /api/admin/health-alerts` — Admin-History inkl. active_incidents
+- `POST /api/admin/health-alerts/test` — manuelles Test-Alert für Admin
+
+**Neue Env-Variablen** (in `/app/backend/.env`):
+- `CRON_SECRET` (gesetzt)
+- `SLACK_WEBHOOK_URL` (optional, off by default)
+
+**Härtung der `send_email()`** (gleicher Release):
+- 3 Retry-Versuche mit Exponential Backoff (0.6s/1.2s/2.4s) bei transienten Fehlern (429, 502, 503, timeout, rate limit)
+- Fehler-Details (`error` + `failed_at`) jetzt persistiert
+- Alter Rate-Limit-Fail (04.04.2026) archiviert als `failed_acknowledged`
+
+**E2E Test Scenarios (alle bestanden)**:
+1. Unauthorized Request → 401
+2. Erster Failure → Alert versendet
+3. Duplicate in Cooldown → unterdrückt
+4. Recovery → Recovery-Mail + Incident cleared
+5. Admin History-Endpoint zeigt Events + Active-Incidents
+
 ## Passwort-Reset & Admin-Kundenkonten-Verwaltung (27.04.2026 — DONE)
 
 **Feature**: Vollständiger Self-Service Passwort-Reset für Kundenportal-Konten + Admin-Steuerung.
@@ -117,9 +148,10 @@ cd /tmp/vercel-deploy && npx vercel deploy --prod --prebuilt --token <TOKEN>
 
 ## Backlog
 - P1: Contract OS-Erweiterung (RAG, Risikoscoring via Nutrient AI) — benötigt Nutrient AI API Key
-- P2: Cron Alerting (Slack/Email bei Health-Failure)
+- P2: ✅ DONE — Cron Alerting (E-Mail + optional Slack bei Health-Failure)
 - P5: Legal & Compliance Guardian
 - P6: Outbound Lead Machine
 - P7: server.py Modular Refactoring (>4000 Zeilen)
 - P8: ✅ DONE — Admin Kundenkonten-Verwaltung + Passwort-Reset
-- P9: Admin-UI Frontend für Kundenkonten-Management (Backend-Endpoints bereit, UI fehlt noch)
+- P9: ✅ DONE — Admin-UI Frontend für Kundenkonten-Management
+- P10: Admin-UI für Health-Alert-History (Backend-Endpoints bereit)

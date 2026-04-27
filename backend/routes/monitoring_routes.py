@@ -1,11 +1,13 @@
 """NeXifyAI — Monitoring, LLM, Workers, Agents, Audit, E2E Routes"""
 import os
 from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request, Header
 from routes.shared import S
 from routes.shared import (
     get_current_admin,
     _build_customer_memory,
+    send_email,
+    email_template,
     logger,
 )
 from domain import utcnow
@@ -779,3 +781,191 @@ async def oracle_contact(identifier: str, current_user: dict = Depends(get_curre
 
 
 # Public health-check moved to public_routes.py
+
+
+# ══════════════════════════════════════════════════════════════
+# HEALTH ALERTING — called by Vercel Cron on health-failure
+# ══════════════════════════════════════════════════════════════
+
+def _verify_cron_secret(authorization: str):
+    """Validate CRON_SECRET Bearer token."""
+    if not S.CRON_SECRET:
+        raise HTTPException(503, "CRON_SECRET nicht konfiguriert")
+    expected = f"Bearer {S.CRON_SECRET}"
+    if authorization != expected:
+        raise HTTPException(401, "Unauthorized")
+
+
+async def _post_slack(text: str, blocks: list = None):
+    """Post to Slack webhook if configured."""
+    if not S.SLACK_WEBHOOK_URL:
+        return False
+    try:
+        import httpx
+        payload = {"text": text}
+        if blocks:
+            payload["blocks"] = blocks
+        async with httpx.AsyncClient(timeout=10.0) as c:
+            r = await c.post(S.SLACK_WEBHOOK_URL, json=payload)
+            return r.status_code in (200, 201, 204)
+    except Exception as e:
+        logger.error(f"Slack webhook error: {e}")
+        return False
+
+
+@router.post("/api/internal/alerts/health")
+async def internal_health_alert(
+    payload: dict,
+    request: Request,
+    authorization: str = Header(default=""),
+):
+    """Receive health-failure notification from Vercel Edge Cron.
+    Dedupe: only alert once per service until recovery or 60 min cooldown.
+    """
+    _verify_cron_secret(authorization)
+
+    unhealthy = payload.get("unhealthy", []) or []
+    overall_status = payload.get("status", "unknown")
+    services_total = payload.get("services_total", 0)
+    timestamp = payload.get("timestamp", datetime.now(timezone.utc).isoformat())
+
+    now = datetime.now(timezone.utc)
+    alerts_sent = []
+    alerts_suppressed = []
+    recoveries = []
+
+    # Load current alert state
+    state_doc = await S.db.health_alert_state.find_one({"_id": "current"}) or {"active": {}}
+    active = state_doc.get("active", {})
+
+    # 1. New failures → alert
+    for svc in unhealthy:
+        last = active.get(svc)
+        if last:
+            # Check cooldown (60 min)
+            try:
+                last_dt = datetime.fromisoformat(last.get("last_alerted_at", ""))
+                if last_dt.tzinfo is None:
+                    last_dt = last_dt.replace(tzinfo=timezone.utc)
+                if (now - last_dt).total_seconds() < 3600:
+                    alerts_suppressed.append(svc)
+                    continue
+            except Exception:
+                pass
+        active[svc] = {"first_seen_at": active.get(svc, {}).get("first_seen_at", now.isoformat()),
+                       "last_alerted_at": now.isoformat()}
+        alerts_sent.append(svc)
+
+    # 2. Recoveries — services previously failing, now healthy
+    for svc in list(active.keys()):
+        if svc not in unhealthy:
+            recoveries.append(svc)
+            del active[svc]
+
+    # 3. Send email + Slack if there are alerts or recoveries
+    if alerts_sent or recoveries:
+        subject_parts = []
+        if alerts_sent:
+            subject_parts.append(f"🔴 {len(alerts_sent)} Service(s) down")
+        if recoveries:
+            subject_parts.append(f"✅ {len(recoveries)} recovered")
+        subject = f"[NeXifyAI Health] {' · '.join(subject_parts)}"
+
+        body_html = "<h2 style='color:#fff;'>NeXifyAI System-Health Alert</h2>"
+        body_html += f"<p style='color:#8a9bb0;'>Zeitpunkt: {timestamp}<br/>Gesamt-Status: <strong>{overall_status}</strong><br/>Services geprüft: {services_total}</p>"
+
+        if alerts_sent:
+            body_html += "<h3 style='color:#ef4444;'>🔴 Ausfälle</h3><ul>"
+            for s in alerts_sent:
+                body_html += f"<li style='color:#fca5a5;'><strong>{s}</strong></li>"
+            body_html += "</ul>"
+        if alerts_suppressed:
+            body_html += f"<p style='color:#6b7b8d;font-size:12px;'>Unterdrückt (Cooldown 60 min): {', '.join(alerts_suppressed)}</p>"
+        if recoveries:
+            body_html += "<h3 style='color:#10b981;'>✅ Wiederhergestellt</h3><ul>"
+            for s in recoveries:
+                body_html += f"<li style='color:#6ee7b7;'><strong>{s}</strong></li>"
+            body_html += "</ul>"
+
+        body_html += "<p style='color:#6b7b8d;font-size:12px;margin-top:24px;'>Automatische Benachrichtigung vom Health-Monitor-Cron (alle 5 Minuten).</p>"
+
+        try:
+            await send_email(
+                S.NOTIFICATION_EMAILS,
+                subject,
+                email_template("System-Health Alert", body_html),
+                category="health_alert",
+                ref_id=timestamp,
+            )
+        except Exception as e:
+            logger.error(f"Health alert email failed: {e}")
+
+        # Slack (best-effort)
+        slack_text = subject
+        if alerts_sent:
+            slack_text += "\n*Down:* " + ", ".join(alerts_sent)
+        if recoveries:
+            slack_text += "\n*Recovered:* " + ", ".join(recoveries)
+        await _post_slack(slack_text)
+
+    # Persist new state
+    await S.db.health_alert_state.update_one(
+        {"_id": "current"},
+        {"$set": {"active": active, "updated_at": now.isoformat()}},
+        upsert=True,
+    )
+
+    # History log
+    await S.db.health_alerts.insert_one({
+        "timestamp": now.isoformat(),
+        "overall_status": overall_status,
+        "unhealthy": unhealthy,
+        "alerts_sent": alerts_sent,
+        "alerts_suppressed": alerts_suppressed,
+        "recoveries": recoveries,
+    })
+
+    return {
+        "received": True,
+        "alerts_sent": alerts_sent,
+        "alerts_suppressed": alerts_suppressed,
+        "recoveries": recoveries,
+        "active_incidents": list(active.keys()),
+    }
+
+
+@router.get("/api/admin/health-alerts")
+async def admin_health_alerts(current_user: dict = Depends(get_current_admin), limit: int = 50):
+    """List recent health alert events."""
+    events = []
+    async for e in S.db.health_alerts.find({}, {"_id": 0}).sort("timestamp", -1).limit(limit):
+        events.append(e)
+    state_doc = await S.db.health_alert_state.find_one({"_id": "current"}, {"_id": 0}) or {"active": {}}
+    return {
+        "events": events,
+        "count": len(events),
+        "active_incidents": list((state_doc.get("active") or {}).keys()),
+        "slack_configured": bool(S.SLACK_WEBHOOK_URL),
+    }
+
+
+@router.post("/api/admin/health-alerts/test")
+async def admin_health_alerts_test(current_user: dict = Depends(get_current_admin)):
+    """Trigger a synthetic health-alert e-mail for testing (Admin-only)."""
+    try:
+        await send_email(
+            S.NOTIFICATION_EMAILS,
+            "[NeXifyAI Health] 🧪 Test-Alert",
+            email_template(
+                "Test-Alert",
+                "<p>Dies ist ein manuell ausgelöster Test des Health-Alert-Systems.</p>"
+                "<p>Wenn Sie diese Mail erhalten, ist die Alert-Pipeline funktionsfähig.</p>"
+                f"<p style='color:#6b7b8d;font-size:12px;'>Ausgelöst von: {current_user['email']}</p>",
+            ),
+            category="health_alert_test",
+            ref_id="manual_test",
+        )
+        await _post_slack(f"🧪 NeXifyAI Health Alert test triggered by {current_user['email']}")
+        return {"sent": True, "to": S.NOTIFICATION_EMAILS, "slack": bool(S.SLACK_WEBHOOK_URL)}
+    except Exception as e:
+        raise HTTPException(500, f"Test fehlgeschlagen: {e}")

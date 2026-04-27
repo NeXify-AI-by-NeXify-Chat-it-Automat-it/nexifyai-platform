@@ -69,6 +69,8 @@ S.NOTIFICATION_EMAILS = []
 S.EMERGENT_LLM_KEY = ""
 S.ADMIN_EMAIL = ""
 S.ADVISOR_SYSTEM_PROMPT = ""
+S.CRON_SECRET = ""
+S.SLACK_WEBHOOK_URL = ""
 
 
 def init_config():
@@ -81,6 +83,8 @@ def init_config():
     S.NOTIFICATION_EMAILS = ["support@nexify-automate.com", "nexifyai@nexifyai.de"]
     S.EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
     S.ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "p.courbois@icloud.com")
+    S.CRON_SECRET = os.environ.get("CRON_SECRET", "")
+    S.SLACK_WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL", "")
 
 
 # ══════════════════════════════════════════════════════════════
