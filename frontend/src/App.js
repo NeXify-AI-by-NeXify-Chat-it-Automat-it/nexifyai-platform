@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { HeroScene, ProcessScene } from './components/Scene3D';
 import { useLanguage } from './i18n/LanguageContext';
 import T from './i18n/translations';
@@ -538,6 +540,8 @@ function App() {
       <LiveChat isOpen={chatOpen} onClose={() => setChatOpen(false)} initialQ={chatQ} onBook={openBooking} t={t} lang={lang} />
       <Booking isOpen={bookOpen} onClose={() => setBookOpen(false)} t={t} lang={lang} />
       <CookieConsent show={showCookie} onAccept={acceptCookies} onReject={rejectCookies} t={t} lang={lang} />
+      <Analytics />
+      <SpeedInsights />
     </div>
   );
 }
