@@ -54,14 +54,18 @@ async def auth_check_email(data: dict):
     lead = await S.db.leads.find_one({"email": email})
     is_customer = bool(contact or lead)
     
+    # Check if customer has a password-based account
+    customer_account = await S.db.customer_accounts.find_one({"email": email, "activated": True})
+    has_password = bool(customer_account)
+    
     if admin and is_customer:
-        return {"role": "dual", "needs_password": True, "needs_magic_link": True}
+        return {"role": "dual", "needs_password": True, "needs_magic_link": not has_password, "has_portal_password": has_password}
     
     if admin:
         return {"role": "admin", "needs_password": True}
     
     if is_customer:
-        return {"role": "customer", "needs_magic_link": True}
+        return {"role": "customer", "needs_password": has_password, "needs_magic_link": not has_password, "has_portal_password": has_password}
     
     return {"role": "unknown"}
 
@@ -169,6 +173,37 @@ async def auth_verify_token(data: dict):
 
 
 # ============== CUSTOMER PORTAL JWT-AUTH ENDPOINTS ==============
+
+
+@router.post("/api/auth/customer-login")
+async def auth_customer_login(data: dict, request: Request):
+    """Customer login with email + password (set via quote setup-account flow)."""
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "")
+
+    if not email or not password:
+        raise HTTPException(400, "E-Mail und Passwort erforderlich")
+
+    account = await S.db.customer_accounts.find_one({"email": email, "activated": True})
+    if not account:
+        raise HTTPException(401, "Kein aktives Kundenkonto gefunden")
+
+    if not verify_password(password, account.get("password_hash", "")):
+        raise HTTPException(401, "Ungültiges Passwort")
+
+    jwt_token = create_access_token(
+        {"sub": email, "role": "customer"},
+        expires_delta=timedelta(hours=24)
+    )
+
+    await log_audit("customer_login_password", email)
+    return {
+        "access_token": jwt_token,
+        "token_type": "bearer",
+        "role": "customer",
+        "email": email,
+        "customer_name": account.get("name", "")
+    }
 
 
 @router.get("/api/customer/me")

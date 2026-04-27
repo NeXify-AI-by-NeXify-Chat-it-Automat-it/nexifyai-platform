@@ -1,4 +1,5 @@
 """NeXifyAI — Portal Routes"""
+import os
 import hashlib
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends, Request
@@ -6,6 +7,9 @@ from routes.shared import S
 from routes.shared import (
     get_current_admin,
     get_current_customer,
+    create_access_token,
+    hash_password,
+    verify_password,
     log_audit,
     _log_event,
     send_email,
@@ -148,6 +152,11 @@ async def portal_get_quote(quote_id: str, token: str):
          "$push": {"history": {"action": "opened", "at": datetime.now(timezone.utc).isoformat(), "by": "customer"}}},
     )
 
+    # Check if customer already has an account (password set)
+    customer_email = link.get("customer_email", "").lower()
+    customer_account = await S.db.customer_accounts.find_one({"email": customer_email}, {"_id": 0, "password_hash": 0})
+    has_account = bool(customer_account and customer_account.get("activated"))
+
     return {
         "quote": quote,
         "company": {
@@ -156,7 +165,92 @@ async def portal_get_quote(quote_id: str, token: str):
             "phone": COMM_COMPANY["phone"],
             "email": COMM_COMPANY["email"],
         },
+        "account_status": {
+            "has_account": has_account,
+            "email": customer_email,
+        },
     }
+
+
+
+@router.post("/api/portal/setup-account")
+async def portal_setup_account(request: Request):
+    """Customer sets a password to activate their portal account.
+    Requires a valid quote access token for authentication."""
+    body = await request.json()
+    token = body.get("token", "")
+    quote_id = body.get("quote_id", "")
+    password = body.get("password", "")
+
+    if not token or not quote_id or not password:
+        raise HTTPException(400, "Token, Angebots-ID und Passwort erforderlich")
+    if len(password) < 8:
+        raise HTTPException(400, "Passwort muss mindestens 8 Zeichen haben")
+
+    # Validate the access link
+    link = await S.db.access_links.find_one({
+        "token_hash": hashlib.sha256(token.encode()).hexdigest(),
+        "quote_id": quote_id,
+    })
+    if not link:
+        raise HTTPException(403, "Zugangslink ungültig")
+    if not verify_access_token(token, link["token_hash"], link["expires_at"]):
+        raise HTTPException(403, "Zugangslink abgelaufen")
+
+    customer_email = link.get("customer_email", "").lower()
+    if not customer_email:
+        raise HTTPException(400, "Keine E-Mail-Adresse im Zugangslink")
+
+    # Get customer name from contact/lead
+    contact = await S.db.contacts.find_one({"email": customer_email}, {"_id": 0})
+    lead = await S.db.leads.find_one({"email": customer_email}, {"_id": 0}) if not contact else None
+    customer_name = ""
+    if contact:
+        customer_name = f"{contact.get('vorname', '')} {contact.get('nachname', '')}".strip()
+    elif lead:
+        customer_name = f"{lead.get('vorname', '')} {lead.get('nachname', '')}".strip()
+
+    # Create or update customer account
+    now = datetime.now(timezone.utc).isoformat()
+    await S.db.customer_accounts.update_one(
+        {"email": customer_email},
+        {"$set": {
+            "email": customer_email,
+            "name": customer_name,
+            "password_hash": hash_password(password),
+            "activated": True,
+            "activated_at": now,
+            "activated_via": f"quote_{quote_id}",
+            "updated_at": now,
+        },
+        "$setOnInsert": {
+            "created_at": now,
+            "role": "customer",
+        }},
+        upsert=True
+    )
+
+    # Also update the contact record to mark as portal-active
+    if contact:
+        await S.db.contacts.update_one(
+            {"email": customer_email},
+            {"$set": {"portal_active": True, "portal_activated_at": now}}
+        )
+
+    # Create a JWT token so the customer is immediately logged in
+    jwt_token = create_access_token({"sub": customer_email, "role": "customer"})
+
+    await _log_event(S.db, "account_activated", quote_id, customer_email)
+    logger.info(f"Customer account activated: {customer_email} via quote {quote_id}")
+
+    return {
+        "success": True,
+        "access_token": jwt_token,
+        "token_type": "bearer",
+        "email": customer_email,
+        "name": customer_name,
+    }
+
 
 
 
