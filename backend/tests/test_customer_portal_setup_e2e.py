@@ -128,11 +128,79 @@ async def main():
         assert ce["has_portal_password"] is True, f"expected has_portal_password=True, got {ce}"
         print(f"[OK] check-email: {ce}")
 
+        # 11. Password reset: request
+        r = await c.post(f"{API}/api/auth/password-reset/request", json={"email": test_email})
+        assert r.status_code == 200
+        print("[OK] password-reset request ok (200)")
+
+        # Non-existent account should still return 200 (no enumeration)
+        r = await c.post(f"{API}/api/auth/password-reset/request", json={"email": "totally_unknown_9f@example.com"})
+        assert r.status_code == 200
+        print("[OK] password-reset request for unknown email also 200 (no enumeration)")
+
+        # Grab the reset token from DB
+        reset_entry = await db.password_resets.find_one({"email": test_email, "used": False}, sort=[("created_at", -1)])
+        assert reset_entry, "no password_resets entry"
+        # We can't retrieve plaintext token from hash — create a known one (unique per run)
+        import hashlib as _h
+        raw_reset = f"test_reset_{secrets.token_hex(8)}"
+        known_hash = _h.sha256(raw_reset.encode()).hexdigest()
+        await db.password_resets.update_one({"_id": reset_entry["_id"]}, {"$set": {"token_hash": known_hash}})
+
+        # 12. Confirm with short password → 400
+        r = await c.post(f"{API}/api/auth/password-reset/confirm", json={"token": raw_reset, "password": "short"})
+        assert r.status_code == 400, f"expected 400, got {r.status_code}: {r.text}"
+        print("[OK] short password rejected on reset")
+
+        # 13. Confirm with valid token + new password
+        new_password = "NewPassword456!"
+        r = await c.post(f"{API}/api/auth/password-reset/confirm", json={"token": raw_reset, "password": new_password})
+        assert r.status_code == 200, f"password-reset confirm failed: {r.status_code} {r.text}"
+        assert r.json().get("success") is True
+        print("[OK] password reset completed")
+
+        # 14. Reuse same reset token → 403
+        r = await c.post(f"{API}/api/auth/password-reset/confirm", json={"token": raw_reset, "password": "AnotherPass789!"})
+        assert r.status_code == 403
+        print("[OK] reset token cannot be reused")
+
+        # 15. Old password fails, new password works
+        r = await c.post(f"{API}/api/auth/customer-login", json={"email": test_email, "password": test_password})
+        assert r.status_code == 401, f"old password should no longer work (got {r.status_code})"
+        print("[OK] old password rejected after reset")
+
+        r = await c.post(f"{API}/api/auth/customer-login", json={"email": test_email, "password": new_password})
+        assert r.status_code == 200, f"new password should work: {r.status_code} {r.text}"
+        print("[OK] new password works")
+
+        # 16. Admin list customer accounts
+        r = await c.get(f"{API}/api/admin/customer-accounts?search={test_email}", headers=H)
+        assert r.status_code == 200
+        accounts = r.json()["accounts"]
+        assert any(a["email"] == test_email for a in accounts), f"test account not found in admin list"
+        print(f"[OK] admin list customer-accounts: {len(accounts)} matching")
+
+        # 17. Admin reset
+        r = await c.post(f"{API}/api/admin/customer-accounts/{test_email}/reset", headers=H)
+        assert r.status_code == 200
+        print("[OK] admin-triggered password reset")
+
+        # 18. Admin deactivate
+        r = await c.delete(f"{API}/api/admin/customer-accounts/{test_email}", headers=H)
+        assert r.status_code == 200
+        print("[OK] admin deactivated customer account")
+
+        # 19. Login now fails (account deactivated)
+        r = await c.post(f"{API}/api/auth/customer-login", json={"email": test_email, "password": new_password})
+        assert r.status_code == 401
+        print("[OK] deactivated account cannot login")
+
         # Cleanup
         await db.customer_accounts.delete_one({"email": test_email})
         await db.contacts.delete_one({"email": test_email})
         await db.quotes.delete_one({"quote_id": quote_id})
         await db.access_links.delete_many({"customer_email": test_email})
+        await db.password_resets.delete_many({"email": test_email})
         print("[OK] cleanup done")
 
 

@@ -12,6 +12,7 @@ const UnifiedLogin = () => {
   const [step, setStep] = useState('email');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,6 +23,11 @@ const UnifiedLogin = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
+    const resetToken = params.get('reset_token');
+    if (resetToken) {
+      setStep('reset_password');
+      return;
+    }
     if (token && window.location.pathname.includes('/login/verify')) {
       setStep('verifying');
       verifyMagicLink(token);
@@ -134,6 +140,57 @@ const UnifiedLogin = () => {
       } else {
         const d = await res.json().catch(() => ({}));
         setError(d.detail || 'Ungültige Anmeldedaten');
+      }
+    } catch {
+      setError('Verbindungsfehler');
+    }
+    setLoading(false);
+  };
+
+  const requestPasswordReset = async () => {
+    setError('');
+    if (!email.trim()) { setError('Bitte E-Mail eingeben'); return; }
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/api/auth/password-reset/request`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      if (res.ok) {
+        setStep('reset_sent');
+      } else {
+        const d = await res.json().catch(() => ({}));
+        setError(d.detail || 'Fehler beim Anfordern');
+      }
+    } catch {
+      setError('Verbindungsfehler');
+    }
+    setLoading(false);
+  };
+
+  const confirmPasswordReset = async () => {
+    setError('');
+    const params = new URLSearchParams(window.location.search);
+    const resetToken = params.get('reset_token');
+    if (!resetToken) { setError('Reset-Token fehlt'); return; }
+    if (password.length < 8) { setError('Passwort muss mindestens 8 Zeichen haben'); return; }
+    if (password !== confirmPw) { setError('Passwörter stimmen nicht überein'); return; }
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/api/auth/password-reset/confirm`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: resetToken, password }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem('nx_auth', JSON.stringify({ token: data.access_token, role: 'customer', email: data.email, name: data.customer_name }));
+        localStorage.setItem('nx_portal_token', data.access_token);
+        localStorage.setItem('nx_portal_email', data.email);
+        localStorage.setItem('nx_portal_name', data.customer_name || '');
+        window.location.href = '/portal';
+      } else {
+        const d = await res.json().catch(() => ({}));
+        setError(d.detail || 'Reset-Link ungültig oder abgelaufen');
       }
     } catch {
       setError('Verbindungsfehler');
@@ -345,8 +402,46 @@ const UnifiedLogin = () => {
                   <button className="ul-btn" onClick={loginCustomer} disabled={loading || !password} data-testid="login-customer-btn">
                     {loading ? <><div className="ul-btn-spinner" /> Wird angemeldet...</> : <>Zum Portal <I n="login" /></>}
                   </button>
+                  <button className="ul-link" onClick={requestPasswordReset} disabled={loading} data-testid="login-forgot-password">Passwort vergessen?</button>
                   <button className="ul-link" onClick={async () => { await requestMagicLink(); }} data-testid="login-customer-use-magic-link">Stattdessen Zugangslink per E-Mail</button>
                   <button className="ul-link" onClick={() => { setStep('email'); setPassword(''); setError(''); }} data-testid="login-customer-back-email">Andere E-Mail verwenden</button>
+                </motion.div>
+              )}
+
+              {step === 'reset_sent' && (
+                <motion.div className="ul-step" key="reset_sent" data-testid="login-reset-sent" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
+                  <div className="ul-check-icon"><I n="mark_email_read" /></div>
+                  <h2>E-Mail gesendet</h2>
+                  <p className="ul-info">Falls ein Konto für <strong>{email}</strong> existiert, haben wir Ihnen einen Reset-Link geschickt.</p>
+                  <p className="ul-muted">Der Link ist 1 Stunde gültig. Bitte prüfen Sie auch Ihren Spam-Ordner.</p>
+                  <button className="ul-link" onClick={() => { setStep('email'); setError(''); }} data-testid="login-reset-sent-back">Zurück zur Anmeldung</button>
+                </motion.div>
+              )}
+
+              {step === 'reset_password' && (
+                <motion.div className="ul-step" key="reset_password" data-testid="login-reset-password-step" initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }} transition={{ duration: 0.3 }}>
+                  <div className="ul-role-badge ul-role-new"><I n="lock_reset" /> Neues Passwort vergeben</div>
+                  <p className="ul-sub">Legen Sie ein neues Passwort für Ihr Kundenportal fest.</p>
+                  <div className="ul-field">
+                    <label>Neues Passwort</label>
+                    <div className="ul-input-wrap">
+                      <I n="lock" c="ul-input-icon" />
+                      <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Mindestens 8 Zeichen" autoFocus data-testid="reset-password-input" />
+                      <button type="button" className="ul-pw-toggle" onClick={() => setShowPw(!showPw)} tabIndex={-1} aria-label={showPw ? 'Passwort verbergen' : 'Passwort anzeigen'}>
+                        <I n={showPw ? 'visibility_off' : 'visibility'} />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="ul-field">
+                    <label>Passwort bestätigen</label>
+                    <div className="ul-input-wrap">
+                      <I n="lock" c="ul-input-icon" />
+                      <input type={showPw ? 'text' : 'password'} value={confirmPw} onChange={e => setConfirmPw(e.target.value)} placeholder="Passwort wiederholen" data-testid="reset-password-confirm" />
+                    </div>
+                  </div>
+                  <button className="ul-btn" onClick={confirmPasswordReset} disabled={loading || !password || !confirmPw} data-testid="reset-password-submit">
+                    {loading ? <><div className="ul-btn-spinner" /> Wird gespeichert...</> : <>Passwort speichern & einloggen <I n="arrow_forward" /></>}
+                  </button>
                 </motion.div>
               )}
 

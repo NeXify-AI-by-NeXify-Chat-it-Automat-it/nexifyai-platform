@@ -211,6 +211,113 @@ async def auth_customer_login(data: dict, request: Request):
     }
 
 
+@router.post("/api/auth/password-reset/request")
+async def auth_password_reset_request(data: dict, request: Request):
+    """Customer requests a password reset — sends email with reset token."""
+    if request:
+        await check_rate_limit(request, limit=5, window=600)
+
+    email = data.get("email", "").strip().lower()
+    if not email:
+        raise HTTPException(400, "E-Mail ist Pflichtfeld")
+
+    account = await S.db.customer_accounts.find_one({"email": email, "activated": True})
+
+    # Always return 200 to avoid user enumeration — only actually send if account exists
+    if account:
+        import secrets as _s
+        raw_token = _s.token_urlsafe(32)
+        token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+
+        await S.db.password_resets.insert_one({
+            "email": email,
+            "token_hash": token_hash,
+            "expires_at": expires_at,
+            "created_at": datetime.now(timezone.utc),
+            "used": False,
+        })
+
+        base_url = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
+        reset_link = f"{base_url}/login?reset_token={raw_token}"
+
+        try:
+            html = email_template(
+                "Passwort zurücksetzen — NeXifyAI",
+                "<p>Hallo,</p>"
+                "<p>Sie haben eine Passwort-Zurücksetzung für Ihr NeXifyAI-Kundenportal angefordert.</p>"
+                "<p>Klicken Sie auf den Button, um ein neues Passwort zu vergeben. Der Link ist 1 Stunde gültig.</p>"
+                "<p style='color:#8a9bb0;font-size:12px;'>Falls Sie die Zurücksetzung nicht angefordert haben, ignorieren Sie diese E-Mail.</p>",
+                reset_link,
+                "Neues Passwort vergeben",
+            )
+            await send_email([email], "Passwort zurücksetzen — NeXifyAI", html, category="password_reset", ref_id=email)
+        except Exception as e:
+            logger.error(f"Password-Reset E-Mail Fehler: {e}")
+
+        await log_audit("password_reset_requested", email)
+
+    return {"status": "ok", "message": "Falls ein Konto existiert, wurde eine E-Mail gesendet."}
+
+
+@router.post("/api/auth/password-reset/confirm")
+async def auth_password_reset_confirm(data: dict, request: Request):
+    """Customer confirms password reset using token + new password."""
+    if request:
+        await check_rate_limit(request, limit=20, window=300)
+
+    from routes.shared import hash_password
+
+    token = data.get("token", "").strip()
+    password = data.get("password", "")
+
+    if not token or not password:
+        raise HTTPException(400, "Token und Passwort erforderlich")
+    if len(password) < 8:
+        raise HTTPException(400, "Passwort muss mindestens 8 Zeichen haben")
+
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    entry = await S.db.password_resets.find_one({"token_hash": token_hash})
+    if not entry:
+        raise HTTPException(403, "Reset-Link ungültig")
+    if entry.get("used"):
+        raise HTTPException(403, "Reset-Link wurde bereits verwendet")
+
+    expires = entry.get("expires_at")
+    if isinstance(expires, str):
+        from dateutil.parser import parse as dateparse
+        expires = dateparse(expires)
+    if expires and expires.tzinfo is None:
+        expires = expires.replace(tzinfo=timezone.utc)
+    if expires and expires < datetime.now(timezone.utc):
+        raise HTTPException(403, "Reset-Link abgelaufen")
+
+    email = entry["email"].lower()
+    now = datetime.now(timezone.utc).isoformat()
+
+    await S.db.customer_accounts.update_one(
+        {"email": email, "activated": True},
+        {"$set": {"password_hash": hash_password(password), "updated_at": now}},
+    )
+    await S.db.password_resets.update_one(
+        {"_id": entry["_id"]},
+        {"$set": {"used": True, "used_at": now}},
+    )
+
+    jwt_token = create_access_token({"sub": email, "role": "customer"}, expires_delta=timedelta(hours=24))
+    account = await S.db.customer_accounts.find_one({"email": email}, {"_id": 0})
+
+    await log_audit("password_reset_completed", email)
+    return {
+        "success": True,
+        "access_token": jwt_token,
+        "token_type": "bearer",
+        "role": "customer",
+        "email": email,
+        "customer_name": (account or {}).get("name", ""),
+    }
+
+
 @router.get("/api/customer/me")
 async def customer_me(user = Depends(get_current_customer)):
     """Kundenprofil — JWT-authentifiziert."""

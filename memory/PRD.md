@@ -65,6 +65,31 @@ cd /tmp/vercel-deploy && npx vercel deploy --prod --prebuilt --token <TOKEN>
 
 ## Testing: Iteration 82, 100% Pass
 
+## Passwort-Reset & Admin-Kundenkonten-Verwaltung (27.04.2026 — DONE)
+
+**Feature**: Vollständiger Self-Service Passwort-Reset für Kundenportal-Konten + Admin-Steuerung.
+
+**Backend-Endpoints**:
+- `POST /api/auth/password-reset/request` — Self-Service Reset; rate-limited 5/600s; stets 200 (keine User-Enumeration); Token 1h gültig; sendet Reset-E-Mail via Resend
+- `POST /api/auth/password-reset/confirm` — Token + neues Passwort (min. 8 Zeichen); invalidiert Token nach Use; gibt JWT zurück (direkter Login)
+- `GET /api/admin/customer-accounts?search=` — Admin-Liste aller aktivierten Kundenkonten
+- `POST /api/admin/customer-accounts/{email}/reset` — Admin triggert Reset-Mail
+- `DELETE /api/admin/customer-accounts/{email}` — Admin deaktiviert Account (audit-preserving, kein Hard-Delete)
+
+**Frontend** (`UnifiedLogin.js`):
+- Neuer Step `customer_password` enthält Link "Passwort vergessen?" → `requestPasswordReset`
+- Neuer Step `reset_sent` (Bestätigung nach Anforderung)
+- URL-Parameter `?reset_token=X` aktiviert automatisch Step `reset_password` (Neues Passwort + Bestätigung → `confirmPasswordReset` → auto-login → /portal)
+
+**Security**:
+- Rate limiting (5/600s bzw. 20/300s)
+- Keine User-Enumeration in Response
+- Token gehasht in DB (SHA-256)
+- Tokens sind 1x verwendbar
+- Admin-Aktionen im `audit_log`
+
+**E2E Test**: `/app/backend/tests/test_customer_portal_setup_e2e.py` (19/19 assertions — setup, login, reset, admin list/reset/deactivate)
+
 ## Kundenkonto-Zwang bei Angeboten (27.04.2026 — DONE)
 **Feature**: Kunden müssen vor Angebotsansicht ein Passwort festlegen, um ein Kundenportal-Konto zu erstellen.
 
@@ -91,9 +116,10 @@ cd /tmp/vercel-deploy && npx vercel deploy --prod --prebuilt --token <TOKEN>
 - `check-email` Response-Shape konsistent (immer alle Flags)
 
 ## Backlog
-- P1: Contract OS-Erweiterung (RAG, Risikoscoring via Nutrient AI)
+- P1: Contract OS-Erweiterung (RAG, Risikoscoring via Nutrient AI) — benötigt Nutrient AI API Key
 - P2: Cron Alerting (Slack/Email bei Health-Failure)
 - P5: Legal & Compliance Guardian
 - P6: Outbound Lead Machine
 - P7: server.py Modular Refactoring (>4000 Zeilen)
-- P8: Admin-UI "Kundenkonten verwalten" (Passwort-Reset durch Admin)
+- P8: ✅ DONE — Admin Kundenkonten-Verwaltung + Passwort-Reset
+- P9: Admin-UI Frontend für Kundenkonten-Management (Backend-Endpoints bereit, UI fehlt noch)

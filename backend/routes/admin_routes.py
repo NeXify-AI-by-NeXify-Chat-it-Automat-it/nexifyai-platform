@@ -959,3 +959,80 @@ async def admin_delete_api_key(key_id: str, current_user: dict = Depends(get_cur
     await log_audit("api_key_deleted", current_user["email"], {"key_id": key_id})
     return {"status": "ok", "deleted": key_id}
 
+
+
+# ══════════════════════════════════════════════════════════════
+# CUSTOMER PORTAL ACCOUNTS — Admin Management
+# ══════════════════════════════════════════════════════════════
+
+@router.get("/api/admin/customer-accounts")
+async def admin_list_customer_accounts(user = Depends(get_current_admin), search: str = None):
+    """List all customer portal accounts (activated password-based)."""
+    q = {}
+    if search:
+        q["email"] = {"$regex": search.strip().lower(), "$options": "i"}
+    accounts = []
+    async for a in S.db.customer_accounts.find(q, {"_id": 0, "password_hash": 0}).sort("created_at", -1).limit(200):
+        for k, v in list(a.items()):
+            if hasattr(v, "isoformat"):
+                a[k] = v.isoformat()
+        accounts.append(a)
+    return {"accounts": accounts, "count": len(accounts)}
+
+
+@router.post("/api/admin/customer-accounts/{email}/reset")
+async def admin_reset_customer_password(email: str, user = Depends(get_current_admin)):
+    """Admin triggers a password-reset email for a customer account."""
+    import hashlib
+    import secrets as _s
+    email = email.strip().lower()
+    account = await S.db.customer_accounts.find_one({"email": email, "activated": True})
+    if not account:
+        raise HTTPException(404, "Kundenkonto nicht gefunden")
+
+    raw_token = _s.token_urlsafe(32)
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+
+    await S.db.password_resets.insert_one({
+        "email": email,
+        "token_hash": token_hash,
+        "expires_at": expires_at,
+        "created_at": datetime.now(timezone.utc),
+        "used": False,
+        "triggered_by_admin": user["email"],
+    })
+
+    import os
+    base_url = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
+    reset_link = f"{base_url}/login?reset_token={raw_token}"
+
+    try:
+        html = email_template(
+            "Passwort zurücksetzen — NeXifyAI",
+            "<p>Hallo,</p>"
+            "<p>Unser Team hat eine Passwort-Zurücksetzung für Ihr Kundenkonto initiiert.</p>"
+            "<p>Klicken Sie auf den Button, um ein neues Passwort zu vergeben. Der Link ist 1 Stunde gültig.</p>",
+            reset_link,
+            "Neues Passwort vergeben",
+        )
+        await send_email([email], "Passwort zurücksetzen — NeXifyAI", html, category="password_reset_admin", ref_id=email)
+    except Exception as e:
+        logger.error(f"Admin-Reset E-Mail Fehler: {e}")
+
+    await log_audit("admin_triggered_password_reset", user["email"], {"target_email": email})
+    return {"status": "ok", "message": f"Reset-E-Mail an {email} gesendet"}
+
+
+@router.delete("/api/admin/customer-accounts/{email}")
+async def admin_deactivate_customer_account(email: str, user = Depends(get_current_admin)):
+    """Admin deactivates a customer portal account (keeps record for audit)."""
+    email = email.strip().lower()
+    res = await S.db.customer_accounts.update_one(
+        {"email": email},
+        {"$set": {"activated": False, "deactivated_at": datetime.now(timezone.utc).isoformat(), "deactivated_by": user["email"]}}
+    )
+    if res.matched_count == 0:
+        raise HTTPException(404, "Kundenkonto nicht gefunden")
+    await log_audit("admin_deactivated_customer_account", user["email"], {"target_email": email})
+    return {"status": "ok", "deactivated": email}
