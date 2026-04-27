@@ -263,31 +263,48 @@ async def send_email(to: List[str], subject: str, html: str, category: str = "tr
             logger.warning(f"SMTP-Fehler: {e} — versuche Resend-Fallback")
             result = None
 
-    # 2. Resend — Fallback
+    # 2. Resend — Fallback (with retry on rate-limit 429)
     if not result and S.RESEND_API_KEY:
-        try:
-            import asyncio
-            result = await asyncio.to_thread(resend.Emails.send, {
-                "from": f"NeXifyAI <{S.SENDER_EMAIL}>",
-                "to": to,
-                "subject": subject,
-                "html": html
-            })
-            method = "resend"
-            logger.info(f"E-Mail via Resend an {to} — {subject[:50]}")
-        except Exception as e:
-            logger.error(f"Resend-Fehler: {e}")
-            result = None
+        import asyncio
+        last_error = None
+        for attempt in range(3):
+            try:
+                result = await asyncio.to_thread(resend.Emails.send, {
+                    "from": f"NeXifyAI <{S.SENDER_EMAIL}>",
+                    "to": to,
+                    "subject": subject,
+                    "html": html
+                })
+                method = "resend"
+                logger.info(f"E-Mail via Resend an {to} — {subject[:50]}")
+                break
+            except Exception as e:
+                last_error = e
+                err_str = str(e).lower()
+                # Retry only on transient rate-limit / 5xx errors
+                if any(k in err_str for k in ("rate limit", "too many", "429", "503", "502", "timeout")):
+                    backoff = 0.6 * (2 ** attempt)  # 0.6s, 1.2s, 2.4s
+                    logger.warning(f"Resend transient error (attempt {attempt+1}/3): {e} — retry in {backoff}s")
+                    await asyncio.sleep(backoff)
+                    continue
+                logger.error(f"Resend-Fehler (nicht retrybar): {e}")
+                break
+        if not result and last_error:
+            logger.error(f"Resend final failure after retries: {last_error}")
 
     # 3. Audit-Trail
     try:
-        await S.db.email_events.insert_one({
+        event = {
             "to": to, "subject": subject, "category": category,
             "ref_id": ref_id,
             "status": "sent" if result else "failed",
             "method": method or "none",
             "sent_at": datetime.now(timezone.utc).isoformat(),
-        })
+        }
+        if not result:
+            event["error"] = str(last_error) if 'last_error' in locals() and last_error else "unknown"
+            event["failed_at"] = event["sent_at"]
+        await S.db.email_events.insert_one(event)
     except Exception:
         pass
 

@@ -1021,6 +1021,7 @@ async def email_stats(current_user: dict = Depends(get_current_admin)):
     total = await S.db.email_events.count_documents({})
     sent = await S.db.email_events.count_documents({"status": "sent"})
     failed = await S.db.email_events.count_documents({"status": "failed"})
+    acknowledged = await S.db.email_events.count_documents({"status": "failed_acknowledged"})
 
     recent = []
     async for e in S.db.email_events.find({}, {"_id": 0}).sort("sent_at", -1).limit(30):
@@ -1030,11 +1031,33 @@ async def email_stats(current_user: dict = Depends(get_current_admin)):
         "total": total,
         "sent": sent,
         "failed": failed,
+        "failed_acknowledged": acknowledged,
         "success_rate": f"{round(sent / max(total, 1) * 100)}%",
         "resend_configured": bool(S.RESEND_API_KEY),
         "sender": S.SENDER_EMAIL,
         "recent_events": recent,
     }
+
+
+@router.post("/api/admin/email/events/{event_id}/acknowledge")
+async def email_acknowledge_failure(event_id: str, current_user: dict = Depends(get_current_admin)):
+    """Fehlgeschlagene E-Mail als gesehen markieren (Audit-preserving)."""
+    from bson import ObjectId
+    try:
+        oid = ObjectId(event_id)
+    except Exception:
+        raise HTTPException(400, "Ungültige Event-ID")
+    res = await S.db.email_events.update_one(
+        {"_id": oid, "status": "failed"},
+        {"$set": {
+            "status": "failed_acknowledged",
+            "acknowledged_at": datetime.now(timezone.utc).isoformat(),
+            "acknowledged_by": current_user["email"],
+        }}
+    )
+    if res.matched_count == 0:
+        raise HTTPException(404, "Event nicht gefunden oder bereits bestätigt")
+    return {"status": "ok", "acknowledged": event_id}
 
 
 

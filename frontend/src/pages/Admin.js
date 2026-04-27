@@ -128,6 +128,10 @@ const Admin = () => {
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [newUserForm, setNewUserForm] = useState({ email: '', password: '', role: 'admin' });
   const [webhookEvents, setWebhookEvents] = useState([]);
+  /* Customer Accounts State (Portal-Passwort-Konten) */
+  const [customerAccounts, setCustomerAccounts] = useState([]);
+  const [customerAccountsLoading, setCustomerAccountsLoading] = useState(false);
+  const [customerAccountsSearch, setCustomerAccountsSearch] = useState('');
   /* API Keys State */
   const [apiKeys, setApiKeys] = useState([]);
   const [apiKeysLoading, setApiKeysLoading] = useState(false);
@@ -2889,6 +2893,30 @@ const Admin = () => {
     setWebhooksLoading(false);
   }, [apiFetch]);
 
+  const loadCustomerAccounts = useCallback(async (search = '') => {
+    setCustomerAccountsLoading(true);
+    const qs = search ? `?search=${encodeURIComponent(search)}` : '';
+    const d = await apiFetch(`/api/admin/customer-accounts${qs}`);
+    if (d) setCustomerAccounts(d.accounts || []);
+    setCustomerAccountsLoading(false);
+  }, [apiFetch]);
+
+  const triggerCustomerReset = async (email) => {
+    if (!window.confirm(`Passwort-Reset-Mail an ${email} senden?`)) return;
+    const d = await apiFetch(`/api/admin/customer-accounts/${encodeURIComponent(email)}/reset`, { method: 'POST' });
+    if (d && !d.error) {
+      alert(`Reset-Mail an ${email} gesendet.`);
+    }
+  };
+
+  const deactivateCustomerAccount = async (email) => {
+    if (!window.confirm(`Kundenkonto ${email} deaktivieren? (Kunde kann sich nicht mehr einloggen, Datensatz bleibt erhalten.)`)) return;
+    const d = await apiFetch(`/api/admin/customer-accounts/${encodeURIComponent(email)}`, { method: 'DELETE' });
+    if (d && !d.error) {
+      loadCustomerAccounts(customerAccountsSearch);
+    }
+  };
+
   useEffect(() => {
     if (!token || view !== 'users') return;
     loadAdminUsers();
@@ -2898,6 +2926,11 @@ const Admin = () => {
     if (!token || view !== 'webhooks') return;
     loadWebhookEvents();
   }, [token, view, loadWebhookEvents]);
+
+  useEffect(() => {
+    if (!token || view !== 'customer_accounts') return;
+    loadCustomerAccounts();
+  }, [token, view, loadCustomerAccounts]);
 
   const createAdminUser = async () => {
     if (!newUserForm.email || !newUserForm.password) return;
@@ -3149,6 +3182,91 @@ const Admin = () => {
                 <td style={{fontSize:'.75rem',color:'#6b7b8d'}}>{u.created_by || 'system'}</td>
                 <td>
                   <button className="adm-btn-sm" style={{color:'#ef4444'}} onClick={() => deleteAdminUser(u.email)} data-testid={`delete-user-${u.email}`}><I n="delete" /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  const CustomerAccountsView = () => (
+    <div data-testid="admin-customer-accounts">
+      <div className="adm-section-header">
+        <h2>Kundenkonten (Portal-Zugang)</h2>
+        <div style={{display:'flex', gap:8}}>
+          <input
+            type="text"
+            className="adm-input"
+            style={{width:260, padding:'8px 12px'}}
+            placeholder="E-Mail suchen..."
+            value={customerAccountsSearch}
+            onChange={e => setCustomerAccountsSearch(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') loadCustomerAccounts(customerAccountsSearch); }}
+            data-testid="customer-accounts-search"
+          />
+          <button className="adm-btn adm-btn-secondary" style={{padding:'8px 16px',width:'auto'}} onClick={() => loadCustomerAccounts(customerAccountsSearch)} data-testid="customer-accounts-refresh">
+            <I n="refresh" /> Aktualisieren
+          </button>
+        </div>
+      </div>
+      <p style={{fontSize:'.8125rem',color:'#8a9bb0',marginBottom:16}}>
+        Kunden, die über den Angebots-Link ein Passwort vergeben und ein Portal-Konto aktiviert haben. Administratoren können Passwort-Resets auslösen oder Konten deaktivieren.
+      </p>
+      <div className="adm-table-wrap">
+        <table className="adm-table" data-testid="admin-customer-accounts-table">
+          <thead>
+            <tr>
+              <th>E-Mail</th>
+              <th>Name</th>
+              <th>Status</th>
+              <th>Aktiviert</th>
+              <th>Via</th>
+              <th style={{textAlign:'right'}}>Aktionen</th>
+            </tr>
+          </thead>
+          <tbody>
+            {customerAccountsLoading ? (
+              <tr><td colSpan="6" style={{textAlign:'center',padding:32,color:'#6b7b8d'}}>Lade...</td></tr>
+            ) : customerAccounts.length === 0 ? (
+              <tr><td colSpan="6" style={{textAlign:'center',padding:32,color:'#4a5568'}}>Keine Kundenkonten gefunden</td></tr>
+            ) : customerAccounts.map(a => (
+              <tr key={a.email} data-testid={`customer-account-row-${a.email}`}>
+                <td style={{fontWeight:600,color:'#fff'}}>{a.email}</td>
+                <td style={{color:'#c8d1dc'}}>{a.name || '—'}</td>
+                <td>
+                  {a.activated ? (
+                    <span className="adm-badge" style={{background:'#10b98122',color:'#10b981'}}>Aktiv</span>
+                  ) : (
+                    <span className="adm-badge" style={{background:'#ef444422',color:'#ef4444'}}>Deaktiviert</span>
+                  )}
+                </td>
+                <td style={{fontSize:'.75rem',color:'#6b7b8d'}}>{fmtDate(a.activated_at)}</td>
+                <td style={{fontSize:'.75rem',color:'#6b7b8d'}}>{a.activated_via || '—'}</td>
+                <td style={{textAlign:'right'}}>
+                  {a.activated && (
+                    <>
+                      <button
+                        className="adm-btn-sm"
+                        style={{color:'#FE9B7B',marginRight:8}}
+                        onClick={() => triggerCustomerReset(a.email)}
+                        data-testid={`reset-customer-${a.email}`}
+                        title="Passwort-Reset-Mail senden"
+                      >
+                        <I n="lock_reset" /> Reset
+                      </button>
+                      <button
+                        className="adm-btn-sm"
+                        style={{color:'#ef4444'}}
+                        onClick={() => deactivateCustomerAccount(a.email)}
+                        data-testid={`deactivate-customer-${a.email}`}
+                        title="Konto deaktivieren"
+                      >
+                        <I n="block" /> Deaktivieren
+                      </button>
+                    </>
+                  )}
                 </td>
               </tr>
             ))}
@@ -3896,6 +4014,7 @@ curl ${API}/api/v1/docs`}
     { id: 'customers', icon: 'person_search', label: 'Kunden' },
     { id: 'agents', icon: 'smart_toy', label: 'KI-Agenten' },
     { id: 'users', icon: 'admin_panel_settings', label: 'Benutzer' },
+    { id: 'customer_accounts', icon: 'manage_accounts', label: 'Kundenkonten' },
     { id: 'api_keys', icon: 'vpn_key', label: 'API-Zugang' },
     { id: 'webhooks', icon: 'webhook', label: 'Webhooks' },
     { id: 'audit', icon: 'verified', label: 'Audit' },
@@ -3947,6 +4066,7 @@ curl ${API}/api/v1/docs`}
           {view === 'customers' && CustomersView()}
           {view === 'agents' && AgentsView()}
           {view === 'users' && UsersView()}
+          {view === 'customer_accounts' && CustomerAccountsView()}
           {view === 'api_keys' && ApiKeysView()}
           {view === 'webhooks' && WebhookEventsView()}
           {view === 'audit' && AuditView()}
