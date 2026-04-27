@@ -65,6 +65,28 @@ cd /tmp/vercel-deploy && npx vercel deploy --prod --prebuilt --token <TOKEN>
 
 ## Testing: Iteration 82, 100% Pass
 
+## Outbound Lead Machine (P6 — 27.04.2026 — DONE)
+
+**Feature**: Vollständige KI-gestützte Outbound Lead Machine mit Bulk-Import, AI-Website-Analyse, AI-Outreach & AI-Follow-up.
+
+**Neue Backend-Endpoints**:
+- `POST /api/admin/outbound/bulk-import` — CSV-Rows (max. 500), Auto-Dedup nach E-Mail, nutzt `discover_lead` pro Row
+- `POST /api/admin/outbound/{lead_id}/ai-website-analyze` — httpx-Fallback-Crawl + OpenRouter/deepseek-v4-flash-LLM → industry, company_size, pain_signals, value_hooks, contact_hints, language; automatisches Re-Scoring + Status-Update
+- `POST /api/admin/outbound/{lead_id}/ai-outreach` — LLM generiert UWG §7 + DSGVO-konforme Erstansprache (subject+HTML); intelligenter Fallback auf Template wenn LLM reasoning-only antwortet
+- `POST /api/admin/outbound/{lead_id}/ai-followup` — LLM generiert höfliches Follow-up (max. 3 pro Lead) basierend auf Outreach-History
+
+**Frontend-Erweiterungen (Admin.js)**:
+- Neuer Button "CSV-Import" öffnet Bulk-Import-Form mit CSV-Textarea + Ergebnis-Feedback (imported/skipped/errors)
+- Lead-Detail-View: 3 neue AI-Buttons (AI Web-Analyse, AI Outreach, AI Follow-up) mit violettem Gradient-Branding
+- Bestehende Actions `analyze`, `outreach`, `followup` bleiben erhalten
+
+**Technische Fixes (gleicher Release)**:
+- `crawl4ai_service.py` — httpx/BeautifulSoup-Fallback falls Playwright/chromium nicht verfügbar
+- `llm_provider.py` OpenRouter — `reasoning`-Field als Content-Fallback (deepseek-v4-flash liefert Output manchmal in reasoning statt content)
+- Robuste JSON-Extraktion aus LLM-Responses (Regex-Fallback für Markdown-Fences)
+
+**E2E-Test**: `/app/backend/tests/test_outbound_machine_e2e.py` — bestanden (bulk-import, prequalify, ai-website-analyze mit Live-Crawl + Live-LLM, legal-check, ai-outreach).
+
 ## Health-Alert-System (27.04.2026 — DONE)
 
 **Feature**: Automatische Benachrichtigung bei System-Health-Failures per E-Mail + optional Slack.
@@ -150,8 +172,9 @@ cd /tmp/vercel-deploy && npx vercel deploy --prod --prebuilt --token <TOKEN>
 - P1: Contract OS-Erweiterung (RAG, Risikoscoring via Nutrient AI) — benötigt Nutrient AI API Key
 - P2: ✅ DONE — Cron Alerting (E-Mail + optional Slack bei Health-Failure)
 - P5: Legal & Compliance Guardian
-- P6: Outbound Lead Machine
+- P6: ✅ DONE — Outbound Lead Machine mit AI-Analyse, Bulk-Import, AI-Outreach, AI-Follow-up
 - P7: server.py Modular Refactoring (>4000 Zeilen)
 - P8: ✅ DONE — Admin Kundenkonten-Verwaltung + Passwort-Reset
 - P9: ✅ DONE — Admin-UI Frontend für Kundenkonten-Management
 - P10: Admin-UI für Health-Alert-History (Backend-Endpoints bereit)
+- P11: Playwright/chromium im Container installieren für volle Crawl4AI-Unterstützung (aktuell httpx-Fallback aktiv)

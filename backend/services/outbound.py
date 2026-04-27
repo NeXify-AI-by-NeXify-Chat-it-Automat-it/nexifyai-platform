@@ -548,3 +548,341 @@ class OutboundLeadMachine:
     async def _timeline(self, lead_id: str, action: str, details: dict):
         evt = create_timeline_event("outbound_lead", lead_id, action, details=details)
         await self.db.timeline_events.insert_one({**evt})
+
+    # ══════════════════════════════════════════
+    # AI-POWERED EXTENSIONS (P6)
+    # ══════════════════════════════════════════
+
+    async def ai_website_analysis(self, lead_id: str, llm_provider=None) -> dict:
+        """Crawlt die Firmen-Website und lässt ein LLM Industry / Pain-Signals / Size / Fit extrahieren."""
+        lead = await self.db.outbound_leads.find_one({"outbound_lead_id": lead_id}, {"_id": 0})
+        if not lead:
+            return {"error": "Lead nicht gefunden"}
+        url = lead.get("website", "").strip()
+        if not url:
+            return {"error": "Keine Website hinterlegt"}
+        if not url.startswith("http"):
+            url = "https://" + url
+
+        from services.crawl4ai_service import research_company
+        crawl = await research_company(url)
+        if not crawl.get("success"):
+            return {"error": f"Crawl fehlgeschlagen: {crawl.get('error', 'unknown')}"}
+
+        company = crawl.get("company", {})
+        contact = crawl.get("contact", {})
+        content = company.get("content_preview", "")[:4000]
+        impressum_text = " ".join(list(contact.values())[:2])[:2000]
+
+        analysis = {
+            "source": "ai_website",
+            "website": url,
+            "title": company.get("title", ""),
+            "description": company.get("description", ""),
+            "analyzed_at": utcnow().isoformat(),
+            "analysis_type": "ai_website",
+        }
+
+        # If LLM is available, extract structured insights
+        if llm_provider:
+            from services.llm_provider import LLMMessage
+            system_prompt = (
+                "Du bist B2B-Lead-Analyst für NeXifyAI (KI-Automatisierung für KMU). "
+                "Analysiere die bereitgestellten Website-Inhalte und extrahiere strukturierte Signale "
+                "als kompaktes JSON (kein Markdown). "
+                "Felder: industry (z.B. 'handwerk', 'beratung', 'saas'), "
+                "company_size ('1-10', '11-50', '51-200', '200+', 'unknown'), "
+                "pain_signals (Array aus: 'keine website', 'veraltete website', 'kein crm', 'manuelle prozesse', "
+                "'keine ki', 'skalierung', 'lead-generierung', 'automatisierung', 'ki-strategie', 'digitalisierung'), "
+                "value_hooks (Array mit 2-3 Sätzen Deutsch), contact_hints (Array), language ('de'/'en'/'nl'). "
+                "Antwort NUR JSON."
+            )
+            # Keep input compact to avoid empty responses on long prompts
+            user_content = (
+                f"URL: {url}\n"
+                f"Titel: {company.get('title', '')[:200]}\n"
+                f"Beschreibung: {company.get('description', '')[:400]}\n\n"
+                f"Inhalte (gekürzt):\n{content[:2500]}\n\n"
+                f"Impressum (gekürzt):\n{impressum_text[:1000]}"
+            )
+            try:
+                resp = await llm_provider.chat(
+                    messages=[LLMMessage(role="user", content=user_content)],
+                    system_prompt=system_prompt,
+                    temperature=0.3,
+                    max_tokens=1200,
+                )
+                if not resp or not isinstance(resp, str) or not resp.strip():
+                    raise ValueError(f"LLM returned empty response (len={len(resp) if resp else 0})")
+                # Parse JSON (tolerant to ```json fences)
+                import json, re
+                raw = resp.strip()
+                m = re.search(r'\{.*\}', raw, re.DOTALL)
+                if m:
+                    raw = m.group(0)
+                parsed = json.loads(raw)
+                analysis.update({
+                    "industry": parsed.get("industry", ""),
+                    "company_size": parsed.get("company_size", "unknown"),
+                    "pain_signals": parsed.get("pain_signals", []),
+                    "value_hooks": parsed.get("value_hooks", []),
+                    "contact_hints": parsed.get("contact_hints", []),
+                    "language": parsed.get("language", "de"),
+                })
+                # Write pain signals into notes for fit-scoring
+                pain_text = " ".join(parsed.get("pain_signals", []))
+                await self.db.outbound_leads.update_one(
+                    {"outbound_lead_id": lead_id},
+                    {"$set": {
+                        "notes": (lead.get("notes", "") + " " + pain_text).strip(),
+                        "industry": lead.get("industry") or parsed.get("industry", ""),
+                    }},
+                )
+                # Refresh lead for scoring
+                lead = await self.db.outbound_leads.find_one({"outbound_lead_id": lead_id}, {"_id": 0})
+            except Exception as e:
+                raw_preview = str(resp)[:200] if "resp" in locals() and resp else "no_response"
+                logger.warning(f"LLM analyse JSON parse failed: {e} — raw: {raw_preview}")
+                analysis["llm_error"] = str(e)[:300]
+
+        # Re-run scoring with enriched data
+        score, fit_products = self._calculate_fit_score(lead, analysis)
+
+        await self.db.outbound_leads.update_one(
+            {"outbound_lead_id": lead_id},
+            {"$set": {
+                "analysis": analysis,
+                "score": score,
+                "fit_products": fit_products,
+                "status": OutboundStatus.QUALIFIED if score >= 40 else OutboundStatus.UNQUALIFIED,
+                "analyzed_at": utcnow().isoformat(),
+                "updated_at": utcnow().isoformat(),
+            }},
+        )
+        await self._timeline(lead_id, "outbound_ai_website_analyzed", {
+            "score": score,
+            "fit_products": fit_products,
+            "pain_signals": analysis.get("pain_signals", []),
+        })
+        return {"score": score, "fit_products": fit_products, "analysis": analysis}
+
+    async def ai_generate_outreach(self, lead_id: str, llm_provider, channel: str = "email", custom_hint: str = "") -> dict:
+        """LLM generiert eine hochpersonalisierte, DSGVO-konforme Erstansprache basierend auf Analyse."""
+        lead = await self.db.outbound_leads.find_one({"outbound_lead_id": lead_id}, {"_id": 0})
+        if not lead:
+            return {"error": "Lead nicht gefunden"}
+        if lead.get("legal_status") != "approved":
+            return {"error": "Legal Gate nicht bestanden. Bitte erst legal_check ausführen."}
+
+        analysis = lead.get("analysis", {})
+        fit_products = lead.get("fit_products", [])
+        top_product = fit_products[0] if fit_products else None
+        lang = analysis.get("language", "de")
+
+        from services.llm_provider import LLMMessage
+        system_prompt = (
+            "Du bist Senior B2B Sales Copywriter für NeXifyAI (KI-Automatisierung für KMU in DACH). "
+            "Schreibe eine kurze, persönliche, UWG § 7 + DSGVO Art. 6 Abs. 1 lit. f konforme Erstansprache. "
+            "Regeln: max. 120 Wörter, kein Marketing-Blabla, konkreter Bezug zur Firma, 1 klarer CTA "
+            "('15-Min-Call'). Sprache: Deutsch. "
+            "WICHTIG: Deine Antwort ist AUSSCHLIESSLICH ein JSON-Objekt mit exakt zwei String-Feldern: "
+            '{"subject": "...", "content": "..."}. Kein Markdown, kein Text davor/danach. '
+            "content muss gültiges HTML mit <p>-Tags sein."
+        )
+        user_content = (
+            f"Firma: {lead.get('company_name', '')}\n"
+            f"Website: {lead.get('website', '')}\n"
+            f"Branche: {analysis.get('industry', lead.get('industry', ''))}\n"
+            f"Unternehmensgröße: {analysis.get('company_size', 'unknown')}\n"
+            f"Pain-Signale: {', '.join(analysis.get('pain_signals', []))}\n"
+            f"Value-Hooks: {' | '.join(analysis.get('value_hooks', []))}\n"
+            f"Empfohlenes Produkt: {top_product['name'] if top_product else 'Starter AI Agenten AG'}\n"
+            f"Ansprechpartner: {lead.get('contact_name', '')}\n"
+            f"Zusatzhinweis: {custom_hint}\n\n"
+            "Gib jetzt NUR das JSON zurück."
+        )
+        try:
+            resp = await llm_provider.chat(
+                messages=[LLMMessage(role="user", content=user_content)],
+                system_prompt=system_prompt,
+                temperature=0.7,
+                max_tokens=800,
+            )
+            if not resp or not isinstance(resp, str):
+                return {"error": f"LLM returned empty response ({type(resp).__name__})"}
+            import json, re
+            raw = resp.strip()
+            m = re.search(r'\{.*\}', raw, re.DOTALL)
+            if m:
+                try:
+                    parsed = json.loads(m.group(0))
+                except json.JSONDecodeError:
+                    parsed = None
+            else:
+                parsed = None
+
+            # Fallback: construct from analysis if LLM returned reasoning text only
+            if not parsed or not parsed.get("subject"):
+                hooks = analysis.get("value_hooks", [])
+                hook_line = hooks[0] if hooks else "KI-gestützte Automatisierung für Ihr Business."
+                parsed = {
+                    "subject": f"{lead.get('company_name', '')}: Kurz-Check für KI-Automatisierung",
+                    "content": (
+                        f"<p>Guten Tag{' ' + lead.get('contact_name') if lead.get('contact_name') else ''},</p>"
+                        f"<p>ich bin auf {lead.get('company_name', 'Ihr Unternehmen')} aufmerksam geworden. "
+                        f"{hook_line} "
+                        f"{(custom_hint + ' ') if custom_hint else ''}"
+                        f"Gerade im Bereich <strong>{analysis.get('industry', 'Ihrer Branche')}</strong> "
+                        f"sehen wir Potenzial.</p>"
+                        f"<p>Passt ein 15-Min-Call zum Kurz-Check? Falls nicht, einfach ignorieren.</p>"
+                        f"<p>Beste Grüße<br/>NeXifyAI Team</p>"
+                    ),
+                }
+        except Exception as e:
+            logger.error(f"LLM outreach generation failed: {e}")
+            return {"error": f"LLM-Generierung fehlgeschlagen: {e}"}
+
+        outreach_record = {
+            "outreach_id": new_id("otr"),
+            "channel": channel,
+            "subject": parsed.get("subject", ""),
+            "content": parsed.get("content", ""),
+            "status": "draft",
+            "generated_by": "ai",
+            "language": lang,
+            "created_at": utcnow().isoformat(),
+            "sent_at": None,
+            "response_at": None,
+        }
+
+        await self.db.outbound_leads.update_one(
+            {"outbound_lead_id": lead_id},
+            {"$push": {"outreach_history": outreach_record},
+             "$set": {"updated_at": utcnow().isoformat()}},
+        )
+        await self._timeline(lead_id, "outbound_outreach_ai_generated", {
+            "outreach_id": outreach_record["outreach_id"],
+            "channel": channel,
+            "subject": parsed.get("subject", "")[:100],
+        })
+        return {
+            "outreach_id": outreach_record["outreach_id"],
+            "subject": parsed.get("subject", ""),
+            "content": parsed.get("content", ""),
+            "status": "draft",
+        }
+
+    async def ai_generate_followup(self, lead_id: str, llm_provider) -> dict:
+        """LLM generiert Follow-up basierend auf bisheriger Outreach-History."""
+        lead = await self.db.outbound_leads.find_one({"outbound_lead_id": lead_id}, {"_id": 0})
+        if not lead:
+            return {"error": "Lead nicht gefunden"}
+        history = lead.get("outreach_history", [])
+        sent = [o for o in history if o.get("status") == "sent"]
+        if not sent:
+            return {"error": "Keine versendeten Outreaches. Erst Erstansprache senden."}
+        last = sent[-1]
+        followup_count = len([o for o in history if o.get("generated_by") == "ai" and o.get("is_followup")])
+        if followup_count >= 3:
+            return {"error": "Maximale Follow-up-Anzahl (3) erreicht"}
+
+        analysis = lead.get("analysis", {})
+        from services.llm_provider import LLMMessage
+        system_prompt = (
+            "Du bist Senior B2B Sales Copywriter für NeXifyAI. "
+            "Schreibe eine höfliche, kurze Follow-up-E-Mail (max. 80 Wörter) in Deutsch. "
+            f"Dies ist Follow-up #{followup_count + 1}. "
+            "Regeln: Kein Druck, klarer Mehrwert-Reminder, weiche CTA (z.B. 'Wenn es nicht passt, einfach ignorieren'). "
+            "Antwort STRIKT als JSON: {subject: string, content: string (HTML mit <p>-Tags)}."
+        )
+        user_content = (
+            f"Firma: {lead.get('company_name', '')}\n"
+            f"Letzte Ansprache-Betreff: {last.get('subject', '')}\n"
+            f"Versendet am: {last.get('sent_at', '')}\n"
+            f"Pain-Signale: {', '.join(analysis.get('pain_signals', []))}\n"
+            f"Value-Hooks: {' | '.join(analysis.get('value_hooks', []))}"
+        )
+        try:
+            resp = await llm_provider.chat(
+                messages=[LLMMessage(role="user", content=user_content)],
+                system_prompt=system_prompt,
+                temperature=0.7,
+                max_tokens=600,
+            )
+            if not resp or not isinstance(resp, str):
+                return {"error": f"LLM returned empty response ({type(resp).__name__})"}
+            import json, re
+            raw = resp.strip()
+            m = re.search(r'\{.*\}', raw, re.DOTALL)
+            if m:
+                raw = m.group(0)
+            parsed = json.loads(raw)
+        except Exception as e:
+            logger.error(f"LLM followup generation failed: {e}")
+            return {"error": f"LLM-Generierung fehlgeschlagen: {e}"}
+
+        outreach_record = {
+            "outreach_id": new_id("otr"),
+            "channel": last.get("channel", "email"),
+            "subject": parsed.get("subject", ""),
+            "content": parsed.get("content", ""),
+            "status": "draft",
+            "generated_by": "ai",
+            "is_followup": True,
+            "followup_number": followup_count + 1,
+            "created_at": utcnow().isoformat(),
+            "sent_at": None,
+        }
+        await self.db.outbound_leads.update_one(
+            {"outbound_lead_id": lead_id},
+            {"$push": {"outreach_history": outreach_record},
+             "$set": {"updated_at": utcnow().isoformat()}},
+        )
+        await self._timeline(lead_id, "outbound_followup_ai_generated", {
+            "outreach_id": outreach_record["outreach_id"],
+            "followup_number": followup_count + 1,
+        })
+        return {
+            "outreach_id": outreach_record["outreach_id"],
+            "subject": parsed.get("subject", ""),
+            "content": parsed.get("content", ""),
+            "followup_number": followup_count + 1,
+        }
+
+    async def bulk_import(self, rows: list, owner: str = "admin_bulk") -> dict:
+        """Bulk-Import einer Liste von Leads. rows = [{name, website, industry, email, phone, country, notes, contact_name}]."""
+        imported = 0
+        skipped = 0
+        errors = []
+        for idx, row in enumerate(rows):
+            if not (row.get("name") or "").strip():
+                skipped += 1
+                errors.append({"row": idx, "reason": "no_company_name"})
+                continue
+            # Dedup by email or (name+website)
+            if row.get("email"):
+                existing = await self.db.outbound_leads.find_one(
+                    {"contact_email": row["email"].lower().strip()},
+                    {"_id": 1},
+                )
+                if existing:
+                    skipped += 1
+                    continue
+            try:
+                data = {
+                    "name": row.get("name", "").strip(),
+                    "website": row.get("website", "").strip(),
+                    "industry": (row.get("industry") or "").strip(),
+                    "email": (row.get("email") or "").lower().strip(),
+                    "phone": (row.get("phone") or "").strip(),
+                    "contact_name": (row.get("contact_name") or "").strip(),
+                    "country": (row.get("country") or "DE").upper().strip()[:2],
+                    "notes": (row.get("notes") or "").strip(),
+                    "owner": owner,
+                }
+                await self.discover_lead(data, source="bulk_import")
+                imported += 1
+            except Exception as e:
+                errors.append({"row": idx, "reason": str(e)[:200]})
+                skipped += 1
+        return {"imported": imported, "skipped": skipped, "errors": errors[:20], "total": len(rows)}

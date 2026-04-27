@@ -118,6 +118,10 @@ const Admin = () => {
   const [outboundDetail, setOutboundDetail] = useState(null);
   const [showDiscoverForm, setShowDiscoverForm] = useState(false);
   const [discoverForm, setDiscoverForm] = useState({ name:'', website:'', industry:'', email:'', phone:'', contact_name:'', country:'DE', notes:'' });
+  const [showBulkImport, setShowBulkImport] = useState(false);
+  const [bulkCsvText, setBulkCsvText] = useState('');
+  const [bulkResult, setBulkResult] = useState(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [outboundFilter, setOutboundFilter] = useState('all');
   const [outreachForm, setOutreachForm] = useState({ channel:'email', subject:'', content:'' });
   const [showOutreachForm, setShowOutreachForm] = useState(false);
@@ -546,12 +550,41 @@ const Admin = () => {
     setOutboundBusy('');
   };
 
+  const parseCsvAndBulkImport = async () => {
+    if (!bulkCsvText.trim()) return;
+    setBulkBusy(true);
+    setBulkResult(null);
+    try {
+      const lines = bulkCsvText.trim().split(/\r?\n/).filter(l => l.trim());
+      if (lines.length < 2) { setBulkResult({error: 'Mindestens Header + 1 Zeile erforderlich'}); setBulkBusy(false); return; }
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      const rows = lines.slice(1).map(line => {
+        const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+        const row = {};
+        headers.forEach((h, i) => { row[h] = cols[i] || ''; });
+        return row;
+      });
+      const d = await apiFetch('/api/admin/outbound/bulk-import', { method: 'POST', body: JSON.stringify({ rows }) });
+      if (d) {
+        setBulkResult(d);
+        loadOutboundLeads(outboundFilter);
+        apiFetch('/api/admin/outbound/pipeline').then(r => r && setOutboundPipeline(r));
+      }
+    } catch (e) {
+      setBulkResult({error: String(e)});
+    }
+    setBulkBusy(false);
+  };
+
   const outboundAction = async (leadId, action, data = {}) => {
     setOutboundBusy(action);
     let url, method = 'POST', body = JSON.stringify(data);
     switch(action) {
       case 'prequalify': url = `/api/admin/outbound/${leadId}/prequalify`; break;
       case 'analyze': url = `/api/admin/outbound/${leadId}/analyze`; break;
+      case 'ai-website-analyze': url = `/api/admin/outbound/${leadId}/ai-website-analyze`; body = '{}'; break;
+      case 'ai-outreach': url = `/api/admin/outbound/${leadId}/ai-outreach`; break;
+      case 'ai-followup': url = `/api/admin/outbound/${leadId}/ai-followup`; body = '{}'; break;
       case 'legal-check': url = `/api/admin/outbound/${leadId}/legal-check`; break;
       case 'outreach': url = `/api/admin/outbound/${leadId}/outreach`; break;
       case 'send-outreach': url = `/api/admin/outbound/${leadId}/outreach/${data.outreach_id}/send`; body = '{}'; break;
@@ -2631,9 +2664,12 @@ const Admin = () => {
             <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
               {ld.status === 'discovered' && <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'8px 16px'}} onClick={() => outboundAction(ld.outbound_lead_id, 'prequalify')} disabled={!!outboundBusy} data-testid="ob-prequalify"><I n="fact_check" /> Vorqualifizieren</button>}
               {['discovered','qualified'].includes(ld.status) && <button className="adm-btn adm-btn-secondary" style={{width:'auto',padding:'8px 16px'}} onClick={() => outboundAction(ld.outbound_lead_id, 'analyze')} disabled={!!outboundBusy} data-testid="ob-analyze"><I n="analytics" /> Analysieren & Scoren</button>}
+              {ld.website && ['discovered','qualified','unqualified'].includes(ld.status) && <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'8px 16px',background:'linear-gradient(135deg,#8b5cf6,#6366f1)',color:'#fff'}} onClick={() => outboundAction(ld.outbound_lead_id, 'ai-website-analyze')} disabled={!!outboundBusy} data-testid="ob-ai-analyze"><I n="auto_awesome" /> AI Web-Analyse</button>}
               {['qualified'].includes(ld.status) && ld.legal_status !== 'approved' && <button className="adm-btn adm-btn-secondary" style={{width:'auto',padding:'8px 16px'}} onClick={() => outboundAction(ld.outbound_lead_id, 'legal-check')} disabled={!!outboundBusy} data-testid="ob-legal"><I n="shield" /> Legal-Check</button>}
               {ld.status === 'outreach_ready' && <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'8px 16px'}} onClick={() => setShowOutreachForm(true)} disabled={!!outboundBusy} data-testid="ob-outreach"><I n="send" /> Outreach erstellen</button>}
+              {ld.status === 'outreach_ready' && <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'8px 16px',background:'linear-gradient(135deg,#8b5cf6,#6366f1)',color:'#fff'}} onClick={() => outboundAction(ld.outbound_lead_id, 'ai-outreach', {})} disabled={!!outboundBusy} data-testid="ob-ai-outreach"><I n="auto_awesome" /> AI Outreach</button>}
               {['contacted','followup_1','followup_2'].includes(ld.status) && <button className="adm-btn adm-btn-secondary" style={{width:'auto',padding:'8px 16px'}} onClick={() => outboundAction(ld.outbound_lead_id, 'followup', { days_delay: 3 })} disabled={!!outboundBusy} data-testid="ob-followup"><I n="replay" /> Follow-up (3 Tage)</button>}
+              {['contacted','followup_1','followup_2'].includes(ld.status) && <button className="adm-btn" style={{width:'auto',padding:'8px 16px',background:'linear-gradient(135deg,#8b5cf6,#6366f1)',color:'#fff',border:'none'}} onClick={() => outboundAction(ld.outbound_lead_id, 'ai-followup')} disabled={!!outboundBusy} data-testid="ob-ai-followup"><I n="auto_awesome" /> AI Follow-up</button>}
               {['contacted','followup_1','followup_2','followup_3'].includes(ld.status) && (
                 <>
                   <button className="adm-btn" style={{width:'auto',padding:'8px 16px',background:'rgba(16,185,129,0.12)',color:'#10b981',border:'1px solid rgba(16,185,129,0.2)'}} onClick={() => outboundAction(ld.outbound_lead_id, 'respond', { response_type: 'positive', content: 'Positive Rückmeldung' })} disabled={!!outboundBusy} data-testid="ob-respond-pos"><I n="thumb_up" /> Positive Antwort</button>
@@ -2717,7 +2753,10 @@ const Admin = () => {
       <div data-testid="admin-outbound">
         <div className="adm-section-header">
           <h2>Outbound Lead Machine</h2>
-          <button className="adm-btn adm-btn-primary" style={{padding:'8px 16px',width:'auto'}} onClick={() => setShowDiscoverForm(true)} data-testid="discover-lead-btn"><I n="person_add" /> Lead erfassen</button>
+          <div style={{display:'flex', gap:8}}>
+            <button className="adm-btn adm-btn-secondary" style={{padding:'8px 16px',width:'auto'}} onClick={() => { setShowBulkImport(!showBulkImport); setBulkResult(null); }} data-testid="bulk-import-btn"><I n="upload_file" /> CSV-Import</button>
+            <button className="adm-btn adm-btn-primary" style={{padding:'8px 16px',width:'auto'}} onClick={() => setShowDiscoverForm(true)} data-testid="discover-lead-btn"><I n="person_add" /> Lead erfassen</button>
+          </div>
         </div>
         {/* Pipeline Stats */}
         {op && (
@@ -2759,6 +2798,43 @@ const Admin = () => {
               <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'8px 20px'}} onClick={discoverLead} disabled={!discoverForm.name.trim()||outboundBusy==='discover'} data-testid="discover-save"><I n="check" /> Erfassen</button>
               <button className="adm-btn adm-btn-secondary" onClick={() => setShowDiscoverForm(false)}>Abbrechen</button>
             </div>
+          </div>
+        )}
+        {/* Bulk CSV Import */}
+        {showBulkImport && (
+          <div className="adm-form-card" style={{marginBottom:20}} data-testid="bulk-import-form">
+            <h3>Leads per CSV importieren</h3>
+            <p style={{fontSize:'.8125rem',color:'#8a9bb0',marginBottom:12}}>
+              Format: <code style={{background:'rgba(255,255,255,0.06)',padding:'2px 6px',borderRadius:4}}>name,website,industry,email,phone,country,contact_name,notes</code> — erste Zeile muss der Header sein. Max 500 Zeilen.
+            </p>
+            <textarea
+              value={bulkCsvText}
+              onChange={e => setBulkCsvText(e.target.value)}
+              rows={10}
+              placeholder={"name,website,industry,email,country,notes\nMuster GmbH,https://muster.de,beratung,info@muster.de,DE,manuelle prozesse\nTest AG,https://test.de,saas,kontakt@test.de,AT,keine ki"}
+              style={{width:'100%',resize:'vertical',background:'rgba(19,26,34,0.6)',border:'1px solid rgba(255,255,255,0.06)',color:'#fff',padding:12,fontSize:'.8125rem',borderRadius:6,fontFamily:'monospace',marginBottom:12}}
+              data-testid="bulk-import-textarea"
+            />
+            <div className="adm-form-actions">
+              <button className="adm-btn adm-btn-primary" style={{width:'auto',padding:'8px 20px'}} onClick={parseCsvAndBulkImport} disabled={!bulkCsvText.trim()||bulkBusy} data-testid="bulk-import-submit"><I n="upload" /> {bulkBusy ? 'Wird importiert...' : 'Importieren'}</button>
+              <button className="adm-btn adm-btn-secondary" onClick={() => { setShowBulkImport(false); setBulkCsvText(''); setBulkResult(null); }}>Abbrechen</button>
+            </div>
+            {bulkResult && (
+              <div style={{marginTop:12,padding:12,borderRadius:6,background:bulkResult.error?'rgba(239,68,68,0.08)':'rgba(16,185,129,0.08)',border:`1px solid ${bulkResult.error?'rgba(239,68,68,0.2)':'rgba(16,185,129,0.2)'}`}} data-testid="bulk-import-result">
+                {bulkResult.error ? (
+                  <div style={{color:'#ef4444',fontSize:'.8125rem'}}><strong>Fehler:</strong> {bulkResult.error}</div>
+                ) : (
+                  <div style={{color:'#10b981',fontSize:'.8125rem'}}>
+                    <strong>✓ {bulkResult.imported}</strong> Leads importiert, {bulkResult.skipped} übersprungen (von {bulkResult.total}).
+                    {bulkResult.errors && bulkResult.errors.length > 0 && (
+                      <div style={{marginTop:6,fontSize:'.75rem',color:'#8a9bb0'}}>
+                        Fehler in Zeilen: {bulkResult.errors.map(e => `${e.row+1} (${e.reason})`).join(', ')}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
         {/* Filter */}

@@ -122,9 +122,13 @@ class OpenRouterProvider(LLMProvider):
 
                     response.raise_for_status()
                     data = response.json()
-                    content = data["choices"][0]["message"]["content"]
+                    msg_obj = data["choices"][0]["message"]
+                    content = msg_obj.get("content")
+                    # Reasoning models may put output in reasoning_content/reasoning when content is empty
+                    if not content:
+                        content = msg_obj.get("reasoning_content") or msg_obj.get("reasoning") or ""
                     logger.info(f"OpenRouter OK — model={target_model}, latency={latency}ms, tokens_used={data.get('usage', {}).get('total_tokens', '?')}")
-                    return content
+                    return content or ""
 
             except httpx.TimeoutException:
                 latency = int((time.monotonic() - start) * 1000)

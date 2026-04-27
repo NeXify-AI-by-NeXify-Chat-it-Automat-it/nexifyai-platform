@@ -110,6 +110,41 @@ async def outbound_analyze(lead_id: str, data: dict = None, current_user: dict =
     return await S.outbound_svc.analyze_and_score(lead_id, data)
 
 
+@router.post("/api/admin/outbound/{lead_id}/ai-website-analyze")
+async def outbound_ai_website_analyze(lead_id: str, current_user: dict = Depends(get_current_admin)):
+    """Crawlt Firmen-Website + LLM-Analyse → reichert Pain-Signals, Industry, Value-Hooks an."""
+    return await S.outbound_svc.ai_website_analysis(lead_id, llm_provider=S.llm_provider)
+
+
+@router.post("/api/admin/outbound/{lead_id}/ai-outreach")
+async def outbound_ai_outreach(lead_id: str, data: dict = None, current_user: dict = Depends(get_current_admin)):
+    """LLM generiert personalisierte Erstansprache. Optional: custom_hint im Body."""
+    if not S.llm_provider:
+        raise HTTPException(503, "LLM-Provider nicht verfügbar")
+    custom_hint = (data or {}).get("custom_hint", "")
+    channel = (data or {}).get("channel", "email")
+    return await S.outbound_svc.ai_generate_outreach(lead_id, S.llm_provider, channel=channel, custom_hint=custom_hint)
+
+
+@router.post("/api/admin/outbound/{lead_id}/ai-followup")
+async def outbound_ai_followup(lead_id: str, current_user: dict = Depends(get_current_admin)):
+    """LLM generiert Follow-up auf Basis der bisherigen Outreach-History."""
+    if not S.llm_provider:
+        raise HTTPException(503, "LLM-Provider nicht verfügbar")
+    return await S.outbound_svc.ai_generate_followup(lead_id, S.llm_provider)
+
+
+@router.post("/api/admin/outbound/bulk-import")
+async def outbound_bulk_import(data: dict, current_user: dict = Depends(get_current_admin)):
+    """Bulk-Import einer Lead-Liste. Body: {rows: [{name, website, industry, email, phone, country, notes, contact_name}]}"""
+    rows = data.get("rows", [])
+    if not isinstance(rows, list):
+        raise HTTPException(400, "rows muss eine Liste sein")
+    if len(rows) > 500:
+        raise HTTPException(400, "Maximal 500 Leads pro Import")
+    return await S.outbound_svc.bulk_import(rows, owner=current_user["email"])
+
+
 
 @router.post("/api/admin/outbound/{lead_id}/legal-check")
 async def outbound_legal_check(lead_id: str, current_user: dict = Depends(get_current_admin)):

@@ -74,10 +74,45 @@ async def crawl_url(
             return output
 
     except ImportError:
-        return {"success": False, "error": "crawl4ai nicht installiert", "url": url}
+        return await _fallback_http_fetch(url, extract_mode)
     except Exception as e:
-        logger.error(f"Crawl4AI error for {url}: {e}")
-        return {"success": False, "error": str(e)[:500], "url": url}
+        logger.error(f"Crawl4AI error for {url}: {e} — fallback to httpx")
+        return await _fallback_http_fetch(url, extract_mode)
+
+
+async def _fallback_http_fetch(url: str, extract_mode: str = "markdown") -> dict:
+    """Lightweight HTTP-fetch fallback when Playwright/crawl4ai is unavailable."""
+    try:
+        import httpx
+        from bs4 import BeautifulSoup
+        async with httpx.AsyncClient(
+            timeout=15.0,
+            follow_redirects=True,
+            headers={"User-Agent": "NeXifyAI-Research/1.0 (+https://nexify-automate.com)"},
+        ) as c:
+            r = await c.get(url)
+            if r.status_code >= 400:
+                return {"success": False, "error": f"HTTP {r.status_code}", "url": url}
+            soup = BeautifulSoup(r.text, "html.parser")
+            for tag in soup(["script", "style", "noscript"]):
+                tag.decompose()
+            title = soup.title.string.strip() if soup.title and soup.title.string else ""
+            desc_tag = soup.find("meta", attrs={"name": "description"}) or soup.find("meta", attrs={"property": "og:description"})
+            description = desc_tag["content"].strip() if desc_tag and desc_tag.get("content") else ""
+            text = " ".join(soup.get_text(separator=" ").split())[:20000]
+            return {
+                "success": True,
+                "url": url,
+                "title": title,
+                "description": description,
+                "content": text,
+                "content_length": len(text),
+                "crawled_at": datetime.now(timezone.utc).isoformat(),
+                "method": "httpx_fallback",
+            }
+    except Exception as e:
+        logger.error(f"httpx fallback failed for {url}: {e}")
+        return {"success": False, "error": f"fallback: {str(e)[:300]}", "url": url}
 
 
 async def research_company(url: str) -> dict:
