@@ -16,6 +16,7 @@ const UnifiedLogin = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState('');
+  const [hasPortalPassword, setHasPortalPassword] = useState(false);
   const [regData, setRegData] = useState({ vorname: '', nachname: '', unternehmen: '', telefon: '', nachricht: '', dsgvoAccepted: false });
 
   useEffect(() => {
@@ -52,12 +53,17 @@ const UnifiedLogin = () => {
       });
       const data = await res.json();
       setRole(data.role);
+      setHasPortalPassword(!!data.has_portal_password);
       if (data.role === 'dual') {
         setStep('role_choice');
       } else if (data.role === 'admin') {
         setStep('password');
       } else if (data.role === 'customer') {
-        await requestMagicLink();
+        if (data.has_portal_password) {
+          setStep('customer_password');
+        } else {
+          await requestMagicLink();
+        }
       } else {
         setStep('register');
       }
@@ -102,6 +108,32 @@ const UnifiedLogin = () => {
         window.location.href = '/admin';
       } else {
         setError('Ungültige Anmeldedaten');
+      }
+    } catch {
+      setError('Verbindungsfehler');
+    }
+    setLoading(false);
+  };
+
+  const loginCustomer = async () => {
+    setError('');
+    if (!password) { setError('Bitte Passwort eingeben'); return; }
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/api/auth/customer-login`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem('nx_auth', JSON.stringify({ token: data.access_token, role: 'customer', email: data.email, name: data.customer_name }));
+        localStorage.setItem('nx_portal_token', data.access_token);
+        localStorage.setItem('nx_portal_email', data.email);
+        localStorage.setItem('nx_portal_name', data.customer_name || '');
+        window.location.href = '/portal';
+      } else {
+        const d = await res.json().catch(() => ({}));
+        setError(d.detail || 'Ungültige Anmeldedaten');
       }
     } catch {
       setError('Verbindungsfehler');
@@ -172,6 +204,7 @@ const UnifiedLogin = () => {
     if (e.key === 'Enter') {
       if (step === 'email') checkEmail();
       else if (step === 'password') loginAdmin();
+      else if (step === 'customer_password') loginCustomer();
       else if (step === 'register') submitRegistration();
     }
   };
@@ -261,11 +294,11 @@ const UnifiedLogin = () => {
                       </div>
                       <I n="arrow_forward" c="ul-choice-arrow" />
                     </button>
-                    <button className="ul-choice-card" onClick={async () => { await requestMagicLink(); }} data-testid="login-choice-customer">
+                    <button className="ul-choice-card" onClick={async () => { if (hasPortalPassword) { setStep('customer_password'); } else { await requestMagicLink(); } }} data-testid="login-choice-customer">
                       <div className="ul-choice-icon"><I n="dashboard" /></div>
                       <div className="ul-choice-text">
                         <strong>Kundenportal</strong>
-                        <span>Zugangslink per E-Mail</span>
+                        <span>{hasPortalPassword ? 'Mit Passwort anmelden' : 'Zugangslink per E-Mail'}</span>
                       </div>
                       <I n="arrow_forward" c="ul-choice-arrow" />
                     </button>
@@ -292,6 +325,28 @@ const UnifiedLogin = () => {
                     {loading ? <><div className="ul-btn-spinner" /> Wird angemeldet...</> : <>Anmelden <I n="login" /></>}
                   </button>
                   <button className="ul-link" onClick={() => { setStep('email'); setPassword(''); setError(''); }} data-testid="login-back-email">Andere E-Mail verwenden</button>
+                </motion.div>
+              )}
+
+              {step === 'customer_password' && (
+                <motion.div className="ul-step" key="customer_password" data-testid="login-customer-password-step" initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }} transition={{ duration: 0.3 }}>
+                  <div className="ul-role-badge"><I n="dashboard" /> Kundenportal</div>
+                  <p className="ul-sub">{email}</p>
+                  <div className="ul-field">
+                    <label>Passwort</label>
+                    <div className="ul-input-wrap">
+                      <I n="lock" c="ul-input-icon" />
+                      <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} onKeyDown={handleKeyDown} placeholder="Ihr Portal-Passwort" autoFocus data-testid="login-customer-password-input" />
+                      <button type="button" className="ul-pw-toggle" onClick={() => setShowPw(!showPw)} tabIndex={-1} aria-label={showPw ? 'Passwort verbergen' : 'Passwort anzeigen'} data-testid="login-customer-pw-toggle">
+                        <I n={showPw ? 'visibility_off' : 'visibility'} />
+                      </button>
+                    </div>
+                  </div>
+                  <button className="ul-btn" onClick={loginCustomer} disabled={loading || !password} data-testid="login-customer-btn">
+                    {loading ? <><div className="ul-btn-spinner" /> Wird angemeldet...</> : <>Zum Portal <I n="login" /></>}
+                  </button>
+                  <button className="ul-link" onClick={async () => { await requestMagicLink(); }} data-testid="login-customer-use-magic-link">Stattdessen Zugangslink per E-Mail</button>
+                  <button className="ul-link" onClick={() => { setStep('email'); setPassword(''); setError(''); }} data-testid="login-customer-back-email">Andere E-Mail verwenden</button>
                 </motion.div>
               )}
 

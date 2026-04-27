@@ -1,7 +1,8 @@
 """NeXifyAI — Portal Routes"""
 import os
 import hashlib
-from datetime import datetime, timezone
+import secrets
+from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, HTTPException, Depends, Request
 from routes.shared import S
 from routes.shared import (
@@ -18,7 +19,15 @@ from routes.shared import (
     logger,
 )
 from domain import create_timeline_event, utcnow
-from commercial import COMPANY_DATA as COMM_COMPANY, verify_access_token
+from commercial import (
+    COMPANY_DATA as COMM_COMPANY,
+    verify_access_token,
+    VAT_RATE,
+    get_tariff,
+    get_next_number,
+    create_revolut_order,
+    generate_invoice_pdf,
+)
 
 router = APIRouter(tags=["portal"])
 
@@ -201,14 +210,50 @@ async def portal_setup_account(request: Request):
     if not customer_email:
         raise HTTPException(400, "Keine E-Mail-Adresse im Zugangslink")
 
-    # Get customer name from contact/lead
+    # Get or create contact (required so /api/customer/dashboard works)
     contact = await S.db.contacts.find_one({"email": customer_email}, {"_id": 0})
     lead = await S.db.leads.find_one({"email": customer_email}, {"_id": 0}) if not contact else None
     customer_name = ""
+    first = ""
+    last = ""
     if contact:
-        customer_name = f"{contact.get('vorname', '')} {contact.get('nachname', '')}".strip()
+        first = contact.get("first_name") or contact.get("vorname") or ""
+        last = contact.get("last_name") or contact.get("nachname") or ""
     elif lead:
-        customer_name = f"{lead.get('vorname', '')} {lead.get('nachname', '')}".strip()
+        first = lead.get("first_name") or lead.get("vorname") or ""
+        last = lead.get("last_name") or lead.get("nachname") or ""
+
+    # Also derive from quote.customer if still empty
+    if not first and not last:
+        quote = await S.db.quotes.find_one({"quote_id": quote_id}, {"_id": 0})
+        if quote:
+            cust = quote.get("customer", {})
+            full_name = cust.get("name", "")
+            if full_name:
+                parts = full_name.strip().split(" ", 1)
+                first = parts[0]
+                last = parts[1] if len(parts) > 1 else ""
+
+    customer_name = f"{first} {last}".strip()
+
+    # Ensure a contact record exists so customer JWT auth works
+    if not contact:
+        import uuid
+        quote = await S.db.quotes.find_one({"quote_id": quote_id}, {"_id": 0})
+        cust = (quote or {}).get("customer", {})
+        await S.db.contacts.insert_one({
+            "contact_id": f"c_{uuid.uuid4().hex[:16]}",
+            "email": customer_email,
+            "first_name": first,
+            "last_name": last,
+            "company": cust.get("company", ""),
+            "phone": cust.get("phone", ""),
+            "country": cust.get("country", ""),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "source": "portal_setup",
+            "portal_active": True,
+            "portal_activated_at": datetime.now(timezone.utc).isoformat(),
+        })
 
     # Create or update customer account
     now = datetime.now(timezone.utc).isoformat()
@@ -592,82 +637,10 @@ async def customer_portal(token: str):
 
 
 
-@router.post("/api/portal/quote/{quote_id}/accept")
-async def portal_accept_quote(quote_id: str, token: str = None):
-    """Customer accepts a quote via portal."""
-    if not token:
-        raise HTTPException(401, "Zugangstoken fehlt")
-    token_hash = hashlib.sha256(token.encode()).hexdigest()
-    link = await S.db.access_links.find_one({"token_hash": token_hash}, {"_id": 0})
-    if not link or link.get("expires_at", datetime.min.replace(tzinfo=timezone.utc)) < datetime.now(timezone.utc):
-        raise HTTPException(403, "Zugangslink ungültig oder abgelaufen")
-    email = link.get("customer_email", "").lower()
-    quote = await S.db.quotes.find_one({"quote_id": quote_id, "customer.email": email}, {"_id": 0})
-    if not quote:
-        raise HTTPException(404, "Angebot nicht gefunden")
-    if quote.get("status") not in ("sent", "opened"):
-        raise HTTPException(400, f"Angebot kann im Status '{quote.get('status')}' nicht angenommen werden")
-    await S.db.quotes.update_one(
-        {"quote_id": quote_id},
-        {"$set": {"status": "accepted", "accepted_at": utcnow(), "updated_at": utcnow()}}
-    )
-    evt = create_timeline_event("quote", quote_id, "quote_accepted",
-                                actor=email, actor_type="customer",
-                                details={"quote_number": quote.get("quote_number")})
-    await S.db.timeline_events.insert_one(evt)
-    return {"status": "accepted", "quote_id": quote_id}
-
-
-
-@router.post("/api/portal/quote/{quote_id}/decline")
-async def portal_decline_quote(quote_id: str, data: dict = None, token: str = None):
-    """Customer declines a quote via portal."""
-    if not token:
-        raise HTTPException(401, "Zugangstoken fehlt")
-    token_hash = hashlib.sha256(token.encode()).hexdigest()
-    link = await S.db.access_links.find_one({"token_hash": token_hash}, {"_id": 0})
-    if not link or link.get("expires_at", datetime.min.replace(tzinfo=timezone.utc)) < datetime.now(timezone.utc):
-        raise HTTPException(403, "Zugangslink ungültig oder abgelaufen")
-    email = link.get("customer_email", "").lower()
-    quote = await S.db.quotes.find_one({"quote_id": quote_id, "customer.email": email}, {"_id": 0})
-    if not quote:
-        raise HTTPException(404, "Angebot nicht gefunden")
-    reason = (data or {}).get("reason", "")
-    await S.db.quotes.update_one(
-        {"quote_id": quote_id},
-        {"$set": {"status": "declined", "decline_reason": reason, "updated_at": utcnow()}}
-    )
-    evt = create_timeline_event("quote", quote_id, "quote_declined",
-                                actor=email, actor_type="customer",
-                                details={"quote_number": quote.get("quote_number"), "reason": reason[:200]})
-    await S.db.timeline_events.insert_one(evt)
-    return {"status": "declined", "quote_id": quote_id}
-
-
-
-@router.post("/api/portal/quote/{quote_id}/revision")
-async def portal_request_revision(quote_id: str, data: dict, token: str = None):
-    """Customer requests a quote revision via portal."""
-    if not token:
-        raise HTTPException(401, "Zugangstoken fehlt")
-    token_hash = hashlib.sha256(token.encode()).hexdigest()
-    link = await S.db.access_links.find_one({"token_hash": token_hash}, {"_id": 0})
-    if not link or link.get("expires_at", datetime.min.replace(tzinfo=timezone.utc)) < datetime.now(timezone.utc):
-        raise HTTPException(403, "Zugangslink ungültig oder abgelaufen")
-    email = link.get("customer_email", "").lower()
-    quote = await S.db.quotes.find_one({"quote_id": quote_id, "customer.email": email}, {"_id": 0})
-    if not quote:
-        raise HTTPException(404, "Angebot nicht gefunden")
-    notes = data.get("notes", "")
-    await S.db.quotes.update_one(
-        {"quote_id": quote_id},
-        {"$set": {"status": "revision_requested", "revision_notes": notes, "updated_at": utcnow()}}
-    )
-    evt = create_timeline_event("quote", quote_id, "revision_requested",
-                                actor=email, actor_type="customer",
-                                details={"notes": notes[:200]})
-    await S.db.timeline_events.insert_one(evt)
-    return {"status": "revision_requested", "quote_id": quote_id}
+@router.post("/api/portal/quote/{quote_id}/accept-simple")
+async def portal_accept_quote_legacy_disabled(quote_id: str, token: str = None):
+    """DEPRECATED — legacy stub kept for URL compatibility only."""
+    raise HTTPException(410, "Endpunkt veraltet. Bitte /accept verwenden.")
 
 
 # ══════════════════════════════════════════════════════════════

@@ -65,9 +65,35 @@ cd /tmp/vercel-deploy && npx vercel deploy --prod --prebuilt --token <TOKEN>
 
 ## Testing: Iteration 82, 100% Pass
 
+## Kundenkonto-Zwang bei Angeboten (27.04.2026 — DONE)
+**Feature**: Kunden müssen vor Angebotsansicht ein Passwort festlegen, um ein Kundenportal-Konto zu erstellen.
+
+**Flow**:
+1. Kunde klickt auf "Angebot öffnen" Link in E-Mail (`/portal/quote?token=X&qid=Y`)
+2. `GET /api/portal/quote/{qid}?token=X` liefert `account_status.has_account=false` bei erstem Zugriff
+3. `QuotePortal.js` zeigt Passwort-Setup-UI (min. 8 Zeichen, Bestätigung)
+4. `POST /api/portal/setup-account` erstellt `customer_accounts` Eintrag (bcrypt), legt Contact-Record an, liefert JWT → direkter Portal-Zugriff
+5. Bei späteren Besuchen: Login unter `/login` mit E-Mail + Passwort → `POST /api/auth/customer-login` → JWT für `/api/customer/*`
+6. `POST /api/auth/check-email` liefert jetzt `has_portal_password` — `UnifiedLogin.js` zeigt `customer_password`-Step statt Magic Link
+7. Dual-Flow (Admin + Kunde): 2 Optionen (Administration mit Passwort, Kundenportal mit Passwort/Magic-Link je nach Status)
+
+**E2E Test**: `/app/backend/tests/test_customer_portal_setup_e2e.py` (10/10 assertions pass)
+
+**Security**:
+- Rate limiting (20/300s) auf `/api/auth/customer-login`
+- bcrypt Passwort-Hashing
+- Audit-Log für failed/success logins
+- Token-basierte Quote-Zugriff bleibt unverändert
+
+**Gefixt nebenbei**:
+- Doppelte Route-Definitionen in `portal_routes.py` (accept/decline/revision) bereinigt
+- Fehlende Imports (secrets, timedelta, VAT_RATE, get_tariff, get_next_number, create_revolut_order, generate_invoice_pdf) in `portal_routes.py` ergänzt → Accept-Flow war zuvor latent broken
+- `check-email` Response-Shape konsistent (immer alle Flags)
+
 ## Backlog
 - P1: Contract OS-Erweiterung (RAG, Risikoscoring via Nutrient AI)
 - P2: Cron Alerting (Slack/Email bei Health-Failure)
 - P5: Legal & Compliance Guardian
 - P6: Outbound Lead Machine
-- P7: server.py Modular Refactoring
+- P7: server.py Modular Refactoring (>4000 Zeilen)
+- P8: Admin-UI "Kundenkonten verwalten" (Passwort-Reset durch Admin)

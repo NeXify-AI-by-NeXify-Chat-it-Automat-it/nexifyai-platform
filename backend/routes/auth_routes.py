@@ -62,12 +62,12 @@ async def auth_check_email(data: dict):
         return {"role": "dual", "needs_password": True, "needs_magic_link": not has_password, "has_portal_password": has_password}
     
     if admin:
-        return {"role": "admin", "needs_password": True}
+        return {"role": "admin", "needs_password": True, "needs_magic_link": False, "has_portal_password": False}
     
     if is_customer:
         return {"role": "customer", "needs_password": has_password, "needs_magic_link": not has_password, "has_portal_password": has_password}
     
-    return {"role": "unknown"}
+    return {"role": "unknown", "needs_password": False, "needs_magic_link": False, "has_portal_password": False}
 
 
 
@@ -178,6 +178,9 @@ async def auth_verify_token(data: dict):
 @router.post("/api/auth/customer-login")
 async def auth_customer_login(data: dict, request: Request):
     """Customer login with email + password (set via quote setup-account flow)."""
+    if request:
+        await check_rate_limit(request, limit=20, window=300)
+
     email = data.get("email", "").strip().lower()
     password = data.get("password", "")
 
@@ -186,9 +189,11 @@ async def auth_customer_login(data: dict, request: Request):
 
     account = await S.db.customer_accounts.find_one({"email": email, "activated": True})
     if not account:
+        await log_audit("customer_login_failed", email)
         raise HTTPException(401, "Kein aktives Kundenkonto gefunden")
 
     if not verify_password(password, account.get("password_hash", "")):
+        await log_audit("customer_login_failed", email)
         raise HTTPException(401, "Ungültiges Passwort")
 
     jwt_token = create_access_token(
