@@ -16,6 +16,7 @@ const LiveChat = ({ isOpen, onClose, initialQ, onBook, t, lang }) => {
   const [sid] = useState(() => genSid());
   const [qual, setQual] = useState({});
   const endRef = useRef(null);
+  const msgsContainerRef = useRef(null);
   const inputRef = useRef(null);
   const lastInitialQ = useRef('');
 
@@ -38,7 +39,20 @@ const LiveChat = ({ isOpen, onClose, initialQ, onBook, t, lang }) => {
     }
   }, [initialQ, isOpen]);
 
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs]);
+  // Auto-scroll: robust against ReactMarkdown's delayed render
+  // Uses both immediate + delayed scroll to handle async DOM growth
+  useEffect(() => {
+    const container = msgsContainerRef.current;
+    if (!container) return;
+    const scrollToBottom = () => {
+      container.scrollTop = container.scrollHeight;
+    };
+    scrollToBottom();
+    // Re-scroll after Markdown / images / fonts settle
+    const t1 = setTimeout(scrollToBottom, 100);
+    const t2 = setTimeout(scrollToBottom, 350);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [msgs, loading]);
   useEffect(() => {
     if (isOpen) { inputRef.current?.focus(); document.body.style.overflow = 'hidden'; }
     return () => { document.body.style.overflow = ''; };
@@ -50,14 +64,43 @@ const LiveChat = ({ isOpen, onClose, initialQ, onBook, t, lang }) => {
     setMsgs(prev => [...prev, { role: 'user', content: txt, ts: Date.now() }]);
     setInput('');
     setLoading(true);
+
+    // Resilient fetch with 60s timeout + 1 retry on network failure
+    const attemptFetch = async () => {
+      const ctrl = new AbortController();
+      const timeoutId = setTimeout(() => ctrl.abort(), 60000);
+      try {
+        const r = await fetch(`${API}/api/chat/message`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: sid, message: txt, language: lang }),
+          signal: ctrl.signal,
+        });
+        clearTimeout(timeoutId);
+        return r;
+      } catch (err) {
+        clearTimeout(timeoutId);
+        throw err;
+      }
+    };
+
     try {
-      const r = await fetch(`${API}/api/chat/message`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: sid, message: txt, language: lang })
-      });
+      let r;
+      try {
+        r = await attemptFetch();
+      } catch (firstErr) {
+        // Retry once on network/abort error
+        if (firstErr.name === 'AbortError' || firstErr.name === 'TypeError') {
+          await new Promise(res => setTimeout(res, 800));
+          r = await attemptFetch();
+        } else {
+          throw firstErr;
+        }
+      }
       const d = await r.json();
       if (!r.ok) throw new Error(d.detail || 'Error');
-      setMsgs(prev => [...prev, { role: 'assistant', content: d.message, ts: Date.now(), actions: d.actions }]);
+      const responseContent = (d.message || '').trim() || 'Entschuldigung, ich konnte keine Antwort generieren. Bitte formulieren Sie Ihre Frage anders oder versuchen Sie es erneut.';
+      setMsgs(prev => [...prev, { role: 'assistant', content: responseContent, ts: Date.now(), actions: d.actions }]);
       setQual(d.qualification || {});
       if (d.should_escalate) track('chat_escalation', { qual: d.qualification });
     } catch (_) {
@@ -148,7 +191,7 @@ const LiveChat = ({ isOpen, onClose, initialQ, onBook, t, lang }) => {
               <span className="chat-topic">{t.chat.topicLabel}</span>
             </div>
 
-            <div className="chat-msgs" data-testid="chat-messages">
+            <div className="chat-msgs" ref={msgsContainerRef} data-testid="chat-messages">
               {msgs.map((m, i) => (
                 <motion.div key={i} className={`chat-msg ${m.role}`} data-testid={`chat-msg-${i}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
                   {m.role === 'assistant' && (

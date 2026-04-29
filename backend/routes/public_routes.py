@@ -718,7 +718,15 @@ async def chat_message(data: ChatMessage, request: Request):
     except Exception as e:
         logger.error(f"LLM error: {e}")
         response_text = generate_response_fallback(data.message, session.get("messages", []), qualification)
-    
+
+    # Defense-in-depth: never return empty/null content (LLMs can return "" on edge cases)
+    if not response_text or not isinstance(response_text, str) or not response_text.strip():
+        logger.warning(f"Empty LLM response for session={data.session_id} — using fallback")
+        response_text = generate_response_fallback(data.message, session.get("messages", []), qualification)
+    if not response_text or not response_text.strip():
+        response_text = ("Entschuldigung, ich kann Ihre Anfrage gerade nicht beantworten. "
+                         "Bitte versuchen Sie es erneut oder kontaktieren Sie uns über das Kontaktformular.")
+
     assistant_msg = {"role": "assistant", "content": response_text, "ts": datetime.now(timezone.utc).isoformat()}
     
     await S.db.chat_sessions.update_one(
