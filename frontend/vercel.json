@@ -1,15 +1,19 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "yarn build",
+  "buildCommand": "GENERATE_SOURCEMAP=false CI=false yarn build",
   "outputDirectory": "build",
   "installCommand": "yarn install --frozen-lockfile",
   "framework": "create-react-app",
   "regions": ["fra1"],
+  "github": {
+    "silent": false,
+    "autoJobCancelation": true
+  },
   "crons": [
-    { "path": "/api/cron/health-monitor",   "schedule": "*/5 * * * *" },
-    { "path": "/api/cron/oracle-pulse",      "schedule": "*/15 * * * *" },
-    { "path": "/api/cron/competitor-monitor","schedule": "0 6 * * *" },
-    { "path": "/api/cron/cleanup-sessions",  "schedule": "0 3 * * *" }
+    { "path": "/api/cron/health-monitor",    "schedule": "*/5 * * * *" },
+    { "path": "/api/cron/oracle-pulse",       "schedule": "*/15 * * * *" },
+    { "path": "/api/cron/competitor-monitor", "schedule": "0 6 * * *" },
+    { "path": "/api/cron/cleanup-sessions",   "schedule": "0 3 * * *" }
   ],
   "rewrites": [
     { "source": "/api/cron/:path*", "destination": "/api/cron/:path*" },
@@ -30,14 +34,21 @@
       ]
     },
     {
-      "source": "/:path*\\.(js|css|woff|woff2|ttf|eot|ico|svg|png|jpg|jpeg|gif|webp|avif)",
+      "source": "/index.html",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        { "key": "Cache-Control", "value": "no-store, must-revalidate" }
       ]
     },
     {
-      "source": "/:path*",
+      "source": "/",
       "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/:path((?!api|static|cron).*)",
+      "headers": [
+        { "key": "Cache-Control",              "value": "public, max-age=0, must-revalidate" },
         { "key": "X-Content-Type-Options",     "value": "nosniff" },
         { "key": "X-Frame-Options",            "value": "DENY" },
         { "key": "X-XSS-Protection",           "value": "1; mode=block" },
@@ -46,5 +57,7 @@
         { "key": "Strict-Transport-Security",  "value": "max-age=63072000; includeSubDomains; preload" }
       ]
     }
-  ]
+  ],
+  "trailingSlash": false,
+  "cleanUrls": true
 }

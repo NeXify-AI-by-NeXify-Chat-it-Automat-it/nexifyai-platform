@@ -625,12 +625,16 @@ const Admin = () => {
   useEffect(() => { if (token && view === 'api_keys') loadApiKeys(); }, [token, view]); // eslint-disable-line
   useEffect(() => { if (token && view === 'nexify_ai') { loadNxConversations(); loadNxStatus(); if (nxActiveConvo) loadNxConversation(nxActiveConvo); } }, [token, view]); // eslint-disable-line
 
-  const logout = () => { setToken(''); localStorage.removeItem('nx_admin_token'); localStorage.removeItem('nx_auth'); };
+  const logout = () => {
+    // Komplettes Cleanup ALLER Session-bezogenen Keys
+    ['nx_admin_token','nx_auth','nx_active_convo','nx_admin_view','nx_admin_sidebar_open',
+     'nx_portal_token','nx_portal_email','nx_portal_name'].forEach(k => localStorage.removeItem(k));
+    setToken('');
+    window.location.href = '/login';
+  };
 
   /* ══════════ LOGIN SCREEN ══════════ */
   if (!token) {
-    localStorage.removeItem('nx_auth');
-    localStorage.removeItem('nx_admin_token');
     window.location.href = '/login';
     return (
       <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',background:'#080c12',color:'rgba(255,255,255,0.4)',fontSize:'0.875rem'}}>
