@@ -61,26 +61,49 @@ async def execute(query: str, *args) -> str:
 
 # ── High-level Oracle Helpers ──
 
+async def _safe_fetchrow(query: str, *args) -> dict:
+    """Fetch one row, returning {} if relation missing or any error occurs."""
+    try:
+        row = await fetchrow(query, *args)
+        return row or {}
+    except Exception as e:
+        msg = str(e)
+        if "does not exist" in msg or "UndefinedTable" in msg:
+            logger.warning(f"Oracle table missing — graceful empty state: {msg[:200]}")
+            return {}
+        raise
+
+
+async def _safe_fetch(query: str, *args) -> list:
+    """Fetch many rows, returning [] if relation missing."""
+    try:
+        return await fetch(query, *args)
+    except Exception as e:
+        msg = str(e)
+        if "does not exist" in msg or "UndefinedTable" in msg:
+            logger.warning(f"Oracle table missing — graceful empty state: {msg[:200]}")
+            return []
+        raise
+
+
 async def oracle_status() -> dict:
     """Get current Oracle autonomous status."""
-    row = await fetchrow("SELECT * FROM oracle_autonomous_status LIMIT 1")
-    return row or {}
+    return await _safe_fetchrow("SELECT * FROM oracle_autonomous_status LIMIT 1")
 
 
 async def oracle_context() -> dict:
     """Get Oracle full context overview."""
-    row = await fetchrow("SELECT * FROM oracle_full_context LIMIT 1")
-    return row or {}
+    return await _safe_fetchrow("SELECT * FROM oracle_full_context LIMIT 1")
 
 
 async def oracle_tasks(status: str = None, limit: int = 50) -> list:
     """Get Oracle tasks, optionally filtered by status."""
     if status:
-        return await fetch(
+        return await _safe_fetch(
             "SELECT id, type, priority, status, owner_agent, title, description, created_at, completed_at FROM oracle_tasks WHERE status=$1 ORDER BY priority DESC, created_at DESC LIMIT $2",
             status, limit
         )
-    return await fetch(
+    return await _safe_fetch(
         "SELECT id, type, priority, status, owner_agent, title, description, created_at, completed_at FROM oracle_tasks ORDER BY created_at DESC LIMIT $1",
         limit
     )
@@ -88,7 +111,7 @@ async def oracle_tasks(status: str = None, limit: int = 50) -> list:
 
 async def oracle_queue(limit: int = 50) -> list:
     """Get Oracle ready queue."""
-    return await fetch(
+    return await _safe_fetch(
         "SELECT id, type, priority, status, owner_agent, created_by, payload, created_at, due_at, tags FROM oracle_ready_queue WHERE status IN ('pending', 'running') ORDER BY priority DESC, created_at LIMIT $1",
         limit
     )
@@ -96,14 +119,14 @@ async def oracle_queue(limit: int = 50) -> list:
 
 async def oracle_agents() -> list:
     """Get all Oracle agents."""
-    return await fetch(
+    return await _safe_fetch(
         "SELECT id, type, capabilities, status, last_heartbeat, current_task FROM oracle_agents ORDER BY id"
     )
 
 
 async def brain_search(query: str, limit: int = 20) -> list:
     """Full-text search in brain_notes."""
-    return await fetch(
+    return await _safe_fetch(
         "SELECT id, title, note_type, tags, created_at, LEFT(content, 500) as content_preview FROM brain_notes WHERE fts @@ plainto_tsquery('german', $1) ORDER BY created_at DESC LIMIT $2",
         query, limit
     )
@@ -112,11 +135,11 @@ async def brain_search(query: str, limit: int = 20) -> list:
 async def knowledge_search(category: str = None, limit: int = 50) -> list:
     """Get knowledge base entries."""
     if category:
-        return await fetch(
+        return await _safe_fetch(
             "SELECT id, category, content, metadata, created_at FROM knowledge_base WHERE category=$1 ORDER BY created_at DESC LIMIT $2",
             category, limit
         )
-    return await fetch(
+    return await _safe_fetch(
         "SELECT id, category, content, metadata, created_at FROM knowledge_base ORDER BY created_at DESC LIMIT $1",
         limit
     )
@@ -125,11 +148,11 @@ async def knowledge_search(category: str = None, limit: int = 50) -> list:
 async def memory_entries(category: str = None, limit: int = 50) -> list:
     """Get structured memory entries."""
     if category:
-        return await fetch(
+        return await _safe_fetch(
             "SELECT id, category, title, LEFT(content, 400) as content_preview, keywords, importance, is_active, created_at FROM memory_entries WHERE category=$1 AND is_active=true ORDER BY importance DESC, created_at DESC LIMIT $2",
             category, limit
         )
-    return await fetch(
+    return await _safe_fetch(
         "SELECT id, category, title, LEFT(content, 400) as content_preview, keywords, importance, is_active, created_at FROM memory_entries WHERE is_active=true ORDER BY importance DESC, created_at DESC LIMIT $1",
         limit
     )
@@ -137,14 +160,14 @@ async def memory_entries(category: str = None, limit: int = 50) -> list:
 
 async def supabase_agents() -> list:
     """Get all AI agents from Supabase."""
-    return await fetch(
+    return await _safe_fetch(
         "SELECT id, name, description, role, avatar_color, avatar_initials, capabilities, status, is_active, created_at FROM ai_agents WHERE is_active=true ORDER BY created_at"
     )
 
 
 async def audit_logs(limit: int = 100) -> list:
     """Get recent audit logs."""
-    return await fetch(
+    return await _safe_fetch(
         "SELECT id, action, resource, status, details, error_message, duration_ms, created_at FROM audit_logs ORDER BY created_at DESC LIMIT $1",
         limit
     )
@@ -153,11 +176,11 @@ async def audit_logs(limit: int = 100) -> list:
 async def nexify_tasks(status: str = None, limit: int = 50) -> list:
     """Get NeXify tasks."""
     if status:
-        return await fetch(
+        return await _safe_fetch(
             "SELECT id, priority, task_description, status, assigned_agent, agent_type, review_status, compliance_check, created_at, updated_at FROM nexify_tasks WHERE status=$1 ORDER BY priority DESC, created_at DESC LIMIT $2",
             status, limit
         )
-    return await fetch(
+    return await _safe_fetch(
         "SELECT id, priority, task_description, status, assigned_agent, agent_type, review_status, compliance_check, created_at, updated_at FROM nexify_tasks ORDER BY priority DESC, created_at DESC LIMIT $1",
         limit
     )

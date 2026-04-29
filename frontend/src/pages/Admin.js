@@ -168,7 +168,17 @@ const Admin = () => {
   const [systemHealth, setSystemHealth] = useState(null);
   const [monitorData, setMonitorData] = useState(null);
   const [monitorLoading, setMonitorLoading] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    const saved = localStorage.getItem('nx_admin_sidebar_open');
+    return saved === null ? false : saved === 'true';
+  });
+  const toggleSidebar = () => {
+    setSidebarOpen(v => {
+      const next = !v;
+      localStorage.setItem('nx_admin_sidebar_open', String(next));
+      return next;
+    });
+  };
 
   const headers = useMemo(() => ({ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }), [token]);
 
@@ -4102,7 +4112,7 @@ curl ${API}/api/v1/docs`}
       <aside className={`adm-sidebar ${sidebarOpen ? '' : 'collapsed'}`} data-testid="admin-sidebar">
         <div className="adm-sidebar-top">
         </div>
-        <button className="adm-collapse-btn" onClick={() => setSidebarOpen(!sidebarOpen)} data-testid="sidebar-toggle" title={sidebarOpen ? 'Einklappen' : 'Ausklappen'}>
+        <button className="adm-collapse-btn" onClick={toggleSidebar} data-testid="sidebar-toggle" title={sidebarOpen ? 'Einklappen' : 'Ausklappen'} aria-label={sidebarOpen ? 'Sidebar einklappen' : 'Sidebar ausklappen'}>
           <I n={sidebarOpen ? 'chevron_left' : 'chevron_right'} />
         </button>
         <nav className="adm-sidebar-nav">

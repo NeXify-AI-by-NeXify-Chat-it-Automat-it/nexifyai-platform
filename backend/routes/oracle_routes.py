@@ -53,15 +53,23 @@ async def oracle_dashboard(admin: dict = Depends(get_admin)):
         agents = await supa.oracle_agents()
         queue = await supa.oracle_queue(limit=20)
 
-        # Counts
-        brain_count = await supa.fetchval("SELECT count(*) FROM brain_notes")
-        knowledge_count = await supa.fetchval("SELECT count(*) FROM knowledge_base")
-        memory_count = await supa.fetchval("SELECT count(*) FROM memory_entries WHERE is_active=true")
-        ai_agents_count = await supa.fetchval("SELECT count(*) FROM ai_agents WHERE is_active=true")
-        audit_count = await supa.fetchval("SELECT count(*) FROM audit_logs")
-        tasks_total = await supa.fetchval("SELECT count(*) FROM oracle_tasks")
-        tasks_pending = await supa.fetchval("SELECT count(*) FROM oracle_ready_queue WHERE status='pending'")
-        tasks_running = await supa.fetchval("SELECT count(*) FROM oracle_ready_queue WHERE status='running'")
+        # Counts (graceful: missing tables return 0)
+        async def _safe_count(query: str) -> int:
+            try:
+                return await supa.fetchval(query) or 0
+            except Exception as ex:
+                if "does not exist" in str(ex) or "UndefinedTable" in str(ex):
+                    return 0
+                raise
+
+        brain_count = await _safe_count("SELECT count(*) FROM brain_notes")
+        knowledge_count = await _safe_count("SELECT count(*) FROM knowledge_base")
+        memory_count = await _safe_count("SELECT count(*) FROM memory_entries WHERE is_active=true")
+        ai_agents_count = await _safe_count("SELECT count(*) FROM ai_agents WHERE is_active=true")
+        audit_count = await _safe_count("SELECT count(*) FROM audit_logs")
+        tasks_total = await _safe_count("SELECT count(*) FROM oracle_tasks")
+        tasks_pending = await _safe_count("SELECT count(*) FROM oracle_ready_queue WHERE status='pending'")
+        tasks_running = await _safe_count("SELECT count(*) FROM oracle_ready_queue WHERE status='running'")
 
         return {
             "oracle_status": _serialize(status),
