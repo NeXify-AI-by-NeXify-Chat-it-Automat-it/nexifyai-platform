@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
   "buildCommand": "GENERATE_SOURCEMAP=false CI=false yarn build",
   "outputDirectory": "build",
   "installCommand": "yarn install --frozen-lockfile",
@@ -15,49 +16,47 @@
     { "path": "/api/cron/competitor-monitor", "schedule": "0 6 * * *" },
     { "path": "/api/cron/cleanup-sessions",   "schedule": "0 3 * * *" }
   ],
-  "rewrites": [
-    { "source": "/api/cron/:path*", "destination": "/api/cron/:path*" },
-    { "source": "/api/:path*",      "destination": "https://contract-os.preview.emergentagent.com/api/:path*" }
-  ],
-  "headers": [
+  "routes": [
     {
-      "source": "/api/:path*",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, max-age=0" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" }
-      ]
+      "src": "/api/cron/(.*)",
+      "headers": { "x-vercel-cron": "1" },
+      "continue": true
     },
     {
-      "source": "/static/:path*",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
+      "src": "/api/((?!cron/).*)",
+      "dest": "https://contract-os.preview.emergentagent.com/api/$1",
+      "headers": {
+        "x-vercel-proxy": "1",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0"
+      }
     },
     {
-      "source": "/index.html",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-store, must-revalidate" }
-      ]
+      "src": "/static/(.*)",
+      "headers": { "Cache-Control": "public, max-age=31536000, immutable" },
+      "continue": true
     },
     {
-      "source": "/",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
-      ]
+      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|svg|webp|avif|woff|woff2|ttf|eot))",
+      "headers": { "Cache-Control": "public, max-age=31536000, immutable" },
+      "continue": true
     },
     {
-      "source": "/:path((?!api|static|cron).*)",
-      "headers": [
-        { "key": "Cache-Control",              "value": "public, max-age=0, must-revalidate" },
-        { "key": "X-Content-Type-Options",     "value": "nosniff" },
-        { "key": "X-Frame-Options",            "value": "DENY" },
-        { "key": "X-XSS-Protection",           "value": "1; mode=block" },
-        { "key": "Referrer-Policy",            "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy",         "value": "camera=(), microphone=(), geolocation=()" },
-        { "key": "Strict-Transport-Security",  "value": "max-age=63072000; includeSubDomains; preload" }
-      ]
+      "src": "/(.*)",
+      "headers": {
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "X-XSS-Protection": "1; mode=block",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+        "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload"
+      },
+      "continue": true
+    },
+    { "handle": "filesystem" },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html",
+      "status": 200
     }
-  ],
-  "trailingSlash": false,
-  "cleanUrls": true
+  ]
 }

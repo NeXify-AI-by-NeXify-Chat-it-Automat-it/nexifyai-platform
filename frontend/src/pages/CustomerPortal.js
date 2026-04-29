@@ -323,7 +323,11 @@ const CustomerPortal = () => {
     if (authToken) { loadContracts(); loadProjects(); loadFinance(); loadProfile(); loadDocuments(); loadConsents(); loadRequests(); loadMessages(); loadSupportTickets(); }
   }, [authToken, loadContracts, loadProjects, loadFinance, loadProfile, loadDocuments, loadConsents, loadRequests, loadMessages, loadSupportTickets]);
 
-  const logout = () => { localStorage.removeItem('nx_auth'); window.location.href = '/login'; };
+  const logout = () => {
+    ['nx_auth','nx_admin_token','nx_portal_token','nx_portal_email','nx_portal_name',
+     'nx_active_convo','nx_admin_view','nx_admin_sidebar_open'].forEach(k => localStorage.removeItem(k));
+    window.location.href = '/login';
+  };
 
   const quoteAction = async (quoteId, action, body = {}) => {
     setActionBusy(`${quoteId}_${action}`);
