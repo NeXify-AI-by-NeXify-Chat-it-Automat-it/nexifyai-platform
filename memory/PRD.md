@@ -169,7 +169,7 @@ cd /tmp/vercel-deploy && npx vercel deploy --prod --prebuilt --token <TOKEN>
 - `check-email` Response-Shape konsistent (immer alle Flags)
 
 ## Backlog
-- P1: Contract OS-Erweiterung (RAG, Risikoscoring via Nutrient AI) — benötigt Nutrient AI API Key
+- P1: Contract OS-Erweiterung (RAG für Kundenportal, Vertrags-Risikoscoring) — Provider TBD (Nutrient AI gibt es nicht; Alternative wählen: OpenRouter-LLM mit Pdf-Extraction via PyMuPDF, oder pdf.co API)
 - P2: ✅ DONE — Cron Alerting (E-Mail + optional Slack bei Health-Failure)
 - P5: Legal & Compliance Guardian
 - P6: ✅ DONE — Outbound Lead Machine mit AI-Analyse, Bulk-Import, AI-Outreach, AI-Follow-up
@@ -178,3 +178,5 @@ cd /tmp/vercel-deploy && npx vercel deploy --prod --prebuilt --token <TOKEN>
 - P9: ✅ DONE — Admin-UI Frontend für Kundenkonten-Management
 - P10: Admin-UI für Health-Alert-History (Backend-Endpoints bereit)
 - P11: Playwright/chromium im Container installieren für volle Crawl4AI-Unterstützung (aktuell httpx-Fallback aktiv)
+- P12: GitHub-Action Workflow `.github/workflows/test.yml` für Auto-Regression (chat / portal / outbound / oracle dashboard)
+- P13: Oracle-Tabellen Supabase Migration (oracle_autonomous_status, oracle_ready_queue, oracle_full_context, brain_notes, etc.) — aktuell graceful Empty-State
