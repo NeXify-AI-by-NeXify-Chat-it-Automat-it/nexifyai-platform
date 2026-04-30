@@ -14,7 +14,8 @@
     { "path": "/api/cron/health-monitor",    "schedule": "*/5 * * * *" },
     { "path": "/api/cron/oracle-pulse",       "schedule": "*/15 * * * *" },
     { "path": "/api/cron/competitor-monitor", "schedule": "0 6 * * *" },
-    { "path": "/api/cron/cleanup-sessions",   "schedule": "0 3 * * *" }
+    { "path": "/api/cron/cleanup-sessions",   "schedule": "0 3 * * *" },
+    { "path": "/api/cron/outbound-auto",      "schedule": "0 9 * * 1-5" }
   ],
   "routes": [
     {

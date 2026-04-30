@@ -119,6 +119,8 @@ const Admin = () => {
   const [showDiscoverForm, setShowDiscoverForm] = useState(false);
   const [discoverForm, setDiscoverForm] = useState({ name:'', website:'', industry:'', email:'', phone:'', contact_name:'', country:'DE', notes:'' });
   const [showBulkImport, setShowBulkImport] = useState(false);
+  const [autoRunBusy, setAutoRunBusy] = useState(false);
+  const [autoRunResult, setAutoRunResult] = useState(null);
   const [bulkCsvText, setBulkCsvText] = useState('');
   const [bulkResult, setBulkResult] = useState(null);
   const [bulkBusy, setBulkBusy] = useState(false);
@@ -584,6 +586,23 @@ const Admin = () => {
       setBulkResult({error: String(e)});
     }
     setBulkBusy(false);
+  };
+
+  const triggerAutoRun = async (dryRun = false) => {
+    setAutoRunBusy(true);
+    setAutoRunResult(null);
+    const d = await apiFetch('/api/admin/outbound/auto-run', {
+      method: 'POST',
+      body: JSON.stringify({ dry_run: dryRun, max_per_stage: 5 }),
+    });
+    if (d) {
+      setAutoRunResult({ ...d, dryRun });
+      if (!dryRun) {
+        loadOutboundLeads(outboundFilter);
+        apiFetch('/api/admin/outbound/pipeline').then(r => r && setOutboundPipeline(r));
+      }
+    }
+    setAutoRunBusy(false);
   };
 
   const outboundAction = async (leadId, action, data = {}) => {
@@ -2767,11 +2786,36 @@ const Admin = () => {
       <div data-testid="admin-outbound">
         <div className="adm-section-header">
           <h2>Outbound Lead Machine</h2>
-          <div style={{display:'flex', gap:8}}>
+          <div style={{display:'flex', gap:8, flexWrap:'wrap'}}>
+            <button className="adm-btn" style={{padding:'8px 16px',width:'auto',background:'linear-gradient(135deg,#8b5cf6,#6366f1)',color:'#fff',border:'none'}} onClick={() => triggerAutoRun(true)} disabled={autoRunBusy} data-testid="auto-run-dry"><I n="visibility" /> {autoRunBusy ? 'Läuft...' : 'Vorschau (Dry-Run)'}</button>
+            <button className="adm-btn" style={{padding:'8px 16px',width:'auto',background:'linear-gradient(135deg,#FE9B7B,#f97316)',color:'#fff',border:'none'}} onClick={() => triggerAutoRun(false)} disabled={autoRunBusy} data-testid="auto-run-execute"><I n="play_arrow" /> {autoRunBusy ? 'Engine läuft...' : 'Auto-Engine starten'}</button>
             <button className="adm-btn adm-btn-secondary" style={{padding:'8px 16px',width:'auto'}} onClick={() => { setShowBulkImport(!showBulkImport); setBulkResult(null); }} data-testid="bulk-import-btn"><I n="upload_file" /> CSV-Import</button>
             <button className="adm-btn adm-btn-primary" style={{padding:'8px 16px',width:'auto'}} onClick={() => setShowDiscoverForm(true)} data-testid="discover-lead-btn"><I n="person_add" /> Lead erfassen</button>
           </div>
         </div>
+        {autoRunResult && (
+          <div data-testid="auto-run-result" style={{marginBottom:20,padding:16,borderRadius:8,background:'rgba(139,92,246,0.08)',border:'1px solid rgba(139,92,246,0.25)'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+              <strong style={{color:'#a78bfa'}}>{autoRunResult.dryRun ? '👁 Dry-Run Vorschau' : '✓ Auto-Run abgeschlossen'}</strong>
+              <button className="adm-btn-sm" onClick={() => setAutoRunResult(null)}><I n="close" /></button>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:10,fontSize:'.8125rem'}}>
+              <div><strong style={{color:'#fff'}}>{autoRunResult.totals?.analyzed || 0}</strong> AI-Analysen</div>
+              <div><strong style={{color:'#fff'}}>{autoRunResult.totals?.legal_checked || 0}</strong> Legal-Checks</div>
+              <div><strong style={{color:'#fff'}}>{autoRunResult.totals?.outreach_drafted || 0}</strong> Outreach-Drafts</div>
+              <div><strong style={{color:'#fff'}}>{autoRunResult.totals?.followup_drafted || 0}</strong> Follow-Ups</div>
+              <div style={{color:autoRunResult.totals?.errors?'#ef4444':'#10b981'}}><strong>{autoRunResult.totals?.errors || 0}</strong> Fehler</div>
+            </div>
+            {autoRunResult.errors && autoRunResult.errors.length > 0 && (
+              <details style={{marginTop:8,fontSize:'.75rem',color:'#fca5a5'}}>
+                <summary style={{cursor:'pointer'}}>Fehler-Details</summary>
+                {autoRunResult.errors.slice(0,5).map((e,i) => (
+                  <div key={i}>• {e.stage}: {e.error?.substring(0,140)}</div>
+                ))}
+              </details>
+            )}
+          </div>
+        )}
         {/* Pipeline Stats */}
         {op && (
           <div style={{marginBottom:24}}>

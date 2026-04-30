@@ -1,6 +1,6 @@
 """NeXifyAI — Outbound Lead Machine Routes"""
 from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Header, Request
 from routes.shared import S
 from routes.shared import (
     get_current_admin,
@@ -143,6 +143,44 @@ async def outbound_bulk_import(data: dict, current_user: dict = Depends(get_curr
     if len(rows) > 500:
         raise HTTPException(400, "Maximal 500 Leads pro Import")
     return await S.outbound_svc.bulk_import(rows, owner=current_user["email"])
+
+
+@router.post("/api/admin/outbound/auto-run")
+async def outbound_auto_run(
+    data: dict = None,
+    current_user: dict = Depends(get_current_admin),
+):
+    """Manueller Auto-Engine-Trigger. Durchläuft Pipeline für 5 Leads/Stufe."""
+    data = data or {}
+    max_per_stage = min(int(data.get("max_per_stage", 5)), 20)
+    dry_run = bool(data.get("dry_run", False))
+    return await S.outbound_svc.auto_run(
+        llm_provider=S.llm_provider, max_per_stage=max_per_stage, dry_run=dry_run
+    )
+
+
+@router.get("/api/admin/outbound/auto-runs")
+async def outbound_auto_runs_list(
+    limit: int = 20,
+    current_user: dict = Depends(get_current_admin),
+):
+    """Historie der letzten Auto-Engine-Runs."""
+    runs = []
+    async for r in S.db.outbound_auto_runs.find({}, {"_id": 0}).sort("_run_at", -1).limit(limit):
+        if "_run_at" in r:
+            del r["_run_at"]
+        runs.append(r)
+    return {"runs": runs, "count": len(runs)}
+
+
+@router.post("/api/internal/cron/outbound-auto")
+async def outbound_cron_auto(request: Request, authorization: str = Header(default="")):
+    """Cron-getriggerter Outbound Auto-Run (durch Vercel Edge Cron)."""
+    expected = f"Bearer {S.CRON_SECRET}"
+    if not S.CRON_SECRET or authorization != expected:
+        raise HTTPException(401, "Unauthorized")
+    result = await S.outbound_svc.auto_run(llm_provider=S.llm_provider, max_per_stage=5, dry_run=False)
+    return result
 
 
 
@@ -313,43 +351,8 @@ async def outbound_handover(lead_id: str, data: dict, current_user: dict = Depen
 
 
 # ══════════════════════════════════════════════════════════════
-# BULK IMPORT ENDPOINT
+# BULK IMPORT (deprecated — siehe oben)
 # ══════════════════════════════════════════════════════════════
-
-@router.post("/api/admin/outbound/bulk-import")
-async def outbound_bulk_import(data: dict, current_user: dict = Depends(get_current_admin)):
-    """Bulk-Import von Outbound-Leads. Erwartet {'leads': [...]}."""
-    leads_data = data.get("leads", [])
-    if not leads_data:
-        raise HTTPException(400, "Keine Leads angegeben")
-    results = {"imported": 0, "skipped": 0, "errors": []}
-    for i, ld in enumerate(leads_data):
-        if not ld.get("name"):
-            results["errors"].append(f"Lead {i}: Kein Name")
-            results["skipped"] += 1
-            continue
-        # Duplicate check
-        if ld.get("email"):
-            existing = await S.db.outbound_leads.find_one({"contact_email": ld["email"].lower()})
-            if existing:
-                results["skipped"] += 1
-                continue
-        try:
-            await S.outbound_svc.discover_lead({
-                "name": ld.get("name", ""),
-                "website": ld.get("website", ""),
-                "industry": ld.get("industry", ""),
-                "email": ld.get("email", ""),
-                "phone": ld.get("phone", ""),
-                "contact_name": ld.get("contact_name", ""),
-                "country": ld.get("country", "DE"),
-                "notes": ld.get("notes", ""),
-            }, source="bulk_import")
-            results["imported"] += 1
-        except Exception as e:
-            results["errors"].append(f"Lead {i} ({ld.get('name')}): {str(e)}")
-            results["skipped"] += 1
-    return results
 
 
 # ══════════════════════════════════════════════════════════════

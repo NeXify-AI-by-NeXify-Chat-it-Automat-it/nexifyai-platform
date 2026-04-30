@@ -886,3 +886,131 @@ class OutboundLeadMachine:
                 errors.append({"row": idx, "reason": str(e)[:200]})
                 skipped += 1
         return {"imported": imported, "skipped": skipped, "errors": errors[:20], "total": len(rows)}
+
+    # ══════════════════════════════════════════
+    # AUTO-ENGINE — Cron-getriggert, durchläuft Pipeline autonom
+    # ══════════════════════════════════════════
+
+    async def auto_run(self, llm_provider=None, max_per_stage: int = 5, dry_run: bool = False) -> dict:
+        """
+        Durchläuft die Outbound-Pipeline autonom:
+          1. discovered + ohne Analyse → AI-Website-Analyse (max_per_stage)
+          2. qualified + ohne legal_status=approved → Legal-Check
+          3. outreach_ready + ohne Outreach-Draft → AI-Outreach generieren (max_per_stage)
+          4. contacted/followup_1/followup_2 + älter als 3 Tage → AI-Followup (max_per_stage)
+
+        Versendet KEINE E-Mails — Drafts bleiben zur Admin-Freigabe.
+        Default: max 5 Aktionen pro Stufe pro Lauf (Rate-Limit für LLM-Kosten).
+        """
+        result = {
+            "started_at": utcnow().isoformat(),
+            "dry_run": dry_run,
+            "max_per_stage": max_per_stage,
+            "analyzed": [],
+            "legal_checked": [],
+            "outreach_drafted": [],
+            "followup_drafted": [],
+            "errors": [],
+        }
+
+        # Stage 1: discovered → AI-Website-Analyse
+        if llm_provider:
+            cursor = self.db.outbound_leads.find(
+                {"status": OutboundStatus.DISCOVERED, "website": {"$nin": [None, ""]},
+                 "analysis.source": {"$ne": "ai_website"}},
+                {"_id": 0, "outbound_lead_id": 1, "company_name": 1},
+            ).limit(max_per_stage)
+            async for lead in cursor:
+                lid = lead["outbound_lead_id"]
+                try:
+                    if not dry_run:
+                        r = await self.ai_website_analysis(lid, llm_provider=llm_provider)
+                        result["analyzed"].append({"id": lid, "name": lead.get("company_name"), "score": r.get("score")})
+                    else:
+                        result["analyzed"].append({"id": lid, "name": lead.get("company_name"), "score": "dry_run"})
+                except Exception as e:
+                    result["errors"].append({"stage": "analyze", "id": lid, "error": str(e)[:200]})
+
+        # Stage 2: qualified → Legal-Check
+        cursor = self.db.outbound_leads.find(
+            {"status": OutboundStatus.QUALIFIED, "legal_status": {"$ne": "approved"}},
+            {"_id": 0, "outbound_lead_id": 1, "company_name": 1},
+        ).limit(max_per_stage)
+        async for lead in cursor:
+            lid = lead["outbound_lead_id"]
+            try:
+                if not dry_run:
+                    r = await self.legal_check(lid)
+                    result["legal_checked"].append({"id": lid, "name": lead.get("company_name"), "ok": r.get("legal_ok")})
+                else:
+                    result["legal_checked"].append({"id": lid, "name": lead.get("company_name"), "ok": "dry_run"})
+            except Exception as e:
+                result["errors"].append({"stage": "legal", "id": lid, "error": str(e)[:200]})
+
+        # Stage 3: outreach_ready ohne Draft → AI-Outreach
+        if llm_provider:
+            cursor = self.db.outbound_leads.find(
+                {"status": OutboundStatus.OUTREACH_READY,
+                 "$or": [
+                     {"outreach_history": {"$size": 0}},
+                     {"outreach_history": {"$exists": False}},
+                 ]},
+                {"_id": 0, "outbound_lead_id": 1, "company_name": 1, "legal_status": 1},
+            ).limit(max_per_stage)
+            async for lead in cursor:
+                lid = lead["outbound_lead_id"]
+                if lead.get("legal_status") != "approved":
+                    continue
+                try:
+                    if not dry_run:
+                        r = await self.ai_generate_outreach(lid, llm_provider, channel="email")
+                        result["outreach_drafted"].append({"id": lid, "name": lead.get("company_name"), "subject": r.get("subject", "")[:60]})
+                    else:
+                        result["outreach_drafted"].append({"id": lid, "name": lead.get("company_name"), "subject": "dry_run"})
+                except Exception as e:
+                    result["errors"].append({"stage": "outreach", "id": lid, "error": str(e)[:200]})
+
+        # Stage 4: Follow-Up nach 3 Tagen
+        if llm_provider:
+            cutoff_3d = (utcnow() - timedelta(days=3)).isoformat()
+            cursor = self.db.outbound_leads.find(
+                {"status": {"$in": [OutboundStatus.CONTACTED, "followup_1", "followup_2"]},
+                 "outreach_history": {"$exists": True, "$not": {"$size": 0}}},
+                {"_id": 0, "outbound_lead_id": 1, "company_name": 1, "outreach_history": 1},
+            ).limit(max_per_stage)
+            async for lead in cursor:
+                lid = lead["outbound_lead_id"]
+                history = lead.get("outreach_history", [])
+                # Letzte versendete Outreach
+                sent = [o for o in history if o.get("status") == "sent"]
+                if not sent:
+                    continue
+                last_sent_at = sent[-1].get("sent_at", "")
+                if last_sent_at >= cutoff_3d:
+                    continue  # noch keine 3 Tage her
+                # Schon zu viele Follow-Ups?
+                fu_count = sum(1 for o in history if o.get("is_followup"))
+                if fu_count >= 3:
+                    continue
+                try:
+                    if not dry_run:
+                        r = await self.ai_generate_followup(lid, llm_provider)
+                        result["followup_drafted"].append({"id": lid, "name": lead.get("company_name"), "n": r.get("followup_number")})
+                    else:
+                        result["followup_drafted"].append({"id": lid, "name": lead.get("company_name"), "n": "dry_run"})
+                except Exception as e:
+                    result["errors"].append({"stage": "followup", "id": lid, "error": str(e)[:200]})
+
+        result["completed_at"] = utcnow().isoformat()
+        result["totals"] = {
+            "analyzed": len(result["analyzed"]),
+            "legal_checked": len(result["legal_checked"]),
+            "outreach_drafted": len(result["outreach_drafted"]),
+            "followup_drafted": len(result["followup_drafted"]),
+            "errors": len(result["errors"]),
+        }
+
+        # Persist run for monitoring
+        await self.db.outbound_auto_runs.insert_one({**result, "_run_at": utcnow()})
+
+        return result
