@@ -43,7 +43,7 @@ COMPANY_DATA = {
     },
     "phone": "+31 6 133 188 56",
     "email": "support@nexify-automate.com",
-    "web": "nexifyai.de",
+    "web": "nexify-automate.com",
     "kvk": "90483944",
     "vat_id": "NL865786276B01",
     "bank": {

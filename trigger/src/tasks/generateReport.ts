@@ -40,7 +40,7 @@ ${format === "html" ? `Erstelle vollständiges HTML mit:
 - Inhaltsverzeichnis` : "Erstelle strukturiertes Markdown mit Überschriften, Listen, Tabellen."}`;
 
     const result = await generateText({
-      model: openai("gpt-4o-mini"),
+      model: openai("deepseek/deepseek-v4-flash"),
       prompt: reportPrompt,
       maxTokens: 4000,
     });
