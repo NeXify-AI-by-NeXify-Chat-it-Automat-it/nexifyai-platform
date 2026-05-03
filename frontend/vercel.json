@@ -8,7 +8,7 @@
   "regions": ["fra1"],
   "github": {
     "silent": false,
-    "autoJobCancelation": true
+    "autoJobCancelation": false
   },
   "crons": [
     { "path": "/api/cron/health-monitor",    "schedule": "*/5 * * * *" },
