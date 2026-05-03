@@ -36,5 +36,8 @@ Thumbs.db
 # Vercel
 .vercel/output/
 
+# Test reports
+test_reports/
+
 # Git
 *.orig
