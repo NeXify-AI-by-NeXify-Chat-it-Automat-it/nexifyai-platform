@@ -1,9 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
-  "buildCommand": "GENERATE_SOURCEMAP=false CI=false yarn build",
+  "buildCommand": "GENERATE_SOURCEMAP=false CI=false npm run build",
   "outputDirectory": "build",
-  "installCommand": "yarn install --frozen-lockfile",
+  "installCommand": "npm install",
   "framework": "create-react-app",
   "regions": ["fra1"],
   "github": {
