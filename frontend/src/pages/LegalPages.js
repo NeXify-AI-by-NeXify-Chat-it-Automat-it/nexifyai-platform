@@ -59,7 +59,8 @@ const ImpressumContent = {
         NL865786276B01</p>
         <p><strong>Hinweis:</strong><br/>
         Dieses Angebot richtet sich ausschlie&szlig;lich an Unternehmer.</p>
-      </section>
+              <p><strong>Stand: Mai 2026</strong></p>
+</section>
     </>
   ),
   nl: () => (
@@ -83,7 +84,8 @@ const ImpressumContent = {
         NL865786276B01</p>
         <p><strong>Opmerking:</strong><br/>
         Dit aanbod is uitsluitend gericht op ondernemers.</p>
-      </section>
+              <p><strong>Stand: Mai 2026</strong></p>
+</section>
     </>
   ),
   en: () => (
@@ -107,7 +109,8 @@ const ImpressumContent = {
         NL865786276B01</p>
         <p><strong>Notice:</strong><br/>
         This offer is exclusively directed at entrepreneurs.</p>
-      </section>
+              <p><strong>Stand: Mai 2026</strong></p>
+</section>
     </>
   )
 };const DatenschutzContent = {
@@ -285,7 +288,7 @@ Wir verwenden ausschlie&szlig;lich technisch notwendige Cookies und localStorage
         <p>Wir behalten uns vor, diese Datenschutzerklärung bei Änderungen der Rechtslage, Geschäftstätigkeit oder technischen Infrastruktur anzupassen. Die aktuelle Version ist stets unter <a href={`https://${CO.web}/de/datenschutz`}>{CO.web}/de/datenschutz</a> abrufbar. Wesentliche Änderungen werden per E-Mail an aktive Kunden mitgeteilt.</p>
       </section>
 
-      <p className="legal-date">Stand: April 2026</p>
+      <p><strong>Stand: Mai 2026</strong></p>
     </>
   ),
   nl: () => (
@@ -305,7 +308,7 @@ Wir verwenden ausschlie&szlig;lich technisch notwendige Cookies und localStorage
       <section><h2>§ 5 Beveiligingsmaatregelen (Art. 32 AVG)</h2><p>TLS 1.2+, AES-256, Argon2id, RBAC, JWT met 24-uurs vervaldatum, CSP, HSTS, auditlogging, dagelijkse versleutelde back-ups.</p></section>
       <section><h2>§ 6 Uw rechten</h2><p>Inzage (Art. 15), rectificatie (Art. 16), wissing (Art. 17), beperking (Art. 18), overdraagbaarheid (Art. 20), bezwaar (Art. 21), intrekking toestemming (Art. 7 lid 3), klachtrecht (Art. 77).</p><p>Contact: <a href={`mailto:${CO.email}`}>{CO.email}</a>. Reactie binnen 30 dagen.</p></section>
       <section><h2>§ 7 Cookies</h2><p>Uitsluitend technisch noodzakelijke cookies/localStorage (nx_cookie_consent, nx_auth, nx_lang, nx_s). Geen tracking-cookies van derden.</p></section>
-      <p className="legal-date">Status: april 2026</p>
+      <p><strong>Stand: Mai 2026</strong></p>
     </>
   ),
   en: () => (
@@ -325,7 +328,7 @@ Wir verwenden ausschlie&szlig;lich technisch notwendige Cookies und localStorage
       <section><h2>§ 5 Security Measures (Art. 32 GDPR)</h2><p>TLS 1.2+, AES-256, Argon2id, RBAC, JWT with 24h expiry, CSP, HSTS, audit logging, daily encrypted backups.</p></section>
       <section><h2>§ 6 Your Rights</h2><p>Access (Art. 15), Rectification (Art. 16), Erasure (Art. 17), Restriction (Art. 18), Portability (Art. 20), Objection (Art. 21), Withdraw consent (Art. 7(3)), Complaint (Art. 77).</p><p>Contact: <a href={`mailto:${CO.email}`}>{CO.email}</a>. Response within 30 days.</p></section>
       <section><h2>§ 7 Cookies</h2><p>Only technically necessary cookies/localStorage (nx_cookie_consent, nx_auth, nx_lang, nx_s). No third-party tracking cookies.</p></section>
-      <p className="legal-date">Last updated: April 2026</p>
+      <p><strong>Stand: Mai 2026</strong></p>
     </>
   )
 };
@@ -406,7 +409,8 @@ const AGBContent = {
 
         <h3>&sect;13 Schlussbestimmungen</h3>
         <p>Sollten einzelne Bestimmungen unwirksam sein, bleibt die Wirksamkeit der &uuml;brigen unber&uuml;hrt.</p>
-      </section>
+              <p><strong>Stand: Mai 2026</strong></p>
+</section>
     </>
   )
 };const KIContent = {
@@ -418,7 +422,8 @@ const AGBContent = {
         <p>Ergebnisse k&ouml;nnen fehlerhaft oder unvollst&auml;ndig sein.</p>
         <p>Der Nutzer ist verpflichtet, alle Ergebnisse eigenst&auml;ndig zu pr&uuml;fen.</p>
         <p>Der Anbieter &uuml;bernimmt keine Haftung f&uuml;r Entscheidungen, die auf KI-Ergebnissen basieren.</p>
-      </section>
+              <p><strong>Stand: Mai 2026</strong></p>
+</section>
     </>
   ),
   nl: () => (
@@ -429,7 +434,8 @@ const AGBContent = {
         <p>Resultaten kunnen onjuist of onvolledig zijn.</p>
         <p>De gebruiker is verplicht alle resultaten zelfstandig te controleren.</p>
         <p>De aanbieder is niet aansprakelijk voor beslissingen op basis van AI-resultaten.</p>
-      </section>
+              <p><strong>Stand: Mai 2026</strong></p>
+</section>
     </>
   ),
   en: () => (
@@ -440,7 +446,8 @@ const AGBContent = {
         <p>Results may be incomplete or contain errors.</p>
         <p>The user is obligated to independently verify all results.</p>
         <p>The provider assumes no liability for decisions based on AI results.</p>
-      </section>
+              <p><strong>Stand: Mai 2026</strong></p>
+</section>
     </>
   )
 };const WiderrufContent = {
@@ -450,7 +457,8 @@ const AGBContent = {
         <h2>Hinweis zum Widerrufsrecht</h2>
         <p>Die angebotenen Leistungen richten sich ausschlie&szlig;lich an Unternehmer.</p>
         <p>Ein gesetzliches Widerrufsrecht besteht daher nicht.</p>
-      </section>
+              <p><strong>Stand: Mai 2026</strong></p>
+</section>
     </>
   ),
   nl: () => (
@@ -459,7 +467,8 @@ const AGBContent = {
         <h2>Informatie over herroepingsrecht</h2>
         <p>De aangeboden diensten zijn uitsluitend gericht op ondernemers.</p>
         <p>Er bestaat daarom geen wettelijk herroepingsrecht.</p>
-      </section>
+              <p><strong>Stand: Mai 2026</strong></p>
+</section>
     </>
   ),
   en: () => (
@@ -468,7 +477,8 @@ const AGBContent = {
         <h2>Cancellation Policy Notice</h2>
         <p>The offered services are exclusively directed at entrepreneurs.</p>
         <p>Therefore, no statutory right of withdrawal exists.</p>
-      </section>
+              <p><strong>Stand: Mai 2026</strong></p>
+</section>
     </>
   )
 };const CookieContent = {
@@ -523,7 +533,7 @@ const AGBContent = {
         <h2>§ 6 Änderungen</h2>
         <p>Bei Änderungen unserer Cookie-Praxis aktualisieren wir diese Seite und informieren Sie über das Cookie-Banner.</p>
       </section>
-      <p className="legal-date">Stand: April 2026</p>
+      <p><strong>Stand: Mai 2026</strong></p>
     </>
   ),
   nl: () => (
@@ -533,7 +543,7 @@ const AGBContent = {
       <section><h2>§ 2 Gebruikte technologieën</h2><ul><li><strong>nx_cookie_consent</strong> (localStorage) — cookievoorkeuren</li><li><strong>nx_auth</strong> (localStorage) — authenticatie (24 uur)</li><li><strong>nx_lang</strong> (localStorage) — taalinstelling</li><li><strong>nx_s</strong> (sessionStorage) — anonieme sessie-ID</li></ul></section>
       <section><h2>§ 3 Wat wij NIET gebruiken</h2><p>Geen Google Analytics, geen Meta Pixel, geen retargeting, geen fingerprinting, geen cross-site tracking.</p></section>
       <section><h2>§ 4 Uw controle</h2><p>Beheer via browserinstellingen of „Cookie-instellingen" in de footer.</p></section>
-      <p className="legal-date">Status: april 2026</p>
+      <p><strong>Stand: Mai 2026</strong></p>
     </>
   ),
   en: () => (
@@ -543,7 +553,7 @@ const AGBContent = {
       <section><h2>§ 2 Technologies Used</h2><ul><li><strong>nx_cookie_consent</strong> (localStorage) — cookie preferences</li><li><strong>nx_auth</strong> (localStorage) — authentication (24h expiry)</li><li><strong>nx_lang</strong> (localStorage) — language setting</li><li><strong>nx_s</strong> (sessionStorage) — anonymous session ID</li></ul></section>
       <section><h2>§ 3 What We Do NOT Use</h2><p>No Google Analytics, no Meta Pixel, no retargeting, no fingerprinting, no cross-site tracking.</p></section>
       <section><h2>§ 4 Your Control</h2><p>Manage via browser settings or "Cookie Settings" in footer.</p></section>
-      <p className="legal-date">Last updated: April 2026</p>
+      <p><strong>Stand: Mai 2026</strong></p>
     </>
   )
 };
@@ -611,7 +621,7 @@ const AVVContent = {
         <h2>§ 8 Kontakt</h2>
         <p>{CO.legal}<br/>{CO.ceo}<br/>E-Mail: <a href={`mailto:${CO.email}`}>{CO.email}</a><br/>Telefon: {CO.phone}</p>
       </section>
-      <p className="legal-date">Stand: April 2026</p>
+      <p><strong>Stand: Mai 2026</strong></p>
     </>
   ),
   nl: () => (
@@ -624,7 +634,7 @@ const AVVContent = {
       <section><h2>§ 5 Beveiligingsmaatregelen</h2><p>RBAC, TLS 1.2+, AES-256, Argon2id, JWT 24h, audit-logging, dagelijkse back-ups, rate limiting, monitoring.</p></section>
       <section><h2>§ 6 Datalekken</h2><p>Melding binnen 24 uur na kennisname (Art. 33 lid 2 AVG).</p></section>
       <section><h2>§ 7 Doorgifte</h2><p>Naar VS (OpenAI) uitsluitend op basis van SCC (Art. 46 lid 2 sub c AVG) + aanvullende maatregelen.</p></section>
-      <p className="legal-date">Status: april 2026</p>
+      <p><strong>Stand: Mai 2026</strong></p>
     </>
   ),
   en: () => (
@@ -637,7 +647,7 @@ const AVVContent = {
       <section><h2>§ 5 Security Measures</h2><p>RBAC, TLS 1.2+, AES-256, Argon2id, JWT 24h, audit logging, daily backups, rate limiting, monitoring.</p></section>
       <section><h2>§ 6 Data Breaches</h2><p>Notification within 24 hours of discovery (Art. 33(2) GDPR).</p></section>
       <section><h2>§ 7 Transfers</h2><p>To US (OpenAI) solely based on SCC (Art. 46(2)(c) GDPR) + supplementary measures.</p></section>
-      <p className="legal-date">Last updated: April 2026</p>
+      <p><strong>Stand: Mai 2026</strong></p>
     </>
   )
 };
