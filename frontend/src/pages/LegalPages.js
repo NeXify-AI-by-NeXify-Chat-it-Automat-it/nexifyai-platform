@@ -5,7 +5,7 @@ import LanguageSwitcher from '../components/LanguageSwitcher';
 import SEOHead from '../components/SEOHead';
 
 const CO = {
-  legal: 'NeXify Automate', ceo: 'Pascal Courbois, Geschäftsführer (Directeur)',
+  legal: 'NeXifyAI by NeXify - Chat it. Automate it.', ceo: 'Pascal Courbois, Geschäftsführer (Directeur)',
   nl: 'Graaf van Loonstraat 1E, 5921 JA Venlo, Niederlande',
   phone: '+31 6 133 188 56', email: 'support@nexify-automate.com',
   web: 'nexify-automate.com', kvk: '90483944', vat: 'NL865786276B01'
@@ -44,7 +44,6 @@ const ImpressumContent = {
         <h2>Angaben gemäß Art. 3:15d Burgerlijk Wetboek (BW), § 5 TMG, Art. 5 ECG und § 25 MedienG</h2>
         <p><strong>{CO.legal}</strong><br/>(Eenmanszaak, eingetragen bei der Kamer van Koophandel der Niederlande)</p>
         <p><strong>Hauptsitz (Niederlande):</strong><br/>{CO.nl}</p>
-        <p><strong>Niederlassung (Deutschland):</strong><br/>{CO.de}</p>
       </section>
       <section>
         <h2>Vertreten durch</h2>
@@ -103,7 +102,6 @@ const ImpressumContent = {
   ),
   nl: () => (
     <>
-      <section><h2>Gegevens conform Art. 3:15d Burgerlijk Wetboek (BW)</h2><p><strong>{CO.legal}</strong><br/>(Eenmanszaak, ingeschreven bij de Kamer van Koophandel)</p><p><strong>Hoofdkantoor (Nederland):</strong><br/>{CO.nl}</p><p><strong>Vestiging (Duitsland):</strong><br/>{CO.de}</p></section>
       <section><h2>Vertegenwoordigd door</h2><p>{CO.ceo}</p></section>
       <section><h2>Contact</h2><p>Telefoon: <a href={`tel:${CO.phone.replace(/\s/g,'')}`}>{CO.phone}</a><br/>E-mail: <a href={`mailto:${CO.email}`}>{CO.email}</a><br/>Web: <a href={`https://${CO.web}`} target="_blank" rel="noopener noreferrer">{CO.web}</a></p></section>
       <section><h2>Handelsregister</h2><p>Kamer van Koophandel (KvK-nummer): {CO.kvk}<br/>BTW-identificatienummer: {CO.vat}</p></section>
@@ -117,7 +115,6 @@ const ImpressumContent = {
   ),
   en: () => (
     <>
-      <section><h2>Information pursuant to Art. 3:15d Dutch Civil Code (BW), § 5 TMG, Art. 5 ECG</h2><p><strong>{CO.legal}</strong><br/>(Eenmanszaak, registered with the Dutch Chamber of Commerce)</p><p><strong>Headquarters (Netherlands):</strong><br/>{CO.nl}</p><p><strong>Branch Office (Germany):</strong><br/>{CO.de}</p></section>
       <section><h2>Represented by</h2><p>{CO.ceo}</p></section>
       <section><h2>Contact</h2><p>Phone: <a href={`tel:${CO.phone.replace(/\s/g,'')}`}>{CO.phone}</a><br/>Email: <a href={`mailto:${CO.email}`}>{CO.email}</a><br/>Web: <a href={`https://${CO.web}`} target="_blank" rel="noopener noreferrer">{CO.web}</a></p></section>
       <section><h2>Trade Register</h2><p>Chamber of Commerce (KvK number): {CO.kvk}<br/>VAT identification number (BTW-ID): {CO.vat}</p></section>

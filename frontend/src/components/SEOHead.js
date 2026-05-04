@@ -31,7 +31,7 @@ export default function SEOHead({ lang = 'de', page = 'home' }) {
   const orgSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'NeXify Automate',
+    name: "NeXifyAI by NeXify - Chat it. Automate it.",
     alternateName: 'NeXifyAI',
     url: BASE_URL,
     logo: `${BASE_URL}/icon-mark.svg`,
@@ -55,7 +55,7 @@ export default function SEOHead({ lang = 'de', page = 'home' }) {
     '@context': 'https://schema.org',
     '@type': 'Service',
     serviceType: 'AI Agent Development & Enterprise Automation',
-    provider: { '@type': 'Organization', name: 'NeXify Automate' },
+    provider: { '@type': 'Organization', name: "NeXifyAI by NeXify - Chat it. Automate it." },
     areaServed: ['DE', 'AT', 'CH', 'NL', 'EU'],
     hasOfferCatalog: {
       '@type': 'OfferCatalog',

@@ -133,7 +133,7 @@ de: {
     tagline:'Chat it. Automate it.',
     nav:'Navigation', legal:'Rechtliches', kontakt:'Kontakt',
     impressum:'Impressum', datenschutz:'Datenschutz', agb:'AGB', ki:'KI-Hinweise', cookie:'Cookie-Einstellungen',
-    copy:'© {y} NeXify Automate. Alle Rechte vorbehalten.',
+    copy:'© {y} NeXifyAI by NeXify - Chat it. Automate it. Alle Rechte vorbehalten.',
     status:'Alle Systeme operativ'
   },
   chat: {
@@ -285,7 +285,7 @@ nl: {
     tagline:'Chat it. Automate it.',
     nav:'Navigatie', legal:'Juridisch', kontakt:'Contact',
     impressum:'Impressum', datenschutz:'Privacybeleid', agb:'Voorwaarden', ki:'AI-Informatie', cookie:'Cookie-instellingen',
-    copy:'© {y} NeXify Automate. Alle rechten voorbehouden.',
+    copy:'© {y} NeXifyAI by NeXify - Chat it. Automate it. Alle rechten voorbehouden.',
     status:'Alle systemen operationeel'
   },
   chat: {
@@ -437,7 +437,7 @@ en: {
     tagline:'Chat it. Automate it.',
     nav:'Navigation', legal:'Legal', kontakt:'Contact',
     impressum:'Imprint', datenschutz:'Privacy Policy', agb:'Terms', ki:'AI Transparency', cookie:'Cookie Settings',
-    copy:'© {y} NeXify Automate. All rights reserved.',
+    copy:'© {y} NeXifyAI by NeXify - Chat it. Automate it. All rights reserved.',
     status:'All systems operational'
   },
   chat: {

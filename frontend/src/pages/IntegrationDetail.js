@@ -257,7 +257,7 @@ export default function IntegrationDetail() {
       <footer className="intd-footer">
         <div className="container">
           <div className="intd-footer-inner">
-            <span>&copy; {new Date().getFullYear()} NeXify Automate</span>
+            <span>&copy; {new Date().getFullYear()} NeXifyAI by NeXify - Chat it. Automate it.</span>
             <div className="intd-footer-links">
               <Link to={`/${lang}/impressum`}>{lang === 'en' ? 'Imprint' : 'Impressum'}</Link>
               <Link to={`/${lang}/${lang === 'nl' ? 'privacybeleid' : lang === 'en' ? 'privacy' : 'datenschutz'}`}>{lang === 'en' ? 'Privacy' : lang === 'nl' ? 'Privacy' : 'Datenschutz'}</Link>

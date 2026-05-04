@@ -395,7 +395,6 @@ const Ft = ({ onCookieSettings, t, lang }) => {
             <div className="footer-legal-name">{COMPANY.legal}</div>
             <address className="footer-contact">
               <p><strong>NL:</strong> {COMPANY.addr.nl.s}, {COMPANY.addr.nl.c}</p>
-              <p><strong>DE:</strong> {COMPANY.addr.de.s}, {COMPANY.addr.de.c}</p>
               <p>Tel: <a href={`tel:${COMPANY.phone.replace(/\s/g, '')}`}>{COMPANY.phone}</a></p>
               <p>E-Mail: <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></p>
             </address>
