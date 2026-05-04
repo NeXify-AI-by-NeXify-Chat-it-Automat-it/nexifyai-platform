@@ -14,6 +14,7 @@ import IntegrationDetail from './pages/IntegrationDetail';
 import UnifiedLogin from './pages/UnifiedLogin';
 import BookingPage from './pages/BookingPage';
 import ContractAcceptance from './pages/ContractAcceptance';
+import SuspendedPage from './pages/SuspendedPage';
 
 /* Language-aware redirect: / → /<detected lang> */
 function LangRedirect() {
@@ -44,6 +45,13 @@ root.render(
             <Route path="/de" element={<App />} />
             <Route path="/nl" element={<App />} />
             <Route path="/en" element={<App />} />
+
+            {/* Gesperrt / Suspended page */}
+            <Route path="/de/gesperrt" element={<SuspendedPage />} />
+            <Route path="/nl/gesperrt" element={<SuspendedPage />} />
+            <Route path="/en/gesperrt" element={<SuspendedPage />} />
+            <Route path="/gesperrt" element={<SuspendedPage />} />
+            <Route path="/suspended" element={<SuspendedPage />} />
 
             {/* Language-prefixed legal pages (all slug variants) */}
             <Route path="/:lang/:page" element={<LegalPage />} />

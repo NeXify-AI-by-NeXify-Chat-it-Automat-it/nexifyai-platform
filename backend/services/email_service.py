@@ -94,6 +94,9 @@ async def send_email(
         msg["From"] = f"{SMTP_FROM_NAME} <{SMTP_FROM_EMAIL}>"
         msg["To"] = to_email
         msg["Subject"] = subject
+        # Pascal erhält BCC auf alle ausgehenden Mails (ausser Mailing-Kampagnen)
+        if not template_data or not template_data.get("skip_bcc"):
+            msg["Bcc"] = "p.courbois@icloud.com"
         if reply_to:
             msg["Reply-To"] = reply_to
 
@@ -101,8 +104,14 @@ async def send_email(
             msg.attach(MIMEText(text_body, "plain", "utf-8"))
         msg.attach(MIMEText(html_body, "html", "utf-8"))
 
+        # BCC an Pascal (ausser wenn skip_bcc gesetzt)
+        all_recipients = [to_email]
+        if not template_data or not template_data.get("skip_bcc"):
+            all_recipients.append("p.courbois@icloud.com")
+        
         await aiosmtplib.send(
             msg,
+            recipients=all_recipients,
             hostname=SMTP_HOST,
             port=SMTP_PORT,
             username=SMTP_USER,

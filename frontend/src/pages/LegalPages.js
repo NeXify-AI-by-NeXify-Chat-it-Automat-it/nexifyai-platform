@@ -41,97 +41,76 @@ const ImpressumContent = {
   de: () => (
     <>
       <section>
-        <h2>Angaben gemäß Art. 3:15d Burgerlijk Wetboek (BW), § 5 TMG, Art. 5 ECG und § 25 MedienG</h2>
-        <p><strong>{CO.legal}</strong><br/>(Eenmanszaak, eingetragen bei der Kamer van Koophandel der Niederlande)</p>
-        <p><strong>Hauptsitz (Niederlande):</strong><br/>{CO.nl}</p>
+        <h2>Impressum</h2>
+        <p><strong>NeXifyAI by NeXify &ndash; Chat it. Automate it.</strong><br/>
+        (Eenmanszaak &ndash; Einzelunternehmen)</p>
+        <p><strong>Inhaber:</strong><br/>
+        Pascal Courbois</p>
+        <p><strong>Adresse:</strong><br/>
+        Graaf van Loonstraat 1E<br/>
+        5921 JA Venlo<br/>
+        Niederlande</p>
+        <p><strong>Kontakt:</strong><br/>
+        E-Mail: <a href="mailto:support@nexify-automate.com">support@nexify-automate.com</a><br/>
+        Telefon: <a href="tel:+31613318856">+31 6 133 188 56</a></p>
+        <p><strong>Handelsregister:</strong><br/>
+        Kamer van Koophandel (KvK): 90483944</p>
+        <p><strong>Umsatzsteuer-ID:</strong><br/>
+        NL865786276B01</p>
+        <p><strong>Hinweis:</strong><br/>
+        Dieses Angebot richtet sich ausschlie&szlig;lich an Unternehmer.</p>
       </section>
-      <section>
-        <h2>Vertreten durch</h2>
-        <p>{CO.ceo}</p>
-      </section>
-      <section>
-        <h2>Kontakt</h2>
-        <p>Telefon: <a href={`tel:${CO.phone.replace(/\s/g,'')}`}>{CO.phone}</a><br/>
-        E-Mail: <a href={`mailto:${CO.email}`}>{CO.email}</a><br/>
-        Web: <a href={`https://${CO.web}`} target="_blank" rel="noopener noreferrer">{CO.web}</a></p>
-      </section>
-      <section>
-        <h2>Handelsregister und Steuernummern</h2>
-        <p>Kamer van Koophandel (KvK-Nummer): {CO.kvk}<br/>
-        Umsatzsteuer-Identifikationsnummer (BTW-ID): {CO.vat}</p>
-      </section>
-      <section>
-        <h2>Berufsrechtliche Angaben</h2>
-        <p>Branche: IT-Beratung, KI-Automation, Softwareentwicklung<br/>
-        Berufsbezeichnung: IT-Berater (verliehen in den Niederlanden)<br/>
-        Zuständige Berufsaufsicht: Nicht kammerpflichtig</p>
-      </section>
-      <section>
-        <h2>Verantwortlich für den Inhalt</h2>
-        <p>Pascal Courbois<br/>{CO.nl}</p>
-        <p>Verantwortlich gemäß § 18 Abs. 2 Medienstaatsvertrag (MStV) für journalistisch-redaktionelle Inhalte sowie gemäß Art. 5 Abs. 1 der E-Commerce-Richtlinie (2000/31/EG).</p>
-      </section>
-      <section>
-        <h2>Anwendbares Recht und Gerichtsstand</h2>
-        <p>Auf {CO.legal} als niederländisches Unternehmen findet grundsätzlich niederländisches Recht Anwendung, insbesondere das Burgerlijk Wetboek (BW). Für Verbraucher im D/A/CH-Raum bleiben die zwingenden Verbraucherschutzvorschriften ihres jeweiligen Wohnsitzstaates unberührt (Art. 6 Abs. 2 Rom-I-Verordnung, VO (EG) Nr. 593/2008).</p>
-        <p>Gerichtsstand für Streitigkeiten mit Unternehmern: Rechtbank Limburg, Maastricht (Niederlande). Verbraucher können alternativ den Gerichtsstand ihres Wohnsitzes wählen (Art. 18 Abs. 1 Brüssel-Ia-Verordnung, VO (EU) Nr. 1215/2012).</p>
-      </section>
-      <section>
-        <h2>EU-Streitschlichtung</h2>
-        <p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:<br/>
-        <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener noreferrer">https://ec.europa.eu/consumers/odr/</a></p>
-        <p>Unsere E-Mail-Adresse finden Sie oben im Impressum. Wir sind weder bereit noch verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen (§ 36 VSBG).</p>
-      </section>
-      <section>
-        <h2>Haftungsausschluss</h2>
-        <h3>Haftung für Inhalte</h3>
-        <p>Die Inhalte unserer Seiten wurden mit größter Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte können wir jedoch keine Gewähr übernehmen. Als Diensteanbieter sind wir gemäß Art. 6:196c BW, § 7 Abs. 1 TMG und Art. 6 ECG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Wir sind jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen (Art. 6:196c Abs. 4 BW, § 7 Abs. 2 TMG, Art. 15 E-Commerce-Richtlinie).</p>
-        <h3>Haftung für Links</h3>
-        <p>Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich. Die verlinkten Seiten wurden zum Zeitpunkt der Verlinkung auf mögliche Rechtsverstöße überprüft. Rechtswidrige Inhalte waren zum Zeitpunkt der Verlinkung nicht erkennbar. Eine permanente inhaltliche Kontrolle der verlinkten Seiten ist jedoch ohne konkrete Anhaltspunkte einer Rechtsverletzung nicht zumutbar. Bei Bekanntwerden von Rechtsverletzungen werden wir derartige Links umgehend entfernen.</p>
-      </section>
-      <section>
-        <h2>Urheberrecht</h2>
-        <p>Die durch den Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem niederländischen Urheberrecht (Auteurswet) sowie dem deutschen Urheberrechtsgesetz (UrhG). Beiträge Dritter sind als solche gekennzeichnet. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers. Downloads und Kopien dieser Seite sind nur für den privaten, nicht kommerziellen Gebrauch gestattet.</p>
-      </section>
-      <section>
-        <h2>Bildnachweise</h2>
-        <p>Alle auf dieser Website verwendeten Grafiken, Icons und Illustrationen sind Eigentum von {CO.legal} oder werden unter gültigen Lizenzen verwendet. Material Symbols Icons: Google LLC (Apache License 2.0).</p>
-      </section>
-      <p className="legal-date">Stand: April 2026</p>
     </>
   ),
   nl: () => (
     <>
-      <section><h2>Vertegenwoordigd door</h2><p>{CO.ceo}</p></section>
-      <section><h2>Contact</h2><p>Telefoon: <a href={`tel:${CO.phone.replace(/\s/g,'')}`}>{CO.phone}</a><br/>E-mail: <a href={`mailto:${CO.email}`}>{CO.email}</a><br/>Web: <a href={`https://${CO.web}`} target="_blank" rel="noopener noreferrer">{CO.web}</a></p></section>
-      <section><h2>Handelsregister</h2><p>Kamer van Koophandel (KvK-nummer): {CO.kvk}<br/>BTW-identificatienummer: {CO.vat}</p></section>
-      <section><h2>Verantwoordelijk voor de inhoud</h2><p>Pascal Courbois<br/>{CO.nl}</p></section>
-      <section><h2>Toepasselijk recht</h2><p>Op {CO.legal} als Nederlands bedrijf is Nederlands recht van toepassing, in het bijzonder het Burgerlijk Wetboek (BW). Voor consumenten in de DACH-regio blijven de dwingende consumentenbeschermingsregels van hun woonplaats onverlet (Art. 6 lid 2 Rome I-verordening).</p><p>Bevoegde rechter: Rechtbank Limburg, Maastricht.</p></section>
-      <section><h2>EU-Geschillenbeslechting</h2><p>De Europese Commissie biedt een platform voor online geschillenbeslechting (ODR): <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener noreferrer">https://ec.europa.eu/consumers/odr/</a></p></section>
-      <section><h2>Aansprakelijkheid</h2><p>De inhoud van deze website is met de grootst mogelijke zorg samengesteld. Conform Art. 6:196c BW zijn wij als dienstverlener verantwoordelijk voor eigen informatie, maar niet verplicht tot actieve controle van opgeslagen informatie van derden.</p></section>
-      <section><h2>Auteursrecht</h2><p>Alle inhoud valt onder het Nederlandse auteursrecht (Auteurswet). Reproductie zonder schriftelijke toestemming is niet toegestaan.</p></section>
-      <p className="legal-date">Status: april 2026</p>
+      <section>
+        <h2>Impressum</h2>
+        <p><strong>NeXifyAI by NeXify &ndash; Chat it. Automate it.</strong><br/>
+        (Eenmanszaak)</p>
+        <p><strong>Eigenaar:</strong><br/>
+        Pascal Courbois</p>
+        <p><strong>Adres:</strong><br/>
+        Graaf van Loonstraat 1E<br/>
+        5921 JA Venlo<br/>
+        Nederland</p>
+        <p><strong>Contact:</strong><br/>
+        E-mail: <a href="mailto:support@nexify-automate.com">support@nexify-automate.com</a><br/>
+        Telefoon: <a href="tel:+31613318856">+31 6 133 188 56</a></p>
+        <p><strong>Handelsregister:</strong><br/>
+        Kamer van Koophandel (KvK): 90483944</p>
+        <p><strong>BTW-ID:</strong><br/>
+        NL865786276B01</p>
+        <p><strong>Opmerking:</strong><br/>
+        Dit aanbod is uitsluitend gericht op ondernemers.</p>
+      </section>
     </>
   ),
   en: () => (
     <>
-      <section><h2>Represented by</h2><p>{CO.ceo}</p></section>
-      <section><h2>Contact</h2><p>Phone: <a href={`tel:${CO.phone.replace(/\s/g,'')}`}>{CO.phone}</a><br/>Email: <a href={`mailto:${CO.email}`}>{CO.email}</a><br/>Web: <a href={`https://${CO.web}`} target="_blank" rel="noopener noreferrer">{CO.web}</a></p></section>
-      <section><h2>Trade Register</h2><p>Chamber of Commerce (KvK number): {CO.kvk}<br/>VAT identification number (BTW-ID): {CO.vat}</p></section>
-      <section><h2>Responsible for content</h2><p>Pascal Courbois<br/>{CO.nl}</p><p>Responsible pursuant to § 18(2) MStV for editorial content and Art. 5(1) E-Commerce Directive (2000/31/EC).</p></section>
-      <section><h2>Applicable law and jurisdiction</h2><p>Dutch law applies. For consumers in the DACH region, mandatory consumer protection provisions remain unaffected (Art. 6(2) Rome I Regulation). Jurisdiction: Rechtbank Limburg, Maastricht (Netherlands). Consumers may choose their local court (Art. 18(1) Brussels Ia Regulation).</p></section>
-      <section><h2>EU Dispute Resolution</h2><p>ODR platform: <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener noreferrer">https://ec.europa.eu/consumers/odr/</a></p></section>
-      <section><h2>Liability</h2><p>Content created with utmost care. As a service provider, we are responsible for our own content per Art. 6:196c BW and § 7(1) TMG. No obligation to monitor third-party information.</p></section>
-      <section><h2>Copyright</h2><p>All content is protected under Dutch copyright law (Auteurswet) and German UrhG. Reproduction requires written consent.</p></section>
-      <p className="legal-date">Last updated: April 2026</p>
+      <section>
+        <h2>Imprint</h2>
+        <p><strong>NeXifyAI by NeXify &ndash; Chat it. Automate it.</strong><br/>
+        (Eenmanszaak &ndash; Sole Proprietorship)</p>
+        <p><strong>Owner:</strong><br/>
+        Pascal Courbois</p>
+        <p><strong>Address:</strong><br/>
+        Graaf van Loonstraat 1E<br/>
+        5921 JA Venlo<br/>
+        Netherlands</p>
+        <p><strong>Contact:</strong><br/>
+        Email: <a href="mailto:support@nexify-automate.com">support@nexify-automate.com</a><br/>
+        Phone: <a href="tel:+31613318856">+31 6 133 188 56</a></p>
+        <p><strong>Commercial Register:</strong><br/>
+        Chamber of Commerce (KvK): 90483944</p>
+        <p><strong>VAT ID:</strong><br/>
+        NL865786276B01</p>
+        <p><strong>Notice:</strong><br/>
+        This offer is exclusively directed at entrepreneurs.</p>
+      </section>
     </>
   )
-};
-
-/* ═══════════════════════════════════════════════════════════
-   DATENSCHUTZERKLÄRUNG
-   ═══════════════════════════════════════════════════════════ */
-const DatenschutzContent = {
+};const DatenschutzContent = {
   de: () => (
     <>
       <p>gemäß Verordnung (EU) 2016/679 (Datenschutz-Grundverordnung, DSGVO), dem niederländischen Uitvoeringswet Algemene verordening gegevensbescherming (UAVG), dem Bundesdatenschutzgesetz (BDSG) sowie der Datenschutzgesetz-Novelle (Schweiz, revDSG)</p>
@@ -281,7 +260,9 @@ const DatenschutzContent = {
 
       <section>
         <h2>§ 8 Cookies und lokale Speicherung</h2>
-        <p>Wir verwenden ausschließlich technisch notwendige Cookies und localStorage-Einträge gemäß § 25 Abs. 2 Nr. 2 TDDDG (Deutschland), Art. 11.7a Abs. 3 Telecommunicatiewet (Niederlande) und § 165 Abs. 3 TKG 2021 (Österreich):</p>
+        <p>Die Verarbeitung erfolgt unter Einsatz datenschutzoptimierter Einstellungen. Funktionen wie Zero Data Retention werden verwendet, soweit technisch verf&uuml;gbar und aktiviert. Eine Speicherung durch Drittanbieter kann nicht vollst&auml;ndig ausgeschlossen werden.
+
+Wir verwenden ausschlie&szlig;lich technisch notwendige Cookies und localStorage-Eintr&auml;ge gemäß § 25 Abs. 2 Nr. 2 TDDDG (Deutschland), Art. 11.7a Abs. 3 Telecommunicatiewet (Niederlande) und § 165 Abs. 3 TKG 2021 (Österreich):</p>
         <table style={{width:'100%',borderCollapse:'collapse',marginBottom:16}}>
           <thead><tr style={{borderBottom:'2px solid rgba(254,155,123,0.2)'}}>
             <th style={{textAlign:'left',padding:'8px 12px',fontSize:'.8125rem',color:'#FE9B7B'}}>Name</th>
@@ -355,371 +336,142 @@ const DatenschutzContent = {
 const AGBContent = {
   de: () => (
     <>
-      <p>der {CO.legal}, eingetragen bei der Kamer van Koophandel unter Nr. {CO.kvk}</p>
-
       <section>
-        <h2>§ 1 Geltungsbereich und Begriffsbestimmungen</h2>
-        <p>(1) Diese Allgemeinen Geschäftsbedingungen (nachfolgend „AGB") gelten für sämtliche Geschäftsbeziehungen zwischen {CO.legal} (nachfolgend „Anbieter") und dem Kunden (nachfolgend „Auftraggeber") in der zum Zeitpunkt der Auftragserteilung gültigen Fassung.</p>
-        <p>(2) „Auftraggeber" im Sinne dieser AGB sind sowohl Unternehmer (Art. 7:5 BW; § 14 BGB; § 1 KSchG Österreich) als auch Verbraucher (Art. 6:230g BW; § 13 BGB). Die Eigenschaft als Verbraucher wird gesondert kenntlich gemacht, wo abweichende Regelungen gelten.</p>
-        <p>(3) Entgegenstehende oder abweichende Bedingungen des Auftraggebers werden nicht anerkannt, es sei denn, der Anbieter stimmt ihrer Geltung ausdrücklich schriftlich zu.</p>
-        <p>(4) Auf die Geschäftsbeziehung findet niederländisches Recht Anwendung, insbesondere die Bücher 6 und 7 des Burgerlijk Wetboek (BW). Für Verbraucher im D/A/CH-Raum bleiben die zwingenden Verbraucherschutzvorschriften ihres jeweiligen Wohnsitzstaates unberührt (Art. 6 Abs. 2 Rom-I-Verordnung, VO (EG) Nr. 593/2008).</p>
-      </section>
+        <h2>Allgemeine Gesch&auml;ftsbedingungen (B2B)</h2>
+        <p><strong>NeXifyAI by NeXify &ndash; Chat it. Automate it.</strong></p>
 
-      <section>
-        <h2>§ 2 Vertragsgegenstand</h2>
-        <p>(1) Gegenstand der Leistungen des Anbieters sind insbesondere: KI-Agenten-Entwicklung und -Bereitstellung (SaaS), Prozessautomation, CRM/ERP-Integration, Softwareentwicklung, Wissenssysteme (RAG-basiert), IT-Beratung und -Strategie, Webseitenentwicklung, SEO-Optimierung sowie laufende Betreuung und Support.</p>
-        <p>(2) Der konkrete Leistungsumfang ergibt sich aus dem jeweils geschlossenen Individualvertrag, dem Angebot und den dazugehörigen Vertragsanlagen (Appendizes). Im Widerspruchsfall geht der Individualvertrag diesen AGB vor.</p>
-        <p>(3) Der Anbieter erbringt seine Leistungen unter Beachtung des aktuellen Stands der Technik und der anerkannten Regeln der Informatik.</p>
-      </section>
+        <h3>&sect;1 Geltungsbereich</h3>
+        <p>(1) Diese Allgemeinen Gesch&auml;ftsbedingungen gelten ausschlie&szlig;lich f&uuml;r Unternehmer im Sinne von Art. 7:5 Burgerlijk Wetboek (BW), &sect; 14 BGB sowie &sect; 1 UGB.</p>
+        <p>(2) Verbraucher sind von der Nutzung ausgeschlossen. Ein Vertragsschluss mit Verbrauchern erfolgt nicht.</p>
+        <p>(3) Abweichende oder entgegenstehende Bedingungen des Auftraggebers finden keine Anwendung, es sei denn, ihrer Geltung wird ausdr&uuml;cklich schriftlich zugestimmt.</p>
 
-      <section>
-        <h2>§ 3 Vertragsschluss</h2>
-        <p>(1) Angebote des Anbieters sind freibleibend und unverbindlich (Art. 6:219 BW).</p>
-        <p>(2) Der Vertrag kommt zustande durch: (a) schriftliche oder elektronische Auftragsbestätigung des Anbieters, oder (b) digitale Annahme des Vertrags über das NeXifyAI-Portal mittels qualifizierter elektronischer Signatur oder namentlicher Bestätigung über den gesicherten Magic-Link (§ 6:227a BW; § 126a BGB).</p>
-        <p>(3) Das Erstgespräch (Discovery Call) ist kostenfrei und unverbindlich. Aus dem Erstgespräch ergibt sich keine Verpflichtung zur Auftragserteilung.</p>
-        <p>(4) Bei digitaler Vertragsannahme wird ein Nachweisprotokoll (Evidence Package) erstellt, bestehend aus: Zeitstempel (UTC), IP-Adresse, User-Agent, Dokumenten-Hash (SHA-256), Signatur-Daten und akzeptierte Rechtsmodule. Dieses Protokoll hat die gleiche Beweiskraft wie eine handschriftliche Unterschrift (Art. 6:227a BW; Art. 25 eIDAS-Verordnung).</p>
-      </section>
-
-      <section>
-        <h2>§ 4 Leistungserbringung</h2>
-        <p>(1) Der Anbieter erbringt seine Leistungen mit der Sorgfalt eines ordentlichen Auftragnehmers (Art. 7:401 BW) und unter Einsatz qualifizierter Fachkräfte.</p>
-        <p>(2) Leistungen werden grundsätzlich remote erbracht, soweit nicht ausdrücklich etwas anderes vereinbart ist.</p>
-        <p>(3) Termine und Fristen sind Richtwerte (Art. 6:83 BW), sofern nicht ausdrücklich als Fixtermin vereinbart. Höhere Gewalt, Änderungswünsche des Auftraggebers und fehlende Mitwirkung berechtigen den Anbieter zur angemessenen Fristanpassung.</p>
-        <p>(4) Teillieferungen sind zulässig, sofern dies dem Auftraggeber zumutbar ist.</p>
-        <p>(5) Der Anbieter ist berechtigt, zur Leistungserbringung qualifizierte Subunternehmer einzusetzen. Die Verantwortung gegenüber dem Auftraggeber verbleibt beim Anbieter.</p>
-      </section>
-
-      <section>
-        <h2>§ 5 Vergütung und Zahlungsbedingungen</h2>
-        <p>(1) Alle Preise verstehen sich netto zuzüglich der jeweils geltenden gesetzlichen Umsatzsteuer (BTW 21 % NL / USt 19 % DE / USt 20 % AT / MwSt 8,1 % CH). Schweizer Kunden: Reverse-Charge-Verfahren gemäß Art. 45 MWSTG.</p>
-        <p>(2) <strong>KI-Agenten-Verträge (Standardmodell):</strong></p>
+        <h3>&sect;2 Vertragsgegenstand</h3>
+        <p>Der Anbieter erbringt Leistungen im Bereich:</p>
         <ul>
-          <li>Vertragslaufzeit: 24 Monate ab Projektstart.</li>
-          <li>Aktivierungsanzahlung: 30 % des Gesamtvertragswerts, fällig bei Auftragserteilung. Die Anzahlung deckt: Projektstart, Setup, Kapazitätsreservierung, Implementierungsfreigabe und initiale Konfiguration.</li>
-          <li>Restbetrag: 70 % des Gesamtvertragswerts, aufgeteilt in 24 gleiche monatliche Folgeraten, jeweils zum 1. des Monats fällig.</li>
+          <li>KI-Agenten (Software-as-a-Service)</li>
+          <li>Automatisierungsl&ouml;sungen</li>
+          <li>Softwareentwicklung</li>
+          <li>Systemintegration</li>
+          <li>IT-Beratung</li>
         </ul>
-        <p>(3) <strong>Projektbasierte Leistungen:</strong> Vergütung nach Aufwand (Time &amp; Material) oder Festpreis gemäß Angebot. Abrechnung monatlich oder nach Meilensteinen.</p>
-        <p>(4) Rechnungen sind zahlbar innerhalb von 14 Tagen nach Rechnungsdatum ohne Abzug.</p>
-        <p>(5) Zahlungsmethoden: Revolut Checkout (Online-Zahlung) oder Banküberweisung:<br/>IBAN: NL66 REVO 3601 4304 36<br/>BIC: REVONL22<br/>Für Zahlungen von außerhalb des EWR — BIC der zwischengeschalteten Bank: CHASDEFX.</p>
-        <p>(6) Bei Zahlungsverzug gelten die gesetzlichen Verzugszinsen: Für Unternehmer: Art. 6:119a BW (Handelsgeschäfte, aktuell 12,5 %). Für Verbraucher: Art. 6:119 BW. Mahngebühren werden gemäß dem Besluit vergoeding voor buitengerechtelijke incassokosten erhoben.</p>
-        <p>(7) Aufrechnungsrechte und Zurückbehaltungsrechte des Auftraggebers bestehen nur, soweit die Gegenforderung rechtskräftig festgestellt, unbestritten oder vom Anbieter anerkannt ist.</p>
-      </section>
+        <p>Der konkrete Leistungsumfang ergibt sich aus dem jeweiligen Angebot oder Individualvertrag.</p>
 
-      <section>
-        <h2>§ 6 Mitwirkungspflichten des Auftraggebers</h2>
-        <p>(1) Der Auftraggeber stellt dem Anbieter rechtzeitig alle für die Leistungserbringung erforderlichen Informationen, Unterlagen, Zugangsdaten und Ansprechpartner zur Verfügung.</p>
-        <p>(2) Der Auftraggeber benennt einen verantwortlichen Projektleiter als primären Ansprechpartner.</p>
-        <p>(3) Feedback und Freigaben sind innerhalb von 5 Werktagen zu erteilen, sofern keine andere Frist vereinbart ist.</p>
-        <p>(4) Verzögerungen, die auf fehlende oder verspätete Mitwirkung des Auftraggebers zurückzuführen sind, befreien den Anbieter von der Einhaltung vereinbarter Termine. Mehraufwand wird nach Aufwand berechnet.</p>
-      </section>
+        <h3>&sect;3 Vertragsschluss</h3>
+        <p>(1) Angebote sind freibleibend und unverbindlich.</p>
+        <p>(2) Der Vertrag kommt zustande durch:</p>
+        <ul>
+          <li>Annahme eines Angebots</li>
+          <li>oder Nutzung der Plattform</li>
+          <li>oder digitale Best&auml;tigung</li>
+        </ul>
 
-      <section>
-        <h2>§ 7 Abnahme</h2>
-        <p>(1) Der Auftraggeber ist verpflichtet, die vertragsgemäß erbrachten Leistungen innerhalb von 10 Werktagen nach Bereitstellung abzunehmen.</p>
-        <p>(2) Die Abnahme gilt als erteilt, wenn der Auftraggeber nicht innerhalb der Frist begründete Mängel schriftlich rügt (Art. 7:758 Abs. 3 BW).</p>
-        <p>(3) Unwesentliche Mängel berechtigen nicht zur Verweigerung der Abnahme.</p>
-      </section>
+        <h3>&sect;4 Verg&uuml;tung und Zahlungsbedingungen</h3>
+        <p>(1) Alle Preise verstehen sich netto zuz&uuml;glich gesetzlicher Steuern.</p>
+        <p>(2) Rechnungen sind innerhalb von 14 Tagen ohne Abzug zahlbar.</p>
 
-      <section>
-        <h2>§ 8 Gewährleistung und Mängelhaftung</h2>
-        <p>(1) Der Anbieter gewährleistet, dass die Leistungen den vertraglich vereinbarten Spezifikationen entsprechen (Art. 7:17 BW).</p>
-        <p>(2) Mängel sind unverzüglich, spätestens innerhalb von 14 Tagen nach Entdeckung, schriftlich zu melden (Art. 7:23 BW). Die Meldung muss den Mangel nachvollziehbar beschreiben.</p>
-        <p>(3) Bei berechtigten Mängelrügen hat der Anbieter das Recht zur Nachbesserung oder Ersatzlieferung innerhalb einer angemessenen Frist (mindestens 30 Tage).</p>
-        <p>(4) Die Gewährleistungsfrist beträgt 12 Monate ab Abnahme für Unternehmer und 24 Monate ab Abnahme für Verbraucher (Art. 7:23 BW, § 438 BGB).</p>
-        <p>(5) Von der Gewährleistung ausgenommen sind Mängel, die verursacht werden durch: (a) unsachgemäße Nutzung durch den Auftraggeber, (b) Änderungen durch den Auftraggeber oder Dritte ohne Zustimmung, (c) von Dritten bereitgestellte Hard- oder Software, (d) höhere Gewalt.</p>
-      </section>
+        <h3>&sect;5 Zahlungsverzug und Sperrung</h3>
+        <p>(1) Der Anbieter ist berechtigt, Leistungen ganz oder teilweise auszusetzen oder den Zugang zu Systemen zu sperren, wenn der Auftraggeber mit f&auml;lligen Zahlungen in Verzug ist.</p>
+        <p>(2) Voraussetzung ist eine Mahnung mit einer Frist von mindestens 7 Tagen.</p>
+        <p>(3) Die Sperrung wird vorab angek&uuml;ndigt.</p>
+        <p>(4) Die Zahlungspflicht bleibt w&auml;hrend der Sperrung bestehen.</p>
+        <p>(5) Nach vollst&auml;ndigem Ausgleich erfolgt die Freischaltung unverz&uuml;glich.</p>
 
-      <section>
-        <h2>§ 9 Haftung</h2>
-        <p>(1) Der Anbieter haftet unbeschränkt für Schäden aus der Verletzung des Lebens, des Körpers oder der Gesundheit, die auf einer fahrlässigen oder vorsätzlichen Pflichtverletzung beruhen.</p>
-        <p>(2) Für sonstige Schäden haftet der Anbieter nur bei Vorsatz und grober Fahrlässigkeit (Art. 6:74 BW). Die Gesamthaftung ist begrenzt auf den Netto-Auftragswert des betreffenden Einzelauftrags, maximal jedoch auf 100.000 EUR.</p>
-        <p>(3) Indirekte Schäden, Folgeschäden, entgangener Gewinn und Datenverlust sind ausgeschlossen, soweit gesetzlich zulässig.</p>
-        <p>(4) Die vorstehenden Haftungsbeschränkungen gelten nicht, soweit der Anbieter den Schaden arglistig verschwiegen hat oder eine Garantie für die Beschaffenheit der Sache übernommen hat.</p>
-        <p>(5) Für Verbraucher gelten die zwingenden Haftungsvorschriften des jeweiligen Wohnsitzstaates ergänzend.</p>
-      </section>
+        <h3>&sect;6 Laufzeit und K&uuml;ndigung</h3>
+        <p>(1) SaaS-Vertr&auml;ge haben eine Mindestlaufzeit von 24 Monaten.</p>
+        <p>(2) Die Vertragslaufzeit verl&auml;ngert sich automatisch um 12 Monate, sofern nicht mit einer Frist von 3 Monaten gek&uuml;ndigt wird.</p>
+        <p>(3) Das Recht zur au&szlig;erordentlichen K&uuml;ndigung aus wichtigem Grund bleibt unber&uuml;hrt.</p>
+        <p>(4) Im Falle einer vorzeitigen K&uuml;ndigung ohne wichtigen Grund ist eine angemessene Ausfallverg&uuml;tung zu leisten.</p>
 
-      <section>
-        <h2>§ 10 Geistiges Eigentum und Nutzungsrechte</h2>
-        <p>(1) Der Auftraggeber erhält nach vollständiger Bezahlung ein nicht-exklusives, nicht übertragbares, zeitlich unbefristetes Nutzungsrecht an den individuell für ihn erstellten Werkleistungen.</p>
-        <p>(2) Der Anbieter behält sämtliche Rechte an generischen Komponenten, Frameworks, Bibliotheken, Templates und Methoden, die er bei der Leistungserbringung einsetzt oder weiterentwickelt. Dies umfasst insbesondere wiederverwendbare Codebausteine und KI-Trainingspipelines.</p>
-        <p>(3) Open-Source-Komponenten unterliegen ihren jeweiligen Lizenzbestimmungen (MIT, Apache 2.0, etc.). Der Anbieter stellt sicher, dass keine Copyleft-Lizenzen (GPL) ohne vorherige Zustimmung des Auftraggebers eingesetzt werden.</p>
-        <p>(4) Bis zur vollständigen Bezahlung verbleiben alle Nutzungsrechte beim Anbieter (Eigentumsvorbehalt gemäß Art. 3:92 BW).</p>
-      </section>
+        <h3>&sect;7 Verf&uuml;gbarkeit</h3>
+        <p>Der Anbieter strebt eine Verf&uuml;gbarkeit von 99,5 % im Jahresmittel an.</p>
 
-      <section>
-        <h2>§ 11 Vertraulichkeit</h2>
-        <p>(1) Beide Parteien verpflichten sich, alle im Rahmen der Zusammenarbeit erlangten vertraulichen Informationen der jeweils anderen Partei streng vertraulich zu behandeln und nicht an Dritte weiterzugeben.</p>
-        <p>(2) Diese Verpflichtung gilt auch nach Beendigung des Vertragsverhältnisses für einen Zeitraum von 3 Jahren.</p>
-        <p>(3) Ausgenommen sind Informationen, die: (a) öffentlich bekannt sind oder werden, (b) dem Empfänger bereits vorher bekannt waren, (c) von einem Dritten rechtmäßig offengelegt werden, (d) auf richterliche oder behördliche Anordnung offengelegt werden müssen.</p>
-      </section>
+        <h3>&sect;8 Haftung</h3>
+        <p>(1) Der Anbieter haftet unbeschr&auml;nkt bei Vorsatz, grober Fahrl&auml;ssigkeit und bei Sch&auml;den aus der Verletzung von Leben, K&ouml;rper oder Gesundheit.</p>
+        <p>(2) Bei einfacher Fahrl&auml;ssigkeit haftet der Anbieter nur bei Verletzung wesentlicher Vertragspflichten.</p>
+        <p>(3) Die Haftung ist der H&ouml;he nach auf den Auftragswert begrenzt.</p>
 
-      <section>
-        <h2>§ 12 Datenschutz</h2>
-        <p>(1) Der Anbieter verarbeitet personenbezogene Daten des Auftraggebers gemäß der DSGVO, der UAVG und der Datenschutzerklärung des Anbieters.</p>
-        <p>(2) Soweit der Anbieter im Auftrag des Auftraggebers personenbezogene Daten verarbeitet, wird ein Auftragsverarbeitungsvertrag (AVV) gemäß Art. 28 DSGVO geschlossen.</p>
-        <p>(3) Beide Parteien verpflichten sich zur Einhaltung der datenschutzrechtlichen Bestimmungen und zur gegenseitigen Unterstützung bei der Erfüllung der Betroffenenrechte.</p>
-      </section>
+        <h3>&sect;9 Nutzungsrechte</h3>
+        <p>(1) Nutzungsrechte werden erst nach vollst&auml;ndiger Zahlung einger&auml;umt.</p>
+        <p>(2) Der Anbieter beh&auml;lt s&auml;mtliche Rechte an Systemen, Frameworks und Technologien.</p>
 
-      <section>
-        <h2>§ 13 Vertragslaufzeit und Kündigung</h2>
-        <p>(1) KI-Agenten-Verträge haben eine feste Laufzeit von 24 Monaten. Eine ordentliche Kündigung während der Mindestlaufzeit ist ausgeschlossen. Nach Ablauf der Mindestlaufzeit verlängert sich der Vertrag um jeweils 12 Monate, sofern er nicht mit einer Frist von 3 Monaten zum Laufzeitende gekündigt wird.</p>
-        <p>(2) Projektbasierte Verträge enden mit Abnahme der Leistung oder durch ordentliche Kündigung mit einer Frist von 30 Tagen zum Monatsende.</p>
-        <p>(3) Das Recht zur außerordentlichen Kündigung aus wichtigem Grund bleibt unberührt (Art. 6:265 BW, § 314 BGB). Ein wichtiger Grund liegt insbesondere vor bei: (a) Zahlungsverzug von mehr als 30 Tagen trotz Mahnung, (b) Insolvenzantrag oder Zahlungsunfähigkeit einer Partei, (c) wesentlicher Vertragsverletzung trotz Nachfristsetzung.</p>
-        <p>(4) Im Falle der vorzeitigen Kündigung durch den Auftraggeber ohne wichtigen Grund sind die bis zum regulären Vertragsende fälligen Vergütungen als Schadensersatz geschuldet, abzüglich ersparter Aufwendungen des Anbieters.</p>
-      </section>
+        <h3>&sect;10 Zugangssperre</h3>
+        <p>Der Anbieter ist berechtigt, Systeme und Dienstleistungen vor&uuml;bergehend zu deaktivieren, wenn vertragliche Pflichten verletzt werden.</p>
 
-      <section>
-        <h2>§ 14 Höhere Gewalt (Force Majeure)</h2>
-        <p>(1) Keine Partei haftet für die Nichterfüllung oder verspätete Erfüllung ihrer Pflichten, soweit dies auf Umstände zurückzuführen ist, die außerhalb ihres angemessenen Einflussbereichs liegen (Art. 6:75 BW, „overmacht").</p>
-        <p>(2) Hierzu zählen insbesondere: Naturkatastrophen, Pandemien, Krieg, Terrorismus, behördliche Anordnungen, Streiks, Stromausfälle, Ausfall von Telekommunikationsnetzen, Cyberangriffe und wesentliche Änderungen der gesetzlichen Rahmenbedingungen.</p>
-        <p>(3) Die betroffene Partei informiert die andere Partei unverzüglich und unternimmt zumutbare Anstrengungen zur Minimierung der Auswirkungen.</p>
-        <p>(4) Dauert die Behinderung länger als 90 Tage, kann jede Partei den Vertrag ohne Schadensersatzpflicht kündigen.</p>
-      </section>
+        <h3>&sect;11 Datenschutz</h3>
+        <p>Es gelten die Datenschutzerkl&auml;rung sowie der Auftragsverarbeitungsvertrag.</p>
 
-      <section>
-        <h2>§ 15 Referenzklausel</h2>
-        <p>(1) Der Anbieter ist berechtigt, den Auftraggeber als Referenzkunden zu nennen und das Projekt in anonymisierter oder allgemeiner Form in seinem Portfolio zu verwenden, sofern keine vertraulichen Geschäftsinformationen offengelegt werden.</p>
-        <p>(2) Der Auftraggeber kann dieser Nutzung jederzeit schriftlich widersprechen.</p>
-      </section>
+        <h3>&sect;12 Rechtswahl und Gerichtsstand</h3>
+        <p>(1) Es gilt niederl&auml;ndisches Recht.</p>
+        <p>(2) Gerichtsstand ist der Sitz des Anbieters.</p>
 
-      <section>
-        <h2>§ 16 Compliance und Anti-Korruption</h2>
-        <p>(1) Beide Parteien verpflichten sich zur Einhaltung aller anwendbaren Gesetze, insbesondere im Bereich Anti-Korruption (UK Bribery Act, US FCPA soweit anwendbar), Geldwäschebekämpfung, Exportkontrolle und Sanktionsrecht.</p>
-        <p>(2) Keine Partei wird der anderen Partei oder deren Mitarbeitern, Beauftragten oder Vertretern unangemessene Vorteile gewähren oder annehmen.</p>
+        <h3>&sect;13 Schlussbestimmungen</h3>
+        <p>Sollten einzelne Bestimmungen unwirksam sein, bleibt die Wirksamkeit der &uuml;brigen unber&uuml;hrt.</p>
       </section>
-
-      <section>
-        <h2>§ 17 Verfügbarkeit und Service Level (SaaS)</h2>
-        <p>(1) Für SaaS-basierte KI-Agenten strebt der Anbieter eine Verfügbarkeit von 99,5 % pro Kalendermonat an (gemessen ohne geplante Wartungsfenster).</p>
-        <p>(2) Geplante Wartungsarbeiten werden mindestens 48 Stunden im Voraus angekündigt und nach Möglichkeit in die Nachtstunden (22:00–06:00 Uhr MEZ) gelegt.</p>
-        <p>(3) Der Anbieter haftet nicht für Nichtverfügbarkeit, die durch Drittanbieter-Dienste (Cloud-Infrastruktur, LLM-APIs, Zahlungsdienstleister) verursacht wird.</p>
-      </section>
-
-      <section>
-        <h2>§ 18 Änderungen der AGB</h2>
-        <p>(1) Der Anbieter behält sich vor, diese AGB mit einer Ankündigungsfrist von 30 Tagen zu ändern (Art. 6:236 BW, Abs. j).</p>
-        <p>(2) Änderungen werden dem Auftraggeber per E-Mail mitgeteilt. Widerspricht der Auftraggeber nicht innerhalb von 30 Tagen nach Zugang der Mitteilung, gelten die geänderten AGB als genehmigt.</p>
-        <p>(3) Bei wesentlichen Änderungen, die den Auftraggeber erheblich benachteiligen, hat dieser ein Sonderkündigungsrecht zum Zeitpunkt des Inkrafttretens der Änderung.</p>
-      </section>
-
-      <section>
-        <h2>§ 19 Schlussbestimmungen</h2>
-        <p>(1) Es gilt niederländisches Recht unter Ausschluss des UN-Kaufrechts (CISG) und der Verweisungsnormen des IPR.</p>
-        <p>(2) Gerichtsstand für alle Streitigkeiten aus und im Zusammenhang mit diesem Vertrag ist Rechtbank Limburg, Maastricht (Niederlande). Verbraucher können alternativ den Gerichtsstand ihres Wohnsitzes wählen (Art. 18 Brüssel-Ia-VO).</p>
-        <p>(3) Sollten einzelne Bestimmungen dieser AGB unwirksam oder undurchführbar sein oder werden, wird die Wirksamkeit der übrigen Bestimmungen nicht berührt. Die unwirksame Bestimmung wird durch eine Regelung ersetzt, die dem wirtschaftlichen Zweck der unwirksamen Bestimmung am nächsten kommt (Art. 3:41 BW).</p>
-        <p>(4) Nebenabreden, Änderungen und Ergänzungen dieses Vertrages bedürfen der Textform (Art. 6:227a BW; § 126b BGB).</p>
-        <p>(5) Die Übertragung von Rechten und Pflichten aus diesem Vertrag bedarf der vorherigen schriftlichen Zustimmung der anderen Partei (Art. 6:159 BW). Der Anbieter ist berechtigt, Forderungen abzutreten.</p>
-      </section>
-
-      <p className="legal-date">Stand: April 2026</p>
-    </>
-  ),
-  nl: () => (
-    <>
-      <p>van {CO.legal}, ingeschreven bij de Kamer van Koophandel onder nr. {CO.kvk}</p>
-      <section><h2>§ 1 Toepassingsgebied</h2><p>(1) Deze algemene voorwaarden gelden voor alle zakelijke relaties tussen {CO.legal} en de opdrachtgever. (2) Nederlands recht is van toepassing (Boek 6 en 7 BW). Dwingende consumentenbeschermingsregels voor DACH-consumenten blijven onverlet (Art. 6 lid 2 Rome I).</p></section>
-      <section><h2>§ 2 Onderwerp</h2><p>AI-agenten, procesautomatisering, CRM/ERP, softwareontwikkeling, kennissystemen, IT-advies, webontwikkeling, SEO. Omvang per individueel contract.</p></section>
-      <section><h2>§ 3 Totstandkoming</h2><p>Offertes vrijblijvend. Overeenkomst door schriftelijke/elektronische bevestiging of digitale acceptatie via Magic Link (Art. 6:227a BW). Eerste adviesgesprek kosteloos.</p></section>
-      <section><h2>§ 4 Uitvoering</h2><p>Zorgvuldigheid goed opdrachtnemer (Art. 7:401 BW). Remote tenzij anders overeengekomen. Termijnen indicatief (Art. 6:83 BW). Deelleveringen toegestaan. Onderaannemers toegestaan.</p></section>
-      <section><h2>§ 5 Vergoeding en betaling</h2><p>(1) Prijzen excl. BTW (21% NL / 19% DE / 20% AT / 8,1% CH). (2) AI-contracten: 24 maanden, 30% activeringsvooruitbetaling, rest in 24 gelijke maandtermijnen. (3) Betaling via Revolut of bankoverschrijving (IBAN: NL66 REVO 3601 4304 36). (4) Betalingstermijn: 14 dagen. (5) Verzuimrente: Art. 6:119a BW.</p></section>
-      <section><h2>§ 6 Medewerkingsplicht</h2><p>Opdrachtgever levert informatie, toegang en contactpersonen tijdig. Projectleider als aanspreekpunt. Feedback binnen 5 werkdagen.</p></section>
-      <section><h2>§ 7 Oplevering</h2><p>Oplevering binnen 10 werkdagen. Stilzwijgende acceptatie bij uitblijven van gemotiveerde klacht (Art. 7:758 lid 3 BW).</p></section>
-      <section><h2>§ 8 Garantie</h2><p>Conformiteit met specificaties (Art. 7:17 BW). Gebreken binnen 14 dagen melden (Art. 7:23 BW). Recht op herstel. Garantietermijn: 12 maanden (ondernemers) / 24 maanden (consumenten).</p></section>
-      <section><h2>§ 9 Aansprakelijkheid</h2><p>Onbeperkt bij opzet/grove schuld en letsel. Overigens beperkt tot netto opdrachtwaarde, max. 100.000 EUR. Indirecte schade uitgesloten.</p></section>
-      <section><h2>§ 10 IE-rechten</h2><p>Niet-exclusief gebruiksrecht na volledige betaling. Opdrachtnemer behoudt generieke componenten. Eigendomsvoorbehoud (Art. 3:92 BW).</p></section>
-      <section><h2>§ 11 Geheimhouding</h2><p>Wederzijdse geheimhouding, 3 jaar na beëindiging.</p></section>
-      <section><h2>§ 12 Privacy</h2><p>AVG/UAVG-conform. Verwerkersovereenkomst bij opdracht (Art. 28 AVG).</p></section>
-      <section><h2>§ 13 Looptijd en opzegging</h2><p>AI-contracten: 24 maanden vast, daarna 12 maanden stilzwijgend, 3 maanden opzegtermijn. Projecten: 30 dagen opzegtermijn. Buitengewone opzegging bij gewichtige reden (Art. 6:265 BW).</p></section>
-      <section><h2>§ 14 Overmacht</h2><p>Geen aansprakelijkheid bij overmacht (Art. 6:75 BW). Na 90 dagen ontbindingsrecht.</p></section>
-      <section><h2>§ 15-16 Referenties en Compliance</h2><p>Referentiegebruik met bezwaarmogelijkheid. Anti-corruptie en sanctienaleving.</p></section>
-      <section><h2>§ 17 SLA (SaaS)</h2><p>99,5% beschikbaarheid per maand. Gepland onderhoud 48 uur vooraf aangekondigd.</p></section>
-      <section><h2>§ 18-19 Wijzigingen en Slotbepalingen</h2><p>Wijzigingen met 30 dagen aankondiging. Nederlands recht, uitsluiting CISG. Bevoegde rechter: Rechtbank Limburg. Partiële nietigheid (Art. 3:41 BW). Schriftelijkheidsvereiste (Art. 6:227a BW).</p></section>
-      <p className="legal-date">Status: april 2026</p>
-    </>
-  ),
-  en: () => (
-    <>
-      <p>of {CO.legal}, registered with the Chamber of Commerce under no. {CO.kvk}</p>
-      <section><h2>§ 1 Scope</h2><p>(1) These GTC apply to all business relationships between {CO.legal} and the client. (2) Dutch law applies (Books 6 and 7 BW). Mandatory consumer protection rules for DACH consumers remain unaffected (Art. 6(2) Rome I).</p></section>
-      <section><h2>§ 2 Subject Matter</h2><p>AI agents, process automation, CRM/ERP integration, software development, knowledge systems, IT consulting, web development, SEO. Scope per individual contract.</p></section>
-      <section><h2>§ 3 Contract Formation</h2><p>Offers non-binding. Contract through written/electronic confirmation or digital acceptance via Magic Link (Art. 6:227a BW). Initial consultation free.</p></section>
-      <section><h2>§ 4 Service Delivery</h2><p>Care of proper contractor (Art. 7:401 BW). Remote unless agreed otherwise. Timelines indicative (Art. 6:83 BW). Partial deliveries and subcontractors permitted.</p></section>
-      <section><h2>§ 5 Compensation and Payment</h2><p>(1) Prices net plus VAT (21% NL / 19% DE / 20% AT / 8.1% CH). (2) AI contracts: 24 months, 30% activation deposit, remainder in 24 equal monthly installments. (3) Payment via Revolut or bank transfer (IBAN: NL66 REVO 3601 4304 36). (4) Payment term: 14 days. (5) Late interest: Art. 6:119a BW.</p></section>
-      <section><h2>§ 6 Client Obligations</h2><p>Timely provision of information, access, and contacts. Project manager as primary contact. Feedback within 5 business days.</p></section>
-      <section><h2>§ 7 Acceptance</h2><p>Within 10 business days. Deemed accepted if no justified defects reported in writing (Art. 7:758(3) BW).</p></section>
-      <section><h2>§ 8 Warranty</h2><p>Conformity with specifications (Art. 7:17 BW). Defects within 14 days (Art. 7:23 BW). Right to remedy. Warranty: 12 months (business) / 24 months (consumers).</p></section>
-      <section><h2>§ 9 Liability</h2><p>Unlimited for intent/gross negligence and personal injury. Otherwise limited to net order value, max 100,000 EUR. Indirect damages excluded.</p></section>
-      <section><h2>§ 10 IP Rights</h2><p>Non-exclusive license upon full payment. Provider retains generic components. Retention of title (Art. 3:92 BW).</p></section>
-      <section><h2>§ 11 Confidentiality</h2><p>Mutual confidentiality, 3 years post-termination.</p></section>
-      <section><h2>§ 12 Data Protection</h2><p>GDPR/UAVG compliant. DPA per Art. 28 GDPR as needed.</p></section>
-      <section><h2>§ 13 Term and Termination</h2><p>AI contracts: 24 months fixed, then 12 months auto-renewal, 3 months notice. Projects: 30 days notice. Extraordinary termination for cause (Art. 6:265 BW).</p></section>
-      <section><h2>§ 14 Force Majeure</h2><p>No liability for force majeure (Art. 6:75 BW). Termination right after 90 days.</p></section>
-      <section><h2>§ 15-19 Final Provisions</h2><p>Reference clause with objection right. Anti-corruption compliance. SaaS SLA 99.5%. Changes with 30 days notice. Dutch law, CISG excluded. Jurisdiction: Rechtbank Limburg. Severability (Art. 3:41 BW). Text form required (Art. 6:227a BW).</p></section>
-      <p className="legal-date">Last updated: April 2026</p>
     </>
   )
-};
-
-/* ═══════════════════════════════════════════════════════════
-   KI-HINWEISE / AI TRANSPARENCY
-   ═══════════════════════════════════════════════════════════ */
-const KIContent = {
+};const KIContent = {
   de: () => (
     <>
-      <p>gemäß Verordnung (EU) 2024/1689 (KI-Verordnung / EU AI Act), Art. 50 (Transparenzpflichten)</p>
-      <section><h2>§ 1 Einsatz von KI-Systemen</h2><p>{CO.legal} setzt KI-gestützte Systeme als Bestandteil seiner Dienstleistungen ein. Diese Seite informiert Sie gemäß Art. 50 der KI-Verordnung (EU) 2024/1689 über den Einsatz, die Grenzen und Ihre Rechte.</p></section>
-      <section><h2>§ 2 KI-Systeme auf dieser Website</h2>
-        <h3>2.1 NeXifyAI Advisor (Live-Chat)</h3>
-        <p><strong>Technologie:</strong> KI-Dialogsystem basierend auf Large Language Models (OpenAI GPT). API-Zugriff mit Zero Data Retention Policy — Ihre Eingaben werden nicht zum Training der KI-Modelle verwendet.</p>
-        <p><strong>Funktionen:</strong> Automatisierte Erstberatung, Informationsbereitstellung über Dienstleistungen, Terminbuchung, Lead-Qualifizierung.</p>
-        <p><strong>Grenzen:</strong> Der KI-Chat kann keine rechtsverbindlichen Zusagen, Preisgarantien oder verbindlichen Beratungen geben. KI-Modelle können halluzinieren (faktisch falsche Aussagen generieren). Der Chat ersetzt keine professionelle Fach-, Rechts- oder Steuerberatung.</p>
-        <p><strong>Risikoklasse:</strong> Minimales Risiko gemäß Art. 6 Abs. 2 KI-Verordnung. Das System fällt nicht unter die Hochrisiko-KI-Systeme des Anhangs III.</p>
-        <h3>2.2 Interne KI-Werkzeuge</h3>
-        <p>Der Anbieter setzt intern KI-gestützte Werkzeuge für Textgenerierung, Datenanalyse und Prozessoptimierung ein. Diese Werkzeuge verarbeiten keine personenbezogenen Daten der Endnutzer ohne entsprechende Rechtsgrundlage.</p>
+      <section>
+        <h2>Hinweise zur Nutzung von KI</h2>
+        <p>Die eingesetzten KI-Systeme dienen der Unterst&uuml;tzung und Automatisierung.</p>
+        <p>Ergebnisse k&ouml;nnen fehlerhaft oder unvollst&auml;ndig sein.</p>
+        <p>Der Nutzer ist verpflichtet, alle Ergebnisse eigenst&auml;ndig zu pr&uuml;fen.</p>
+        <p>Der Anbieter &uuml;bernimmt keine Haftung f&uuml;r Entscheidungen, die auf KI-Ergebnissen basieren.</p>
       </section>
-      <section><h2>§ 3 Transparenz und Kennzeichnung</h2>
-        <ul>
-          <li>Alle KI-Interaktionen auf dieser Website sind als solche gekennzeichnet (Art. 50 Abs. 1 KI-Verordnung).</li>
-          <li>KI-generierte Inhalte werden nicht als menschliche Äußerungen dargestellt.</li>
-          <li>Human-in-the-Loop: Bei kritischen Geschäftsentscheidungen (Vertragsabschlüsse, Preisfestsetzung, Rechtsberatung) erfolgt stets eine menschliche Überprüfung und Freigabe.</li>
-          <li>Audit-Trail: Alle KI-Interaktionen werden protokolliert (Art. 12 KI-Verordnung).</li>
-        </ul>
-      </section>
-      <section><h2>§ 4 Ihre Rechte</h2>
-        <ul>
-          <li><strong>Recht auf menschliche Bearbeitung:</strong> Sie können jederzeit verlangen, dass Ihr Anliegen von einem menschlichen Mitarbeiter bearbeitet wird.</li>
-          <li><strong>Recht auf Erklärung:</strong> Sie können eine Erklärung über die Funktionsweise der eingesetzten KI-Systeme verlangen.</li>
-          <li><strong>Keine automatisierte Entscheidungsfindung:</strong> Es werden keine ausschließlich auf automatisierter Verarbeitung beruhenden Entscheidungen getroffen, die Ihnen gegenüber rechtliche Wirkung entfalten (Art. 22 DSGVO).</li>
-        </ul>
-      </section>
-      <section><h2>§ 5 Verbotene Praktiken (Art. 5 KI-Verordnung)</h2>
-        <p>Der Anbieter bestätigt, dass folgende Praktiken weder eingesetzt werden noch eingesetzt werden:</p>
-        <ul>
-          <li>Keine manipulativen oder täuschenden Techniken (Art. 5 Abs. 1 lit. a)</li>
-          <li>Keine Ausnutzung von Schwächen (Art. 5 Abs. 1 lit. b)</li>
-          <li>Kein Social Scoring (Art. 5 Abs. 1 lit. c)</li>
-          <li>Keine biometrische Echtzeit-Identifikation (Art. 5 Abs. 1 lit. d)</li>
-          <li>Keine Emotionserkennung am Arbeitsplatz oder in Bildungseinrichtungen (Art. 5 Abs. 1 lit. f)</li>
-        </ul>
-      </section>
-      <section><h2>§ 6 Datenverarbeitung durch KI</h2>
-        <p><strong>Keine Verwendung für KI-Training:</strong> Ihre Daten werden zu keinem Zeitpunkt zum Training oder Fine-Tuning von KI-Modellen verwendet.</p>
-        <p><strong>Isolierte Verarbeitung:</strong> KI-Anfragen werden in isolierten, zustandslosen API-Aufrufen verarbeitet (kein Kontextübertrag zwischen verschiedenen Nutzersessions).</p>
-        <p><strong>Zero Data Retention:</strong> OpenAI speichert keine Eingabe- oder Ausgabedaten bei API-Aufrufen mit aktivierter ZDR-Policy.</p>
-        <p>Weiterführende Informationen zur Datenverarbeitung finden Sie in unserer <a href="/de/datenschutz">Datenschutzerklärung</a>.</p>
-      </section>
-      <section><h2>§ 7 Kontakt</h2><p>{CO.legal}<br/>E-Mail: <a href={`mailto:${CO.email}`}>{CO.email}</a><br/>Telefon: {CO.phone}</p></section>
-      <p className="legal-date">Stand: April 2026</p>
     </>
   ),
   nl: () => (
     <>
-      <p>conform Verordening (EU) 2024/1689 (AI-verordening / EU AI Act), Art. 50</p>
-      <section><h2>§ 1 Gebruik van AI</h2><p>{CO.legal} maakt gebruik van AI-systemen. Informatieverplichting conform Art. 50 AI-verordening.</p></section>
-      <section><h2>§ 2 AI op deze website</h2><h3>2.1 NeXifyAI Advisor</h3><p>LLM-dialoogsysteem (OpenAI GPT). Zero Data Retention. Eerste advies, afspraken, leadkwalificatie.</p><p><strong>Beperkingen:</strong> Geen bindende toezeggingen, kan hallucineren, vervangt geen vakadvies. Risicoklasse: minimaal (Art. 6 lid 2).</p></section>
-      <section><h2>§ 3 Transparantie</h2><ul><li>Alle AI-interacties gemarkeerd (Art. 50 lid 1).</li><li>Human-in-the-loop bij kritieke beslissingen.</li><li>Audittrail (Art. 12).</li></ul></section>
-      <section><h2>§ 4 Uw rechten</h2><ul><li>Recht op menselijke verwerking.</li><li>Recht op uitleg.</li><li>Geen geautomatiseerde besluitvorming (Art. 22 AVG).</li></ul></section>
-      <section><h2>§ 5 Verboden praktijken (Art. 5)</h2><p>Geen manipulatie, geen social scoring, geen biometrische identificatie, geen emotieherkenning.</p></section>
-      <section><h2>§ 6 Gegevensverwerking</h2><p>Geen gebruik voor AI-training. Geïsoleerde verwerking. Zero Data Retention bij OpenAI.</p></section>
-      <section><h2>§ 7 Contact</h2><p>{CO.legal}<br/>E-mail: <a href={`mailto:${CO.email}`}>{CO.email}</a></p></section>
-      <p className="legal-date">Status: april 2026</p>
+      <section>
+        <h2>Informatie over het gebruik van AI</h2>
+        <p>De gebruikte AI-systemen dienen ter ondersteuning en automatisering.</p>
+        <p>Resultaten kunnen onjuist of onvolledig zijn.</p>
+        <p>De gebruiker is verplicht alle resultaten zelfstandig te controleren.</p>
+        <p>De aanbieder is niet aansprakelijk voor beslissingen op basis van AI-resultaten.</p>
+      </section>
     </>
   ),
   en: () => (
     <>
-      <p>pursuant to Regulation (EU) 2024/1689 (AI Act), Art. 50</p>
-      <section><h2>§ 1 Use of AI</h2><p>{CO.legal} employs AI systems. This page informs you per Art. 50 AI Act.</p></section>
-      <section><h2>§ 2 AI on this website</h2><h3>2.1 NeXifyAI Advisor</h3><p>LLM dialogue system (OpenAI GPT). Zero Data Retention. Initial consultation, bookings, lead qualification.</p><p><strong>Limitations:</strong> No binding commitments, may hallucinate, not professional advice. Risk class: minimal (Art. 6(2)).</p></section>
-      <section><h2>§ 3 Transparency</h2><ul><li>All AI interactions labeled (Art. 50(1)).</li><li>Human-in-the-loop for critical decisions.</li><li>Audit trail (Art. 12).</li></ul></section>
-      <section><h2>§ 4 Your Rights</h2><ul><li>Right to human processing.</li><li>Right to explanation.</li><li>No automated decision-making (Art. 22 GDPR).</li></ul></section>
-      <section><h2>§ 5 Prohibited Practices (Art. 5)</h2><p>No manipulation, no social scoring, no biometric identification, no emotion recognition.</p></section>
-      <section><h2>§ 6 Data Processing</h2><p>No use for AI training. Isolated processing. Zero Data Retention with OpenAI.</p></section>
-      <section><h2>§ 7 Contact</h2><p>{CO.legal}<br/>Email: <a href={`mailto:${CO.email}`}>{CO.email}</a></p></section>
-      <p className="legal-date">Last updated: April 2026</p>
+      <section>
+        <h2>AI Usage Notice</h2>
+        <p>The AI systems used are intended for support and automation purposes.</p>
+        <p>Results may be incomplete or contain errors.</p>
+        <p>The user is obligated to independently verify all results.</p>
+        <p>The provider assumes no liability for decisions based on AI results.</p>
+      </section>
     </>
   )
-};
-
-/* ═══════════════════════════════════════════════════════════
-   WIDERRUFSBELEHRUNG
-   ═══════════════════════════════════════════════════════════ */
-const WiderrufContent = {
+};const WiderrufContent = {
   de: () => (
     <>
-      <p>gemäß Art. 6:230o Burgerlijk Wetboek (BW), §§ 312g, 355 BGB, § 11 FAGG (Österreich) und Art. 40 OR (Schweiz, soweit anwendbar)</p>
       <section>
-        <h2>§ 1 Widerrufsrecht für Verbraucher</h2>
-        <p>Wenn Sie als Verbraucher (Art. 6:230g BW; § 13 BGB) einen Vertrag über Dienstleistungen im Fernabsatz mit {CO.legal} geschlossen haben, steht Ihnen ein gesetzliches Widerrufsrecht zu.</p>
-        <p><strong>Widerrufsfrist:</strong> Sie können Ihre Vertragserklärung innerhalb von 14 Tagen ohne Angabe von Gründen widerrufen. Die Frist beginnt am Tag des Vertragsschlusses (Art. 6:230o Abs. 1 BW; § 355 Abs. 2 BGB; § 11 FAGG).</p>
+        <h2>Hinweis zum Widerrufsrecht</h2>
+        <p>Die angebotenen Leistungen richten sich ausschlie&szlig;lich an Unternehmer.</p>
+        <p>Ein gesetzliches Widerrufsrecht besteht daher nicht.</p>
       </section>
-      <section>
-        <h2>§ 2 Ausübung des Widerrufs</h2>
-        <p>Um Ihr Widerrufsrecht auszuüben, müssen Sie uns mittels einer eindeutigen Erklärung (z. B. per E-Mail oder Post) über Ihren Entschluss, diesen Vertrag zu widerrufen, informieren.</p>
-        <p>{CO.legal}<br/>{CO.nl}<br/>E-Mail: <a href={`mailto:${CO.email}`}>{CO.email}</a></p>
-        <p>Zur Wahrung der Widerrufsfrist reicht es aus, dass Sie die Mitteilung über die Ausübung des Widerrufsrechts vor Ablauf der Widerrufsfrist absenden.</p>
-      </section>
-      <section>
-        <h2>§ 3 Folgen des Widerrufs</h2>
-        <p>Wenn Sie diesen Vertrag widerrufen, haben wir Ihnen alle Zahlungen, die wir von Ihnen erhalten haben, einschließlich der Lieferkosten, unverzüglich und spätestens binnen 14 Tagen ab dem Tag zurückzuzahlen, an dem die Mitteilung über Ihren Widerruf bei uns eingegangen ist. Für diese Rückzahlung verwenden wir dasselbe Zahlungsmittel, das Sie bei der ursprünglichen Transaktion eingesetzt haben, es sei denn, mit Ihnen wurde ausdrücklich etwas anderes vereinbart.</p>
-        <p>Haben Sie verlangt, dass die Dienstleistungen während der Widerrufsfrist beginnen sollen, so haben Sie uns einen angemessenen Betrag zu zahlen, der dem Anteil der bis zu dem Zeitpunkt, zu dem Sie uns von der Ausübung des Widerrufsrechts unterrichten, bereits erbrachten Dienstleistungen im Vergleich zum Gesamtumfang der im Vertrag vorgesehenen Dienstleistungen entspricht (Art. 6:230s BW; § 357 Abs. 8 BGB).</p>
-      </section>
-      <section>
-        <h2>§ 4 Ausschluss und vorzeitiges Erlöschen des Widerrufsrechts</h2>
-        <p>Das Widerrufsrecht erlischt vorzeitig, wenn:</p>
-        <ul>
-          <li>Der Anbieter die Dienstleistung vollständig erbracht hat und mit der Ausführung der Dienstleistung erst begonnen hat, nachdem der Verbraucher dazu seine ausdrückliche Zustimmung gegeben hat und gleichzeitig seine Kenntnis davon bestätigt hat, dass er sein Widerrufsrecht bei vollständiger Vertragserfüllung verliert (Art. 6:230p Abs. 1 lit. a BW; § 356 Abs. 4 BGB).</li>
-          <li>Maßgeschneiderte digitale Inhalte geliefert wurden, die nicht vorgefertigt sind und deren Herstellung eine individuelle Auswahl oder Entscheidung des Verbrauchers voraussetzt.</li>
-        </ul>
-      </section>
-      <section>
-        <h2>§ 5 Kein Widerrufsrecht für Unternehmer (B2B)</h2>
-        <p>Das gesetzliche Widerrufsrecht besteht ausschließlich für Verbraucher. Unternehmer im Sinne des Art. 7:5 BW / § 14 BGB haben kein gesetzliches Widerrufsrecht. Für Unternehmer gelten die Kündigungsregelungen in § 13 der AGB.</p>
-      </section>
-      <section>
-        <h2>§ 6 Muster-Widerrufsformular</h2>
-        <p>(Wenn Sie den Vertrag widerrufen wollen, füllen Sie bitte dieses Formular aus und senden Sie es zurück.)</p>
-        <div style={{background:'rgba(14,20,28,0.5)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:8,padding:'16px 20px',margin:'12px 0',fontSize:'.8125rem',lineHeight:1.7}}>
-          <p>An: {CO.legal}, {CO.nl}<br/>E-Mail: {CO.email}</p>
-          <p>Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*) abgeschlossenen Vertrag über die Erbringung der folgenden Dienstleistung: _______________</p>
-          <p>Bestellt am (*) / erhalten am (*): _______________</p>
-          <p>Name des/der Verbraucher(s): _______________</p>
-          <p>Anschrift des/der Verbraucher(s): _______________</p>
-          <p>Unterschrift des/der Verbraucher(s) (nur bei Mitteilung auf Papier): _______________</p>
-          <p>Datum: _______________</p>
-          <p style={{fontSize:'.6875rem',color:'#6b7b8d'}}>(*) Unzutreffendes streichen.</p>
-        </div>
-      </section>
-      <p className="legal-date">Stand: April 2026</p>
     </>
   ),
   nl: () => (
     <>
-      <p>conform Art. 6:230o Burgerlijk Wetboek (BW)</p>
-      <section><h2>§ 1 Herroepingsrecht</h2><p>Als consument (Art. 6:230g BW) kunt u binnen 14 dagen na contractsluiting zonder opgaaf van redenen herroepen.</p></section>
-      <section><h2>§ 2 Uitoefening</h2><p>Stuur een ondubbelzinnige verklaring naar {CO.legal}, {CO.nl}, e-mail: <a href={`mailto:${CO.email}`}>{CO.email}</a>.</p></section>
-      <section><h2>§ 3 Gevolgen</h2><p>Terugbetaling binnen 14 dagen via hetzelfde betaalmiddel. Bij reeds gestart werk: proportionele vergoeding (Art. 6:230s BW).</p></section>
-      <section><h2>§ 4 Uitzonderingen</h2><p>Herroepingsrecht vervalt bij: volledig uitgevoerde dienst met uitdrukkelijke toestemming (Art. 6:230p lid 1 sub a BW), maatwerk digitale inhoud.</p></section>
-      <section><h2>§ 5 B2B</h2><p>Ondernemers (Art. 7:5 BW) hebben geen wettelijk herroepingsrecht.</p></section>
-      <p className="legal-date">Status: april 2026</p>
+      <section>
+        <h2>Informatie over herroepingsrecht</h2>
+        <p>De aangeboden diensten zijn uitsluitend gericht op ondernemers.</p>
+        <p>Er bestaat daarom geen wettelijk herroepingsrecht.</p>
+      </section>
     </>
   ),
   en: () => (
     <>
-      <p>pursuant to Art. 6:230o Dutch Civil Code (BW), §§ 312g, 355 German Civil Code (BGB)</p>
-      <section><h2>§ 1 Right of Withdrawal</h2><p>Consumers (Art. 6:230g BW; § 13 BGB) may withdraw within 14 days of contract conclusion without reason.</p></section>
-      <section><h2>§ 2 Exercise</h2><p>Send a clear declaration to {CO.legal}, {CO.nl}, email: <a href={`mailto:${CO.email}`}>{CO.email}</a>.</p></section>
-      <section><h2>§ 3 Consequences</h2><p>Refund within 14 days via same payment method. For services already started: proportionate payment (Art. 6:230s BW; § 357(8) BGB).</p></section>
-      <section><h2>§ 4 Exceptions</h2><p>Right of withdrawal expires: fully performed service with express consent (Art. 6:230p(1)(a) BW), custom digital content.</p></section>
-      <section><h2>§ 5 B2B</h2><p>Businesses have no statutory right of withdrawal. See § 13 GTC for termination.</p></section>
-      <p className="legal-date">Last updated: April 2026</p>
+      <section>
+        <h2>Cancellation Policy Notice</h2>
+        <p>The offered services are exclusively directed at entrepreneurs.</p>
+        <p>Therefore, no statutory right of withdrawal exists.</p>
+      </section>
     </>
   )
-};
-
-/* ═══════════════════════════════════════════════════════════
-   COOKIE-RICHTLINIE
-   ═══════════════════════════════════════════════════════════ */
-const CookieContent = {
+};const CookieContent = {
   de: () => (
     <>
       <p>gemäß § 25 TDDDG (Deutschland), Art. 11.7a Telecommunicatiewet (Niederlande), § 165 TKG 2021 (Österreich) und der ePrivacy-Richtlinie 2002/58/EG</p>
