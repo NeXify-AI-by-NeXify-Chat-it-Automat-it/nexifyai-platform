@@ -113,13 +113,13 @@ const ImpressumContent = {
 };const DatenschutzContent = {
   de: () => (
     <>
-      <p>gemäß Verordnung (EU) 2016/679 (Datenschutz-Grundverordnung, DSGVO), dem niederländischen Uitvoeringswet Algemene verordening gegevensbescherming (UAVG), dem Bundesdatenschutzgesetz (BDSG) sowie der Datenschutzgesetz-Novelle (Schweiz, revDSG)</p>
+      <p><strong>Hinweis:</strong> Dieses Angebot richtet sich ausschließlich an Unternehmer (B2B). Die Verarbeitung personenbezogener Daten erfolgt ausschließlich im geschäftlichen Kontext.</p><p>gemäß Verordnung (EU) 2016/679 (Datenschutz-Grundverordnung, DSGVO), dem niederländischen Uitvoeringswet Algemene verordening gegevensbescherming (UAVG), dem Bundesdatenschutzgesetz (BDSG) sowie der Datenschutzgesetz-Novelle (Schweiz, revDSG)</p>
 
       <section>
         <h2>§ 1 Verantwortlicher</h2>
         <p>{CO.legal}<br/>{CO.ceo}<br/>{CO.nl}<br/>E-Mail: <a href={`mailto:${CO.email}`}>{CO.email}</a><br/>Telefon: {CO.phone}</p>
         <p>Da {CO.legal} weniger als 250 Mitarbeiter beschäftigt und keine Verarbeitung in großem Umfang vornimmt, ist die Benennung eines Datenschutzbeauftragten gemäß Art. 37 DSGVO nicht verpflichtend. Datenschutzanfragen richten Sie bitte direkt an die oben genannte E-Mail-Adresse.</p>
-        <p><strong>Zuständige Aufsichtsbehörde:</strong> Autoriteit Persoonsgegevens (AP), Bezuidenhoutseweg 30, 2594 AV Den Haag, Niederlande. Verbraucher in Deutschland können sich alternativ an die zuständige Landesdatenschutzbehörde wenden.</p>
+        <p><strong>Zuständige Aufsichtsbehörde:</strong> Autoriteit Persoonsgegevens (AP), Bezuidenhoutseweg 30, 2594 AV Den Haag, Niederlande. Betroffene in Deutschland können sich alternativ an die zuständige Landesdatenschutzbehörde wenden.</p>
       </section>
 
       <section>
@@ -557,7 +557,7 @@ const AVVContent = {
       <p>gemäß Art. 28 Verordnung (EU) 2016/679 (DSGVO) in Verbindung mit Art. 28 UAVG</p>
       <section>
         <h2>§ 1 Gegenstand und Dauer</h2>
-        <p>(1) Dieser Auftragsverarbeitungsvertrag (AVV) regelt die Rechte und Pflichten im Zusammenhang mit der Verarbeitung personenbezogener Daten durch {CO.legal} (nachfolgend „Auftragsverarbeiter") im Auftrag des Kunden (nachfolgend „Verantwortlicher").</p>
+        <p>(1) Dieser Auftragsverarbeitungsvertrag (AVV) regelt die Rechte und Pflichten im Zusammenhang mit der Verarbeitung personenbezogener Daten. <strong>Hinweis:</strong> Dieser Vertrag richtet sich ausschließlich an Unternehmer (B2B). durch {CO.legal} (nachfolgend „Auftragsverarbeiter") im Auftrag des Kunden (nachfolgend „Verantwortlicher").</p>
         <p>(2) Der AVV gilt für die Dauer des Hauptvertrags und darüber hinaus, bis alle personenbezogenen Daten vollständig gelöscht oder zurückgegeben sind.</p>
         <p>(3) Gegenstand der Verarbeitung: Implementierung, Betrieb und Wartung von KI-Agenten, Automatisierungslösungen, CRM/ERP-Integrationen und zugehörigen Webservices gemäß dem Hauptvertrag.</p>
       </section>

@@ -147,15 +147,29 @@ export default function SuspendedPage() {
             Die Deaktivierung kann aus vertraglichen oder administrativen Gr&uuml;nden erfolgt sein.
           </p>
           
-          {/* Footer */}
+          {/* Footer with legal links */}
           <div style={{
             fontSize: '11px',
             color: '#4a5568',
-            lineHeight: 1.6,
+            lineHeight: 1.8,
             borderTop: '1px solid rgba(255,255,255,0.04)',
-            paddingTop: '20px'
+            paddingTop: '16px',
+            marginTop: '8px'
           }}>
-            {CO.legal}
+            <div style={{marginBottom:'4px'}}>{CO.legal}</div>
+            <div>
+              <a href="/de/impressum" style={{color:'#6b7b8d',textDecoration:'none'}}>Impressum</a>
+              <span style={{color:'rgba(255,255,255,0.15)',margin:'0 6px'}}>|</span>
+              <a href="/de/datenschutz" style={{color:'#6b7b8d',textDecoration:'none'}}>Datenschutz</a>
+              <span style={{color:'rgba(255,255,255,0.15)',margin:'0 6px'}}>|</span>
+              <a href="/de/agb" style={{color:'#6b7b8d',textDecoration:'none'}}>AGB</a>
+              <span style={{color:'rgba(255,255,255,0.15)',margin:'0 6px'}}>|</span>
+              <a href="/de/ki-hinweise" style={{color:'#6b7b8d',textDecoration:'none'}}>KI</a>
+              <span style={{color:'rgba(255,255,255,0.15)',margin:'0 6px'}}>|</span>
+              <a href="/de/widerrufsbelehrung" style={{color:'#6b7b8d',textDecoration:'none'}}>Widerruf</a>
+              <span style={{color:'rgba(255,255,255,0.15)',margin:'0 6px'}}>|</span>
+              <a href="/de/cookie-richtlinie" style={{color:'#6b7b8d',textDecoration:'none'}}>Cookies</a>
+            </div>
           </div>
         </div>
       </div>
