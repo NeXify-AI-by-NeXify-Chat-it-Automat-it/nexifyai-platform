@@ -38,7 +38,6 @@ export default function SEOHead({ lang = 'de', page = 'home' }) {
     description: m.description,
     address: [
       { '@type': 'PostalAddress', streetAddress: 'Graaf van Loonstraat 1E', addressLocality: 'Venlo', postalCode: '5921 JA', addressCountry: 'NL' },
-      { '@type': 'PostalAddress', streetAddress: 'Wallstraße 9', addressLocality: 'Nettetal-Kaldenkirchen', postalCode: '41334', addressCountry: 'DE' }
     ],
     contactPoint: { '@type': 'ContactPoint', telephone: '+31-6-133-188-56', contactType: 'sales', availableLanguage: ['German', 'Dutch', 'English'] },
     sameAs: []

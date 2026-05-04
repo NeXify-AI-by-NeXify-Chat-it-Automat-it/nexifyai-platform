@@ -7,7 +7,6 @@ import SEOHead from '../components/SEOHead';
 const CO = {
   legal: 'NeXify Automate', ceo: 'Pascal Courbois, Geschäftsführer (Directeur)',
   nl: 'Graaf van Loonstraat 1E, 5921 JA Venlo, Niederlande',
-  de: 'Wallstraße 9, 41334 Nettetal-Kaldenkirchen, Deutschland',
   phone: '+31 6 133 188 56', email: 'support@nexify-automate.com',
   web: 'nexify-automate.com', kvk: '90483944', vat: 'NL865786276B01'
 };
@@ -61,7 +60,6 @@ const ImpressumContent = {
         <h2>Handelsregister und Steuernummern</h2>
         <p>Kamer van Koophandel (KvK-Nummer): {CO.kvk}<br/>
         Umsatzsteuer-Identifikationsnummer (BTW-ID): {CO.vat}</p>
-        <p>Hinweis: {CO.legal} ist als niederländisches Unternehmen (Eenmanszaak) im Handelsregister der Kamer van Koophandel eingetragen. Der Standort in Nettetal-Kaldenkirchen dient als operative Niederlassung für den D/A/CH-Markt gemäß § 12 HGB.</p>
       </section>
       <section>
         <h2>Berufsrechtliche Angaben</h2>

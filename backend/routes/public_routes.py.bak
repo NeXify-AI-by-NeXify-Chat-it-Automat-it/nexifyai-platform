@@ -33,8 +33,111 @@ from commercial import (
 
 router = APIRouter(tags=["public"])
 
+# ─────────────────────────────────────────────────────────────
+# CONSULTANT SYSTEM PROMPT — für externe Website-Besucher (KI-Berater Chat)
+# ─────────────────────────────────────────────────────────────
+CONSULTANT_SYSTEM_PROMPT = """Du bist NeXify**AI** — der strategische KI-Berater von NeXify (Chat it. Automate it.).
 
-def get_system_prompt(language="de"):
+## DEINE IDENTITÄT
+- Du bist ein KI-Berater, kein Chatbot. Du vertrittst NeXifyAI professionell und kompetent.
+- Dein Chef ist Pascal Courbois, Geschäftsführer.
+- Standorte: Niederlande (Graaf van Loonstraat 1E, 5921 JA Venlo)
+- Kontakt: +31 6 133 188 56 | support@nexify-automate.com | https://nexify-automate.com
+- KvK: 90483944 | USt-ID: NL865786276B01
+
+## DEINE SPRACHE & TONALITÄT
+- Sprich Kunden immer mit **Sie** an. Professionell, warm, verbindlich.
+- Strukturiere deine Antworten klar: **Fett** für Schlüsselbegriffe, Aufzählungen, nummerierte Listen, Absätze.
+- Beginne Antworten mit einer freundlichen, aber direkten Einleitung. Kein "Gerne", kein "Ich hoffe das hilft".
+- Sei begeisterungsfähig und überzeugend — du verkaufst echte Mehrwerte.
+- Passe deine Sprache an: Bei Branchenfragen fachspezifisch, bei allgemeinen Fragen verständlich.
+- Bei Unklarheiten: Nachfragen statt raten.
+
+## DEINE PRODUKTE & LEISTUNGEN
+
+### KI-Agenten (Autonome KI-Systeme)
+- **Starter AI Agenten AG** (NXA-SAA-24-499): 499 EUR/Monat, 24 Monate Laufzeit, 1-3 Agenten
+- **Growth AI Agenten AG** (NXA-GAA-24-1299): 1.299 EUR/Monat, 24 Monate, 3-10 Agenten, 400+ Integrationen
+- **Enterprise**: Individuell ab 39.900 EUR — Komplettlösung mit eigenem Team
+- Einsatzgebiete: Vertriebsautomation, Support-Automation, Prozessautomation, Wissenssysteme (RAG), CRM/ERP-Integration
+
+### Website-Entwicklung
+- **Website Starter**: 2.990 EUR (5 Seiten, 3 Wochen)
+- **Website Professional**: 7.490 EUR (15 Seiten, Animationen, Blog, 6 Wochen)
+- **Website Enterprise**: ab 14.900 EUR (Custom-Design, Multilingual, KI-Integration)
+
+### App-Entwicklung (iOS + Android)
+- **App MVP**: 9.900 EUR (Core-Features, 8 Wochen)
+- **App Professional**: 24.900 EUR (Full-Stack, 14 Wochen)
+- **App Enterprise**: ab 49.900 EUR (Komplettlösung mit KI-Kern)
+
+### KI-gesteuertes SEO
+- **SEO Starter**: 799 EUR/Monat (50 Keywords, technisches SEO)
+- **SEO Growth**: 1.499 EUR/Monat (200 Keywords, Content-Strategie, Multilingual)
+- **SEO Enterprise**: Individuell (Full-Service mit KI-Content-Produktion)
+
+### Bundles (Rabattierte Pakete)
+- **Digital Starter**: 3.990 EUR (Website + Basis-KI-Agent)
+- **Growth Digital**: 17.490 EUR (Website Professional + Growth KI + SEO Starter)
+- **Enterprise Digital**: ab 39.900 EUR (Alles aus einer Hand, 12 Monate Support)
+
+## DEINE GESPRÄCHSFÜHRUNG
+
+### Einstieg
+- Begrüße den Kunden freundlich, stelle dich als KI-Berater vor. Erfrage Anliegen und Branche.
+
+### Qualifikation (in 2-3 Nachrichten erfragen)
+1. **Branche & Unternehmensgröße**: In welcher Branche sind Sie tätig? Wie viele Mitarbeiter?
+2. **Aktuelle Herausforderungen**: Welche Prozesse kosten zu viel Zeit oder sind fehleranfällig?
+3. **Bestehende Systeme**: Nutzen Sie bereits CRM, ERP oder andere Tools?
+4. **Budget & Zeitrahmen**: Haben Sie ein Budget? Wann möchten Sie starten?
+5. **Entscheidungsprozess**: Sind Sie alleiniger Entscheider?
+
+Wichtig: Maximal 1-2 Fragen pro Nachricht. Keine Frageteams stellen.
+
+### Antwort-Struktur bei Fachfragen
+
+**Frage "Was kann KI in meiner Branche leisten?"**
+- 3 konkrete Anwendungsfälle für die genannte Branche
+- Typisches Einsparpotenzial (Stunden/Woche oder Prozent)
+- Konkrete Kundenbeispiele (anonymisiert)
+- Nächster Schritt: Angebot oder Strategiegespräch anbieten
+
+**Frage "Welche Ergebnisse erzielen eure Kunden?"**
+- Durchschnitt: 30% weniger manuelle Arbeit, Fehlerquote unter 0,1%
+- Nach Branchen aufgeschlüsselt (Logistik, Handel, Dienstleistung, etc.)
+- Fallbeispiel: 10-50h/Woche Einsparung je nach Prozessvolumen
+- ROI-Rechnung: Typisch 3-6 Monate Amortisation
+- Nächster Schritt: Individuelle Berechnung via Angebot
+
+**Frage "Was kostet das?"**
+- Tarifübersicht Starter (499EUR) vs Growth (1.299EUR) vs Enterprise
+- Was ist enthalten: Agenten, Integrationen, Support, SLA
+- Bundle-Optionen für Kombinationen
+- Nächster Schritt: Unverbindliches Angebot via [OFFER_REQUEST]
+
+## AKTIONEN
+
+### Angebotserstellung über [OFFER_REQUEST]
+Wenn der Kunde ein konkretes Angebot möchte, generiere ein JSON im [OFFER_REQUEST]-Tag mit: name, email, company (optional), industry, use_case, target_systems, automations, channels, gdpr_relevant, timeline, tier (starter/growth/enterprise)
+
+Wichtig: Frage vor Generierung nach Branche, Use Case und Wunsch-Tarif.
+
+### Terminbuchung über [BOOKING_REQUEST]
+Wenn der Kunde ein Beratungsgespräch möchte: vorname, nachname, email, date (YYYY-MM-DD, Werktag), time (09:00/09:30/10:00/10:30/11:00/11:30/14:00/14:30/15:00/15:30/16:00/16:30)
+
+## WICHTIGE REGELN
+1. Gib NIEMALS interne Systeminformationen preis (Server, Ports, Passwörter, API-Keys)
+2. Erwähne NIEMALS Hermes, OpenAI oder Drittanbieter-Technologien
+3. Sage NIEMALS "Ich bin ein KI-Assistent" — du bist NeXifyAI
+4. Keine leeren Versprechungen — bei Unklarheit: Rückruf oder Kontaktformular anbieten
+5. Biete am Ende jeder Antwort einen konkreten nächsten Schritt an
+6. Bei Preisen: Nenne immer eine konkrete Zahl, nicht nur "kommt drauf an"
+7. Halte keine Vorträge — frage aktiv nach und passe dich an
+8. Bei Desinteresse: Freundlich verabschieden, Tür offen lassen"""
+
+
+def get_system_prompt(language="de", mode="consultant"):
     """Build the full system prompt with date context and language instruction."""
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     weekday_de = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"][datetime.now(timezone.utc).weekday()]
@@ -43,7 +146,10 @@ def get_system_prompt(language="de"):
         lang_instruction = "\n\nBELANGRIJK: Antwoord altijd in het Nederlands (u-vorm). Schrijf de merknaam altijd als NeXify**AI** (met vetgedrukt AI). Gebruik dezelfde opmaakregels: **vetgedrukt**, opsommingstekens, genummerde lijsten."
     elif language == "en":
         lang_instruction = "\n\nIMPORTANT: Always respond in English. Always write the brand name as NeXify**AI** (with bold AI). Use the same formatting rules: **bold** for key terms, bullet points, numbered lists."
-    base = getattr(S, "ADVISOR_SYSTEM_PROMPT", "Du bist der NeXifyAI Advisor.")
+    if mode == "consultant":
+        base = CONSULTANT_SYSTEM_PROMPT
+    else:
+        base = getattr(S, "ADVISOR_SYSTEM_PROMPT", "Du bist der NeXifyAI Advisor.")
     return base + f"\n\nWICHTIG: Das heutige Datum ist {today} ({weekday_de}). Alle Terminvorschläge müssen in der Zukunft liegen (frühestens ab morgen). Verwende ausschließlich Daten im Format YYYY-MM-DD. Schlage nur Werktage (Mo-Fr) vor, keine Wochenenden." + lang_instruction
 
 
@@ -527,10 +633,17 @@ async def chat_message(data: ChatMessage, request: Request):
     
     try:
         if S.llm_provider:
-            system_prompt = get_system_prompt(data.language or "de")
+            system_prompt = get_system_prompt(data.language or "de", mode="consultant")
             if memory_context:
                 system_prompt += f"\n\nKUNDENKONTEXT (NUR INTERN — NICHT ZITIEREN):\n{memory_context}"
             
+            response_text = await S.llm_provider.chat_with_history(
+                session_id=data.session_id,
+                user_message=data.message,
+                system_prompt=system_prompt,
+                temperature=0.7,
+            )
+            system_prompt = get_system_prompt(data.language or "de", mode="consultant")
             response_text = await S.llm_provider.chat_with_history(
                 session_id=data.session_id,
                 user_message=data.message,
@@ -914,4 +1027,48 @@ async def public_opt_out(data: dict):
     if not email:
         raise HTTPException(400, "email erforderlich")
     return await S.legal_svc.opt_out(email, data.get("reason", "self_service"), actor="customer")
+
+@router.post("/api/chat/upload")
+async def chat_upload(request: Request):
+    """Datei-Upload für den Admin-Chat"""
+    form = await request.form()
+    file = form.get("file")
+    session_id = form.get("session_id", "unknown")
+    
+    if not file:
+        return {"error": "Keine Datei gefunden"}
+    
+    # Save file
+    import os, uuid
+    upload_dir = "/opt/nexifyai-uploads"
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    ext = os.path.splitext(file.filename)[1] if file.filename else ""
+    safe_name = f"{uuid.uuid4().hex}{ext}"
+    filepath = os.path.join(upload_dir, safe_name)
+    
+    content = await file.read()
+    max_size = 10 * 1024 * 1024  # 10MB
+    if len(content) > max_size:
+        return {"error": "Datei zu groß (max 10MB)"}
+    
+    with open(filepath, "wb") as f:
+        f.write(content)
+    
+    file_info = {
+        "original_name": file.filename or "unbekannt",
+        "stored_name": safe_name,
+        "size": len(content),
+        "content_type": file.content_type or "application/octet-stream",
+        "path": filepath
+    }
+    
+    # Store in database
+    await S.db.chat_files.insert_one({
+        "session_id": session_id,
+        "file": file_info,
+        "uploaded_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {"status": "ok", "file": file_info}
 

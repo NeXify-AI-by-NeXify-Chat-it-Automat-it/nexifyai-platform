@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeXifyAI Chat</title>
+<style>
+:root {
+  --bg: #0f1923;
+  --surface: rgba(19,26,34,0.85);
+  --accent: #FE9B7B;
+  --text: #e2e8f0;
+  --text2: #c8d1dc;
+  --muted: #6b7b8d;
+  --border: rgba(255,255,255,0.08);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: system-ui,-apple-system,sans-serif;
+  background:var(--bg); color:var(--text);
+  height:100vh; display:flex; flex-direction:column;
+}
+.header {
+  background:var(--surface); backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:12px 20px; display:flex; align-items:center; gap:10px;
+}
+.header h1 { font-size:16px; font-weight:800; letter-spacing:-.02em; }
+.header h1 span { color:var(--accent); }
+.status { margin-left:auto; font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px; }
+.dot { width:8px; height:8px; border-radius:50%; background:#22c55e; display:inline-block; }
+.msgs { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:16px; }
+.msg { display:flex; gap:10px; max-width:85%; animation:fadeIn .3s ease; }
+.msg.user { align-self:flex-end; flex-direction:row-reverse; }
+.msg.assistant { align-self:flex-start; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.msg-av { width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0; }
+.msg.assistant .msg-av { background:rgba(254,155,123,0.15); color:var(--accent); }
+.msg.user .msg-av { background:rgba(255,255,255,0.08); color:var(--text2); }
+.msg-b {
+  background:var(--surface); backdrop-filter:blur(10px);
+  border:1px solid var(--border); border-radius:12px;
+  padding:12px 16px; font-size:14px; line-height:1.6;
+}
+.msg.user .msg-b { background:rgba(254,155,123,0.1); border-color:rgba(254,155,123,0.2); }
+.msg-t { font-size:11px; color:var(--muted); margin-top:4px; }
+.input-area {
+  background:var(--surface); backdrop-filter:blur(20px);
+  border-top:1px solid var(--border); padding:16px 20px;
+}
+.input-wrap {
+  display:flex; gap:8px;
+  background:rgba(255,255,255,0.05); border:1px solid var(--border);
+  border-radius:12px; padding:4px;
+}
+.input-wrap:focus-within { border-color:var(--accent); }
+.input-wrap input {
+  flex:1; background:none; border:none; outline:none;
+  padding:8px 12px; font-size:14px; color:var(--text);
+}
+.input-wrap input::placeholder { color:var(--muted); }
+.input-wrap button {
+  background:var(--accent); color:#0f1923; border:none;
+  border-radius:8px; padding:8px 20px; font-weight:600;
+  font-size:13px; cursor:pointer;
+}
+.input-wrap button:disabled { opacity:0.4; cursor:not-allowed; }
+.typing { display:flex; gap:4px; padding:4px 0; }
+.typing span { width:6px;height:6px;border-radius:50%;background:var(--accent);animation:typing 1.4s ease infinite; }
+.typing span:nth-child(2) { animation-delay:.2s; }
+.typing span:nth-child(3) { animation-delay:.4s; }
+@keyframes typing { 0%,100%{opacity:.3;transform:scale(1)} 50%{opacity:1;transform:scale(1.2)} }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>NeXify<span>AI</span></h1>
+  <div class="status"><span class="dot"></span>KI-Berater</div>
+</div>
+<div class="msgs" id="msgs">
+  <div class="msg assistant">
+    <div class="msg-av">N</div>
+    <div><div class="msg-b">Guten Tag! Ich bin Ihr strategischer Berater bei NeXify**AI** und helfe Ihnen, konkrete Automatisierungspotenziale in Ihrem Unternehmen zu identifizieren.<br><br>Womit kann ich Ihnen weiterhelfen?<br><br>**Prozessanalyse** — Wo steckt Potenzial in Ihren Ablaeufen?<br>**Systemintegration** — Wie verbinden wir Ihre bestehenden Tools?<br>**Use Cases** — Welche KI-Loesungen passen zu Ihrer Branche?</div><div class="msg-t" id="wt"></div></div>
+  </div>
+</div>
+<div class="input-area">
+  <div class="input-wrap">
+    <input type="text" id="inp" placeholder="Nachricht eingeben..." autofocus>
+    <button id="btn" disabled>Senden</button>
+  </div>
+</div>
+<script>
+const msgs=document.getElementById('msgs'), inp=document.getElementById('inp'), btn=document.getElementById('btn');
+const API=''; let sid='s_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
+function t(){return new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Amsterdam'})}
+document.getElementById('wt').textContent=t();
+inp.addEventListener('input',()=>{btn.disabled=!inp.value.trim()});
+inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
+function add(r,c){
+  const d=document.createElement('div'); d.className='msg '+r;
+  d.innerHTML='<div class="msg-av">'+(r==='assistant'?'N':'S')+'</div><div><div class="msg-b">'+c+'</div><div class="msg-t">'+t()+'</div></div>';
+  msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight;
+}
+function typing(){
+  const d=document.createElement('div'); d.className='msg assistant'; d.id='ty';
+  d.innerHTML='<div class="msg-av">N</div><div><div class="msg-b"><div class="typing"><span></span><span></span><span></span></div></div></div>';
+  msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight;
+}
+function untype(){const e=document.getElementById('ty');if(e)e.remove()}
+async function send(){
+  const t=inp.value.trim(); if(!t) return;
+  inp.value=''; btn.disabled=true; add('user',t); typing();
+  try{
+    const r=await fetch(API+'/api/chat/message',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,message:t,language:'de'})});
+    if(!r.ok) throw Error('HTTP '+r.status);
+    const d=await r.json(); untype();
+    add('assistant',(d.message||'').trim()||'Keine Antwort.');
+  }catch(e){untype();add('assistant','❌ Verbindungsfehler.')}
+  btn.disabled=false; inp.focus();
+}
+</script>
+</body>
+</html>

@@ -6,7 +6,6 @@ export const API = process.env.REACT_APP_BACKEND_URL || '';
 export const COMPANY = {
   name: 'NeXifyAI by NeXify', tagline: 'Chat it. Automate it.', legal: 'NeXify Automate',
   ceo: 'Pascal Courbois, Geschäftsführer',
-  addr: { de: { s: 'Wallstraße 9', c: '41334 Nettetal-Kaldenkirchen', co: 'Deutschland' }, nl: { s: 'Graaf van Loonstraat 1E', c: '5921 JA Venlo', co: 'Niederlande' } },
   phone: '+31 6 133 188 56', email: 'support@nexify-automate.com', web: 'nexify-automate.com', kvk: '90483944', vat: 'NL865786276B01'
 };
 

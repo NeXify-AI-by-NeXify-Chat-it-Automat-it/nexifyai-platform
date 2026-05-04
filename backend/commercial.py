@@ -37,8 +37,6 @@ COMPANY_DATA = {
         "country": "Niederlande",
     },
     "address_de": {
-        "street": "Wallstrasse 9",
-        "city": "41334 Nettetal-Kaldenkirchen",
         "country": "Deutschland",
     },
     "phone": "+31 6 133 188 56",
