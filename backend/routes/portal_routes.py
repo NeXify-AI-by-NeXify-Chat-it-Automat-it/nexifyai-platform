@@ -143,7 +143,6 @@ async def portal_get_quote(quote_id: str, token: str):
     """Customer access: view quote via magic link"""
     link = await S.db.access_links.find_one({
         "token_hash": hashlib.sha256(token.encode()).hexdigest(),
-        "quote_id": quote_id,
     })
     if not link:
         raise HTTPException(403, "Zugangslink ungültig")
@@ -199,7 +198,6 @@ async def portal_setup_account(request: Request):
     # Validate the access link
     link = await S.db.access_links.find_one({
         "token_hash": hashlib.sha256(token.encode()).hexdigest(),
-        "quote_id": quote_id,
     })
     if not link:
         raise HTTPException(403, "Zugangslink ungültig")
@@ -304,7 +302,6 @@ async def portal_accept_quote(quote_id: str, token: str, request: Request):
     """Customer accepts the quote — triggers invoice + payment"""
     link = await S.db.access_links.find_one({
         "token_hash": hashlib.sha256(token.encode()).hexdigest(),
-        "quote_id": quote_id,
     })
     if not link or not verify_access_token(token, link["token_hash"], link["expires_at"]):
         raise HTTPException(403, "Zugangslink ungültig oder abgelaufen")
@@ -461,7 +458,6 @@ async def portal_decline_quote(quote_id: str, token: str, request: Request):
     """Customer declines the quote"""
     link = await S.db.access_links.find_one({
         "token_hash": hashlib.sha256(token.encode()).hexdigest(),
-        "quote_id": quote_id,
     })
     if not link or not verify_access_token(token, link["token_hash"], link["expires_at"]):
         raise HTTPException(403, "Zugangslink ungültig oder abgelaufen")
@@ -490,7 +486,6 @@ async def portal_request_revision(quote_id: str, token: str, request: Request):
     """Customer requests a revision"""
     link = await S.db.access_links.find_one({
         "token_hash": hashlib.sha256(token.encode()).hexdigest(),
-        "quote_id": quote_id,
     })
     if not link or not verify_access_token(token, link["token_hash"], link["expires_at"]):
         raise HTTPException(403, "Zugangslink ungültig oder abgelaufen")
