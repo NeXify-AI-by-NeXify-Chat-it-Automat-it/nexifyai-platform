@@ -103,7 +103,7 @@ const CustomerPortal = () => {
 
   const loadContracts = useCallback(async () => {
     if (!authToken) return;
-    try { const r = await fetch(`${API}/api/customer/contracts`, { headers: { Authorization: `Bearer ${authToken}` } }); if (r.ok) { const d = await r.json(); setContracts(d.contracts || []); } } catch (e) { console.error('CustomerPortal fetch error:', e); }
+    try { const r = await fetch(`${API}/api/customer/contracts`, { headers: { Authorization: `Bearer ${authToken}` } }); if (r.ok) { const d = await r.json(); setContracts(d.contracts || []); } } catch (e) { console.error('CustomerPortal fetch error:', e); setError(e.message); }
   }, [authToken]);
 
   const loadContractDetail = async (contractId) => {
@@ -117,18 +117,18 @@ const CustomerPortal = () => {
         (d.legal_module_definitions || []).forEach(lm => { initial[lm.key] = d.legal_modules?.[lm.key]?.accepted || false; });
         setLegalAccepted(initial); setSignatureData(''); setSignatureName(''); setShowDecline(false); setShowChangeReq(false);
       }
-    } catch (e) { console.error(e); } finally { setContractLoading(false); }
+    } catch (e) { console.error(e); setError(e.message); } finally { setContractLoading(false); }
   };
 
   const loadProjects = useCallback(async () => {
     if (!authToken) return;
-    try { const r = await fetch(`${API}/api/customer/projects`, { headers: { Authorization: `Bearer ${authToken}` } }); if (r.ok) { const d = await r.json(); setProjects(d.projects || []); } } catch (e) { console.error('CustomerPortal fetch error:', e); }
+    try { const r = await fetch(`${API}/api/customer/projects`, { headers: { Authorization: `Bearer ${authToken}` } }); if (r.ok) { const d = await r.json(); setProjects(d.projects || []); } } catch (e) { console.error('CustomerPortal fetch error:', e); setError(e.message); }
   }, [authToken]);
 
   const loadFinance = useCallback(async () => {
     if (!authToken) return;
     setFinanceLoading(true);
-    try { const r = await fetch(`${API}/api/customer/finance`, { headers: { Authorization: `Bearer ${authToken}` } }); if (r.ok) { const d = await r.json(); setFinanceData(d); } } catch (e) { console.error('CustomerPortal fetch error:', e); } finally { setFinanceLoading(false); }
+    try { const r = await fetch(`${API}/api/customer/finance`, { headers: { Authorization: `Bearer ${authToken}` } }); if (r.ok) { const d = await r.json(); setFinanceData(d); } } catch (e) { console.error('CustomerPortal fetch error:', e); setError(e.message); } finally { setFinanceLoading(false); }
   }, [authToken]);
 
   const loadProfile = useCallback(async () => {
@@ -136,53 +136,53 @@ const CustomerPortal = () => {
     try {
       const r = await fetch(`${API}/api/customer/profile`, { headers: { Authorization: `Bearer ${authToken}` } });
       if (r.ok) { const d = await r.json(); setProfileData(d); setProfileForm({ first_name: d.first_name||'', last_name: d.last_name||'', phone: d.phone||'', company: d.company||'', country: d.country||'DE' }); }
-    } catch (e) { console.error('CustomerPortal fetch error:', e); }
+    } catch (e) { console.error('CustomerPortal fetch error:', e); setError(e.message); }
   }, [authToken]);
 
   const saveProfile = async () => {
     setProfileSaving(true);
-    try { const r = await fetch(`${API}/api/customer/profile`, { method: 'PATCH', headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(profileForm) }); if (r.ok) loadProfile(); } catch (e) { console.error('CustomerPortal fetch error:', e); } finally { setProfileSaving(false); }
+    try { const r = await fetch(`${API}/api/customer/profile`, { method: 'PATCH', headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(profileForm) }); if (r.ok) loadProfile(); } catch (e) { console.error('CustomerPortal fetch error:', e); setError(e.message); } finally { setProfileSaving(false); }
   };
 
   const loadDocuments = useCallback(async () => {
     if (!authToken) return;
     setDocsLoading(true);
-    try { const r = await fetch(`${API}/api/customer/documents`, { headers: { Authorization: `Bearer ${authToken}` } }); if (r.ok) { const d = await r.json(); setCustomerDocs(d.documents || []); } } catch (e) { console.error('CustomerPortal fetch error:', e); } finally { setDocsLoading(false); }
+    try { const r = await fetch(`${API}/api/customer/documents`, { headers: { Authorization: `Bearer ${authToken}` } }); if (r.ok) { const d = await r.json(); setCustomerDocs(d.documents || []); } } catch (e) { console.error('CustomerPortal fetch error:', e); setError(e.message); } finally { setDocsLoading(false); }
   }, [authToken]);
 
   const loadConsents = useCallback(async () => {
     if (!authToken) return;
-    try { const r = await fetch(`${API}/api/customer/consents`, { headers: { Authorization: `Bearer ${authToken}` } }); if (r.ok) { const d = await r.json(); setConsentsData(d); } } catch (e) { console.error('CustomerPortal fetch error:', e); }
+    try { const r = await fetch(`${API}/api/customer/consents`, { headers: { Authorization: `Bearer ${authToken}` } }); if (r.ok) { const d = await r.json(); setConsentsData(d); } } catch (e) { console.error('CustomerPortal fetch error:', e); setError(e.message); }
   }, [authToken]);
 
   const toggleOptOut = async (optOut) => {
     const url = optOut ? `${API}/api/customer/consents/opt-out` : `${API}/api/customer/consents/opt-in`;
-    try { await fetch(url, { method: 'POST', headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: 'customer_request' }) }); loadConsents(); } catch (e) { console.error('CustomerPortal fetch error:', e); }
+    try { await fetch(url, { method: 'POST', headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: 'customer_request' }) }); loadConsents(); } catch (e) { console.error('CustomerPortal fetch error:', e); setError(e.message); }
   };
 
   const loadProjectDetail = async (projectId) => {
-    try { const r = await fetch(`${API}/api/customer/projects/${projectId}`, { headers: { Authorization: `Bearer ${authToken}` } }); if (r.ok) { const d = await r.json(); setProjectDetail(d); setSelectedProject(projectId); } } catch (e) { console.error('CustomerPortal fetch error:', e); }
+    try { const r = await fetch(`${API}/api/customer/projects/${projectId}`, { headers: { Authorization: `Bearer ${authToken}` } }); if (r.ok) { const d = await r.json(); setProjectDetail(d); setSelectedProject(projectId); } } catch (e) { console.error('CustomerPortal fetch error:', e); setError(e.message); }
   };
 
   const sendProjectChatMsg = async () => {
     if (!projectChatMsg.trim() || !selectedProject) return;
-    try { await fetch(`${API}/api/customer/projects/${selectedProject}/chat`, { method: 'POST', headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ content: projectChatMsg }) }); setProjectChatMsg(''); loadProjectDetail(selectedProject); } catch (e) { console.error('CustomerPortal fetch error:', e); }
+    try { await fetch(`${API}/api/customer/projects/${selectedProject}/chat`, { method: 'POST', headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ content: projectChatMsg }) }); setProjectChatMsg(''); loadProjectDetail(selectedProject); } catch (e) { console.error('CustomerPortal fetch error:', e); setError(e.message); }
   };
 
   /* Active Features — Loaders */
   const loadRequests = useCallback(async () => {
     if (!authToken) return;
-    try { const r = await fetch(`${API}/api/customer/requests`, { headers: { Authorization: `Bearer ${authToken}` } }); if (r.ok) { const d = await r.json(); setCustomerRequests(d.requests || []); } } catch (e) { console.error('CustomerPortal fetch error:', e); }
+    try { const r = await fetch(`${API}/api/customer/requests`, { headers: { Authorization: `Bearer ${authToken}` } }); if (r.ok) { const d = await r.json(); setCustomerRequests(d.requests || []); } } catch (e) { console.error('CustomerPortal fetch error:', e); setError(e.message); }
   }, [authToken]);
 
   const loadMessages = useCallback(async () => {
     if (!authToken) return;
-    try { const r = await fetch(`${API}/api/customer/messages`, { headers: { Authorization: `Bearer ${authToken}` } }); if (r.ok) { const d = await r.json(); setCustomerMessages(d.messages || []); } } catch (e) { console.error('CustomerPortal fetch error:', e); }
+    try { const r = await fetch(`${API}/api/customer/messages`, { headers: { Authorization: `Bearer ${authToken}` } }); if (r.ok) { const d = await r.json(); setCustomerMessages(d.messages || []); } } catch (e) { console.error('CustomerPortal fetch error:', e); setError(e.message); }
   }, [authToken]);
 
   const loadSupportTickets = useCallback(async () => {
     if (!authToken) return;
-    try { const r = await fetch(`${API}/api/customer/support`, { headers: { Authorization: `Bearer ${authToken}` } }); if (r.ok) { const d = await r.json(); setSupportTickets(d.tickets || []); } } catch (e) { console.error('CustomerPortal fetch error:', e); }
+    try { const r = await fetch(`${API}/api/customer/support`, { headers: { Authorization: `Bearer ${authToken}` } }); if (r.ok) { const d = await r.json(); setSupportTickets(d.tickets || []); } } catch (e) { console.error('CustomerPortal fetch error:', e); setError(e.message); }
   }, [authToken]);
 
   /* Active Features — Create */
@@ -192,7 +192,7 @@ const CustomerPortal = () => {
     try {
       const r = await fetch(`${API}/api/customer/requests`, { method: 'POST', headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(requestForm) });
       if (r.ok) { setShowNewRequest(false); setRequestForm({ type: 'project', subject: '', description: '', budget_range: '', urgency: 'normal' }); setFormSuccess('Anfrage erfolgreich eingereicht!'); loadRequests(); setTimeout(() => setFormSuccess(''), 4000); }
-    } catch (e) { console.error('CustomerPortal fetch error:', e); } finally { setFormBusy(false); }
+    } catch (e) { console.error('CustomerPortal fetch error:', e); setError(e.message); } finally { setFormBusy(false); }
   };
 
   const submitBooking = async () => {
@@ -201,7 +201,7 @@ const CustomerPortal = () => {
     try {
       const r = await fetch(`${API}/api/customer/bookings`, { method: 'POST', headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(bookingForm) });
       if (r.ok) { setShowNewBooking(false); setBookingForm({ date: '', time: '', type: 'beratung', notes: '' }); setFormSuccess('Termin erfolgreich angefragt!'); reload(); setTimeout(() => setFormSuccess(''), 4000); }
-    } catch (e) { console.error('CustomerPortal fetch error:', e); } finally { setFormBusy(false); }
+    } catch (e) { console.error('CustomerPortal fetch error:', e); setError(e.message); } finally { setFormBusy(false); }
   };
 
   const submitMessage = async () => {
@@ -210,7 +210,7 @@ const CustomerPortal = () => {
     try {
       const r = await fetch(`${API}/api/customer/messages`, { method: 'POST', headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(messageForm) });
       if (r.ok) { setShowNewMessage(false); setMessageForm({ subject: '', content: '', category: 'general' }); setFormSuccess('Nachricht gesendet!'); loadMessages(); setTimeout(() => setFormSuccess(''), 4000); }
-    } catch (e) { console.error('CustomerPortal fetch error:', e); } finally { setFormBusy(false); }
+    } catch (e) { console.error('CustomerPortal fetch error:', e); setError(e.message); } finally { setFormBusy(false); }
   };
 
   const submitTicket = async () => {
@@ -219,7 +219,7 @@ const CustomerPortal = () => {
     try {
       const r = await fetch(`${API}/api/customer/support`, { method: 'POST', headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(ticketForm) });
       if (r.ok) { setShowNewTicket(false); setTicketForm({ subject: '', description: '', category: 'general', priority: 'normal' }); setFormSuccess('Support-Ticket erstellt!'); loadSupportTickets(); setTimeout(() => setFormSuccess(''), 4000); }
-    } catch (e) { console.error('CustomerPortal fetch error:', e); } finally { setFormBusy(false); }
+    } catch (e) { console.error('CustomerPortal fetch error:', e); setError(e.message); } finally { setFormBusy(false); }
   };
 
   /* Signature Canvas */
@@ -278,18 +278,18 @@ const CustomerPortal = () => {
       const payload = { signature_type: signatureType, signature_data: signatureType === 'name' ? signatureName : signatureData, legal_modules_accepted: legalAccepted, customer_name: contractDetail?.customer?.name || '' };
       const r = await fetch(`${API}/api/customer/contracts/${selectedContract}/accept`, { method: 'POST', headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       if (r.ok) { loadContractDetail(selectedContract); loadContracts(); }
-    } catch (e) { console.error(e); } finally { setContractBusy(''); }
+    } catch (e) { console.error(e); setError(e.message); } finally { setContractBusy(''); }
   };
 
   const declineContract = async () => {
     setContractBusy('declining');
-    try { await fetch(`${API}/api/customer/contracts/${selectedContract}/decline`, { method: 'POST', headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: declineReason }) }); loadContractDetail(selectedContract); loadContracts(); setShowDecline(false); } catch (e) { console.error(e); } finally { setContractBusy(''); }
+    try { await fetch(`${API}/api/customer/contracts/${selectedContract}/decline`, { method: 'POST', headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: declineReason }) }); loadContractDetail(selectedContract); loadContracts(); setShowDecline(false); } catch (e) { console.error(e); setError(e.message); } finally { setContractBusy(''); }
   };
 
   const requestChange = async () => {
     if (!changeRequest.trim()) return;
     setContractBusy('change');
-    try { await fetch(`${API}/api/customer/contracts/${selectedContract}/request-change`, { method: 'POST', headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ requested_changes: changeRequest }) }); loadContractDetail(selectedContract); loadContracts(); setShowChangeReq(false); setChangeRequest(''); } catch (e) { console.error(e); } finally { setContractBusy(''); }
+    try { await fetch(`${API}/api/customer/contracts/${selectedContract}/request-change`, { method: 'POST', headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ requested_changes: changeRequest }) }); loadContractDetail(selectedContract); loadContracts(); setShowChangeReq(false); setChangeRequest(''); } catch (e) { console.error(e); setError(e.message); } finally { setContractBusy(''); }
   };
 
   useEffect(() => {
@@ -299,7 +299,7 @@ const CustomerPortal = () => {
         try {
           const auth = JSON.parse(stored);
           if (auth.role === 'customer' && auth.token) { await loadDashboard(auth.token); setLoading(false); return; }
-        } catch (e) { console.error('CustomerPortal fetch error:', e); }
+        } catch (e) { console.error('CustomerPortal fetch error:', e); setError(e.message); }
       }
       const pathParts = window.location.pathname.split('/portal/');
       const pathToken = pathParts.length > 1 ? pathParts[1] : null;
@@ -311,7 +311,7 @@ const CustomerPortal = () => {
             localStorage.setItem('nx_auth', JSON.stringify({ token: vd.access_token, role: 'customer', email: vd.email, name: vd.customer_name }));
             await loadDashboard(vd.access_token); setLoading(false); return;
           }
-        } catch (e) { console.error('CustomerPortal fetch error:', e); }
+        } catch (e) { console.error('CustomerPortal fetch error:', e); setError(e.message); }
       }
       if (urlToken) { try { await loadLegacyToken(urlToken); setLoading(false); return; } catch (e) { setError(e.message); setLoading(false); return; } }
       setError('Bitte melden Sie sich an, um auf Ihr Portal zuzugreifen.'); setLoading(false);
@@ -337,7 +337,7 @@ const CustomerPortal = () => {
       const qp = urlToken ? `?token=${urlToken}` : '';
       const r = await fetch(`${API}/api/portal/quote/${quoteId}/${action}${qp}`, { method: 'POST', headers, body: JSON.stringify(body) });
       if (r.ok) reload();
-    } catch (e) { console.error(e); } finally { setActionBusy(''); }
+    } catch (e) { console.error(e); setError(e.message); } finally { setActionBusy(''); }
   };
 
   if (loading) return <div className="cp-loading"><div className="cp-spinner"></div><p>Laden...</p></div>;

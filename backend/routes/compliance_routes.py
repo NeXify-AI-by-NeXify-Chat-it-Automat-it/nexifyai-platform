@@ -24,8 +24,8 @@ def get_guardian(request: Request) -> LegalGuardian:
     guardian = getattr(request.app.state, "legal_guardian", None)
     if guardian is None:
         # Auto-init falls nicht vorhanden
-        from server import S
-        guardian = LegalGuardian(S.db, S.memory)
+        from routes.shared import S
+        guardian = LegalGuardian(S.db, S.memory_svc)
         request.app.state.legal_guardian = guardian
     return guardian
 
