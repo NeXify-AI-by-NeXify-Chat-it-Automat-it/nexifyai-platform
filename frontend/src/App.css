@@ -1095,7 +1095,7 @@ a.integ-item-v2.popular{border-color:rgba(254,155,123,0.1);color:rgba(255,255,25
 }
 
 /* ── Desktop/Tablet: Cookie-Banner-Anpassung für Chat-Trigger (≥769px) ── */
-body.cookie-visible .chat-trigger{bottom:100px}
+body.cookie-visible .chat-trigger{bottom:120px!important;z-index:1000}
 
 /* ── Mobile (<769px): WhatsApp + Chat als Floating-Action-Paar unten rechts, side-by-side ── */
 @media(max-width:768px){
@@ -1127,7 +1127,7 @@ body.cookie-visible .chat-trigger{bottom:100px}
     transform:none!important;
     transition:bottom 0.4s cubic-bezier(0.4,0,0.2,1)!important;
   }
-  body.cookie-visible .chat-trigger{bottom:120px!important}
+  body.cookie-visible .chat-trigger{bottom:140px!important;z-index:1000}
   .chat-trigger .chat-trigger-text{display:none!important}
   .chat-trigger .chat-trigger-icon{
     display:flex!important;

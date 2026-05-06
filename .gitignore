@@ -47,3 +47,11 @@ test_reports/
 node_modules/
 build/
 .vercel/
+backend/secrets.db*
+backend/server.py.bak*
+backend/routes/analytics_routes.py
+backend/routes/crm_routes.py
+backend/routes/forms_routes.py
+backend/routes/newsletter_routes.py
+backend/routes/secrets_routes.py
+backend/routes/signatures_routes.py
