@@ -509,8 +509,8 @@ function App() {
   const openChat = (msg = '') => { setChatQ(msg); setChatOpen(true); track('chat_open', { source: msg ? 'cta_contextual' : 'cta_generic', msg }); };
   const openBooking = () => { setBookOpen(true); };
 
-  const acceptCookies = () => { localStorage.setItem('nx_cookie_consent', 'all'); setShowCookie(false); };
-  const rejectCookies = () => { localStorage.setItem('nx_cookie_consent', 'essential'); setShowCookie(false); };
+  const acceptCookies = () => { localStorage.setItem('nx_cookie_consent', 'all'); setShowCookie(false); document.body.classList.remove('cookie-visible'); };
+  const rejectCookies = () => { localStorage.setItem('nx_cookie_consent', 'essential'); setShowCookie(false); document.body.classList.remove('cookie-visible'); };
   const openCookieSettings = () => { localStorage.removeItem('nx_cookie_consent'); setShowCookie(true); };
 
   return (
