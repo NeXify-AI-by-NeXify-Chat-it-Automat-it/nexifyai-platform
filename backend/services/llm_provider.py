@@ -122,7 +122,15 @@ class OpenRouterProvider(LLMProvider):
 
                     response.raise_for_status()
                     data = response.json()
-                    msg_obj = data["choices"][0]["message"]
+                    choices = data.get("choices")
+                    if not choices:
+                        self._metrics["errors"] += 1
+                        logger.error(f"OpenRouter API response ohne 'choices'-Feld: code={response.status_code}, body={response.text[:500]}")
+                        import asyncio
+                        await asyncio.sleep(self._retry_base_delay * (2 ** attempt))
+                        last_error = f"API ohne 'choices': {response.text[:80]}"
+                        continue
+                    msg_obj = choices[0]["message"]
                     content = msg_obj.get("content")
                     # Reasoning models may put output in reasoning_content/reasoning when content is empty
                     if not content:
@@ -406,7 +414,15 @@ class DeepSeekDirectProvider(LLMProvider):
 
                     response.raise_for_status()
                     data = response.json()
-                    msg_obj = data["choices"][0]["message"]
+                    choices = data.get("choices")
+                    if not choices:
+                        self._metrics["errors"] += 1
+                        logger.error(f"DeepSeek API response ohne 'choices'-Feld: code={response.status_code}, body={response.text[:500]}")
+                        import asyncio
+                        await asyncio.sleep(self._retry_base_delay * (2 ** attempt))
+                        last_error = f"API ohne 'choices': {response.text[:80]}"
+                        continue
+                    msg_obj = choices[0]["message"]
                     content = msg_obj.get("content")
                     if not content:
                         content = msg_obj.get("reasoning") or ""
