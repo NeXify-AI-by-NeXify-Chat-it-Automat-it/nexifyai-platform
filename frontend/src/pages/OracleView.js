@@ -37,14 +37,14 @@ const OracleView = ({ token }) => {
     try {
       const resp = await fetch(`${API}/api/admin/oracle/health`, { headers });
       if (resp.ok) setHealth(await resp.json());
-    } catch (e) { /* silent */ }
+    } catch (e) { console.error('OracleView error:', e); }
   }, [token]); // eslint-disable-line
 
   const loadAgents = useCallback(async () => {
     try {
       const resp = await fetch(`${API}/api/admin/oracle/agents`, { headers });
       if (resp.ok) setAgents(await resp.json());
-    } catch (e) { /* silent */ }
+    } catch (e) { console.error('OracleView error:', e); }
   }, [token]); // eslint-disable-line
 
   const loadTasks = useCallback(async () => {
@@ -54,7 +54,7 @@ const OracleView = ({ token }) => {
         const d = await resp.json();
         setTasks(d.tasks || []);
       }
-    } catch (e) { /* silent */ }
+    } catch (e) { console.error('OracleView error:', e); }
   }, [token]); // eslint-disable-line
 
   const searchBrain = useCallback(async (q) => {
@@ -65,7 +65,7 @@ const OracleView = ({ token }) => {
         const d = await resp.json();
         setBrain(d.notes || []);
       }
-    } catch (e) { /* silent */ }
+    } catch (e) { console.error('OracleView error:', e); }
   }, [token]); // eslint-disable-line
 
   const invokeAgent = async () => {
@@ -95,7 +95,7 @@ const OracleView = ({ token }) => {
         setNewTask({ title: '', description: '', priority: 5, task_type: 'general' });
         loadDashboard();
       }
-    } catch (e) { /* silent */ }
+    } catch (e) { console.error('OracleView error:', e); }
     setLoading(false);
   };
 
@@ -103,7 +103,7 @@ const OracleView = ({ token }) => {
     try {
       const resp = await fetch(`${API}/api/admin/oracle/engine/status`, { headers });
       if (resp.ok) setEngineStatus(await resp.json());
-    } catch (e) { /* silent */ }
+    } catch (e) { console.error('OracleView error:', e); }
   }, [token]); // eslint-disable-line
 
   const triggerCycle = async () => {
@@ -112,7 +112,7 @@ const OracleView = ({ token }) => {
       await fetch(`${API}/api/admin/oracle/engine/trigger`, { method: 'POST', headers });
       loadEngineStatus();
       loadDashboard();
-    } catch (e) { /* silent */ }
+    } catch (e) { console.error('OracleView error:', e); }
     setLoading(false);
   };
 
@@ -121,7 +121,7 @@ const OracleView = ({ token }) => {
     try {
       const resp = await fetch(`${API}/api/admin/oracle/engine/font-audit`, { method: 'POST', headers });
       if (resp.ok) setFontAudit(await resp.json());
-    } catch (e) { /* silent */ }
+    } catch (e) { console.error('OracleView error:', e); }
     setLoading(false);
   };
 
@@ -130,7 +130,7 @@ const OracleView = ({ token }) => {
     try {
       await fetch(`${API}/api/admin/oracle/engine/sync-knowledge`, { method: 'POST', headers });
       loadDashboard();
-    } catch (e) { /* silent */ }
+    } catch (e) { console.error('OracleView error:', e); }
     setLoading(false);
   };
 

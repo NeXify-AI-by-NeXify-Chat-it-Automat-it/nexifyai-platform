@@ -68,4 +68,4 @@ export const authHeaders = () => {
   return t ? { Authorization: `Bearer ${t}` } : {};
 };
 
-export const AUTH_KEYS = KEYS;
+export const AUTH_KEYS = KEYS
