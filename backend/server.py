@@ -261,6 +261,15 @@ async def lifespan(app: FastAPI):
     db_client = AsyncIOMotorClient(MONGO_URL)
     db = db_client[DB_NAME]
 
+    # --- Supabase Postgres (optional, parallel to MongoDB) ---
+    try:
+        supabase_db = SupabaseDB()
+        await supabase_db.connect()
+        shared.S.supabase = supabase_db
+        logger.info("[STARTUP] OK: SupabaseDB verbunden")
+    except Exception as e:
+        logger.warning(f"[STARTUP] WARNUNG: SupabaseDB deaktiviert - {e}")
+
     # --- Startup API-Key Validation (Graceful Degradation) ---
     key_checks = {
         "OPENROUTER_API_KEY": ("OpenRouter/MiniMax (LLM)", True),

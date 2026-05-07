@@ -70,6 +70,7 @@ S.ADMIN_EMAIL = ""
 S.ADVISOR_SYSTEM_PROMPT = ""
 S.CRON_SECRET = ""
 S.SLACK_WEBHOOK_URL = ""
+S.supabase = None  # SupabaseDB (optional)
 
 
 def init_config():
@@ -77,6 +78,7 @@ def init_config():
     S.RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
     S.SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "noreply@send.nexify-automate.com")
     S.SECRET_KEY = os.environ.get("SECRET_KEY", secrets.token_hex(32))
+    S.SUPABASE_JWT_SECRET = os.environ.get("SUPABASE_JWT_SECRET", "7qhWu1m2qAkVMFkagKHvQcdlx9yFzCl8wPm1Ptb/")
     S.ALGORITHM = "HS256"
     S.ACCESS_TOKEN_EXPIRE_MINUTES = 60
     S.NOTIFICATION_EMAILS = ["support@nexify-automate.com", "nexifyai@nexifyai.de"]
@@ -119,17 +121,35 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 async def get_current_admin(token: str = Depends(oauth2_scheme)):
     if not token:
         raise HTTPException(status_code=401, detail="Nicht authentifiziert", headers={"WWW-Authenticate": "Bearer"})
+    email = None
+    for secret in [S.SUPABASE_JWT_SECRET, S.SECRET_KEY]:
+        try:
+            payload = jwt.decode(token, secret, algorithms=[S.ALGORITHM], audience="authenticated")
+            email = payload.get("email") or payload.get("sub")
+            rv = payload.get("role", "")
+            if not email:
+                continue
+            if rv == "authenticated":
+                rv = payload.get("user_metadata", {}).get("role", "") or payload.get("app_metadata", {}).get("role", "")
+            if rv and rv != "admin":
+                email = None; continue
+            break
+        except:
+            continue
+    if not email:
+        raise HTTPException(status_code=401, detail="Ungültiger Token oder nicht autorisiert")
+    import asyncpg
     try:
-        payload = jwt.decode(token, S.SECRET_KEY, algorithms=[S.ALGORITHM])
-        email: str = payload.get("sub")
-        role: str = payload.get("role", "admin")
-        if not email:
-            raise HTTPException(status_code=401, detail="Ungültiger Token")
-        if role != "admin":
-            raise HTTPException(status_code=403, detail="Keine Admin-Berechtigung")
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Token abgelaufen oder ungültig")
-    user = await S.db.admin_users.find_one({"email": email})
+        dsn = os.environ.get("ALT_SUPABASE_POSTGRESQL", "")
+        if dsn:
+            conn = await asyncpg.connect(dsn)
+            row = await conn.fetchrow("SELECT id, email FROM auth.users WHERE email=$1 AND is_super_admin=true", email.lower())
+            await conn.close()
+            if row:
+                return {"email": row["email"], "role": "admin", "supabase_id": str(row["id"])}
+    except:
+        pass
+    user = await S.db.admin_users.find_one({"email": email.lower()})
     if not user:
         raise HTTPException(status_code=401, detail="Benutzer nicht gefunden")
     return user
