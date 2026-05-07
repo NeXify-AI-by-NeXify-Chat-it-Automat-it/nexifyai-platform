@@ -3,13 +3,13 @@ import secrets
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, HTTPException, Depends, Query, Request
 from routes.shared import S
+from routes.shared import col
 from routes.shared import (
     get_current_admin,
     log_audit,
     send_email,
     email_template,
-    logger,
-)
+    logger)
 from domain import create_contact, create_timeline_event, utcnow, new_id
 from memory_service import AGENT_IDS
 
@@ -47,22 +47,22 @@ async def admin_stats(user = Depends(get_current_admin)):
     today = now.replace(hour=0, minute=0, second=0, microsecond=0)
     week_ago = today - timedelta(days=7)
     
-    total = await S.db.leads.count_documents({})
-    today_count = await S.db.leads.count_documents({"created_at": {"$gte": today.isoformat()}})
-    week_count = await S.db.leads.count_documents({"created_at": {"$gte": week_ago.isoformat()}})
-    bookings_total = await S.db.bookings.count_documents({})
-    upcoming = await S.db.bookings.count_documents({"date": {"$gte": today.strftime("%Y-%m-%d")}})
-    chat_total = await S.db.conversations.count_documents({})
-    contacts_total = await S.db.contacts.count_documents({})
-    quotes_total = await S.db.quotes.count_documents({})
-    contracts_total = await S.db.contracts.count_documents({})
-    invoices_total = await S.db.invoices.count_documents({})
-    projects_total = await S.db.projects.count_documents({})
+    total = await col('leads').count_documents({})
+    today_count = await col('leads').count_documents({"created_at": {"$gte": today.isoformat()}})
+    week_count = await col('leads').count_documents({"created_at": {"$gte": week_ago.isoformat()}})
+    bookings_total = await col('bookings').count_documents({})
+    upcoming = await col('bookings').count_documents({"date": {"$gte": today.strftime("%Y-%m-%d")}})
+    chat_total = await col('conversations').count_documents({})
+    contacts_total = await col('contacts').count_documents({})
+    quotes_total = await col('quotes').count_documents({})
+    contracts_total = await col('contracts').count_documents({})
+    invoices_total = await col('invoices').count_documents({})
+    projects_total = await col('projects').count_documents({})
     
-    status_agg = await S.db.leads.aggregate([{"$group": {"_id": "$status", "count": {"$sum": 1}}}]).to_list(20)
+    status_agg = await col('leads').aggregate([{"$group": {"_id": "$status", "count": {"$sum": 1}}}])
     
     recent_leads = []
-    async for l in S.db.leads.find({}, {"_id": 0}).sort("created_at", -1).limit(10):
+    async for l in col('leads').find({}, {"_id": 0}):
         recent_leads.append(l)
     
     return {
@@ -98,8 +98,8 @@ async def admin_leads(user = Depends(get_current_admin), status: str = None, sea
             {"unternehmen": {"$regex": search, "$options": "i"}}
         ]
     
-    total = await S.db.leads.count_documents(query)
-    leads = await S.db.leads.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+    total = await col('leads').count_documents(query)
+    leads = await col('leads').find(query, {"_id": 0})
     
     return {"total": total, "leads": leads}
 
@@ -111,7 +111,7 @@ async def admin_create_lead(data: dict, current_user: dict = Depends(get_current
     email = data.get("email", "").strip().lower()
     if not email:
         raise HTTPException(400, "E-Mail ist Pflichtfeld")
-    existing = await S.db.leads.find_one({"email": email})
+    existing = await col('leads').find_one({"email": email})
     if existing:
         raise HTTPException(409, "Ein Lead mit dieser E-Mail existiert bereits")
     lead = {
@@ -128,16 +128,16 @@ async def admin_create_lead(data: dict, current_user: dict = Depends(get_current
         "created_at": utcnow(),
         "updated_at": utcnow(),
     }
-    await S.db.leads.insert_one(lead)
+    await col('leads').insert_one(lead)
     lead.pop("_id", None)
     # Also create a unified contact
     contact = create_contact(email, first_name=data.get("vorname",""), last_name=data.get("nachname",""),
                              phone=data.get("telefon",""), company=data.get("unternehmen",""), source="admin")
-    await S.db.contacts.update_one({"email": email}, {"$setOnInsert": contact}, upsert=True)
+    await col('contacts').update_one({"email": email}, {"$setOnInsert": contact}, upsert=True)
     evt = create_timeline_event("lead", lead["lead_id"], "lead_created_manually",
                                 actor=current_user["email"], actor_type="admin",
                                 details={"email": email, "source": "admin"})
-    await S.db.timeline_events.insert_one(evt)
+    await col('timeline_events').insert_one(evt)
     return lead
 
 
@@ -145,12 +145,12 @@ async def admin_create_lead(data: dict, current_user: dict = Depends(get_current
 
 @router.get("/api/admin/leads/{lead_id}")
 async def admin_lead_detail(lead_id: str, user = Depends(get_current_admin)):
-    lead = await S.db.leads.find_one({"lead_id": lead_id}, {"_id": 0})
+    lead = await col('leads').find_one({"lead_id": lead_id}, {"_id": 0})
     if not lead:
         raise HTTPException(status_code=404, detail="Lead nicht gefunden")
     
-    bookings = await S.db.bookings.find({"lead_id": lead_id}, {"_id": 0}).to_list(10)
-    chat = await S.db.chat_sessions.find_one({"lead_id": lead_id}, {"_id": 0})
+    bookings = await col('bookings').find({"lead_id": lead_id}, {"_id": 0})
+    chat = await col('chat_sessions').find_one({"lead_id": lead_id}, {"_id": 0})
     
     return {"lead": lead, "bookings": bookings, "chat": chat}
 
@@ -164,18 +164,18 @@ async def admin_update_lead(lead_id: str, update: LeadUpdate, user = Depends(get
             updates[field] = val
     
     if update.notes:
-        await S.db.leads.update_one(
+        await col('leads').update_one(
             {"lead_id": lead_id},
             {"$set": updates, "$push": {"notes": {"text": update.notes, "by": user["email"], "at": datetime.now(timezone.utc).isoformat()}}}
         )
     else:
-        await S.db.leads.update_one({"lead_id": lead_id}, {"$set": updates})
+        await col('leads').update_one({"lead_id": lead_id}, {"$set": updates})
     
     await log_audit("lead_updated", user["email"], {"lead_id": lead_id, "updates": {k: v for k, v in updates.items() if k != "updated_at"}})
     
     # mem0 Memory
     if S.memory_svc:
-        contact = await S.db.contacts.find_one({"email": (update.email or "").lower() or (await S.db.leads.find_one({"lead_id": lead_id}))["email"]})
+        contact = await col('contacts').find_one({"email": (update.email or "").lower() or (await col('leads').find_one({"lead_id": lead_id}))["email"]})
         if contact:
             changed = ", ".join(f"{k}={v}" for k, v in updates.items() if k != "updated_at")
             await S.memory_svc.write(contact["contact_id"], f"Lead {lead_id} bearbeitet: {changed}", AGENT_IDS["admin"],
@@ -193,14 +193,14 @@ async def admin_bookings(user = Depends(get_current_admin), status: str = None, 
         query.setdefault("date", {})["$gte"] = date_from
     if date_to:
         query.setdefault("date", {})["$lte"] = date_to
-    total = await S.db.bookings.count_documents(query)
-    bookings = await S.db.bookings.find(query, {"_id": 0}).sort("date", -1).skip(skip).limit(limit).to_list(limit)
+    total = await col('bookings').count_documents(query)
+    bookings = await col('bookings').find(query, {"_id": 0})
     return {"total": total, "bookings": bookings}
 
 
 @router.get("/api/admin/bookings/{booking_id}")
 async def admin_booking_detail(booking_id: str, user = Depends(get_current_admin)):
-    booking = await S.db.bookings.find_one({"booking_id": booking_id}, {"_id": 0})
+    booking = await col('bookings').find_one({"booking_id": booking_id}, {"_id": 0})
     if not booking:
         raise HTTPException(status_code=404, detail="Buchung nicht gefunden")
     return booking
@@ -208,7 +208,7 @@ async def admin_booking_detail(booking_id: str, user = Depends(get_current_admin
 
 @router.patch("/api/admin/bookings/{booking_id}")
 async def admin_update_booking(booking_id: str, update: BookingUpdate, user = Depends(get_current_admin)):
-    booking = await S.db.bookings.find_one({"booking_id": booking_id})
+    booking = await col('bookings').find_one({"booking_id": booking_id})
     if not booking:
         raise HTTPException(status_code=404, detail="Buchung nicht gefunden")
     updates = {"updated_at": datetime.now(timezone.utc)}
@@ -219,19 +219,19 @@ async def admin_update_booking(booking_id: str, update: BookingUpdate, user = De
     if update.time:
         updates["time"] = update.time
     if update.notes is not None:
-        await S.db.bookings.update_one(
+        await col('bookings').update_one(
             {"booking_id": booking_id},
             {"$set": updates, "$push": {"notes": {"text": update.notes, "by": user["email"], "at": datetime.now(timezone.utc).isoformat()}}}
         )
     else:
-        await S.db.bookings.update_one({"booking_id": booking_id}, {"$set": updates})
+        await col('bookings').update_one({"booking_id": booking_id}, {"$set": updates})
     await log_audit("booking_updated", user["email"], {"booking_id": booking_id, "updates": {k: v for k, v in updates.items() if k != "updated_at"}})
     return {"success": True}
 
 
 @router.delete("/api/admin/bookings/{booking_id}")
 async def admin_delete_booking(booking_id: str, user = Depends(get_current_admin)):
-    result = await S.db.bookings.delete_one({"booking_id": booking_id})
+    result = await col('bookings').delete_one({"booking_id": booking_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Buchung nicht gefunden")
     await log_audit("booking_deleted", user["email"], {"booking_id": booking_id})
@@ -247,7 +247,7 @@ async def admin_get_blocked_slots(user = Depends(get_current_admin), date_from: 
         query.setdefault("date", {})["$gte"] = date_from
     if date_to:
         query.setdefault("date", {})["$lte"] = date_to
-    slots = await S.db.blocked_slots.find(query, {"_id": 0}).sort("date", 1).to_list(200)
+    slots = await col('blocked_slots').find(query, {"_id": 0})
     return {"slots": slots}
 
 
@@ -263,7 +263,7 @@ async def admin_create_blocked_slot(slot: BlockedSlot, user = Depends(get_curren
         "created_by": user["email"],
         "created_at": datetime.now(timezone.utc)
     }
-    await S.db.blocked_slots.insert_one(doc)
+    await col('blocked_slots').insert_one(doc)
     await log_audit("slot_blocked", user["email"], {"slot_id": slot_id, "date": slot.date})
     del doc["_id"]
     return doc
@@ -271,7 +271,7 @@ async def admin_create_blocked_slot(slot: BlockedSlot, user = Depends(get_curren
 
 @router.delete("/api/admin/blocked-slots/{slot_id}")
 async def admin_delete_blocked_slot(slot_id: str, user = Depends(get_current_admin)):
-    result = await S.db.blocked_slots.delete_one({"slot_id": slot_id})
+    result = await col('blocked_slots').delete_one({"slot_id": slot_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Slot nicht gefunden")
     await log_audit("slot_unblocked", user["email"], {"slot_id": slot_id})
@@ -303,10 +303,10 @@ async def admin_customers(user = Depends(get_current_admin), search: str = None)
             {"email": {"$regex": search, "$options": "i"}},
             {"unternehmen": {"$regex": search, "$options": "i"}}
         ]}})
-    customers = await S.db.leads.aggregate(pipeline).to_list(200)
+    customers = await col('leads').aggregate(pipeline)
     for c in customers:
         c["email"] = c.pop("_id")
-        booking_count = await S.db.bookings.count_documents({"email": c["email"]})
+        booking_count = await col('bookings').count_documents({"email": c["email"]})
         c["total_bookings"] = booking_count
         if c.get("first_contact") and not isinstance(c["first_contact"], str):
             c["first_contact"] = c["first_contact"].isoformat()
@@ -329,10 +329,10 @@ async def admin_create_customer(data: dict, user = Depends(get_current_admin)):
     branche = data.get("branche", "").strip()
     
     # Upsert lead record
-    existing_lead = await S.db.leads.find_one({"email": email})
+    existing_lead = await col('leads').find_one({"email": email})
     now = datetime.now(timezone.utc)
     if existing_lead:
-        await S.db.leads.update_one(
+        await col('leads').update_one(
             {"email": email},
             {"$set": {
                 "vorname": vorname or existing_lead.get("vorname", ""),
@@ -345,7 +345,7 @@ async def admin_create_customer(data: dict, user = Depends(get_current_admin)):
         )
     else:
         lead_id = new_id("ld")
-        await S.db.leads.insert_one({
+        await col('leads').insert_one({
             "lead_id": lead_id,
             "email": email,
             "vorname": vorname,
@@ -361,9 +361,9 @@ async def admin_create_customer(data: dict, user = Depends(get_current_admin)):
         })
     
     # Upsert unified contact
-    existing_contact = await S.db.contacts.find_one({"email": email})
+    existing_contact = await col('contacts').find_one({"email": email})
     if existing_contact:
-        await S.db.contacts.update_one(
+        await col('contacts').update_one(
             {"email": email},
             {"$set": {
                 "first_name": vorname or existing_contact.get("first_name", ""),
@@ -380,7 +380,7 @@ async def admin_create_customer(data: dict, user = Depends(get_current_admin)):
         contact = create_contact(email, first_name=vorname, last_name=nachname,
                                   company=unternehmen, phone=telefon, industry=branche,
                                   source="admin_manual")
-        await S.db.contacts.insert_one(contact)
+        await col('contacts').insert_one(contact)
         contact.pop("_id", None)
         contact_id = contact["contact_id"]
     
@@ -393,7 +393,7 @@ async def admin_create_customer(data: dict, user = Depends(get_current_admin)):
     evt = create_timeline_event("contact", contact_id, "customer_created_manual",
                                 actor=user["email"], actor_type="admin",
                                 details={"email": email, "vorname": vorname, "nachname": nachname, "unternehmen": unternehmen})
-    await S.db.timeline_events.insert_one(evt)
+    await col('timeline_events').insert_one(evt)
     
     return {"status": "ok", "email": email, "contact_id": contact_id}
 
@@ -407,12 +407,12 @@ async def admin_create_portal_access(data: dict, user = Depends(get_current_admi
         raise HTTPException(400, "E-Mail ist Pflichtfeld")
     
     # Ensure contact exists
-    contact = await S.db.contacts.find_one({"email": email})
+    contact = await col('contacts').find_one({"email": email})
     if not contact:
         raise HTTPException(404, "Kein Kontakt für diese E-Mail gefunden. Bitte erst Kunden anlegen.")
     
     token_data = generate_access_token(email, "portal")
-    await S.db.access_links.insert_one({
+    await col('access_links').insert_one({
         "token_hash": token_data["token_hash"],
         "customer_email": email,
         "document_type": "portal",
@@ -433,7 +433,7 @@ async def admin_create_portal_access(data: dict, user = Depends(get_current_admi
     evt = create_timeline_event("contact", contact["contact_id"], "portal_access_created",
                                 actor=user["email"], actor_type="admin",
                                 details={"email": email, "expires_at": token_data["expires_at"]})
-    await S.db.timeline_events.insert_one(evt)
+    await col('timeline_events').insert_one(evt)
     
     return {"status": "ok", "portal_url": portal_url, "expires_at": token_data["expires_at"]}
 
@@ -441,12 +441,12 @@ async def admin_create_portal_access(data: dict, user = Depends(get_current_admi
 
 @router.get("/api/admin/customers/{email}")
 async def admin_customer_detail(email: str, user = Depends(get_current_admin)):
-    leads = await S.db.leads.find({"email": email.lower()}, {"_id": 0}).sort("created_at", -1).to_list(50)
-    bookings = await S.db.bookings.find({"email": email.lower()}, {"_id": 0}).sort("date", -1).to_list(50)
-    chats = await S.db.chat_sessions.find(
+    leads = await col('leads').find({"email": email.lower()}, {"_id": 0})
+    bookings = await col('bookings').find({"email": email.lower()}, {"_id": 0})
+    chats = await col('chat_sessions').find(
         {"$or": [{"email": email.lower()}, {"qualification.email": email.lower()}]},
         {"_id": 0, "messages": {"$slice": -10}}
-    ).sort("updated_at", -1).to_list(10)
+    )
     return {"leads": leads, "bookings": bookings, "chats": chats}
 
 
@@ -455,7 +455,7 @@ async def admin_customer_detail(email: str, user = Depends(get_current_admin)):
 async def admin_update_customer(email: str, data: dict, user = Depends(get_current_admin)):
     """Kunden-/Kontaktdaten bearbeiten."""
     email = email.lower()
-    contact = await S.db.contacts.find_one({"email": email})
+    contact = await col('contacts').find_one({"email": email})
     if not contact:
         raise HTTPException(404, "Kontakt nicht gefunden")
     
@@ -466,7 +466,7 @@ async def admin_update_customer(email: str, data: dict, user = Depends(get_curre
             updates[en_key] = data[de_key].strip()
     
     if len(updates) > 1:
-        await S.db.contacts.update_one({"email": email}, {"$set": updates})
+        await col('contacts').update_one({"email": email}, {"$set": updates})
     
     # Auch Lead-Daten synchronisieren
     lead_updates = {}
@@ -514,14 +514,14 @@ async def admin_create_booking(data: dict, user = Depends(get_current_admin)):
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc),
     }
-    await S.db.bookings.insert_one(doc)
+    await col('bookings').insert_one(doc)
     doc.pop("_id", None)
     
     await log_audit("booking_created_manual", user["email"], {"booking_id": booking_id})
     evt = create_timeline_event("booking", booking_id, "booking_created",
                                 actor=user["email"], actor_type="admin",
                                 details={"email": doc["email"], "date": doc["date"], "time": doc["time"]})
-    await S.db.timeline_events.insert_one(evt)
+    await col('timeline_events').insert_one(evt)
     
     return {"success": True, "booking_id": booking_id}
 
@@ -541,15 +541,15 @@ async def admin_calendar_data(user = Depends(get_current_admin), month: str = No
     else:
         date_to = f"{year}-{mon + 1:02d}-01"
     
-    bookings = await S.db.bookings.find(
+    bookings = await col('bookings').find(
         {"date": {"$gte": date_from, "$lt": date_to}},
         {"_id": 0}
-    ).sort("date", 1).to_list(200)
+    )
     
-    blocked = await S.db.blocked_slots.find(
+    blocked = await col('blocked_slots').find(
         {"date": {"$gte": date_from, "$lt": date_to}},
         {"_id": 0}
-    ).sort("date", 1).to_list(200)
+    )
     
     return {"bookings": bookings, "blocked_slots": blocked, "month": month}
 
@@ -572,7 +572,7 @@ async def admin_timeline(
     query = {}
     if email:
         query["$or"] = [{"details.email": email.lower()}, {"actor": email.lower()}]
-    async for ev in S.db.audit_log.find(query, {"_id": 0}).sort("timestamp", -1).limit(limit):
+    async for ev in col('audit_log').find(query, {"_id": 0}):
         events.append({
             "type": "audit",
             "event": ev.get("event_type", ev.get("event", "")),
@@ -583,7 +583,7 @@ async def admin_timeline(
         })
     
     # Commercial events fallback
-    async for ev in S.db.commercial_events.find(query if email else {}, {"_id": 0}).sort("timestamp", -1).limit(limit):
+    async for ev in col('commercial_events').find(query if email else {}, {"_id": 0}):
         events.append({
             "type": "commercial",
             "event": ev.get("event", ""),
@@ -613,7 +613,7 @@ async def admin_add_lead_note(
         "author": current_user["email"],
         "date": datetime.now(timezone.utc).isoformat(),
     }
-    result = await S.db.leads.update_one(
+    result = await col('leads').update_one(
         {"lead_id": lead_id},
         {"$push": {"notes": note}, "$set": {"updated_at": datetime.now(timezone.utc)}}
     )
@@ -634,43 +634,43 @@ async def get_customer_casefile(email: str, current_user: dict = Depends(get_cur
     """Vollständige Kunden-Fallakte: Kontakt, Leads, Buchungen, Angebote, Rechnungen, Verträge, Kommunikation, Timeline, E-Mails."""
     email_lower = email.lower()
     
-    contact = await S.db.contacts.find_one({"email": email_lower}, {"_id": 0})
-    customer = await S.db.customers.find_one({"email": email_lower}, {"_id": 0})
+    contact = await col('contacts').find_one({"email": email_lower}, {"_id": 0})
+    customer = await col('customers').find_one({"email": email_lower}, {"_id": 0})
     
     leads = []
-    async for l in S.db.leads.find({"email": email_lower}, {"_id": 0}).sort("created_at", -1):
+    async for l in col('leads').find({"email": email_lower}, {"_id": 0}):
         leads.append(l)
     
     bookings = []
-    async for b in S.db.bookings.find({"email": email_lower}, {"_id": 0}).sort("created_at", -1):
+    async for b in col('bookings').find({"email": email_lower}, {"_id": 0}):
         bookings.append(b)
     
     quotes = []
-    async for q in S.db.quotes.find({"customer.email": email_lower}, {"_id": 0}).sort("created_at", -1):
+    async for q in col('quotes').find({"customer.email": email_lower}, {"_id": 0}):
         quotes.append(q)
     
     invoices = []
-    async for inv in S.db.invoices.find({"customer.email": email_lower}, {"_id": 0}).sort("created_at", -1):
+    async for inv in col('invoices').find({"customer.email": email_lower}, {"_id": 0}):
         invoices.append(inv)
     
     contracts = []
-    async for c in S.db.contracts.find({"customer.email": email_lower}, {"_id": 0}).sort("created_at", -1):
+    async for c in col('contracts').find({"customer.email": email_lower}, {"_id": 0}):
         contracts.append(c)
     
     conversations = []
-    async for conv in S.db.conversations.find({"user_email": email_lower}, {"_id": 0}).sort("created_at", -1).limit(20):
+    async for conv in col('conversations').find({"user_email": email_lower}, {"_id": 0}):
         conversations.append(conv)
     
     timeline = []
-    async for t in S.db.timeline_events.find({"ref_id": {"$regex": email_lower, "$options": "i"}}, {"_id": 0}).sort("created_at", -1).limit(50):
+    async for t in col('timeline_events').find({"ref_id": {"$regex": email_lower, "$options": "i"}}, {"_id": 0}):
         timeline.append(t)
     
     emails_sent = []
-    async for e in S.db.email_events.find({"recipients": email_lower}, {"_id": 0}).sort("sent_at", -1).limit(30):
+    async for e in col('email_events').find({"recipients": email_lower}, {"_id": 0}):
         emails_sent.append(e)
     
     memory = []
-    async for m in S.db.customer_memory.find({"user_id": email_lower}, {"_id": 0}).sort("created_at", -1).limit(20):
+    async for m in col('customer_memory').find({"user_id": email_lower}, {"_id": 0}):
         memory.append(m)
     
     return {
@@ -707,7 +707,7 @@ async def update_customer_contact(email: str, data: dict, current_user: dict = D
     update_data = {k: v for k, v in data.items() if k in allowed and v is not None}
     update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
     
-    result = await S.db.contacts.update_one({"email": email_lower}, {"$set": update_data}, upsert=True)
+    result = await col('contacts').update_one({"email": email_lower}, {"$set": update_data}, upsert=True)
     await log_audit(current_user["email"], "contact_updated", f"Kontakt {email_lower} aktualisiert")
     return {"status": "ok", "modified": result.modified_count}
 
@@ -735,10 +735,9 @@ async def send_direct_email(req: DirectEmailRequest, current_user: dict = Depend
         subject=req.subject,
         html_body=html,
         text_body=req.body,
-        reply_to="nexifyai@nexifyai.de",
-    )
+        reply_to="nexifyai@nexifyai.de")
     
-    await S.db.email_events.insert_one({
+    await col('email_events').insert_one({
         "recipients": [req.to_email],
         "subject": req.subject,
         "body_preview": req.body[:200],
@@ -764,22 +763,21 @@ async def add_customer_note(email: str, data: dict, current_user: dict = Depends
     }
     
     # Check if contact exists and if notes field needs migration from string to array
-    existing = await S.db.contacts.find_one({"email": email_lower})
+    existing = await col('contacts').find_one({"email": email_lower})
     if existing and isinstance(existing.get("notes"), str):
         # Migrate string notes to array format
         old_note = existing["notes"]
-        await S.db.contacts.update_one(
+        await col('contacts').update_one(
             {"email": email_lower},
             {"$set": {"notes": [{"text": old_note, "author": "system", "category": "legacy", "created_at": existing.get("created_at", datetime.now(timezone.utc).isoformat())}]}}
         )
     
-    await S.db.contacts.update_one(
+    await col('contacts').update_one(
         {"email": email_lower},
         {"$push": {"notes": note}, "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}},
-        upsert=True,
-    )
+        upsert=True)
     
-    await S.db.timeline_events.insert_one({
+    await col('timeline_events').insert_one({
         "event": "note_added",
         "ref_id": email_lower,
         "actor": current_user["email"],
@@ -799,7 +797,7 @@ async def add_customer_note(email: str, data: dict, current_user: dict = Depends
 async def admin_users_list(current_user: dict = Depends(get_current_admin)):
     """Admin-Benutzerliste."""
     users = []
-    async for u in S.db.admin_users.find({}, {"_id": 0, "password_hash": 0}):
+    async for u in col('admin_users').find({}, {"_id": 0, "password_hash": 0}):
         users.append(u)
     return {"users": users, "count": len(users)}
 
@@ -812,11 +810,11 @@ async def admin_create_user(data: dict, current_user: dict = Depends(get_current
     role = data.get("role", "admin")
     if not email or not password:
         raise HTTPException(400, "E-Mail und Passwort erforderlich")
-    existing = await S.db.admin_users.find_one({"email": email})
+    existing = await col('admin_users').find_one({"email": email})
     if existing:
         raise HTTPException(409, "Benutzer existiert bereits")
     from server import hash_password
-    await S.db.admin_users.insert_one({
+    await col('admin_users').insert_one({
         "email": email,
         "password_hash": hash_password(password),
         "role": role,
@@ -830,7 +828,7 @@ async def admin_create_user(data: dict, current_user: dict = Depends(get_current
 async def admin_update_user(email: str, data: dict, current_user: dict = Depends(get_current_admin)):
     """Admin-Benutzer aktualisieren (Rolle, Passwort)."""
     email_lower = email.lower()
-    existing = await S.db.admin_users.find_one({"email": email_lower})
+    existing = await col('admin_users').find_one({"email": email_lower})
     if not existing:
         raise HTTPException(404, "Benutzer nicht gefunden")
     updates = {}
@@ -844,7 +842,7 @@ async def admin_update_user(email: str, data: dict, current_user: dict = Depends
     if not updates:
         raise HTTPException(400, "Keine Änderungen")
     updates["updated_at"] = utcnow().isoformat()
-    await S.db.admin_users.update_one({"email": email_lower}, {"$set": updates})
+    await col('admin_users').update_one({"email": email_lower}, {"$set": updates})
     return {"status": "ok", "email": email_lower, "updated": list(updates.keys())}
 
 
@@ -854,7 +852,7 @@ async def admin_delete_user(email: str, current_user: dict = Depends(get_current
     email_lower = email.lower()
     if email_lower == current_user["email"]:
         raise HTTPException(400, "Eigenen Account kann man nicht löschen")
-    result = await S.db.admin_users.delete_one({"email": email_lower})
+    result = await col('admin_users').delete_one({"email": email_lower})
     if result.deleted_count == 0:
         raise HTTPException(404, "Benutzer nicht gefunden")
     return {"status": "ok", "deleted": email_lower}
@@ -868,7 +866,7 @@ async def admin_delete_user(email: str, current_user: dict = Depends(get_current
 async def admin_webhook_events(limit: int = 50, current_user: dict = Depends(get_current_admin)):
     """Webhook-Event-Store auflisten."""
     events = []
-    async for evt in S.db.webhook_events.find({}, {"_id": 0}).sort("timestamp", -1).limit(limit):
+    async for evt in col('webhook_events').find({}, {"_id": 0}):
         events.append(evt)
     return {"events": events, "count": len(events)}
 
@@ -909,7 +907,7 @@ async def admin_create_api_key(request: Request, current_user: dict = Depends(ge
         "last_used_at": None,
         "total_requests": 0,
     }
-    await S.db.api_keys.insert_one(doc)
+    await col('api_keys').insert_one(doc)
     await log_audit("api_key_created", current_user["email"], {"key_id": key_id, "name": name, "scopes": scopes})
     return {
         "key_id": key_id,
@@ -926,7 +924,7 @@ async def admin_create_api_key(request: Request, current_user: dict = Depends(ge
 async def admin_list_api_keys(current_user: dict = Depends(get_current_admin)):
     """Alle API-Keys auflisten (ohne Hash)."""
     keys = []
-    async for k in S.db.api_keys.find({}, {"_id": 0, "key_hash": 0}).sort("created_at", -1):
+    async for k in col('api_keys').find({}, {"_id": 0, "key_hash": 0}):
         keys.append(k)
     return {"keys": keys, "count": len(keys)}
 
@@ -941,7 +939,7 @@ async def admin_update_api_key(key_id: str, request: Request, current_user: dict
             updates[field] = body[field]
     if not updates:
         raise HTTPException(400, "Keine Änderungen angegeben")
-    result = await S.db.api_keys.update_one({"key_id": key_id}, {"$set": updates})
+    result = await col('api_keys').update_one({"key_id": key_id}, {"$set": updates})
     if result.matched_count == 0:
         raise HTTPException(404, "API-Key nicht gefunden")
     await log_audit("api_key_updated", current_user["email"], {"key_id": key_id, "updates": list(updates.keys())})
@@ -951,7 +949,7 @@ async def admin_update_api_key(key_id: str, request: Request, current_user: dict
 @router.delete("/api/admin/api-keys/{key_id}")
 async def admin_delete_api_key(key_id: str, current_user: dict = Depends(get_current_admin)):
     """API-Key permanent löschen."""
-    result = await S.db.api_keys.delete_one({"key_id": key_id})
+    result = await col('api_keys').delete_one({"key_id": key_id})
     if result.deleted_count == 0:
         raise HTTPException(404, "API-Key nicht gefunden")
     # Also delete associated webhooks
@@ -972,7 +970,7 @@ async def admin_list_customer_accounts(user = Depends(get_current_admin), search
     if search:
         q["email"] = {"$regex": search.strip().lower(), "$options": "i"}
     accounts = []
-    async for a in S.db.customer_accounts.find(q, {"_id": 0, "password_hash": 0}).sort("created_at", -1).limit(200):
+    async for a in col('customer_accounts').find(q, {"_id": 0, "password_hash": 0}):
         for k, v in list(a.items()):
             if hasattr(v, "isoformat"):
                 a[k] = v.isoformat()
@@ -986,7 +984,7 @@ async def admin_reset_customer_password(email: str, user = Depends(get_current_a
     import hashlib
     import secrets as _s
     email = email.strip().lower()
-    account = await S.db.customer_accounts.find_one({"email": email, "activated": True})
+    account = await col('customer_accounts').find_one({"email": email, "activated": True})
     if not account:
         raise HTTPException(404, "Kundenkonto nicht gefunden")
 
@@ -994,7 +992,7 @@ async def admin_reset_customer_password(email: str, user = Depends(get_current_a
     token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
     expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
 
-    await S.db.password_resets.insert_one({
+    await col('password_resets').insert_one({
         "email": email,
         "token_hash": token_hash,
         "expires_at": expires_at,
@@ -1014,8 +1012,7 @@ async def admin_reset_customer_password(email: str, user = Depends(get_current_a
             "<p>Unser Team hat eine Passwort-Zurücksetzung für Ihr Kundenkonto initiiert.</p>"
             "<p>Klicken Sie auf den Button, um ein neues Passwort zu vergeben. Der Link ist 1 Stunde gültig.</p>",
             reset_link,
-            "Neues Passwort vergeben",
-        )
+            "Neues Passwort vergeben")
         await send_email([email], "Passwort zurücksetzen — NeXifyAI", html, category="password_reset_admin", ref_id=email)
     except Exception as e:
         logger.error(f"Admin-Reset E-Mail Fehler: {e}")
@@ -1028,7 +1025,7 @@ async def admin_reset_customer_password(email: str, user = Depends(get_current_a
 async def admin_deactivate_customer_account(email: str, user = Depends(get_current_admin)):
     """Admin deactivates a customer portal account (keeps record for audit)."""
     email = email.strip().lower()
-    res = await S.db.customer_accounts.update_one(
+    res = await col('customer_accounts').update_one(
         {"email": email},
         {"$set": {"activated": False, "deactivated_at": datetime.now(timezone.utc).isoformat(), "deactivated_by": user["email"]}}
     )

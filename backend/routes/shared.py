@@ -72,6 +72,14 @@ S.CRON_SECRET = ""
 S.SLACK_WEBHOOK_URL = ""
 S.supabase = None  # SupabaseDB (optional)
 
+def col(name):
+    """Supabase collection with MongoDB fallback."""
+    if S.supabase and hasattr(S.supabase, name):
+        return getattr(S.supabase, name)
+    return getattr(S.db, name)
+
+
+
 
 def init_config():
     """Load configuration from environment. Called by server.py at startup."""
