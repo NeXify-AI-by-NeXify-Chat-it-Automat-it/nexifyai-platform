@@ -89,7 +89,7 @@ export default function SEOHead({ lang = 'de', page = 'home' }) {
   const orgSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: "NeXifyAI by NeXify - Chat it. Automate it.",
+    name: "neXify - Chat it. Automat it.",
     alternateName: 'NeXifyAI',
     url: BASE_URL,
     logo: `${BASE_URL}/icon-mark.svg`,
@@ -109,7 +109,7 @@ export default function SEOHead({ lang = 'de', page = 'home' }) {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
     '@id': `${BASE_URL}/#business`,
-    name: 'NeXifyAI by NeXify',
+    name: 'neXify - Chat it. Automat it.',
     url: BASE_URL,
     telephone: '+31-6-133-188-56',
     email: 'support@nexify-automate.com',
@@ -119,7 +119,8 @@ export default function SEOHead({ lang = 'de', page = 'home' }) {
     currenciesAccepted: 'EUR',
     paymentAccepted: ['Bank Transfer', 'Credit Card', 'SEPA'],
     openingHoursSpecification: [
-      { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '09:00', closes: '18:00' }
+      { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday'], opens: '09:00', closes: '17:00' },
+      { '@type': 'OpeningHoursSpecification', dayOfWeek: 'Friday', opens: '09:00', closes: '15:00' }
     ]
   };
 
@@ -137,7 +138,7 @@ export default function SEOHead({ lang = 'de', page = 'home' }) {
     '@context': 'https://schema.org',
     '@type': 'Service',
     serviceType: 'AI Agent Development & Enterprise Automation',
-    provider: { '@type': 'Organization', name: "NeXifyAI by NeXify - Chat it. Automate it." },
+    provider: { '@type': 'Organization', name: "neXify - Chat it. Automat it." },
     areaServed: ['DE', 'AT', 'CH', 'NL', 'EU'],
     hasOfferCatalog: {
       '@type': 'OfferCatalog',

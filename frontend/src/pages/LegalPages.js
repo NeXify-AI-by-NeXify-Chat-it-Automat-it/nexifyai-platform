@@ -5,7 +5,7 @@ import LanguageSwitcher from '../components/LanguageSwitcher';
 import SEOHead from '../components/SEOHead';
 
 const CO = {
-  legal: 'NeXifyAI by NeXify - Chat it. Automate it.', ceo: 'Pascal Courbois, Geschäftsführer (Directeur)',
+  legal: 'neXify – Chat it. Automat it.', ceo: 'Pascal Courbois, Geschäftsführer (Directeur)',
   nl: 'Graaf van Loonstraat 1E, 5921 JA Venlo, Niederlande',
   phone: '+31 6 133 188 56', email: 'support@nexify-automate.com',
   web: 'nexify-automate.com', kvk: '90483944', vat: 'NL865786276B01'
@@ -42,7 +42,7 @@ const ImpressumContent = {
     <>
       <section>
         <h2>Impressum</h2>
-        <p><strong>NeXifyAI by NeXify &ndash; Chat it. Automate it.</strong><br/>
+        <p><strong>neXify &ndash; Chat it. Automat it.</strong><br/>
         (Eenmanszaak &ndash; Einzelunternehmen)</p>
         <p><strong>Inhaber:</strong><br/>
         Pascal Courbois</p>
@@ -67,7 +67,7 @@ const ImpressumContent = {
     <>
       <section>
         <h2>Impressum</h2>
-        <p><strong>NeXifyAI by NeXify &ndash; Chat it. Automate it.</strong><br/>
+        <p><strong>neXify &ndash; Chat it. Automat it.</strong><br/>
         (Eenmanszaak)</p>
         <p><strong>Eigenaar:</strong><br/>
         Pascal Courbois</p>
@@ -92,7 +92,7 @@ const ImpressumContent = {
     <>
       <section>
         <h2>Imprint</h2>
-        <p><strong>NeXifyAI by NeXify &ndash; Chat it. Automate it.</strong><br/>
+        <p><strong>neXify &ndash; Chat it. Automat it.</strong><br/>
         (Eenmanszaak &ndash; Sole Proprietorship)</p>
         <p><strong>Owner:</strong><br/>
         Pascal Courbois</p>
@@ -341,7 +341,7 @@ const AGBContent = {
     <>
       <section>
         <h2>Allgemeine Gesch&auml;ftsbedingungen (B2B)</h2>
-        <p><strong>NeXifyAI by NeXify &ndash; Chat it. Automate it.</strong></p>
+        <p><strong>neXify &ndash; Chat it. Automat it.</strong></p>
 
         <h3>&sect;1 Geltungsbereich</h3>
         <p>(1) Diese Allgemeinen Gesch&auml;ftsbedingungen gelten ausschlie&szlig;lich f&uuml;r Unternehmer im Sinne von Art. 7:5 Burgerlijk Wetboek (BW), &sect; 14 BGB sowie &sect; 1 UGB.</p>

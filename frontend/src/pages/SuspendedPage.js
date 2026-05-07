@@ -2,7 +2,7 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
 const CO = {
-  legal: 'NeXifyAI by NeXify - Chat it. Automate it.',
+  legal: 'neXify — Chat it. Automat it.',
   email: 'buchhaltung@nexify-automate.com'
 };
 
