@@ -276,8 +276,8 @@ const UnifiedLogin = () => {
           <div className="ul-visual-grid" />
           <motion.div className="ul-visual-content" initial="hidden" animate="visible">
             <motion.div className="ul-visual-logo" variants={fadeUp} custom={0}>
-              <img src="/nexifyai-logo-light.png" alt="" width="40" height="40" />
-              <span>NeXify<span className="ul-visual-ai">AI</span></span>
+              <img src="/nexifyai-logo-light.png" alt="neXifyAI" height="32" />
+              <p>NeXify<span className="ul-visual-ai">AI</span></p>
             </motion.div>
             <motion.p className="ul-visual-tagline" variants={fadeUp} custom={1}>
               Ihre digitale Infrastruktur.<br />Sicher. Intelligent. Skalierbar.

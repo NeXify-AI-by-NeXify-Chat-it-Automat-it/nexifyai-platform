@@ -29,8 +29,7 @@ export default function IntegrationDetail() {
           <div className="container">
             <div className="intd-nav-inner">
               <Link to={homePath} className="intd-logo-link" data-testid="intd-logo">
-                <img src="/nexifyai-logo-light.png" alt="" width="28" height="28" />
-                <span className="intd-logo-text">NeXify<span className="intd-logo-accent">AI</span></span>
+                <img src="/nexifyai-logo-light.png" alt="neXifyAI" height="24" />
               </Link>
               <Link to={`${homePath}#integrationen`} className="intd-back" data-testid="intd-back">
                 <I n="arrow_back" /> {lang === 'nl' ? 'Terug naar integraties' : lang === 'en' ? 'Back to integrations' : 'Zurück zu Integrationen'}
@@ -75,7 +74,7 @@ export default function IntegrationDetail() {
         <div className="container">
           <div className="intd-nav-inner">
             <Link to={homePath} className="intd-logo-link" data-testid="intd-logo">
-              <img src="/nexifyai-logo-light.png" alt="" width="28" height="28" />
+              <img src="/nexifyai-logo-light.png" alt="neXifyAI" height="24" />
               <span className="intd-logo-text">NeXify<span className="intd-logo-accent">AI</span></span>
             </Link>
             <Link to={`${homePath}#integrationen`} className="intd-back" data-testid="intd-back">

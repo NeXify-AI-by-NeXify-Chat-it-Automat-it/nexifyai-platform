@@ -4179,7 +4179,7 @@ curl ${API}/api/v1/docs`}
       </aside>
       <main className="adm-main">
         <header className="adm-topbar">
-          <div className="adm-topbar-brand"><img src="/nexifyai-logo-light.png" alt="" width="24" height="24" /></div>
+          <div className="adm-topbar-brand"><img src="/nexifyai-logo-light.png" alt="neXifyAI" height="24" /></div>
           <h1 className="adm-topbar-title">{navItems.find(n => n.id === view)?.label}</h1>
           <div className="adm-topbar-user"><I n="account_circle" /> Administration</div>
         </header>

@@ -21,8 +21,7 @@ const LegalWrap = ({ children, title }) => {
       <nav className="legal-nav">
         <div className="legal-nav-inner">
           <a href={`/${lang}`} className="legal-logo-link">
-            <img src="/nexifyai-logo-light.png" alt="" width="28" height="28" />
-            <span className="legal-logo-text">NeXify<span className="legal-logo-accent">AI</span></span>
+            <img src="/nexifyai-logo-light.png" alt="neXifyAI" height="24" />
           </a>
           <span className="legal-tagline">Chat it. Automate it.</span>
           <LanguageSwitcher />

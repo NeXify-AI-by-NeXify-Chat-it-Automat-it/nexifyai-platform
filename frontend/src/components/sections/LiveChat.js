@@ -137,7 +137,7 @@ const LiveChat = ({ isOpen, onClose, initialQ, onBook, t, lang }) => {
             <I n="arrow_back" />
           </button>
           <div className="chat-mobile-brand">
-            <img src="/nexifyai-logo-light.png" alt="" width="20" height="20" />
+            <img src="/nexifyai-logo-light.png" alt="neXifyAI" height="18" />
             <span className="chat-mobile-title">NeXify<span className="chat-accent">AI</span> {aiLabel[lang] || aiLabel.de}</span>
           </div>
           <div className="chat-mobile-status"><span className="status-dot on" /></div>
@@ -152,7 +152,7 @@ const LiveChat = ({ isOpen, onClose, initialQ, onBook, t, lang }) => {
           {/* Sidebar (Desktop only) */}
           <div className="chat-sidebar" data-testid="chat-sidebar">
             <div className="chat-sidebar-brand">
-              <img src="/nexifyai-logo-light.png" alt="" width="24" height="24" />
+              <img src="/nexifyai-logo-light.png" alt="neXifyAI" height="22" />
               <div>
                 <h2 id="chat-t" className="chat-sidebar-title">NeXify<span className="chat-accent">AI</span></h2>
                 <span className="chat-sidebar-role">{t.chat.sidebarRole}</span>
@@ -196,7 +196,7 @@ const LiveChat = ({ isOpen, onClose, initialQ, onBook, t, lang }) => {
                 <motion.div key={i} className={`chat-msg ${m.role}`} data-testid={`chat-msg-${i}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
                   {m.role === 'assistant' && (
                     <div className="chat-msg-avatar" data-testid="chat-avatar">
-                      <img src="/nexifyai-logo-light.png" alt="" width="18" height="18" />
+                      <img src="/nexifyai-logo-light.png" alt="neXifyAI" height="16" />
                     </div>
                   )}
                   <div className="chat-msg-body">
@@ -221,7 +221,7 @@ const LiveChat = ({ isOpen, onClose, initialQ, onBook, t, lang }) => {
 
               {loading && (
                 <motion.div className="chat-msg assistant" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}>
-                  <div className="chat-msg-avatar"><img src="/nexifyai-logo-light.png" alt="" width="18" height="18" /></div>
+                  <div className="chat-msg-avatar"><img src="/nexifyai-logo-light.png" alt="neXifyAI" height="16" /></div>
                   <div className="chat-msg-body">
                     <div className="chat-msg-meta"><span className="chat-msg-sender">{aiLabel[lang] || aiLabel.de}</span></div>
                     <div className="chat-typing-wrap">
