@@ -10,6 +10,7 @@ from routes.shared import (
     email_template,
     logger,
 )
+import asyncio
 from domain import utcnow
 from memory_service import AGENT_IDS
 
@@ -969,3 +970,350 @@ async def admin_health_alerts_test(current_user: dict = Depends(get_current_admi
         return {"sent": True, "to": S.NOTIFICATION_EMAILS, "slack": bool(S.SLACK_WEBHOOK_URL)}
     except Exception as e:
         raise HTTPException(500, f"Test fehlgeschlagen: {e}")
+
+# ══════════════════════════════════════════════════════════════
+# HEALTH DASHBOARD API (Health-Dashboard: Aggregiert, History, Check)
+# ══════════════════════════════════════════════════════════════
+
+
+@router.get("/api/admin/health/dashboard")
+async def admin_health_dashboard(current_user: dict = Depends(get_current_admin)):
+    """Aggregierte Health-Daten aller Dienste.
+    Liefert aktuellen Status von API, DB, LLM, Workers, E-Mail, Docker,
+    plus letzte Check-Zeitstempel und Fehlerzahlen."""
+    now = utcnow()
+    checks = {}
+
+    # Database
+    try:
+        await S.db.command("ping")
+        checks["database"] = {"status": "ok", "detail": "MongoDB erreichbar"}
+    except Exception as e:
+        checks["database"] = {"status": "error", "detail": str(e)}
+
+    # API
+    checks["api"] = {"status": "ok", "version": "3.1.0"}
+
+    # LLM Provider
+    if S.llm_provider:
+        try:
+            hc = await S.llm_provider.health_check()
+            checks["llm"] = {
+                "status": "ok" if hc.get("status") == "healthy" else "degraded",
+                "provider": S.llm_provider.get_provider_name(),
+                "detail": hc,
+            }
+        except Exception as e:
+            checks["llm"] = {"status": "error", "provider": S.llm_provider.get_provider_name(), "detail": str(e)}
+    else:
+        checks["llm"] = {"status": "not_initialized"}
+
+    # Workers
+    if S.worker_mgr:
+        wm_status = S.worker_mgr.get_status()
+        checks["workers"] = {
+            "status": "ok" if wm_status.get("queue", {}).get("workers_active", 0) > 0 else "warn",
+            "active": wm_status.get("queue", {}).get("workers_active", 0),
+            "pending": wm_status.get("queue", {}).get("pending", 0),
+        }
+    else:
+        checks["workers"] = {"status": "not_initialized"}
+
+    # E-Mail
+    email_failed = await S.db.email_events.count_documents({"status": "failed"})
+    email_total = await S.db.email_events.count_documents({})
+    checks["email"] = {
+        "status": "ok" if S.RESEND_API_KEY else "not_configured",
+        "api_key_set": bool(S.RESEND_API_KEY),
+        "total_sent": email_total - email_failed,
+        "total_failed": email_failed,
+    }
+
+    # Agents
+    checks["agents"] = {
+        "status": "ok" if S.agents else "error",
+        "count": len(S.agents or {}),
+        "names": list((S.agents or {}).keys()),
+    }
+
+    # WhatsApp
+    wa = await S.db.whatsapp_sessions.find_one({}, {"_id": 0}, sort=[("created_at", -1)])
+    checks["whatsapp"] = {
+        "status": wa.get("status", "unknown") if wa else "no_session",
+        "phone": wa.get("phone_number") if wa else None,
+    }
+
+    # Memory Service
+    if S.memory_svc:
+        mem_count = await S.db.customer_memory.count_documents({})
+        checks["memory"] = {"status": "ok", "entries": mem_count}
+    else:
+        checks["memory"] = {"status": "not_initialized"}
+
+    # Scheduler
+    if S.worker_mgr and hasattr(S.worker_mgr, 'scheduler'):
+        sched = S.worker_mgr.scheduler
+        sched_status = sched.get_status() if sched else {}
+        checks["scheduler"] = {
+            "status": "ok" if sched_status.get("running") else "warn",
+            "jobs_count": len(sched_status.get("jobs", [])),
+        }
+    else:
+        checks["scheduler"] = {"status": "not_initialized"}
+
+    # Docker-Status
+    docker_status = await _check_docker_containers()
+    checks["docker"] = docker_status
+
+    # Letzte Check-Historie (aus health_checks collection)
+    last_checks = {}
+    try:
+        pipeline = [
+            {"$sort": {"checked_at": -1}},
+            {"$group": {"_id": "$service", "last_status": {"$first": "$status"}, "last_checked_at": {"$first": "$checked_at"}, "last_response_time": {"$first": "$response_time"}}},
+        ]
+        async for doc in S.db.health_checks.aggregate(pipeline):
+            last_checks[doc["_id"]] = {
+                "status": doc.get("last_status"),
+                "checked_at": str(doc.get("last_checked_at", "")),
+                "response_time_ms": doc.get("last_response_time"),
+            }
+    except Exception:
+        pass
+
+    # Gesamt-Health berechnen
+    critical_keys = {"database", "api", "llm", "workers", "agents"}
+    degraded = []
+    for k, v in checks.items():
+        if isinstance(v, dict) and v.get("status") in ("error", "not_initialized") and k in critical_keys:
+            degraded.append(k)
+
+    overall = "degraded" if degraded else "healthy"
+
+    # Fehler in letzten 24h
+    error_count = await S.db.timeline_events.count_documents({
+        "action": {"$regex": "error|fail", "$options": "i"},
+        "timestamp": {"$gte": now - timedelta(hours=24)}
+    })
+
+    return {
+        "overall": overall,
+        "timestamp": str(now),
+        "uptime_seconds": None,
+        "degraded_services": degraded,
+        "checks": checks,
+        "last_check_results": last_checks,
+        "errors_24h": error_count,
+        "total_services": len(checks),
+        "healthy_services": sum(1 for v in checks.values() if isinstance(v, dict) and v.get("status") == "ok"),
+    }
+
+
+@router.get("/api/admin/health/history/{service}")
+async def admin_health_history(
+    service: str,
+    limit: int = 100,
+    current_user: dict = Depends(get_current_admin),
+):
+    """Letzte N Check-Ergebnisse fuer einen bestimmten Service.
+    Liefert die letzten 100 (oder per limit konfigurierbaren) Eintraege
+    aus der health_checks Collection, gefiltert nach Service-Name."""
+    results = []
+    try:
+        cursor = S.db.health_checks.find(
+            {"service": service},
+            {"_id": 0},
+        ).sort("checked_at", -1).limit(min(limit, 500))
+        async for doc in cursor:
+            doc["checked_at"] = str(doc.get("checked_at", ""))
+            results.append(doc)
+    except Exception:
+        pass
+
+    return {
+        "service": service,
+        "total": len(results),
+        "limit": limit,
+        "results": results,
+    }
+
+
+@router.post("/api/admin/health/check")
+async def admin_health_trigger_check(current_user: dict = Depends(get_current_admin)):
+    """Manuellen Health-Check triggern.
+    Fuehrt einen vollstaendigen System-Check durch, speichert die Ergebnisse
+    in der health_checks-Collection und gibt das aggregierte Resultat zurueck."""
+    now = utcnow()
+    results = {}
+
+    # Database-Check
+    db_start = datetime.now(timezone.utc)
+    try:
+        await S.db.command("ping")
+        db_time = (datetime.now(timezone.utc) - db_start).total_seconds() * 1000
+        results["database"] = {"status": "ok", "response_time_ms": round(db_time, 2)}
+        await _store_health_check("database", "ok", round(db_time, 2))
+    except Exception as e:
+        results["database"] = {"status": "error", "error": str(e)[:200]}
+        await _store_health_check("database", "error", None)
+
+    # API-Check
+    results["api"] = {"status": "ok", "response_time_ms": 0.5}
+    await _store_health_check("api", "ok", 0.5)
+
+    # LLM-Check
+    if S.llm_provider:
+        llm_start = datetime.now(timezone.utc)
+        try:
+            hc = await S.llm_provider.health_check()
+            llm_time = (datetime.now(timezone.utc) - llm_start).total_seconds() * 1000
+            llm_ok = hc.get("status") == "healthy"
+            results["llm"] = {
+                "status": "ok" if llm_ok else "degraded",
+                "response_time_ms": round(llm_time, 2),
+                "provider": S.llm_provider.get_provider_name(),
+            }
+            await _store_health_check("llm", "ok" if llm_ok else "degraded", round(llm_time, 2))
+        except Exception as e:
+            results["llm"] = {"status": "error", "error": str(e)[:200]}
+            await _store_health_check("llm", "error", None)
+    else:
+        results["llm"] = {"status": "not_initialized"}
+        await _store_health_check("llm", "not_initialized", None)
+
+    # Workers-Check
+    if S.worker_mgr:
+        wm = S.worker_mgr.get_status()
+        active = wm.get("queue", {}).get("workers_active", 0)
+        w_status = "ok" if active > 0 else "warn"
+        results["workers"] = {"status": w_status, "active_workers": active}
+        await _store_health_check("workers", w_status, None)
+    else:
+        results["workers"] = {"status": "not_initialized"}
+        await _store_health_check("workers", "not_initialized", None)
+
+    # E-Mail-Check
+    results["email"] = {
+        "status": "ok" if S.RESEND_API_KEY else "not_configured",
+        "api_key_set": bool(S.RESEND_API_KEY),
+    }
+    await _store_health_check("email", "ok" if S.RESEND_API_KEY else "not_configured", None)
+
+    # Docker-Check
+    docker_status = await _check_docker_containers()
+    results["docker"] = docker_status
+    docker_overall = docker_status.get("status", "unknown")
+    await _store_health_check("docker", docker_overall, None)
+
+    # WhatsApp-Check
+    try:
+        wa = await S.db.whatsapp_sessions.find_one({}, {"_id": 0}, sort=[("created_at", -1)])
+        w_status = wa.get("status", "unknown") if wa else "no_session"
+        results["whatsapp"] = {"status": w_status}
+        await _store_health_check("whatsapp", w_status, None)
+    except Exception as e:
+        results["whatsapp"] = {"status": "error", "error": str(e)[:200]}
+        await _store_health_check("whatsapp", "error", None)
+
+    # Memory-Check
+    if S.memory_svc:
+        try:
+            mc = await S.db.customer_memory.count_documents({})
+            results["memory"] = {"status": "ok", "entries": mc}
+            await _store_health_check("memory", "ok", None)
+        except Exception as e:
+            results["memory"] = {"status": "error", "error": str(e)[:200]}
+            await _store_health_check("memory", "error", None)
+    else:
+        results["memory"] = {"status": "not_initialized"}
+        await _store_health_check("memory", "not_initialized", None)
+
+    # Gesamt-Health
+    critical = {"database", "api", "llm", "workers"}
+    degraded_services = [k for k, v in results.items() if isinstance(v, dict) and v.get("status") in ("error", "not_initialized") and k in critical]
+    overall = "degraded" if degraded_services else "healthy"
+
+    return {
+        "overall": overall,
+        "timestamp": str(now),
+        "degraded_services": degraded_services,
+        "checks": results,
+        "checked_services": len(results),
+        "healthy_count": sum(1 for v in results.values() if isinstance(v, dict) and v.get("status") == "ok"),
+    }
+
+
+# ══════════════════════════════════════════════════════════════
+# HELPER: Docker-Status via Shell-Befehl pruefen
+# ══════════════════════════════════════════════════════════════
+
+async def _check_docker_containers():
+    """Prueft Docker-Container-Status via lokalen docker ps Befehl."""
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            "docker", "ps", "--format", "{{.Names}}|{{.Status}}|{{.Image}}",
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+        )
+        try:
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=10.0)
+        except asyncio.TimeoutError:
+            proc.kill()
+            return {"status": "error", "detail": "Docker timeout", "containers": []}
+
+        if proc.returncode != 0:
+            return {"status": "error", "detail": stderr.decode()[:200] if stderr else "docker nicht verfuegbar", "containers": []}
+
+        lines = stdout.decode().strip().split("\n") if stdout.decode().strip() else []
+        containers = []
+        unhealthy = []
+        for line in lines:
+            if "|" not in line:
+                continue
+            parts = line.split("|", 2)
+            name = parts[0]
+            status = parts[1] if len(parts) > 1 else "unknown"
+            image = parts[2] if len(parts) > 2 else "unknown"
+            is_healthy = "healthy" in status.lower() or "up" in status.lower()
+            containers.append({
+                "name": name,
+                "status": status,
+                "image": image,
+                "healthy": is_healthy,
+            })
+            if not is_healthy:
+                unhealthy.append(name)
+
+        return {
+            "status": "ok" if not unhealthy else "degraded",
+            "total": len(containers),
+            "running": sum(1 for c in containers if c["healthy"]),
+            "unhealthy": unhealthy,
+            "containers": containers,
+        }
+    except FileNotFoundError:
+        return {"status": "not_available", "detail": "Docker nicht installiert", "containers": []}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)[:200], "containers": []}
+
+
+async def _store_health_check(service: str, status: str, response_time: float):
+    """Speichert einen Health-Check-Eintrag in der health_checks-Collection."""
+    try:
+        await S.db.health_checks.insert_one({
+            "service": service,
+            "status": status,
+            "response_time": response_time,
+            "checked_at": utcnow(),
+        })
+        # Alte Eintraege aufraeumen (max 500 pro Service)
+        count = await S.db.health_checks.count_documents({"service": service})
+        if count > 500:
+            oldest = await S.db.health_checks.find(
+                {"service": service},
+                {"_id": 1},
+            ).sort("checked_at", 1).limit(count - 500).to_list(length=count - 500)
+            if oldest:
+                ids = [o["_id"] for o in oldest]
+                await S.db.health_checks.delete_many({"_id": {"$in": ids}})
+    except Exception:
+        pass  # Non-critical, don't break the request

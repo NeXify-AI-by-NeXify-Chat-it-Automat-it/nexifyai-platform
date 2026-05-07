@@ -9,7 +9,7 @@ import requests
 
 logger = logging.getLogger("nexifyai.services.storage")
 
-STORAGE_URL = "https://integrations.emergentagent.com/objstore/api/v1/storage"
+STORAGE_URL = "http://localhost:8001/objstore/api/v1/storage"
 APP_NAME = "nexifyai"
 
 _storage_key = None

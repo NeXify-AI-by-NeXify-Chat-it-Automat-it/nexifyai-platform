@@ -9,7 +9,7 @@ import asyncio
 import httpx
 import secrets
 
-API = "https://contract-os.preview.emergentagent.com"
+API = "http://localhost:8001"
 
 
 async def main():

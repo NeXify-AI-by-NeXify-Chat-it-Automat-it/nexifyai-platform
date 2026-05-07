@@ -107,7 +107,7 @@ class OracleEngine:
 
         # Audit-Log
         ph = f"${idx}"
-        set_clauses.append(f"audit_log = array_append(COALESCE(audit_log, ARRAY[]::jsonb[]), to_jsonb({ph}::text))")
+        set_clauses.append(f"audit_log = COALESCE(audit_log, '[]'::jsonb) || jsonb_build_array(to_jsonb({ph}::text))")
         params.append(audit_text)
         idx += 1
 

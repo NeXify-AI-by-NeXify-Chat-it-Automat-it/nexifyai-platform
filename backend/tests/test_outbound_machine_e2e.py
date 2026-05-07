@@ -5,7 +5,7 @@ import os
 import sys
 import secrets as _s
 
-API = "https://contract-os.preview.emergentagent.com"
+API = "http://localhost:8001"
 ADMIN_EMAIL = "p.courbois@icloud.com"
 ADMIN_PW = "1def!xO2022!!"
 

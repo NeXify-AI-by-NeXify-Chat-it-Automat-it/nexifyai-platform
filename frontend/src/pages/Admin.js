@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import OracleView from './OracleView';
 import './Admin.css';
+import DOMPurify from 'dompurify';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
 const I = ({ n }) => <span className="material-symbols-outlined">{n}</span>;
@@ -3242,6 +3243,14 @@ const Admin = () => {
     return result;
   };
 
+  const safeRenderMarkdown = (text) => {
+    const html = renderMarkdown(text);
+    return DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'code', 'pre', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'span', 'a'],
+      ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
+    });
+  };
+
   const nxUpdateStream = (text) => {
     nxStreamTextRef.current = text;
     if (nxStreamRef.current) nxStreamRef.current.textContent = text;
@@ -3779,7 +3788,7 @@ curl ${API}/api/v1/docs`}
             <div key={m._key || m.message_id || `msg_${i}_${m.created_at}`} className={`nxai-msg ${m.role}`}>
               <div className="nxai-msg-avatar">{m.role === 'assistant' ? 'NX' : 'PC'}</div>
               <div>
-                <div className="nxai-msg-bubble" dangerouslySetInnerHTML={{ __html: renderMarkdown(m.content) }} />
+                <div className="nxai-msg-bubble" dangerouslySetInnerHTML={{ __html: safeRenderMarkdown(m.content) }} />
                 <div className="nxai-msg-time">{fmtTime(m.created_at)}</div>
               </div>
             </div>

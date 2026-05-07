@@ -20,7 +20,7 @@ import time
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
 if not BASE_URL:
-    BASE_URL = "https://contract-os.preview.emergentagent.com"
+    BASE_URL = "http://localhost:8001"
 
 # Test credentials
 ADMIN_EMAIL = "p.courbois@icloud.com"

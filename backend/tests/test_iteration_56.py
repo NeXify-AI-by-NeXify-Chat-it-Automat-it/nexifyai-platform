@@ -7,7 +7,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://contract-os.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8001').rstrip('/')
 
 # Admin credentials from test_credentials.md
 ADMIN_EMAIL = "p.courbois@icloud.com"
@@ -71,7 +71,7 @@ class TestSecurityHeaders:
         """Test that CORS headers are present in responses"""
         response = requests.options(
             f"{BASE_URL}/api/health",
-            headers={"Origin": "https://contract-os.preview.emergentagent.com"}
+            headers={"Origin": "http://localhost:8001"}
         )
         cors_origin = response.headers.get("Access-Control-Allow-Origin", "")
         # Note: CORS is currently set to * which is acceptable for preview but should be restricted in production
