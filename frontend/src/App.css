@@ -911,7 +911,7 @@ a.integ-item-v2.popular{border-color:rgba(254,155,123,0.1);color:rgba(255,255,25
 @media(min-width:768px){.footer-grid{grid-template-columns:2fr 1fr 1fr 1fr}}
 .footer-brand{display:flex;flex-direction:column;gap:8px}
 .footer-logo{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.footer-logo img{width:28px;height:28px}
+.footer-logo img{height:24px;width:auto}
 .footer-logo span{font-family:var(--f-display);font-weight:800;font-size:1rem;color:#fff}
 .footer-logo span em{color:var(--nx-accent);font-style:normal}
 .footer-tagline{font-size:.875rem;color:var(--nx-muted)}
