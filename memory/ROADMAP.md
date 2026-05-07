@@ -53,7 +53,7 @@
 
 ### P4 — Compliance & Legal
 - [ ] Legal & Compliance Guardian (operative Verdrahtung)
-- [ ] Cookie-Consent-Management (TTDSG-konform)
+- [x] Cookie-Consent-Management (TTDSG-konform) — Implementiert 06.05.2026 (CookieBanner + DSGVO-Opt-in)
 - [ ] Auftragsverarbeitungsvertrag (AVV) automatisch generieren
 - [ ] Löschkonzept nach DSGVO Art. 17 implementieren
 
@@ -75,6 +75,7 @@
 | DeepSeek nicht aktiv | Mittel | DeepSeek API Key | Fallback: GPT-5.2 via Emergent |
 | CORS offen für alle Origins | Mittel | Produktions-Domain | Einschränkung bei Go-Live |
 | Keine automatischen Backups | Mittel | Ops-Entscheidung | MongoDB Atlas Auto-Backup |
+| **VPS Ablauf 09.05.2026** | **P1 — KRITISCH** | Hostinger-Verlängerung | **SOFORT: hostinger.com Dashboard → VPS verlängern (72.62.152.47)** |
 
 ### Monitoring-Status
 | Komponente | Status | Letzte Prüfung |
