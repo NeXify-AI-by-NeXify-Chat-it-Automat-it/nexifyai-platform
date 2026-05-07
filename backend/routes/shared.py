@@ -52,8 +52,19 @@ class _AppState:
     memory_svc = None
     oracle_engine = None
     rate_limit_storage = {}
+    supabase = None
 
 S = _AppState()
+
+
+def col(name: str):
+    """Supabase-first, MongoDB-fallback collection accessor."""
+    try:
+        if S.supabase and S.supabase.is_available():
+            return S.supabase.table(name)
+    except Exception:
+        pass
+    return S.db[name]
 
 
 # ══════════════════════════════════════════════════════════════
