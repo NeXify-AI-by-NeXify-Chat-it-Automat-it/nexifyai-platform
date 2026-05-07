@@ -1,9 +1,11 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../i18n/LanguageContext';
 import T from '../i18n/translations';
 import SEOHead from '../components/SEOHead';
 import { COMPANY, LEGAL_PATHS, Logo, I } from '../components/shared';
+import { getAllPosts } from '../data/blog';
 import '../App.css';
 
 const META = {
@@ -18,30 +20,27 @@ const META = {
     keywords: 'AI blog, AI knowledge, AI agents blog, process automation blog' }
 };
 
-const BLOG_POSTS = {
-  de: [
-    { title: 'KI-Agenten im Mittelstand: Konkrete Anwendungsfälle 2026', desc: 'Wie Unternehmen mit 50-500 Mitarbeitern KI-Agenten produktiv einsetzen — von der Kundenbetreuung bis zur Backend-Automation.', date: '2026-05', cat: 'KI-Agenten' },
-    { title: 'CRM + KI: So automatisieren Sie Vertriebsprozesse', desc: 'Integration von KI-Agenten in HubSpot, Salesforce und SAP — Praxisleitfaden für DACH-Unternehmen.', date: '2026-05', cat: 'Integration' },
-    { title: 'DSGVO-konforme KI-Assistenten: Was Unternehmen wissen müssen', desc: 'Rechtssichere KI-Implementierung im DACH-Raum. Datenschutz, Auftragsverarbeitung und Haftung.', date: '2026-05', cat: 'Compliance' },
-    { title: 'Starter vs. Growth: Welcher KI-Tarif passt zu Ihnen?', desc: 'Detaillierter Vergleich der NeXifyAI-Tarife mit Kosten-Nutzen-Analyse für den Mittelstand.', date: '2026-05', cat: 'Preise' }
-  ],
-  nl: [
-    { title: 'AI-Agenten voor het MKB: Concrete Toepassingen 2026', desc: 'Hoe bedrijven met 50-500 werknemers AI-agenten productief inzetten.', date: '2026-05', cat: 'AI-Agenten' },
-    { title: 'AVG-conforme AI-Assistenten: Wat u moet weten', desc: 'Wettelijke AI-implementatie in Nederland en België.', date: '2026-05', cat: 'Compliance' }
-  ],
-  en: [
-    { title: 'AI Agents for SMEs: Practical Use Cases 2026', desc: 'How companies with 50-500 employees use AI agents productively.', date: '2026-05', cat: 'AI Agents' },
-    { title: 'GDPR-Compliant AI Assistants: What to Know', desc: 'Legal AI implementation in the EU — data protection, DPA, and liability.', date: '2026-05', cat: 'Compliance' }
-  ]
-};
-
 export default function BlogPage() {
   const { lang } = useLanguage();
   const t = T[lang] || T.de;
   const m = META[lang] || META.de;
   const lp = LEGAL_PATHS[lang] || LEGAL_PATHS.de;
   const thisYear = new Date().getFullYear();
-  const posts = BLOG_POSTS[lang] || BLOG_POSTS.de;
+  const posts = getAllPosts(lang);
+  const postsAll = getAllPosts('de'); // fallback count
+
+  const blogSchema = {
+    '@context': 'https://schema.org', '@type': 'Blog',
+    name: m.title, description: m.description,
+    blogPost: posts.map(p => ({
+      '@type': 'BlogPosting',
+      headline: p.meta.title,
+      description: p.meta.description,
+      url: `https://www.nexify-automate.com/${lang}/blog/${p.slug}`,
+      datePublished: p.published,
+      author: { '@type': 'Organization', name: 'NeXifyAI' }
+    }))
+  };
 
   return (
     <div className="app">
@@ -54,15 +53,7 @@ export default function BlogPage() {
         <meta property="og:description" content={m.description} />
         <meta name="twitter:title" content={m.title} />
         <meta name="twitter:description" content={m.description} />
-        <script type="application/ld+json">{JSON.stringify({
-          '@context': 'https://schema.org', '@type': 'Blog',
-          name: m.title, description: m.description,
-          blogPost: posts.map(p => ({
-            '@type': 'BlogPosting',
-            headline: p.title, description: p.desc,
-            datePublished: p.date, author: { '@type': 'Organization', name: 'NeXifyAI' }
-          }))
-        })}</script>
+        <script type="application/ld+json">{JSON.stringify(blogSchema)}</script>
       </Helmet>
 
       <nav className="nav scrolled" role="navigation">
@@ -80,7 +71,7 @@ export default function BlogPage() {
         <section className="section bg-dark" style={{ paddingTop: '8rem' }}>
           <div className="container">
             <div className="section-header" style={{ textAlign: 'center', marginBottom: '4rem' }}>
-              <span className="label">{lang === 'en' ? 'BLOG' : lang === 'nl' ? 'BLOG' : 'BLOG'}</span>
+              <span className="label">BLOG</span>
               <h1 style={{ fontSize: 'clamp(2rem,4vw,3rem)', fontWeight: 800, marginTop: '0.5rem' }}>
                 {lang === 'en' ? 'AI Knowledge for Business' : lang === 'nl' ? 'AI-Kennis voor Bedrijven' : 'KI-Wissen für Unternehmen'}
               </h1>
@@ -93,18 +84,18 @@ export default function BlogPage() {
 
             <div className="solutions-grid" role="list">
               {posts.map((p, i) => (
-                <article key={i} className="sol-card" role="listitem" style={{ cursor: 'default', textAlign: 'left' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#FE9B7B', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>{p.cat}</span>
-                  <h2 className="sol-title" style={{ fontSize: '1.2rem', marginTop: '0.5rem' }}>{p.title}</h2>
-                  <p className="sol-desc">{p.desc}</p>
+                <a key={i} href={`/${lang}/blog/${p.slug}`} className="sol-card" role="listitem" style={{ textDecoration: 'none', textAlign: 'left', display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#FE9B7B', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>{p.category}</span>
+                  <h2 className="sol-title" style={{ fontSize: '1.2rem', marginTop: '0.5rem', color: '#dee3ed' }}>{p.meta.title}</h2>
+                  <p className="sol-desc" style={{ flex: 1 }}>{p.meta.description}</p>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
-                    <span style={{ fontSize: '0.85rem', color: '#8892a0' }}>{p.date}</span>
+                    <span style={{ fontSize: '0.85rem', color: '#8892a0' }}>{p.published} · {p.readTime}</span>
                     <span style={{ fontSize: '0.85rem', color: '#FE9B7B' }}>
-                      {lang === 'en' ? 'Coming soon →' : lang === 'nl' ? 'Binnenkort →' : 'Bald verfügbar →'}
+                      {lang === 'en' ? 'Read →' : lang === 'nl' ? 'Lees →' : 'Lesen →'}
                     </span>
                   </div>
                   <div className="sol-bar"></div>
-                </article>
+                </a>
               ))}
             </div>
 
