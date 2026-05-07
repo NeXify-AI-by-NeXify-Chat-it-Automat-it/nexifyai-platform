@@ -400,7 +400,7 @@ const Ft = ({ onCookieSettings, t, lang }) => {
             </address>
           </div>
           <div className="footer-founder">
-            <img src="/pascal_courbois.png" alt="Pascal Courbois" className="footer-founder-img" width="60" height="60" />
+            <img src={`/pascal_courbois.png?v=20260508`} alt="Pascal Courbois" className="footer-founder-img" width="60" height="60" />
             <div className="footer-founder-name">Pascal Courbois</div>
             <div className="footer-founder-role">{lang === 'en' ? 'CEO & Founder' : lang === 'nl' ? 'CEO & Oprichter' : 'Geschäftsführer & Inhaber'}</div>
           </div>
@@ -434,6 +434,15 @@ const Ft = ({ onCookieSettings, t, lang }) => {
               <li><a href={`tel:${COMPANY.phone.replace(/\s/g, '')}`}>{COMPANY.phone}</a></li>
               <li><a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></li>
               <li><a href={`https://${COMPANY.web}`} target="_blank" rel="noopener noreferrer">{COMPANY.web}</a></li>
+            </ul>
+            <h3 className="footer-nav-title" style={{marginTop:16}}>{lang === 'en' ? 'Social Media' : lang === 'nl' ? 'Social Media' : 'Social Media'}</h3>
+            <ul className="footer-links">
+              <li><a href="https://de.pinterest.com/NeXifyAutomate/" target="_blank" rel="noopener noreferrer">Pinterest</a></li>
+              <li><a href="https://www.instagram.com/nexify.automate/" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+              <li><a href="https://www.tiktok.com/@nexify_automate" target="_blank" rel="noopener noreferrer">TikTok</a></li>
+              <li><a href="https://x.com/nexify_automate" target="_blank" rel="noopener noreferrer">X / Twitter</a></li>
+              <li><a href="https://www.facebook.com/nexify.automate.it" target="_blank" rel="noopener noreferrer">Facebook</a></li>
+              <li><a href="https://www.linkedin.com/in/nexifyai-nexify-0b068a398" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
             </ul>
           </div>
         </div>
