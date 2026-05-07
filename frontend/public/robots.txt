@@ -1,0 +1,40 @@
+# robots.txt — NeXifyAI by NeXify
+# Chat it. Automate it.
+# https://www.nexify-automate.com/
+
+User-agent: *
+Allow: /
+Allow: /leistungen/
+Allow: /preise/
+Allow: /kontakt/
+Allow: /blog/
+Disallow: /admin/
+Disallow: /login/
+Disallow: /api/
+Disallow: /portal/
+Crawl-delay: 10
+
+User-agent: Googlebot
+Allow: /
+Allow: /leistungen/
+Allow: /preise/
+Allow: /kontakt/
+Allow: /blog/
+Disallow: /admin/
+Disallow: /login/
+Disallow: /api/
+
+User-agent: Bingbot
+Allow: /
+Allow: /leistungen/
+Allow: /preise/
+Allow: /kontakt/
+Allow: /blog/
+Disallow: /admin/
+Disallow: /login/
+Disallow: /api/
+
+User-agent: archive.org_bot
+Disallow: /
+
+Sitemap: https://www.nexify-automate.com/sitemap.xml

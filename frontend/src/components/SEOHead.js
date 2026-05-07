@@ -1,7 +1,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
-const BASE_URL = 'https://nexify-automate.com';
+const BASE_URL = 'https://www.nexify-automate.com';
 
 const META = {
   de: {
