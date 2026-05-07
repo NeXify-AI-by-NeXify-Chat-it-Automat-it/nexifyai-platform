@@ -663,9 +663,11 @@ const Admin = () => {
   // Auto-refresh nxStatus every 30s for real-time service status
   useEffect(() => {
     if (!(token && view === 'nexify_ai')) return;
-    const interval = setInterval(loadNxStatus, 30000);
+    const interval = setInterval(() => {
+      apiFetch('/api/admin/nexify-ai/status').then(d => d && setNxStatus(d));
+    }, 30000);
     return () => clearInterval(interval);
-  }, [token, view, loadNxStatus]);
+  }, [token, view, apiFetch]);
 
   const logout = () => {
     // Komplettes Cleanup ALLER Session-bezogenen Keys
