@@ -47,7 +47,7 @@ export function AnimSection({ children, className = '', id, ...props }) {
 export const BrandName = ({ className }) => <span className={className}>NeXify<span className="brand-ai">AI</span></span>;
 
 export const Logo = ({ size = 'md' }) => {
-  const h = size === 'sm' ? 18 : size === 'lg' ? 28 : 22;
+  const h = size === 'sm' ? 22 : size === 'lg' ? 36 : 28;
   return (
     <img src="/nexifyai-logo-light.png" alt="neXifyAI" style={{ display: 'block', height: h, width: 'auto' }} />
   );
