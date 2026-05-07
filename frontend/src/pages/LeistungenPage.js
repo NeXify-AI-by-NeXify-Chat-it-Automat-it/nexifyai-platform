@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../i18n/LanguageContext';
 import T from '../i18n/translations';
 import SEOHead from '../components/SEOHead';
-import { COMPANY, LEGAL_PATHS, Logo, I } from '../components/shared';
+import { COMPANY, LEGAL_PATHS, Logo, I, Footer } from '../components/shared';
 import '../App.css';
 
 const META = {
@@ -93,34 +93,7 @@ export default function LeistungenPage() {
         </section>
       </main>
 
-      <footer className="footer" role="contentinfo">
-        <div className="container">
-          <div className="footer-grid">
-            <div className="footer-brand">
-              <div className="footer-logo"><img src="/nexifyai-logo-light.png" alt="neXifyAI" height="24" /></div>
-              <div className="footer-tagline">{t.footer.tagline}</div>
-              <div className="footer-legal-name">{COMPANY.legal}</div>
-              <address className="footer-contact">
-                <p><strong>NL:</strong> {COMPANY.addr.nl.s}, {COMPANY.addr.nl.c}</p>
-                <p>Tel: <a href={`tel:${COMPANY.phone.replace(/\s/g, '')}`}>{COMPANY.phone}</a></p>
-                <p>E-Mail: <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></p>
-              </address>
-            </div>
-            <nav className="footer-nav-col">
-              <h3 className="footer-nav-title">{t.footer.legal}</h3>
-              <ul className="footer-links">
-                <li><a href={lp.impressum}>{t.footer.impressum}</a></li>
-                <li><a href={lp.datenschutz}>{t.footer.datenschutz}</a></li>
-                <li><a href={lp.agb}>{t.footer.agb}</a></li>
-                <li><a href={lp.ki}>{t.footer.ki}</a></li>
-              </ul>
-            </nav>
-          </div>
-          <div className="footer-bottom">
-            <span className="footer-copy">{t.footer.copy.replace('{y}', thisYear)}</span>
-          </div>
-        </div>
-      </footer>
+      <Footer onCookieSettings={() => {}} t={t} lang={lang} />
     </div>
   );
 }

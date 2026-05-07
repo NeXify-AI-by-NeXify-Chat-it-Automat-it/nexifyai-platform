@@ -52,3 +52,85 @@ export const Logo = ({ size = 'md' }) => {
     <img src="/nexifyai-logo-light.png" alt="neXifyAI" style={{ display: 'block', height: h, width: 'auto' }} />
   );
 };
+
+
+export const Footer = ({ onCookieSettings, t, lang }) => {
+  const lp = LEGAL_PATHS[lang] || LEGAL_PATHS.de;
+  const thisYear = new Date().getFullYear();
+  return (
+    <footer className="footer" role="contentinfo" data-testid="footer">
+      <div className="container">
+        <div className="footer-grid">
+          <div className="footer-brand">
+            <div className="footer-logo"><img src="/nexifyai-logo-light.png" alt="neXifyAI" height="28" /></div>
+            <div className="footer-tagline">{t?.footer?.tagline || 'Chat it. Automate it.'}</div>
+            <div className="footer-legal-name">{COMPANY.legal}</div>
+            <div className="footer-founder-row">
+              <img src={`/pascal_courbois.png?v=20260508`} alt="Pascal Courbois" className="footer-founder-img" width="48" height="48" />
+              <div>
+                <div className="footer-founder-name">Pascal Courbois</div>
+                <div className="footer-founder-role">{lang === 'en' ? 'CEO & Founder' : lang === 'nl' ? 'CEO & Oprichter' : 'Geschäftsführer & Inhaber'}</div>
+              </div>
+            </div>
+            <address className="footer-contact">
+              <p><strong>NL:</strong> {COMPANY.addr.nl.s}, {COMPANY.addr.nl.c}</p>
+              <p>Tel: <a href={`tel:${COMPANY.phone.replace(/\s/g, '')}`}>{COMPANY.phone}</a></p>
+              <p>E-Mail: <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></p>
+            </address>
+          </div>
+          <nav className="footer-nav-col">
+            <h3 className="footer-nav-title">{t?.footer?.nav || 'Navigation'}</h3>
+            <ul className="footer-links">
+              <li><a href="#loesungen">{t?.nav?.leistungen || 'Leistungen'}</a></li>
+              <li><a href="#use-cases">{t?.nav?.usecases || 'Use Cases'}</a></li>
+              <li><a href="#app-dev">{t?.nav?.appdev || 'App-Entwicklung'}</a></li>
+              <li><a href="#integrationen">{t?.nav?.integrationen || 'Integrationen'}</a></li>
+              <li><a href="#preise">{t?.nav?.tarife || 'Tarife'}</a></li>
+              <li><a href="#ki-seo">{lang === 'en' ? 'SEO' : 'KI-SEO'}</a></li>
+              <li><a href="#services">{lang === 'en' ? 'Services' : lang === 'nl' ? 'Diensten' : 'Services'}</a></li>
+              <li><a href={`/${lang}/blog`}>Blog</a></li>
+            </ul>
+          </nav>
+          <nav className="footer-nav-col">
+            <h3 className="footer-nav-title">{t?.footer?.legal || 'Rechtliches'}</h3>
+            <ul className="footer-links">
+              <li><a href={lp.impressum}>{t?.footer?.impressum || 'Impressum'}</a></li>
+              <li><a href={lp.datenschutz}>{t?.footer?.datenschutz || 'Datenschutz'}</a></li>
+              <li><a href={lp.agb}>{t?.footer?.agb || 'AGB'}</a></li>
+              <li><a href={lp.ki}>{t?.footer?.ki || 'KI-Hinweise'}</a></li>
+              <li><a href={lp.widerruf}>{lang === 'nl' ? 'Herroepingsrecht' : lang === 'en' ? 'Cancellation Policy' : 'Widerrufsbelehrung'}</a></li>
+              <li><a href={lp.cookies}>{lang === 'nl' ? 'Cookiebeleid' : lang === 'en' ? 'Cookie Policy' : 'Cookie-Richtlinie'}</a></li>
+              <li><a href={lp.avv}>{lang === 'nl' ? 'Verwerkersovereenkomst' : lang === 'en' ? 'Data Processing Agreement' : 'AVV'}</a></li>
+            </ul>
+            <div className="footer-ids"><p>KvK: {COMPANY.kvk}</p><p>USt-ID: {COMPANY.vat}</p><p className="footer-iban">IBAN: NL66 REVO 3601 4304 36</p></div>
+          </nav>
+          <div>
+            <h3 className="footer-nav-title">{t?.footer?.kontakt || 'Kontakt'}</h3>
+            <ul className="footer-links">
+              <li><a href="/termin" data-testid="footer-booking-link"><I n="calendar_month" /> {lang === 'en' ? 'Book Meeting' : lang === 'nl' ? 'Gesprek boeken' : 'Termin buchen'}</a></li>
+              <li><a href={`tel:${COMPANY.phone.replace(/\s/g, '')}`}><I n="call" /> {COMPANY.phone}</a></li>
+              <li><a href={`mailto:${COMPANY.email}`}><I n="mail" /> {COMPANY.email}</a></li>
+              <li><a href={`https://${COMPANY.web}`} target="_blank" rel="noopener noreferrer"><I n="open_in_new" /> {COMPANY.web}</a></li>
+            </ul>
+            <h3 className="footer-nav-title footer-social-title">{lang === 'en' ? 'Social' : lang === 'nl' ? 'Social' : 'Social'}</h3>
+            <div className="footer-social">
+              <a href="https://de.pinterest.com/NeXifyAutomate/" target="_blank" rel="noopener noreferrer" aria-label="Pinterest"><I n="public" /></a>
+              <a href="https://www.instagram.com/nexify.automate/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><I n="camera_alt" /></a>
+              <a href="https://www.tiktok.com/@nexify_automate" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><I n="music_note" /></a>
+              <a href="https://x.com/nexify_automate" target="_blank" rel="noopener noreferrer" aria-label="X"><I n="close" /></a>
+              <a href="https://www.facebook.com/nexify.automate.it" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><I n="groups" /></a>
+              <a href="https://www.linkedin.com/in/nexifyai-nexify-0b068a398" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><I n="work" /></a>
+            </div>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <span className="footer-copy">{(t?.footer?.copy || '© {y} NeXifyAI').replace('{y}', thisYear)}</span>
+          <div className="footer-bottom-links">
+            <button className="footer-cookie-btn" onClick={onCookieSettings}>{t?.footer?.cookie || 'Cookie-Einstellungen'}</button>
+            <div className="footer-status"><span className="status-dot on"></span>{t?.footer?.status || 'Alle Systeme aktiv'}</div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+};

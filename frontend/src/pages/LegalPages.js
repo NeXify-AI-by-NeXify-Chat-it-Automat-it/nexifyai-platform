@@ -3,6 +3,7 @@ import { useParams, Navigate } from 'react-router-dom';
 import { useLanguage, SUPPORTED } from '../i18n/LanguageContext';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import SEOHead from '../components/SEOHead';
+import { Logo } from '../components/shared';
 
 const CO = {
   legal: 'neXify - Chat it. Automat it.', ceo: 'Pascal Courbois, Geschäftsführer (Directeur)',
@@ -21,7 +22,7 @@ const LegalWrap = ({ children, title }) => {
       <nav className="legal-nav">
         <div className="legal-nav-inner">
           <a href={`/${lang}`} className="legal-logo-link">
-            <img src="/nexifyai-logo-light.png" alt="neXifyAI" height="24" />
+            <Logo />
           </a>
           <span className="legal-tagline">Chat it. Automate it.</span>
           <LanguageSwitcher />

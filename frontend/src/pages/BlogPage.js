@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../i18n/LanguageContext';
 import T from '../i18n/translations';
 import SEOHead from '../components/SEOHead';
-import { COMPANY, LEGAL_PATHS, Logo, I } from '../components/shared';
+import { COMPANY, LEGAL_PATHS, Logo, I, Footer } from '../components/shared';
 import { getAllPosts } from '../data/blog';
 import '../App.css';
 
@@ -101,53 +101,7 @@ export default function BlogPage() {
           </div>
         </section>
       </main>
-
-      <footer className="footer" role="contentinfo">
-        <div className="container">
-          <div className="footer-grid">
-            <div className="footer-brand">
-              <div className="footer-logo"><img src="/nexifyai-logo-light.png" alt="neXifyAI" height="28" /></div>
-              <div className="footer-tagline">{t.footer.tagline}</div>
-              <div className="footer-legal-name">{COMPANY.legal}</div>
-              <div className="footer-founder-row">
-                <img src={`/pascal_courbois.png?v=20260508`} alt="Pascal Courbois" className="footer-founder-img" width="48" height="48" />
-                <div>
-                  <div className="footer-founder-name">Pascal Courbois</div>
-                  <div className="footer-founder-role">{lang === 'en' ? 'CEO & Founder' : lang === 'nl' ? 'CEO & Oprichter' : 'Geschäftsführer & Inhaber'}</div>
-                </div>
-              </div>
-              <address className="footer-contact">
-                <p><strong>NL:</strong> {COMPANY.addr.nl.s}, {COMPANY.addr.nl.c}</p>
-                <p>Tel: <a href={`tel:${COMPANY.phone.replace(/\s/g, '')}`}>{COMPANY.phone}</a></p>
-                <p>E-Mail: <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></p>
-              </address>
-            </div>
-            <nav className="footer-nav-col">
-              <h3 className="footer-nav-title">{t.footer.legal}</h3>
-              <ul className="footer-links">
-                <li><a href={lp.impressum}>{t.footer.impressum}</a></li>
-                <li><a href={lp.datenschutz}>{t.footer.datenschutz}</a></li>
-                <li><a href={lp.agb}>{t.footer.agb}</a></li>
-                <li><a href={lp.ki}>{t.footer.ki}</a></li>
-              </ul>
-            </nav>
-            <div>
-              <h3 className="footer-nav-title">Social Media</h3>
-              <div className="footer-social">
-                <a href="https://de.pinterest.com/NeXifyAutomate/" target="_blank" rel="noopener noreferrer" aria-label="Pinterest"><I n="public" /></a>
-                <a href="https://www.instagram.com/nexify.automate/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><I n="camera_alt" /></a>
-                <a href="https://www.tiktok.com/@nexify_automate" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><I n="music_note" /></a>
-                <a href="https://x.com/nexify_automate" target="_blank" rel="noopener noreferrer" aria-label="X"><I n="close" /></a>
-                <a href="https://www.facebook.com/nexify.automate.it" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><I n="groups" /></a>
-                <a href="https://www.linkedin.com/in/nexifyai-nexify-0b068a398" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><I n="work" /></a>
-              </div>
-            </div>
-          </div>
-          <div className="footer-bottom">
-            <span className="footer-copy">{t.footer.copy.replace('{y}', thisYear)}</span>
-          </div>
-        </div>
-      </footer>
+      <Footer onCookieSettings={() => {}} t={t} lang={lang} />
     </div>
   );
-}
+};
