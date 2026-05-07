@@ -119,7 +119,7 @@ export default function BlogPostPage() {
         <div className="container">
           <div className="footer-grid">
             <div className="footer-brand">
-              <div className="footer-logo"><img src="/nexifyai-logo-light.png" alt="" width="28" height="28" /><span>NeXify<span className="brand-ai">AI</span></span></div>
+              <div className="footer-logo"><img src="/nexifyai-logo-light.png" alt="" width="28" height="28" /></div>
               <div className="footer-tagline">{t.footer.tagline}</div>
               <div className="footer-legal-name">{COMPANY.legal}</div>
               <address className="footer-contact">

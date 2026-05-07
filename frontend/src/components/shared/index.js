@@ -50,11 +50,8 @@ export const Logo = ({ size = 'md' }) => {
   const s = size === 'sm' ? 24 : size === 'lg' ? 40 : 32;
   const fs = size === 'sm' ? '.9375rem' : size === 'lg' ? '1.375rem' : '1.125rem';
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: size === 'sm' ? 8 : 10 }}>
-      <img src="/nexifyai-logo-light.png" alt="neXifyAI" width={s * 3} height={s} style={{ display: 'block' }} />
-      <span style={{ fontFamily: 'var(--f-display)', fontWeight: 800, fontSize: fs, color: '#fff', letterSpacing: '-.02em' }}>
-        NeXify<span className="brand-ai">AI</span>
-      </span>
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      <img src="/nexifyai-logo-light.png" alt="neXifyAI" height={s * 1.2} style={{ display: 'block' }} />
     </div>
   );
 };
