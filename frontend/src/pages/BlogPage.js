@@ -98,20 +98,6 @@ export default function BlogPage() {
                 </a>
               ))}
             </div>
-
-            <div style={{ textAlign: 'center', marginTop: '4rem', padding: '3rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem' }}>
-                {lang === 'en' ? 'Want to stay updated?' : lang === 'nl' ? 'Op de hoogte blijven?' : 'Auf dem Laufenden bleiben?'}
-              </h2>
-              <p className="section-subtitle" style={{ maxWidth: 500, margin: '0 auto 2rem' }}>
-                {lang === 'en' ? 'Subscribe to our newsletter and get AI insights directly in your inbox.' :
-                 lang === 'nl' ? 'Abonneer op onze nieuwsbrief en ontvang AI-inzichten.' :
-                 'Abonnieren Sie unseren Newsletter und erhalten Sie KI-Wissen direkt ins Postfach.'}
-              </p>
-              <a href={`mailto:${COMPANY.email}?subject=Newsletter`} className="btn btn-primary btn-glow">
-                <I n="mail" /> {lang === 'en' ? 'Subscribe' : lang === 'nl' ? 'Abonneren' : 'Abonnieren'}
-              </a>
-            </div>
           </div>
         </section>
       </main>
@@ -129,6 +115,11 @@ export default function BlogPage() {
                 <p>E-Mail: <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></p>
               </address>
             </div>
+            <div className="footer-founder">
+              <img src={`/pascal_courbois.png?v=20260508`} alt="Pascal Courbois" className="footer-founder-img" width="60" height="60" />
+              <div className="footer-founder-name">Pascal Courbois</div>
+              <div className="footer-founder-role">{lang === 'en' ? 'CEO & Founder' : lang === 'nl' ? 'CEO & Oprichter' : 'Geschäftsführer & Inhaber'}</div>
+            </div>
             <nav className="footer-nav-col">
               <h3 className="footer-nav-title">{t.footer.legal}</h3>
               <ul className="footer-links">
@@ -138,6 +129,17 @@ export default function BlogPage() {
                 <li><a href={lp.ki}>{t.footer.ki}</a></li>
               </ul>
             </nav>
+            <div>
+              <h3 className="footer-nav-title">Social Media</h3>
+              <ul className="footer-links">
+                <li><a href="https://de.pinterest.com/NeXifyAutomate/" target="_blank" rel="noopener noreferrer">Pinterest</a></li>
+                <li><a href="https://www.instagram.com/nexify.automate/" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+                <li><a href="https://www.tiktok.com/@nexify_automate" target="_blank" rel="noopener noreferrer">TikTok</a></li>
+                <li><a href="https://x.com/nexify_automate" target="_blank" rel="noopener noreferrer">X / Twitter</a></li>
+                <li><a href="https://www.facebook.com/nexify.automate.it" target="_blank" rel="noopener noreferrer">Facebook</a></li>
+                <li><a href="https://www.linkedin.com/in/nexifyai-nexify-0b068a398" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+              </ul>
+            </div>
           </div>
           <div className="footer-bottom">
             <span className="footer-copy">{t.footer.copy.replace('{y}', thisYear)}</span>
