@@ -12,6 +12,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional, List
 
 from fastapi import HTTPException, Depends, Request
+from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel, EmailStr, Field
 from jose import JWTError, jwt
@@ -33,6 +34,35 @@ from memory_service import AGENT_IDS
 logger = logging.getLogger("nexifyai")
 
 
+# ══════════════════════════════════════════════════════════════
+# API STANDARDS (DOS v2.0 — Kapitel 23)
+# ══════════════════════════════════════════════════════════════
+
+class APIErrorResponse(BaseModel):
+    """Standard-Error-Response gemäß DOS v2.0 API-Standards."""
+    code: str
+    message: str
+    details: list[dict] = []
+    request_id: str = ""
+    timestamp: str = ""
+
+
+def error_response(status: int, code: str, message: str, details: list = None, request_id: str = "") -> JSONResponse:
+    """Erzeugt standardisierte Error-Response."""
+    return JSONResponse(
+        status_code=status,
+        content={
+            "error": {
+                "code": code,
+                "message": message,
+                "details": details or [],
+                "request_id": request_id or secrets.token_hex(8),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        },
+    )
+
+# ══════════════════════════════════════════════════════════════
 # ══════════════════════════════════════════════════════════════
 # STATE — Mutable Container (resolves Python import-binding issue)
 # Route files import S and access S.db, S.memory_svc, etc.
