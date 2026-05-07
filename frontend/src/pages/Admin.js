@@ -656,6 +656,12 @@ const Admin = () => {
   useEffect(() => { if (token && view === 'monitoring') loadMonitoring(); }, [token, view]); // eslint-disable-line
   useEffect(() => { if (token && view === 'api_keys') loadApiKeys(); }, [token, view]); // eslint-disable-line
   useEffect(() => { if (token && view === 'nexify_ai') { loadNxConversations(); loadNxStatus(); if (nxActiveConvo) loadNxConversation(nxActiveConvo); } }, [token, view]); // eslint-disable-line
+  // Auto-refresh nxStatus every 30s for real-time service status
+  useEffect(() => {
+    if (!(token && view === 'nexify_ai')) return;
+    const interval = setInterval(loadNxStatus, 30000);
+    return () => clearInterval(interval);
+  }, [token, view, loadNxStatus]);
 
   const logout = () => {
     // Komplettes Cleanup ALLER Session-bezogenen Keys
@@ -3147,6 +3153,14 @@ const Admin = () => {
     loadNxConversations();
   };
 
+  const [healthStatus, setHealthStatus] = useState(null);
+  const loadHealthStatus = useCallback(async () => {
+    try {
+      const res = await fetch('/api/health');
+      if (res.ok) setHealthStatus(await res.json());
+    } catch (e) { /* offline */ }
+  }, []);
+
   const loadNxStatus = useCallback(async () => {
     const d = await apiFetch('/api/admin/nexify-ai/status');
     if (d) setNxStatus(d);
@@ -3937,16 +3951,23 @@ curl ${API}/api/v1/docs`}
             <div style={{display:'flex',flexDirection:'column',gap:4}}>
               {[
                 {n:'OpenRouter',ok:nxStatus.openrouter?.connected,cfg:nxStatus.openrouter?.configured},
-                {n:'Qdrant (Brain)',ok:nxStatus.openrouter?.connected,cfg:nxStatus.openrouter?.configured},
-                {n:'Supabase',ok:nxStatus.supabase?.connected ?? true,cfg:nxStatus.supabase?.configured ?? true},
-                {n:'MongoDB',ok:nxStatus.mongodb?.connected ?? true,cfg:nxStatus.mongodb?.configured ?? true},
-              ].map(s => (
+                {n:'Qdrant (Brain)',ok:nxStatus.qdrant?.connected,cfg:nxStatus.qdrant?.configured},
+                {n:'Supabase',ok:nxStatus.supabase?.connected,cfg:nxStatus.supabase?.configured},
+                {n:'MongoDB',ok:nxStatus.mongodb?.connected,cfg:nxStatus.mongodb?.configured},
+                {n:'Workers',ok:nxStatus.workers?.active > 0,cfg:nxStatus.workers?.configured},
+                {n:'Disk',ok:nxStatus.disk?.usage_pct < 85,cfg:nxStatus.disk?.configured},
+                {n:'Memory',ok:nxStatus.memory?.usage_pct < 85,cfg:nxStatus.memory?.configured},
+              ].map(s => {
+                const statusText = ['Disk','Memory'].includes(s.n)
+                  ? (s.ok ? 'ok' : 'kritisch')
+                  : (s.ok ? 'verbunden' : s.cfg ? 'konfiguriert' : 'fehlt');
+                return (
                 <div key={s.n} style={{display:'flex',alignItems:'center',gap:6,fontSize:'.6875rem'}}>
                   <span className="nxai-ctrl-dot" style={{background:s.ok?'#10b981':s.cfg?'#f59e0b':'#ef4444'}} />
                   <span style={{color:'#c8d1dc'}}>{s.n}</span>
-                  <span style={{fontSize:'.5625rem',color:'#4a5568',marginLeft:'auto'}}>{s.ok?'verbunden':s.cfg?'konfiguriert':'fehlt'}</span>
+                  <span style={{fontSize:'.5625rem',color:'#4a5568',marginLeft:'auto'}}>{statusText}</span>
                 </div>
-              ))}
+              )})}
             </div>
           )}
         </div>
