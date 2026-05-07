@@ -5,6 +5,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import { HeroScene, ProcessScene } from './components/Scene3D';
 import { useLanguage } from './i18n/LanguageContext';
 import T from './i18n/translations';
+import { initTracking } from './lib/track';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import SEOHead from './components/SEOHead';
 import { API, COMPANY, LEGAL_PATHS, I, Logo, Footer, track, fadeUp, fadeIn, stagger, scaleIn, AnimSection } from './components/shared';
@@ -416,8 +417,11 @@ const CookieConsent = ({ show, onAccept, onReject, t, lang }) => {
 };
 
 /* ═══════════ MAIN APP ═══════════ */
-function App() {
+export default function App() {
   const { lang } = useLanguage();
+  
+  // Event-Tracking initialisieren (DOS v2.0)
+  React.useEffect(() => { initTracking(); }, []);
   const t = T[lang] || T.de;
 
   const [chatOpen, setChatOpen] = useState(false);
