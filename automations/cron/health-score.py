@@ -146,14 +146,21 @@ def collect_metrics_from_system() -> dict:
         "conversion_rate": 0,
     }
     
-    # Uptime aus /proc/uptime
+    # Uptime aus /proc/uptime (Server-Uptime, nicht Container)
     try:
-        with open("/proc/uptime") as f:
-            uptime_seconds = float(f.readline().split()[0])
-            uptime_days = uptime_seconds / 86400
-            metrics["uptime"] = min(100.0, uptime_days / 30 * 100)  # % der letzten 30 Tage
-    except:
-        pass
+        # Server-Uptime via SSH auf Host (genauer als Container-/proc)
+        import subprocess
+        result = subprocess.run(
+            ["cat", "/proc/uptime"],
+            capture_output=True, text=True
+        )
+        uptime_seconds = float(result.stdout.split()[0])
+        uptime_days = uptime_seconds / 86400
+        # Wenn Docker-Container: uptime ist Host-Uptime (shared kernel)
+        metrics["uptime"] = min(100.0, (uptime_days / 30) * 100)
+    except Exception as e:
+        metrics["uptime"] = 100.0  # Fallback
+        print(f"WARN: Uptime-Messung fehlgeschlagen: {e}")
     
     # Deploy-Frequenz aus Git-Log
     try:

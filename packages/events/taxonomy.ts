@@ -186,7 +186,7 @@ export type AnyEventType = z.infer<typeof AnyEvent>;
 // ══════════════════════════════════════════════
 // - Events are append-only (immutable after firing)
 // - No PII in plaintext (email/user IDs hashed)
-// - Events sent to BOTH analytics provider AND n8n webhook
+// - Events sent to BOTH analytics provider AND serverless automation endpoint (FastAPI route)
 // - Schema validated with Zod before firing
 // - Breaking changes require new version (events/v2/)
 

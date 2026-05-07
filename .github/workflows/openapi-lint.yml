@@ -1,0 +1,44 @@
+name: OpenAPI Lint — Spectral
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    paths:
+      - 'ops/policies/openapi.json'
+      - 'backend/routes/**.py'
+
+jobs:
+  spectral:
+    name: OpenAPI Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Spectral
+        uses: stoplightio/spectral-action@v0.8.10
+        with:
+          file_glob: 'ops/policies/openapi.json'
+
+      - name: Validate OpenAPI Structure
+        run: |
+          if [ -f ops/policies/openapi.json ]; then
+            echo "OpenAPI spec found"
+            python3 -c "
+  import json, sys
+  spec = json.load(open('ops/policies/openapi.json'))
+  paths = len(spec.get('paths', {}))
+  schemas = len(spec.get('components', {}).get('schemas', {}))
+  print(f'Endpoints: {paths}')
+  print(f'Schemas: {schemas}')
+  if paths < 10:
+      print('WARNING: Weniger als 10 Endpoints')
+  if spec.get('openapi', '').startswith('3'):
+      print('OpenAPI 3.x ✅')
+  else:
+      print('WARNING: Nicht OpenAPI 3.x')
+  "
+          else
+            echo "ERROR: ops/policies/openapi.json fehlt"
+            exit 1
+          fi

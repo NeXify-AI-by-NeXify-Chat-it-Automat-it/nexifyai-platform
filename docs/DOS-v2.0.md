@@ -321,7 +321,7 @@ Fehlt die Methodik → "Beispielwert"-Markierung.
 |---|---|---|
 | Frontend | Next.js (App Router) + TailwindCSS + shadcn/ui | Should |
 | CMS | Directus/Strapi oder MDX | Should |
-| Automation | n8n (Self-Host) | Must |
+| Automation | Vercel Cron + FastAPI Routes + Supabase Edge Functions | Must |
 | Analytics | PostHog oder Plausible + Microsoft Clarity | Must |
 | CI/CD | Vollständige Quality Gates | Must |
 
