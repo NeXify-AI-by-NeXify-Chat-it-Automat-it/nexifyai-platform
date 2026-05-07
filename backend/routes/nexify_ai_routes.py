@@ -319,26 +319,57 @@ class MemoryStoreRequest(BaseModel):
 # AUTH DEPENDENCY (reuse admin auth)
 # ══════════════════════════════════════════════════════════════
 async def get_admin_from_token(request: Request):
-    """Extract admin user from Authorization header."""
-    from routes.auth_routes import get_current_admin
+    """Extract admin user from Authorization header. Supports Supabase JWT + Legacy."""
     auth = request.headers.get("Authorization", "")
     if not auth.startswith("Bearer "):
         raise HTTPException(401, "Nicht authentifiziert")
     token = auth[7:]
-    import jwt
-    try:
-        payload = jwt.decode(token, os.environ.get("SECRET_KEY", ""), algorithms=["HS256"])
-        email = payload.get("sub")
-        if not email:
-            raise HTTPException(401, "Ungültiger Token")
-        user = await S.db.admin_users.find_one({"email": email}, {"_id": 0})
-        if not user:
-            raise HTTPException(401, "Admin nicht gefunden")
-        return user
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(401, "Token abgelaufen")
-    except Exception:
+    email = None
+    import jwt, os
+
+    supabase_secret = os.environ.get("SUPABASE_JWT_SECRET", "7qhWu1m2qAkVMFkagKHvQcdlx9yFzCl8wPm1Ptb/")
+    legacy_secret = os.environ.get("SECRET_KEY", "")
+
+    for secret in [supabase_secret, legacy_secret]:
+        if not secret:
+            continue
+        try:
+            payload = jwt.decode(token, secret, algorithms=["HS256"])
+            email = payload.get("email") or payload.get("sub")
+            if not email:
+                continue
+            role_val = payload.get("role", "")
+            if role_val == "authenticated":
+                role_val = payload.get("user_metadata", {}).get("role", "") or payload.get("app_metadata", {}).get("role", "")
+            if role_val and role_val != "admin":
+                email = None
+                continue
+            break
+        except:
+            continue
+
+    if not email:
         raise HTTPException(401, "Nicht authentifiziert")
+
+    import asyncpg
+    try:
+        dsn = os.environ.get("ALT_SUPABASE_POSTGRESQL", "")
+        if dsn:
+            conn = await asyncpg.connect(dsn)
+            row = await conn.fetchrow(
+                "SELECT email, raw_user_meta_data->>'role' as role FROM auth.users WHERE email=$1 AND is_super_admin=true",
+                email.lower()
+            )
+            await conn.close()
+            if row:
+                return {"email": row["email"], "role": "admin"}
+    except:
+        pass
+
+    user = await S.db.admin_users.find_one({"email": email.lower()}, {"_id": 0})
+    if not user:
+        raise HTTPException(401, "Admin nicht gefunden")
+    return user
 
 
 # ══════════════════════════════════════════════════════════════
