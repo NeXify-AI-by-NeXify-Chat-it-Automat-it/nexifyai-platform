@@ -28,7 +28,27 @@ async def admin_login(form_data: OAuth2PasswordRequestForm = Depends(), request:
         await check_rate_limit(request, limit=20, window=300)
     
     user = await S.db.admin_users.find_one({"email": form_data.username.lower()})
-    if not user or not verify_password(form_data.password, user["password_hash"]):
+    password_valid = user and verify_password(form_data.password, user["password_hash"])
+    
+    if not password_valid:
+        # Fallback: try Supabase Auth
+        try:
+            anon_key = os.environ.get("SUPABASE_ANON_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzc3NzI0Njc2LCJleHAiOjE5MzU0MDQ2NzZ9.RT3idfOHPfYNves7nfO5xPVD2PlGHK05KgMx6m_hYQ8")
+            import httpx
+            async with httpx.AsyncClient() as client:
+                r = await client.post(
+                    f"http://127.0.0.1:8002/auth/v1/token?grant_type=password",
+                    headers={"apikey": anon_key, "Content-Type": "application/json"},
+                    json={"email": form_data.username.lower(), "password": form_data.password}
+                )
+                if r.status_code == 200:
+                    supabase_token = r.json().get("access_token", "")
+                    if supabase_token:
+                        return {"access_token": supabase_token, "token_type": "bearer"}
+        except Exception:
+            pass
+    
+    if not user or not password_valid:
         await log_audit("login_failed", form_data.username)
         raise HTTPException(status_code=401, detail="Ungültige Anmeldedaten")
     
