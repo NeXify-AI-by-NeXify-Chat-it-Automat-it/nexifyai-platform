@@ -49,6 +49,6 @@ export const BrandName = ({ className }) => <span className={className}>NeXify<s
 export const Logo = ({ size = 'md' }) => {
   const h = size === 'sm' ? 18 : size === 'lg' ? 28 : 22;
   return (
-    <img src="/nexifyai-logo-light.png" alt="neXifyAI" height={h} style={{ display: 'block' }} />
+    <img src="/nexifyai-logo-light.png" alt="neXifyAI" style={{ display: 'block', height: h, width: 'auto' }} />
   );
 };
