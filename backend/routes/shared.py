@@ -61,9 +61,9 @@ S = _AppState()
 # ══════════════════════════════════════════════════════════════
 S.RESEND_API_KEY = ""
 S.SENDER_EMAIL = ""
-    S.SECRET_KEY = os.environ.get(\"SECRET_KEY\", secrets.token_hex(32))
-    S.SUPABASE_JWT_SECRET = os.environ.get(\"SUPABASE_JWT_SECRET\", \"7qhWu1m2qAkVMFkagKHvQcdlx9yFzCl8wPm1P\")
-    S.ALGORITHM = \"HS256\"
+S.SECRET_KEY = os.environ.get("SECRET_KEY", secrets.token_hex(32))
+S.SUPABASE_JWT_SECRET = os.environ.get("SUPABASE_JWT_SECRET", "7qhWu1m2qAkVMFkagKHvQcdlx9yFzCl8wPm1P")
+S.ALGORITHM = "HS256"
 S.ACCESS_TOKEN_EXPIRE_MINUTES = 60
 S.NOTIFICATION_EMAILS = []
 S.EMERGENT_LLM_KEY = ""
@@ -77,9 +77,9 @@ def init_config():
     """Load configuration from environment. Called by server.py at startup."""
     S.RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
     S.SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "noreply@send.nexify-automate.com")
-    S.SECRET_KEY = os.environ.get(\"SECRET_KEY\", secrets.token_hex(32))
-    S.SUPABASE_JWT_SECRET = os.environ.get(\"SUPABASE_JWT_SECRET\", \"7qhWu1m2qAkVMFkagKHvQcdlx9yFzCl8wPm1P\")
-    S.ALGORITHM = \"HS256\"
+    S.SECRET_KEY = os.environ.get("SECRET_KEY", secrets.token_hex(32))
+    S.SUPABASE_JWT_SECRET = os.environ.get("SUPABASE_JWT_SECRET", "7qhWu1m2qAkVMFkagKHvQcdlx9yFzCl8wPm1P")
+    S.ALGORITHM = "HS256"
     S.ACCESS_TOKEN_EXPIRE_MINUTES = 60
     S.NOTIFICATION_EMAILS = ["support@nexify-automate.com", "nexifyai@nexifyai.de"]
     S.EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
