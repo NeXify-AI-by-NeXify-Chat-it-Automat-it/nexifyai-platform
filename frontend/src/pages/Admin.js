@@ -3584,7 +3584,7 @@ const Admin = () => {
           <h3 style={{marginBottom:12}}>Recovery & Self-Healing</h3>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:12}}>
             {[
-              { label: 'LLM Fallback', status: sys.llm?.active_provider === 'openrouter' ? 'OpenRouter primär' : 'Fallback aktiv (Emergent GPT)', ok: sys.llm?.active_provider === 'openrouter', action: sys.llm?.active_provider !== 'openrouter' ? 'OPENROUTER_API_KEY setzen für Zielarchitektur' : null },
+              { label: 'LLM Fallback', status: sys.llm?.active_provider === 'openrouter' ? 'OpenRouter primär (deepseek-v4-pro)' : 'Fallback aktiv (Lokal)', ok: sys.llm?.active_provider === 'openrouter', action: sys.llm?.active_provider !== 'openrouter' ? 'OPENROUTER_API_KEY setzen für Zielarchitektur' : null },
               { label: 'Dead Letter Queue', status: sys.dead_letter_queue?.count === 0 ? 'Leer — kein Handlungsbedarf' : `${sys.dead_letter_queue?.count} Jobs wartend`, ok: sys.dead_letter_queue?.count === 0, action: sys.dead_letter_queue?.count > 0 ? 'Dead-letter-Jobs in Admin prüfen und ggf. neu einreihen' : null },
               { label: 'E-Mail Delivery', status: sys.email?.api_key_set ? `${sys.email?.total_failed} Fehler von ${sys.email?.total_sent + sys.email?.total_failed} gesamt` : 'Nicht konfiguriert', ok: sys.email?.api_key_set && sys.email?.total_failed === 0, action: sys.email?.total_failed > 0 ? 'Fehlgeschlagene E-Mails in Email-Stats prüfen' : null },
               { label: 'Payment Provider', status: sys.payments?.revolut?.api_key_set ? 'Revolut aktiv' : 'Kein Provider', ok: sys.payments?.revolut?.api_key_set },
@@ -3732,8 +3732,8 @@ curl ${API}/api/v1/docs`}
         </div>
         {nxStatus && (
           <div style={{padding:'12px 16px',borderTop:'1px solid rgba(255,255,255,0.04)',fontSize:'.6875rem',color:'#4a5568',display:'flex',flexDirection:'column',gap:4}}>
-            <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:nxStatus.arcee?.configured?'#10b981':'#ef4444'}} />{nxStatus.arcee?.model}</div>
-            <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:nxStatus.mem0?.configured?'#10b981':'#ef4444'}} />mem0 Brain</div>
+            <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:nxStatus.openrouter?.configured?'#10b981':'#ef4444'}} />{nxStatus.openrouter?.model || 'OpenRouter'}</div>
+            <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:nxStatus.openrouter?.configured?'#10b981':'#ef4444'}} />Qdrant Brain</div>
             <div>{nxStatus.stats?.conversations} Konv. / {nxStatus.stats?.messages} Msgs</div>
           </div>
         )}
@@ -3802,7 +3802,7 @@ curl ${API}/api/v1/docs`}
           <div className="nxai-status-bar">
             <span>{nxStatus?.openrouter?.model || 'OpenRouter'}</span>
             <span>|</span>
-            <span>{nxUseMemory ? 'mem0 Brain aktiv' : 'Ohne Brain'}</span>
+            <span>{nxUseMemory ? 'Brain aktiv (Qdrant)' : 'Ohne Brain'}</span>
           </div>
         </div>
       </div>
@@ -3928,10 +3928,9 @@ curl ${API}/api/v1/docs`}
             <div style={{display:'flex',flexDirection:'column',gap:4}}>
               {[
                 {n:'OpenRouter',ok:nxStatus.openrouter?.connected,cfg:nxStatus.openrouter?.configured},
-                {n:'Arcee AI',ok:nxStatus.arcee?.connected,cfg:nxStatus.arcee?.configured},
-                {n:'mem0 Brain',ok:nxStatus.mem0?.connected,cfg:nxStatus.mem0?.configured},
-                {n:'Supabase',ok:true,cfg:true},
-                {n:'MongoDB',ok:true,cfg:true},
+                {n:'Qdrant (Brain)',ok:nxStatus.openrouter?.connected,cfg:nxStatus.openrouter?.configured},
+                {n:'Supabase',ok:nxStatus.supabase?.connected ?? true,cfg:nxStatus.supabase?.configured ?? true},
+                {n:'MongoDB',ok:nxStatus.mongodb?.connected ?? true,cfg:nxStatus.mongodb?.configured ?? true},
               ].map(s => (
                 <div key={s.n} style={{display:'flex',alignItems:'center',gap:6,fontSize:'.6875rem'}}>
                   <span className="nxai-ctrl-dot" style={{background:s.ok?'#10b981':s.cfg?'#f59e0b':'#ef4444'}} />
