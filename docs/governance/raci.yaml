@@ -1,0 +1,209 @@
+# RACI-Matrix — NeXifyAI Rollen & Verantwortlichkeiten
+# Version: 1.0 | Stand: 2026-05-08
+# R = Responsible (durchführend)
+# A = Accountable (verantwortlich/genehmigend)
+# C = Consulted (beratend)
+# I = Informed (informiert)
+
+roles:
+  ceo:
+    name: "Pascal Courbois"
+    title: "CEO / Geschäftsführer"
+  nexifyai:
+    name: "NeXifyAI"
+    title: "Lead AI Agent / System Architect"
+  tech_lead:
+    name: "Technical Lead"
+    title: "Code Review & CI/CD Owner"
+  security_officer:
+    name: "Security Officer"
+    title: "Security Audit & Incident Response"
+  design_lead:
+    name: "Design Lead"
+    title: "Designsystem & Brand"
+  legal:
+    name: "Legal & Compliance"
+    title: "DSGVO, AVV, Lizenz-Compliance"
+  product_owner:
+    name: "Product Owner"
+    title: "Roadmap & Priorisierung"
+  devops:
+    name: "DevOps Engineer"
+    title: "Infrastruktur & Deployment"
+
+matrix:
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # STRATEGIE & GOVERNANCE
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  geschaeftsstrategie:
+    description: "Geschäftsmodell, Preisgestaltung, Marktpositionierung"
+    R: [product_owner]
+    A: [ceo]
+    C: [nexifyai]
+    I: [tech_lead, devops]
+
+  dos_governance:
+    description: "Betriebssystem-Standards, Compliance, Enforcement"
+    R: [nexifyai]
+    A: [nexifyai]
+    C: [ceo, tech_lead]
+    I: [devops, security_officer]
+
+  roadmap:
+    description: "Produkt-Roadmap, Feature-Priorisierung, RICE-Scoring"
+    R: [product_owner]
+    A: [ceo]
+    C: [nexifyai, tech_lead]
+    I: [devops]
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # ARCHITEKTUR
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  systemarchitektur:
+    description: "Gesamtarchitektur, Tech-Stack, Komponenten-Design"
+    R: [nexifyai]
+    A: [nexifyai]
+    C: [tech_lead, devops]
+    I: [ceo]
+
+  datenarchitektur:
+    description: "Schema-Design, Source-of-Truth, Migrationen"
+    R: [nexifyai]
+    A: [tech_lead]
+    C: [devops, security_officer]
+    I: [ceo]
+
+  api_design:
+    description: "API-Standards, OpenAPI, Endpoint-Design"
+    R: [tech_lead]
+    A: [nexifyai]
+    C: [devops]
+    I: [product_owner]
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # DESIGN & BRAND
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  designsystem:
+    description: "Design Tokens, Komponenten-Bibliothek, /packages/ui"
+    R: [nexifyai]
+    A: [design_lead]
+    C: [ceo]
+    I: [tech_lead]
+
+  brand_identitaet:
+    description: "Logo, Farbwelt, Typografie, Tonalität"
+    R: [design_lead]
+    A: [ceo]
+    C: [nexifyai]
+    I: [tech_lead]
+
+  claims_content:
+    description: "Marketing-Aussagen, Scope-Dokumentation, Copy-Compiler"
+    R: [product_owner]
+    A: [legal]
+    C: [ceo]
+    I: [nexifyai, design_lead]
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # SECURITY & COMPLIANCE
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  security_audit:
+    description: "CVE-Scanning, Penetration-Tests, Dependency-Checks"
+    R: [security_officer]
+    A: [security_officer]
+    C: [devops]
+    I: [ceo, nexifyai]
+
+  datenschutz_dsgvo:
+    description: "AVV, VVT, DSFA, Cookie-Consent, Datenlöschung"
+    R: [legal]
+    A: [legal]
+    C: [security_officer]
+    I: [ceo, devops]
+
+  incident_response:
+    description: "SEV0-4 Management, Postmortems, RCA"
+    R: [devops]
+    A: [security_officer]
+    C: [ceo]
+    I: [nexifyai, tech_lead]
+
+  lizenz_compliance:
+    description: "Open-Source-Lizenz-Scans, Genehmigungsliste"
+    R: [nexifyai]
+    A: [legal]
+    C: [security_officer]
+    I: [tech_lead]
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # INFRASTRUKTUR
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  infrastruktur:
+    description: "Server, Docker, Traefik, Netzwerk, Backup"
+    R: [devops]
+    A: [devops]
+    C: [security_officer]
+    I: [nexifyai, ceo]
+
+  deployment:
+    description: "CI/CD, Release-Prozess, Vercel, VPS"
+    R: [devops]
+    A: [tech_lead]
+    C: [nexifyai]
+    I: [ceo]
+
+  monitoring:
+    description: "Watchdog, Health-Endpoint, Cron-Jobs, Alerts"
+    R: [nexifyai]
+    A: [devops]
+    C: [tech_lead]
+    I: [ceo]
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # KI-GOVERNANCE
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ki_governance:
+    description: "Agent-Orchestrierung, Prompt-Policies, Model-Selection"
+    R: [nexifyai]
+    A: [nexifyai]
+    C: [security_officer]
+    I: [ceo]
+
+  ki_qualitaet:
+    description: "Hallucination-Checks, Confidence-Scoring, E2E-Tests"
+    R: [nexifyai]
+    A: [nexifyai]
+    C: [tech_lead]
+    I: [ceo]
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # FINANZEN
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  finops:
+    description: "Kosten-Monitoring, Budget-Thresholds, Token-Verbrauch"
+    R: [devops]
+    A: [ceo]
+    C: [nexifyai]
+    I: [product_owner]
+
+  billing:
+    description: "Rechnungen, Zahlungen, Mahnwesen, Revolut"
+    R: [nexifyai]
+    A: [ceo]
+    C: [legal]
+    I: [devops]
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ESKALATIONSPFADE
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+escalation:
+  technisch:
+    path: ["Developer", "Technical Lead", "NeXifyAI", "CEO"]
+  security:
+    path: ["Developer", "Security Officer", "CEO"]
+  compliance:
+    path: ["Developer", "Legal & Compliance", "CEO"]
+  design:
+    path: ["Developer", "Design Lead", "CEO"]
+  strategisch:
+    path: ["Product Owner", "NeXifyAI", "CEO"]

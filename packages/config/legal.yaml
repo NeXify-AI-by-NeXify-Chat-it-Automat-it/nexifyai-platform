@@ -1,0 +1,131 @@
+# NeXifyAI — Legal Layer
+# Version: 1.0 | Stand: 2026-05-08
+# Cookie-Governance, AI-Disclosure, Lizenz-Compliance, Data-Residency
+
+legal:
+  version: "1.0"
+  last_reviewed: "2026-05-08"
+  responsible: "Legal & Compliance"
+
+  # ═══════════════════════════════════
+  # COOKIE GOVERNANCE
+  # ═══════════════════════════════════
+  cookies:
+    taxonomy:
+      essential:
+        description: "Technisch notwendig — kein Consent erforderlich"
+        examples: ["session_id", "csrf_token", "cookie_consent"]
+        max_age_days: 365
+
+      functional:
+        description: "Erweiterte Funktionalität — Opt-in erforderlich"
+        examples: ["language_pref", "theme_pref"]
+        max_age_days: 365
+
+      analytics:
+        description: "Nutzungsanalyse — Opt-in erforderlich"
+        examples: ["_ga", "_plausible", "_clarity"]
+        max_age_days: 730
+
+      marketing:
+        description: "Werbe-Tracking — Opt-in erforderlich"
+        examples: ["_fbp", "_gcl_au"]
+        max_age_days: 90
+
+    consent_mechanism:
+      type: "opt_in"  # DSGVO-konform: Nur mit expliziter Zustimmung
+      banner_delay_ms: 500
+      cookie_name: "nx_consent"
+      consent_log:
+        enabled: true
+        storage: "supabase"  # Tabelle: cookie_consents
+
+  # ═══════════════════════════════════
+  # AI DISCLOSURE
+  # ═══════════════════════════════════
+  ai_disclosure:
+    transparency:
+      rule: "KI-generierte Inhalte müssen als solche erkennbar sein"
+      implementation: "Footer-Hinweis + Page-Level Markierung"
+
+    automated_decisions:
+      rule: "Keine automatisierten Einzelfallentscheidungen ohne Human-Review"
+      exceptions: ["Spam-Filter", "Bot-Erkennung"]
+
+    training_data:
+      rule: "Kundendaten werden NICHT für Modell-Training verwendet"
+      audit_frequency: "quarterly"
+
+  # ═══════════════════════════════════
+  # DATA PROCESSING AGREEMENT (DPA)
+  # ═══════════════════════════════════
+  dpa:
+    template_path: "/docs/legal/DPA_Template.pdf"
+    required_for:
+      - "B2B Kunden"
+      - "Enterprise Kunden"
+    subprocessors:
+      - name: "OpenRouter"
+        purpose: "LLM API"
+        location: "US"
+        dpa_signed: true
+
+      - name: "Supabase"
+        purpose: "Database + Auth"
+        location: "EU (Self-Hosted)"
+        dpa_signed: false
+
+      - name: "Vercel"
+        purpose: "Frontend Hosting"
+        location: "US/EU"
+        dpa_signed: true
+
+      - name: "Resend"
+        purpose: "Transactional Email"
+        location: "US"
+        dpa_signed: true
+
+      - name: "Hostinger"
+        purpose: "VPS Hosting"
+        location: "EU"
+        dpa_signed: false
+
+  # ═══════════════════════════════════
+  # LICENSE COMPLIANCE
+  # ═══════════════════════════════════
+  licenses:
+    scan_frequency: "per_pr"
+    tool: "license-checker"  # npm, alternativ: FOSSA, Snyk
+
+    allowed:
+      - "MIT"
+      - "Apache-2.0"
+      - "BSD-2-Clause"
+      - "BSD-3-Clause"
+      - "ISC"
+      - "Python-2.0"
+
+    blocked:
+      - "GPL-2.0"
+      - "GPL-3.0"
+      - "AGPL-3.0"
+      - "SSPL-1.0"
+      reason: "Virale Copyleft-Klauseln inkompatibel mit Geschäftsmodell"
+
+    requires_review:
+      - "LGPL-*"
+      - "MPL-2.0"
+      - "CC-BY-NC-*"
+
+  # ═══════════════════════════════════
+  # DATA RESIDENCY
+  # ═══════════════════════════════════
+  data_residency:
+    primary_region: "EU"
+    allowed_regions: ["EU", "EEA"]
+    restricted_regions: ["CN", "RU"]
+    
+    data_location:
+      customer_data: "EU (Hostinger VPS + Supabase Self-Hosted)"
+      llm_requests: "US (OpenRouter) — No Data Retention per DPA"
+      analytics: "EU (Plausible Self-Hosted)"

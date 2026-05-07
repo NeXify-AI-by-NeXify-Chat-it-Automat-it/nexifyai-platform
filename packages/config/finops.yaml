@@ -1,0 +1,90 @@
+# NeXifyAI — FinOps / Cost Governance
+# Version: 1.0 | Stand: 2026-05-08
+# Budget-Thresholds, Kosten-Attribution, Scaling-Policies
+
+finops:
+  version: "1.0"
+  last_reviewed: "2026-05-08"
+  responsible: "DevOps + CEO"
+
+  # ═══════════════════════════════════
+  # BUDGET THRESHOLDS (monatlich)
+  # ═══════════════════════════════════
+  budgets:
+    openrouter:
+      provider: "OpenRouter"
+      monthly_limit: 500  # USD
+      warning_at: 80       # % → Slack/Email
+      alarm_at: 100        # % → Block + CEO-Email
+      current_model: "deepseek-v4-pro"
+      fallback_model: "deepseek-v4-flash"  # $0.14/M vs $1.40/M
+
+    vercel:
+      provider: "Vercel"
+      plan: "Pro"
+      monthly_limit: 20    # USD
+      alarm_at: 100
+
+    supabase:
+      provider: "Supabase"
+      plan: "Self-Hosted"
+      monthly_limit: 25    # USD (Fallback Cloud)
+      alarm_at: 100
+
+    hostinger:
+      provider: "Hostinger"
+      plan: "VPS"
+      monthly_limit: 15    # USD
+      alarm_at: 100
+
+    total:
+      monthly_limit: 560   # USD
+      warning_at: 80       # % → CEO-Email
+      alarm_at: 100        # % → Emergency Review
+
+  # ═══════════════════════════════════
+  # KOSTEN-ATTRIBUTION
+  # ═══════════════════════════════════
+  attribution:
+    by_tenant:
+      enabled: true
+      method: "api_key_routing"  # Pro Tenant API-Key → Kosten tracken
+    
+    by_feature:
+      - feature: "chat_messages"
+        cost_per_unit: 0.002  # USD pro Message (deepseek-flash)
+      - feature: "email_reply"
+        cost_per_unit: 0.005  # USD pro KI-generierte Email
+      - feature: "research_agent"
+        cost_per_unit: 0.01   # USD pro Analyse
+      - feature: "offer_agent"
+        cost_per_unit: 0.02   # USD pro Angebot
+    
+    by_model:
+      - model: "deepseek-v4-pro"
+        cost_per_1k_tokens: 0.0014  # $1.40/M input
+      - model: "deepseek-v4-flash"
+        cost_per_1k_tokens: 0.00014  # $0.14/M input
+
+  # ═══════════════════════════════════
+  # SCALING POLICIES
+  # ═══════════════════════════════════
+  scaling:
+    auto_scaling: false  # Single VPS, kein Auto-Scaling
+    disk_warning: 80     # % → Warnung
+    disk_critical: 90    # % → Kritisch
+    ram_warning: 80      # %
+    cpu_warning: 80      # %
+
+  # ═══════════════════════════════════
+  # VENDOR EVALUATION
+  # ═══════════════════════════════════
+  vendor_evaluation:
+    frequency: "annually"
+    last_evaluation: null  # Erste Evaluation fällig
+    criteria:
+      - price_performance
+      - reliability_uptime
+      - support_quality
+      - open_source_alternatives
+      - eu_data_residency
