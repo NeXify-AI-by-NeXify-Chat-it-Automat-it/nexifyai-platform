@@ -85,7 +85,7 @@ SERVICE_TEMPLATES = {
             "Strategist": "Projektplanung, Optimierungsstrategie",
         },
         "standard_content": {
-            "welcome_email": "Willkommen bei NeXify Automate — Ihr AI-Agenten-Team steht bereit",
+            "welcome_email": "Willkommen bei neXify - Chat it. Automat it. — Ihr AI-Agenten-Team steht bereit",
             "onboarding_checklist": [
                 "CRM-Zugangsdaten bereitstellen",
                 "Website-Zugang für Chatbot-Integration",

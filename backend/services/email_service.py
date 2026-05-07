@@ -43,7 +43,7 @@ def _base_html(title: str, body: str, footer_extra: str = "") -> str:
 body{{margin:0;padding:0;background:#0c1117;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#c8d1dc;-webkit-text-size-adjust:100%}}
 .wrap{{max-width:600px;margin:0 auto;padding:32px 24px}}
 .header{{text-align:center;padding:24px 0 20px;border-bottom:1px solid rgba(255,255,255,.04)}}
-.logo{{font-size:22px;font-weight:800;letter-spacing:-.02em;color:#fff}}
+.logo{{font-size:22px;font-weight:800;letter-spacing:-.02em;color:#fff}} .logo img{{height:28px;width:auto;vertical-align:middle}}
 .logo .ai{{color:#ff9b7a}}
 .content{{padding:28px 0}}
 h1{{font-size:20px;font-weight:700;color:#fff;margin:0 0 16px;line-height:1.3}}
@@ -61,13 +61,13 @@ p{{font-size:14px;line-height:1.65;color:#c8d1dc;margin:0 0 14px}}
 .trust{{display:inline-block;padding:4px 10px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.15);border-radius:12px;font-size:11px;color:#10b981;font-weight:600;margin:4px 2px}}
 </style></head>
 <body><div class="wrap">
-<div class="header"><div class="logo">NeXify<span class="ai">AI</span></div></div>
+<div class="header"><div class="logo"><img src="https://supabase.nexifyai.cloud/storage/v1/object/sign/Data-Transfair-Pascal/nexifyai-logo-weisse-schrift.png" alt="neXifyAI" style="height:28px;width:auto" /></div></div>
 <div class="content">{body}</div>
 <div class="footer">
 {footer_extra}
-<p>NeXifyAI &middot; Starter/Growth AI Agenten AG<br>
-KvK 96498099 &middot; BTW NL867282228B01<br>
-<a href="https://nexifyai.de">nexifyai.de</a> &middot; <a href="mailto:nexifyai@nexifyai.de">nexifyai@nexifyai.de</a></p>
+<p>neXify - Chat it. Automat it. &middot; Starter/Growth AI Agenten AG<br>
+KvK 90483944 &middot; BTW NL865786276B01<br>
+<a href="https://nexify-automate.com">nexify-automate.com</a> &middot; <a href="mailto:support@nexify-automate.com">support@nexify-automate.com</a></p>
 <p style="font-size:10px;color:#4a5568">Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht auf diese Nachricht.</p>
 </div>
 </div></body></html>"""

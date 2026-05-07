@@ -925,7 +925,7 @@ a.integ-item-v2.popular{border-color:rgba(254,155,123,0.1);color:rgba(255,255,25
 .footer-links a:hover,.footer-links button:hover{color:var(--nx-accent)}
 .footer-ids{margin-top:16px;font-size:.5625rem;color:var(--nx-dim);line-height:1.6}
 .footer-iban{margin-top:8px;font-size:.6875rem;color:var(--nx-dim)}
-.footer-bottom{margin-top:36px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.04);display:flex;flex-direction:column;gap:12px;align-items:center}
+.footer-founder{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:12px}.footer-founder-img{width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--nx-accent);opacity:0.85;transition:opacity .3s}.footer-founder-img:hover{opacity:1}.footer-founder-name{font-size:.6875rem;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.04em}.footer-founder-role{font-size:.5625rem;color:var(--nx-dim);text-transform:uppercase;letter-spacing:.06em}@media(min-width:768px){.footer-founder{grid-column:4;align-items:flex-start}}.footer-bottom{margin-top:36px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.04);display:flex;flex-direction:column;gap:12px;align-items:center}
 @media(min-width:768px){.footer-bottom{flex-direction:row;justify-content:space-between}}
 .footer-copy{font-size:.6875rem;text-transform:uppercase;letter-spacing:.06em;color:var(--nx-dim)}
 .footer-status{display:flex;align-items:center;gap:6px;font-size:.5625rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--nx-dim)}

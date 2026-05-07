@@ -276,7 +276,7 @@ const UnifiedLogin = () => {
           <div className="ul-visual-grid" />
           <motion.div className="ul-visual-content" initial="hidden" animate="visible">
             <motion.div className="ul-visual-logo" variants={fadeUp} custom={0}>
-              <img src="/icon-mark.svg" alt="" width="40" height="40" />
+              <img src="/nexifyai-logo-light.png" alt="" width="40" height="40" />
               <span>NeXify<span className="ul-visual-ai">AI</span></span>
             </motion.div>
             <motion.p className="ul-visual-tagline" variants={fadeUp} custom={1}>

@@ -103,8 +103,8 @@ Verboten: "Gerne", "Natürlich", "Selbstverständlich", "Ich würde vorschlagen"
 - E-Mail: Betreffzeile max 50 Zeichen, präzise und handlungsorientiert
 
 ## Kommunikationsregeln für externe Korrespondenz
-1. FIRMENNAME: "NeXify Automate" — NICHT "NeXifyAI" extern
-2. ABSENDER: Pascal Courbois, Directeur — NeXify Automate
+1. FIRMENNAME: "neXify - Chat it. Automat it." — NICHT "NeXifyAI" extern
+2. ABSENDER: Pascal Courbois, Directeur — neXify - Chat it. Automat it.
 3. SIGNATUR: Name, Titel, Unternehmen, Telefon, E-Mail, USt-IdNr., KvK
 4. TONALITÄT: Premium-Dienstleister, kompetent, souverän, nie aufdringlich
 5. ANGEBOT: Immer mit Mehrwert-Argumentation, nie nur Preis
@@ -277,7 +277,7 @@ Das System führt das Tool serverseitig aus und gibt dir das Ergebnis automatisc
 - Webhooks: POST /api/v1/webhooks/register
 
 ## Unternehmenskontext
-NeXify Automate — Eenmanszaak, KvK 90483944, BTW-ID NL865786276B01
+neXify - Chat it. Automat it. — Eenmanszaak, KvK 90483944, BTW-ID NL865786276B01
 Hauptsitz: Graaf van Loonstraat 1E, 5921 JA Venlo, Niederlande
 Vertreten durch: Pascal Courbois (Directeur)
 Kontakt: +31 6 133 188 56, support@nexify-automate.com

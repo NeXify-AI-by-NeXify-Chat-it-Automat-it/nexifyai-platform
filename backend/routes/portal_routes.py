@@ -747,7 +747,7 @@ async def customer_finance(current_user: dict = Depends(get_current_customer)):
         "iban": COMM_COMPANY.get("bank", {}).get("iban", ""),
         "bic": COMM_COMPANY.get("bank", {}).get("bic", ""),
         "bank_name": COMM_COMPANY.get("bank", {}).get("bank", ""),
-        "account_holder": COMM_COMPANY.get("name", "NeXify Automate"),
+        "account_holder": COMM_COMPANY.get("name", "neXify - Chat it. Automat it."),
     }
 
     return {

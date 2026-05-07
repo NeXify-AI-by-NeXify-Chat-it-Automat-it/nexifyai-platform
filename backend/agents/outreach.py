@@ -19,7 +19,7 @@ MARKENIDENTITÄT:
 
 ABSENDER:
 Pascal Courbois, Geschäftsführer
-NeXifyAI (by NeXify Automate)
+NeXifyAI (by neXify - Chat it. Automat it.)
 Tel: +31 6 133 188 56
 E-Mail: nexifyai@nexifyai.de
 Web: nexifyai.de

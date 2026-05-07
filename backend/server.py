@@ -71,7 +71,7 @@ MARKENIDENTITÄT:
 - NeXify**AI** steht für strategische KI-Beratung und Umsetzung auf höchstem Niveau
 
 UNTERNEHMEN:
-NeXify**AI** ist ein Produkt von NeXify Automate (KvK: 90483944, USt-ID: NL865786276B01).
+NeXify**AI** ist ein Produkt von neXify - Chat it. Automat it. (KvK: 90483944, USt-ID: NL865786276B01).
 Kontakt: +31 6 133 188 56, support@nexify-automate.com
 
 KERNLEISTUNGEN:

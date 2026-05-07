@@ -390,7 +390,7 @@ const Ft = ({ onCookieSettings, t, lang }) => {
       <div className="container">
         <div className="footer-grid">
           <div className="footer-brand">
-            <div className="footer-logo"><img src="/icon-mark.svg" alt="" width="28" height="28" /><span>NeXify<span className="brand-ai">AI</span></span></div>
+            <div className="footer-logo"><img src="/nexifyai-logo-light.png" alt="neXifyAI" height="28" style="height:28px;width:auto" /><span>NeXify<span className="brand-ai">AI</span></span></div>
             <div className="footer-tagline">{t.footer.tagline}</div>
             <div className="footer-legal-name">{COMPANY.legal}</div>
             <address className="footer-contact">
@@ -399,13 +399,18 @@ const Ft = ({ onCookieSettings, t, lang }) => {
               <p>E-Mail: <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></p>
             </address>
           </div>
+          <div className="footer-founder">
+            <img src="/pascal_courbois.png" alt="Pascal Courbois" className="footer-founder-img" width="60" height="60" />
+            <div className="footer-founder-name">Pascal Courbois</div>
+            <div className="footer-founder-role">{lang === 'en' ? 'CEO & Founder' : lang === 'nl' ? 'CEO & Oprichter' : 'Geschäftsführer & Inhaber'}</div>
+          </div>
           <nav className="footer-nav-col">
             <h3 className="footer-nav-title">{t.footer.nav}</h3>
             <ul className="footer-links">
               <li><a href="#loesungen">{t.nav.leistungen}</a></li><li><a href="#use-cases">{t.nav.usecases}</a></li>
               <li><a href="#app-dev">{t.nav.appdev}</a></li><li><a href="#integrationen">{t.nav.integrationen}</a></li>
               <li><a href="#preise">{t.nav.tarife}</a></li><li><a href="#ki-seo">{lang === 'en' ? 'SEO' : 'KI-SEO'}</a></li><li><a href="#services">{lang === 'en' ? 'Services' : lang === 'nl' ? 'Diensten' : 'Services'}</a></li>
-              <li><a href="#trust">{lang === 'en' ? 'Trust' : lang === 'nl' ? 'Vertrouwen' : 'Vertrauen'}</a></li><li><a href="#kontakt">{t.footer.kontakt}</a></li>
+              <li><a href="#trust">{lang === 'en' ? 'Trust' : lang === 'nl' ? 'Vertrouwen' : 'Vertrauen'}</a></li><li><a href="#kontakt">{t.footer.kontakt}</a></li><li><a href={`/${lang}/blog`}>{lang === 'en' ? 'Blog' : lang === 'nl' ? 'Blog' : 'Blog'}</a></li>
             </ul>
           </nav>
           <nav className="footer-nav-col">

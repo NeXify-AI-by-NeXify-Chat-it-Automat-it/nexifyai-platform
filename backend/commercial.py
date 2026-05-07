@@ -20,6 +20,7 @@ from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
 )
 from reportlab.lib.enums import TA_LEFT, TA_RIGHT, TA_CENTER
+from reportlab.platypus import Image
 
 logger = logging.getLogger("nexifyai.commercial")
 
@@ -27,7 +28,7 @@ logger = logging.getLogger("nexifyai.commercial")
 # COMPANY MASTER DATA — Single Source of Truth
 # ═══════════════════════════════════════════════════
 COMPANY_DATA = {
-    "name": "NeXify Automate",
+    "name": "neXify - Chat it. Automat it.",
     "brand": "NeXifyAI",
     "ceo": "Pascal Courbois",
     "ceo_title": "Geschäftsführer",
@@ -49,7 +50,7 @@ COMPANY_DATA = {
         "bic": "REVONL22",
         "intermediary_bic": "CHASDEFX",
         "bank_name": "Revolut",
-        "account_holder": "NeXify Automate",
+        "account_holder": "neXify - Chat it. Automat it.",
     },
 }
 
@@ -814,12 +815,17 @@ def _header_footer(canvas, doc, doc_type, doc_number, doc_date):
     canvas.setStrokeColor(CI_ORANGE)
     canvas.setLineWidth(2)
     canvas.line(20 * mm, A4[1] - 18 * mm, A4[0] - 20 * mm, A4[1] - 18 * mm)
-    canvas.setFont("Helvetica-Bold", 14)
-    canvas.setFillColor(CI_DARK)
-    canvas.drawString(20 * mm, A4[1] - 14 * mm, "NeXify")
-    canvas.setFillColor(CI_ORANGE)
-    w = canvas.stringWidth("NeXify", "Helvetica-Bold", 14)
-    canvas.drawString(20 * mm + w, A4[1] - 14 * mm, "AI")
+    # Logo image (dark text for white paper)
+    logo_path = os.path.join(os.path.dirname(__file__), "assets", "nexifyai-logo-dark.png")
+    if os.path.exists(logo_path):
+        canvas.drawImage(logo_path, 20 * mm, A4[1] - 17 * mm, width=55*mm, height=11*mm, preserveAspectRatio=True, mask='auto')
+    else:
+        canvas.setFont("Helvetica-Bold", 14)
+        canvas.setFillColor(CI_DARK)
+        canvas.drawString(20 * mm, A4[1] - 14 * mm, "NeXify")
+        canvas.setFillColor(CI_ORANGE)
+        w = canvas.stringWidth("NeXify", "Helvetica-Bold", 14)
+        canvas.drawString(20 * mm + w, A4[1] - 14 * mm, "AI")
     canvas.setFont("Helvetica", 8)
     canvas.setFillColor(CI_GRAY)
     canvas.drawRightString(A4[0] - 20 * mm, A4[1] - 12 * mm, f"{doc_type} {doc_number}")
@@ -1002,7 +1008,7 @@ def generate_quote_pdf(quote_data: dict) -> bytes:
     elements.append(Spacer(1, 8 * mm))
     elements.append(Paragraph("Mit freundlichen Grüßen,", styles["BodyText2"]))
     elements.append(Paragraph(
-        f"<b>{COMPANY_DATA['ceo']}</b><br/>{COMPANY_DATA['ceo_title']}, NeXifyAI",
+        f"<b>{COMPANY_DATA['ceo']}</b><br/>{COMPANY_DATA['ceo_title']}, {COMPANY_DATA['name']}",
         styles["BodyText2"],
     ))
     elements.append(Spacer(1, 8 * mm))
@@ -1614,12 +1620,10 @@ def generate_tariff_sheet_pdf(category: str = "all") -> bytes:
         canvas.setStrokeColor(CI_ORANGE)
         canvas.setLineWidth(2)
         canvas.line(15 * mm, A4[1] - 18 * mm, A4[0] - 15 * mm, A4[1] - 18 * mm)
-        canvas.setFont("Helvetica-Bold", 14)
-        canvas.setFillColor(CI_DARK)
-        canvas.drawString(15 * mm, A4[1] - 14 * mm, "NeXify")
-        canvas.setFillColor(CI_ORANGE)
-        w = canvas.stringWidth("NeXify", "Helvetica-Bold", 14)
-        canvas.drawString(15 * mm + w, A4[1] - 14 * mm, "AI")
+        # Logo image (dark text for white paper)
+        logo_path = os.path.join(os.path.dirname(__file__), "assets", "nexifyai-logo-dark.png")
+        if os.path.exists(logo_path):
+            canvas.drawImage(logo_path, 15 * mm, A4[1] - 17 * mm, width=55*mm, height=11*mm, preserveAspectRatio=True, mask='auto')
         canvas.setFont("Helvetica", 7)
         canvas.setFillColor(CI_GRAY)
         canvas.drawRightString(A4[0] - 15 * mm, A4[1] - 12 * mm, f"Tarif- und Leistungsübersicht")

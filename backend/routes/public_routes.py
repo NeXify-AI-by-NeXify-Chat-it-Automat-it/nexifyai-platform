@@ -243,7 +243,7 @@ async def get_company():
     return {
         "name": "NeXifyAI by NeXify",
         "tagline": "Chat it. Automate it.",
-        "legal_name": "NeXify Automate",
+        "legal_name": "neXify - Chat it. Automat it.",
         "ceo": "Pascal Courbois, Geschäftsführer",
         "address_nl": {"street": "Graaf van Loonstraat 1E", "city": "5921 JA Venlo", "country": "Niederlande"},
         "phone": "+31 6 133 188 56",
@@ -295,7 +295,7 @@ async def submit_contact(data: ContactForm, request: Request):
             <p style="margin:0;font-size:13px;color:#8f9095;">REFERENZ-NR.</p>
             <p style="margin:4px 0 0;color:#fff;font-weight:600;">{lead_id}</p>
             </div>
-            <p>Mit freundlichen Grüßen,<br>Pascal Courbois<br>Geschäftsführer, NeXify Automate</p>'''
+            <p>Mit freundlichen Grüßen,<br>Pascal Courbois<br>Geschäftsführer, neXify - Chat it. Automat it.</p>'''
         )
     ))
     
@@ -642,7 +642,7 @@ async def chat_message(data: ChatMessage, request: Request):
                             <p style="margin:16px 0 0;font-size:12px;color:#8f9095;">BUCHUNGS-NR.</p>
                             <p style="margin:4px 0 0;color:#fff;">{bk_id}</p></div>
                             <p>Sie erhalten rechtzeitig einen Link zum virtuellen Meetingraum.</p>
-                            <p>Mit freundlichen Grüßen,<br>Pascal Courbois<br>Geschäftsführer, NeXify Automate</p>''')
+                            <p>Mit freundlichen Grüßen,<br>Pascal Courbois<br>Geschäftsführer, neXify - Chat it. Automat it.</p>''')
                     ))
                     asyncio.create_task(send_email(
                         S.NOTIFICATION_EMAILS,

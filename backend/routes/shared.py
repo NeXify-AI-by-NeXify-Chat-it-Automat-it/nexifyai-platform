@@ -61,8 +61,9 @@ S = _AppState()
 # ══════════════════════════════════════════════════════════════
 S.RESEND_API_KEY = ""
 S.SENDER_EMAIL = ""
-S.SECRET_KEY = ""
-S.ALGORITHM = "HS256"
+    S.SECRET_KEY = os.environ.get(\"SECRET_KEY\", secrets.token_hex(32))
+    S.SUPABASE_JWT_SECRET = os.environ.get(\"SUPABASE_JWT_SECRET\", \"7qhWu1m2qAkVMFkagKHvQcdlx9yFzCl8wPm1P\")
+    S.ALGORITHM = \"HS256\"
 S.ACCESS_TOKEN_EXPIRE_MINUTES = 60
 S.NOTIFICATION_EMAILS = []
 S.EMERGENT_LLM_KEY = ""
@@ -76,8 +77,9 @@ def init_config():
     """Load configuration from environment. Called by server.py at startup."""
     S.RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
     S.SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "noreply@send.nexify-automate.com")
-    S.SECRET_KEY = os.environ.get("SECRET_KEY", secrets.token_hex(32))
-    S.ALGORITHM = "HS256"
+    S.SECRET_KEY = os.environ.get(\"SECRET_KEY\", secrets.token_hex(32))
+    S.SUPABASE_JWT_SECRET = os.environ.get(\"SUPABASE_JWT_SECRET\", \"7qhWu1m2qAkVMFkagKHvQcdlx9yFzCl8wPm1P\")
+    S.ALGORITHM = \"HS256\"
     S.ACCESS_TOKEN_EXPIRE_MINUTES = 60
     S.NOTIFICATION_EMAILS = ["support@nexify-automate.com", "nexifyai@nexifyai.de"]
     S.EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
@@ -225,7 +227,7 @@ Web: <a href="https://nexify-automate.com" style="color:#ff9b7a;text-decoration:
 <tr><td style="background:#0a0f14;padding:20px 32px;">
 <p style="margin:0 0 12px;text-align:center;"><a href="https://nexify-automate.com" style="color:#ff9b7a;font-size:12px;text-decoration:none;font-weight:500;">KI-Agenten, Websites, Apps & SEO — nexify-automate.com</a></p>
 <p style="margin:0 0 6px;text-align:center;color:#444;font-size:10px;line-height:1.8;">
-NeXify Automate — Graaf van Loonstraat 1E, 5921 JA Venlo, NL | KvK: 90483944 | USt-ID: NL865786276B01
+neXify - Chat it. Automat it. — Graaf van Loonstraat 1E, 5921 JA Venlo, NL | KvK: 90483944 | USt-ID: NL865786276B01
 </p>
 <p style="margin:0;text-align:center;font-size:10px;">
 <a href="https://nexify-automate.com/de/impressum" style="color:#555;text-decoration:none;">Impressum</a> &nbsp;|&nbsp;

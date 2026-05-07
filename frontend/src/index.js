@@ -15,6 +15,11 @@ import UnifiedLogin from './pages/UnifiedLogin';
 import BookingPage from './pages/BookingPage';
 import ContractAcceptance from './pages/ContractAcceptance';
 import SuspendedPage from './pages/SuspendedPage';
+import LeistungenPage from './pages/LeistungenPage';
+import PreisePage from './pages/PreisePage';
+import KontaktPage from './pages/KontaktPage';
+import BlogPage from './pages/BlogPage';
+import BlogPostPage from './pages/BlogPostPage';
 
 /* Language-aware redirect: / → /<detected lang> */
 function LangRedirect() {
@@ -52,6 +57,13 @@ root.render(
             <Route path="/en/gesperrt" element={<SuspendedPage />} />
             <Route path="/gesperrt" element={<SuspendedPage />} />
             <Route path="/suspended" element={<SuspendedPage />} />
+
+            {/* SEO Subpages (before catch-all) */}
+            <Route path="/:lang/leistungen" element={<LeistungenPage />} />
+            <Route path="/:lang/preise" element={<PreisePage />} />
+            <Route path="/:lang/kontakt" element={<KontaktPage />} />
+            <Route path="/:lang/blog" element={<BlogPage />} />
+            <Route path="/:lang/blog/:slug" element={<BlogPostPage />} />
 
             {/* Language-prefixed legal pages (all slug variants) */}
             <Route path="/:lang/:page" element={<LegalPage />} />

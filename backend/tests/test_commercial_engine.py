@@ -130,7 +130,7 @@ class TestPublicProductEndpoints:
         assert "company" in data, "Response should contain 'company' key"
         company = data["company"]
         
-        assert company.get("name") == "NeXify Automate", f"Company name mismatch: {company.get('name')}"
+        assert company.get("name") == "neXify - Chat it. Automat it.", f"Company name mismatch: {company.get('name')}"
         assert company.get("brand") == "NeXifyAI", f"Brand mismatch: {company.get('brand')}"
         assert "phone" in company, "Missing phone"
         assert "email" in company, "Missing email"

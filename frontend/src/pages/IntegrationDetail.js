@@ -29,7 +29,7 @@ export default function IntegrationDetail() {
           <div className="container">
             <div className="intd-nav-inner">
               <Link to={homePath} className="intd-logo-link" data-testid="intd-logo">
-                <img src="/icon-mark.svg" alt="" width="28" height="28" />
+                <img src="/nexifyai-logo-light.png" alt="" width="28" height="28" />
                 <span className="intd-logo-text">NeXify<span className="intd-logo-accent">AI</span></span>
               </Link>
               <Link to={`${homePath}#integrationen`} className="intd-back" data-testid="intd-back">
@@ -75,7 +75,7 @@ export default function IntegrationDetail() {
         <div className="container">
           <div className="intd-nav-inner">
             <Link to={homePath} className="intd-logo-link" data-testid="intd-logo">
-              <img src="/icon-mark.svg" alt="" width="28" height="28" />
+              <img src="/nexifyai-logo-light.png" alt="" width="28" height="28" />
               <span className="intd-logo-text">NeXify<span className="intd-logo-accent">AI</span></span>
             </Link>
             <Link to={`${homePath}#integrationen`} className="intd-back" data-testid="intd-back">
@@ -257,7 +257,7 @@ export default function IntegrationDetail() {
       <footer className="intd-footer">
         <div className="container">
           <div className="intd-footer-inner">
-            <span>&copy; {new Date().getFullYear()} NeXifyAI by NeXify - Chat it. Automate it.</span>
+            <span>&copy; {new Date().getFullYear()} neXify — Chat it. Automat it.</span>
             <div className="intd-footer-links">
               <Link to={`/${lang}/impressum`}>{lang === 'en' ? 'Imprint' : 'Impressum'}</Link>
               <Link to={`/${lang}/${lang === 'nl' ? 'privacybeleid' : lang === 'en' ? 'privacy' : 'datenschutz'}`}>{lang === 'en' ? 'Privacy' : lang === 'nl' ? 'Privacy' : 'Datenschutz'}</Link>
