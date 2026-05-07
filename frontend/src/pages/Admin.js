@@ -48,6 +48,7 @@ const Admin = () => {
   const [leads, setLeads] = useState([]);
   const [leadsTotal, setLeadsTotal] = useState(0);
   const [leadsSearch, setLeadsSearch] = useState('');
+  const [debouncedLeadsSearch, setDebouncedLeadsSearch] = useState('');
   const [leadsFilter, setLeadsFilter] = useState('all');
   const [selectedLead, setSelectedLead] = useState(null);
   const [calMonth, setCalMonth] = useState(() => new Date().toISOString().slice(0, 7));
@@ -56,6 +57,7 @@ const Admin = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [customers, setCustomers] = useState([]);
   const [custSearch, setCustSearch] = useState('');
+  const [debouncedCustSearch, setDebouncedCustSearch] = useState('');
   const [custDetail, setCustDetail] = useState(null);
   const [blockForm, setBlockForm] = useState({ date: '', time: '', reason: '', all_day: false });
   const [showBlockForm, setShowBlockForm] = useState(false);
@@ -209,14 +211,24 @@ const Admin = () => {
     apiFetch('/api/admin/audit/health').then(d => d && setSystemHealth(d));
   }, [token, apiFetch]);
 
+  /* Debounce search inputs to avoid firing API on every keystroke */
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedLeadsSearch(leadsSearch), 300);
+    return () => clearTimeout(timer);
+  }, [leadsSearch]);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedCustSearch(custSearch), 300);
+    return () => clearTimeout(timer);
+  }, [custSearch]);
+
   /* Load leads */
   useEffect(() => {
     if (!token || view !== 'leads') return;
     const params = new URLSearchParams();
-    if (leadsSearch) params.set('search', leadsSearch);
+    if (debouncedLeadsSearch) params.set('search', debouncedLeadsSearch);
     if (leadsFilter !== 'all') params.set('status', leadsFilter);
     apiFetch(`/api/admin/leads?${params}`).then(d => { if (d) { setLeads(d.leads || []); setLeadsTotal(d.total || 0); } });
-  }, [token, view, leadsSearch, leadsFilter, apiFetch]);
+  }, [token, view, debouncedLeadsSearch, leadsFilter, apiFetch]);
 
   /* Load calendar */
   useEffect(() => {
@@ -227,9 +239,9 @@ const Admin = () => {
   /* Load customers */
   useEffect(() => {
     if (!token || view !== 'customers') return;
-    const params = custSearch ? `?search=${encodeURIComponent(custSearch)}` : '';
+    const params = debouncedCustSearch ? `?search=${encodeURIComponent(debouncedCustSearch)}` : '';
     apiFetch(`/api/admin/customers${params}`).then(d => d && setCustomers(d.customers || []));
-  }, [token, view, custSearch, apiFetch]);
+  }, [token, view, debouncedCustSearch, apiFetch]);
 
   /* Load commercial data */
   useEffect(() => {
@@ -1852,7 +1864,7 @@ const Admin = () => {
                     const d = await apiFetch(`/api/admin/conversations/${c.conversation_id}`);
                     if (d) setSelectedConvo(d);
                   }}>
-                    <td>{c.contact?.email?.replace('@placeholder.nexifyai.de','') || c.contact?.first_name || '—'}</td>
+                    <td>{c.contact?.email || c.contact?.first_name || '—'}</td>
                     <td>{(c.channels || []).map(ch => <span key={ch} className="adm-channel-badge">{ch}</span>)}</td>
                     <td><span className={`adm-status-dot ${c.status}`}></span> {c.status}</td>
                     <td>{c.message_count}</td>
@@ -2076,7 +2088,7 @@ const Admin = () => {
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:12}}>
             <div className="adm-field"><label>Name</label><input value={nxAgentForm.name} onChange={e => setNxAgentForm(p => ({...p, name: e.target.value}))} placeholder="z.B. Sales Agent" data-testid="agent-name-input" /></div>
             <div className="adm-field"><label>Rolle</label><input value={nxAgentForm.role} onChange={e => setNxAgentForm(p => ({...p, role: e.target.value}))} placeholder="z.B. sales, pm, code" data-testid="agent-role-input" /></div>
-            <div className="adm-field"><label>Modell</label><input value={nxAgentForm.model} onChange={e => setNxAgentForm(p => ({...p, model: e.target.value}))} placeholder="trinity-large-preview" data-testid="agent-model-input" /></div>
+            <div className="adm-field"><label>Modell</label><input value={nxAgentForm.model} onChange={e => setNxAgentForm(p => ({...p, model: e.target.value}))} placeholder="deepseek/deepseek-v4-pro" data-testid="agent-model-input" /></div>
             <div className="adm-field"><label>Status</label>
               <select value={nxAgentForm.status} onChange={e => setNxAgentForm(p => ({...p, status: e.target.value}))} data-testid="agent-status-select" style={{width:'100%',padding:'10px 12px',background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)',color:'#e2e8f0',borderRadius:6}}>
                 <option value="active">Aktiv</option>
@@ -3088,7 +3100,7 @@ const Admin = () => {
     const d = await apiFetch('/api/admin/api-keys');
     if (d?.keys) setApiKeys(d.keys);
     setApiKeysLoading(false);
-  }, []);
+  }, [apiFetch]);
 
   const createApiKey = async () => {
     const body = { name: newApiKeyForm.name, scopes: newApiKeyForm.scopes === 'all' ? ['all'] : newApiKeyForm.scopes.split(',').map(s => s.trim()), rate_limit_per_hour: parseInt(newApiKeyForm.rate_limit_per_hour) || 1000, description: newApiKeyForm.description };
@@ -3157,20 +3169,77 @@ const Admin = () => {
 
   const renderMarkdown = (text) => {
     if (!text) return '';
-    // Erst HTML escapen (XSS-Schutz), dann Markdown parsen
-    let html = escapeHtml(text)
-      .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
-      .replace(/`([^`]+)`/g, '<code>$1</code>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-      .replace(/^- (.+)$/gm, '<li>$1</li>')
-      .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>')
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/\n/g, '<br/>');
-    if (!html.startsWith('<')) html = '<p>' + html + '</p>';
-    return html;
+    // Process inline formatting on a line of text
+    const formatInline = (line) => {
+      return escapeHtml(line)
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    };
+    // Split into blocks by double newlines, then process each block
+    const blocks = text.split(/\n\n+/);
+    let result = '';
+    let inList = false, listTag = '';
+    for (const block of blocks) {
+      const lines = block.split('\n');
+      const firstLine = lines[0];
+      // Code blocks (fenced)
+      if (firstLine.startsWith('```')) {
+        if (inList) { result += '</' + listTag + '>'; inList = false; }
+        const lang = firstLine.slice(3).trim();
+        const codeLines = lines.slice(1);
+        // Remove trailing ```
+        if (codeLines.length && codeLines[codeLines.length - 1].trim() === '```') codeLines.pop();
+        result += '<pre><code>' + escapeHtml(codeLines.join('\n')) + '</code></pre>';
+        continue;
+      }
+      // Headings
+      if (firstLine.startsWith('### ')) {
+        if (inList) { result += '</' + listTag + '>'; inList = false; }
+        result += '<h3>' + formatInline(firstLine.slice(4)) + '</h3>';
+        continue;
+      }
+      if (firstLine.startsWith('## ')) {
+        if (inList) { result += '</' + listTag + '>'; inList = false; }
+        result += '<h2>' + formatInline(firstLine.slice(3)) + '</h2>';
+        continue;
+      }
+      if (firstLine.startsWith('# ')) {
+        if (inList) { result += '</' + listTag + '>'; inList = false; }
+        result += '<h1>' + formatInline(firstLine.slice(2)) + '</h1>';
+        continue;
+      }
+      // Unordered list
+      if (firstLine.startsWith('- ')) {
+        if (!inList || listTag !== 'ul') {
+          if (inList) result += '</' + listTag + '>';
+          result += '<ul>';
+          inList = true; listTag = 'ul';
+        }
+        for (const line of lines) {
+          if (line.startsWith('- ')) result += '<li>' + formatInline(line.slice(2)) + '</li>';
+        }
+        continue;
+      }
+      // Ordered list
+      if (/^\d+\.\s/.test(firstLine)) {
+        if (!inList || listTag !== 'ol') {
+          if (inList) result += '</' + listTag + '>';
+          result += '<ol>';
+          inList = true; listTag = 'ol';
+        }
+        for (const line of lines) {
+          const m = line.match(/^\d+\.\s(.+)/);
+          if (m) result += '<li>' + formatInline(m[1]) + '</li>';
+        }
+        continue;
+      }
+      // Regular paragraph
+      if (inList) { result += '</' + listTag + '>'; inList = false; }
+      const paraHtml = lines.map(l => formatInline(l)).join('<br/>');
+      result += '<p>' + paraHtml + '</p>';
+    }
+    if (inList) { result += '</' + listTag + '>'; }
+    return result;
   };
 
   const nxUpdateStream = (text) => {
@@ -3731,7 +3800,7 @@ curl ${API}/api/v1/docs`}
             <button className="nxai-send-btn" onClick={() => sendNxMessage()} disabled={!nxInput.trim() || nxStreaming} data-testid="nxai-send"><I n="send" /></button>
           </div>
           <div className="nxai-status-bar">
-            <span>OpenRouter deepseek-v4-flash</span>
+            <span>{nxStatus?.openrouter?.model || 'OpenRouter'}</span>
             <span>|</span>
             <span>{nxUseMemory ? 'mem0 Brain aktiv' : 'Ohne Brain'}</span>
           </div>
