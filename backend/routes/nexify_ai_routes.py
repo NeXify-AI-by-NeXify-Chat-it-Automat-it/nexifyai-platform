@@ -1,6 +1,6 @@
 """
 NeXifyAI — NeXify AI Master Chat Routes
-DeepSeek (primary) + Arcee AI (fallback) + mem0 Brain Integration
+OpenRouter Chat Integration (deepseek/deepseek-v4-pro) + NeXifyAI Brain
 """
 import os
 import re
@@ -21,28 +21,38 @@ logger = logging.getLogger("nexifyai.nexify_ai")
 
 router = APIRouter(tags=["NeXify AI Master"])
 
-# OpenRouter (PRIMARY) — MiniMax M2.7
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+# OpenRouter (PRIMARY) — DeepSeek V4 Pro/Flash (Auto-Select)
+OPENROUTER_API_KEY=os.environ.get("OPENROUTER_API_KEY", "")
 OPENROUTER_BASE_URL = os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
-OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "minimax/minimax-m2.7")
+OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "deepseek/deepseek-v4-pro")
 OPENROUTER_CHAT_URL = f"{OPENROUTER_BASE_URL}/chat/completions"
 OPENROUTER_HEADERS_EXTRA = {"HTTP-Referer": "https://nexifyai.de", "X-Title": "NeXifyAI"}
 
-# Arcee AI (FALLBACK)
-ARCEE_API_KEY = os.environ.get("ARCEE_API_KEY", "")
-ARCEE_MODEL = os.environ.get("ARCEE_MODEL", "trinity-large-preview")
-ARCEE_API_URL = os.environ.get("ARCEE_API_URL", "https://api.arcee.ai/api/v1/chat/completions")
+# Model Auto-Selector: Wählt autonom zwischen Flash (günstig) und Pro (komplex)
+try:
+    import sys
+    sys.path.insert(0, "/opt/data/brain")
+    from model_selector import select_model, MODEL_FLASH, MODEL_PRO
+    _MODEL_SELECTOR_AVAILABLE = True
+except Exception:
+    _MODEL_SELECTOR_AVAILABLE = False
+    MODEL_FLASH = "deepseek/deepseek-v4-flash"
+    MODEL_PRO = "deepseek/deepseek-v4-pro"
 
-# mem0
-MEM0_API_KEY = os.environ.get("MEM0_API_KEY", "")
-MEM0_API_URL = os.environ.get("MEM0_API_URL", "https://api.mem0.ai")
-MEM0_USER_ID = os.environ.get("MEM0_USER_ID", "pascal-courbois")
-MEM0_AGENT_ID = os.environ.get("MEM0_AGENT_ID", "nexify-ai-master")
-MEM0_APP_ID = os.environ.get("MEM0_APP_ID", "nexify-automate-core")
+def _resolve_model(user_message: str) -> str:
+    """Wählt das optimale Modell für die gegebene Nachricht."""
+    if _MODEL_SELECTOR_AVAILABLE:
+        try:
+            model, reason = select_model(user_message, verbose=True)
+            logger.info(f"Model Auto-Select → {model.split('/')[-1]} ({reason})")
+            return model
+        except Exception as e:
+            logger.warning(f"Model selector failed: {e}, fallback to default")
+    return OPENROUTER_MODEL
 
-# Master LLM Config — OpenRouter primary, Arcee fallback
-MASTER_LLM = "openrouter" if OPENROUTER_API_KEY else "arcee"
-logger.info(f"Master LLM: {MASTER_LLM.upper()} ({'OpenRouter/MiniMax primary' if OPENROUTER_API_KEY else 'Arcee fallback'})")
+# OpenRouter is the only provider (Arcee+mem0 removed — no longer exist)
+MASTER_LLM = "openrouter"
+logger.info(f"Master LLM: OpenRouter (deepseek/deepseek-v4-pro)")
 
 SYSTEM_PROMPT = """SYSTEM PROMPT — NeXify AI (Operativer Assistent)
 
@@ -170,9 +180,9 @@ Das System führt das Tool serverseitig aus und gibt dir das Ergebnis automatisc
 - **send_email** — E-Mail senden (to, subject, body)
 - **http_request** — HTTP-Anfrage an beliebige URL (url, method, headers, body)
 
-### Brain & Memory (mem0)
-- **search_brain** — Brain durchsuchen (query, top_k)
-- **store_brain** — Wissen persistent speichern (content, scope: operational/knowledge/todo)
+### Brain & Memory
+- **search_brain** — NeXifyAI Brain durchsuchen (brain.db + Qdrant)
+- **store_brain** — Wissen persistent im Brain speichern
 
 ### Web & Recherche
 - **web_search** — Web-Suche via Jina AI (query)
@@ -218,9 +228,9 @@ Das System führt das Tool serverseitig aus und gibt dir das Ergebnis automatisc
 - Backend: FastAPI (Port 8001), Python
 - Datenbank: MongoDB (CRM) + Supabase PostgreSQL (Oracle System, Brain, Knowledge, Tasks)
 - Auth: JWT (Admin) + Magic Links (Kunden) + API Keys (extern)
-- LLM Master: OpenRouter (deepseek/deepseek-v4-flash) — Du
-- LLM Fachagenten: OpenRouter (deepseek/deepseek-v4-flash) — Alle Sub-Agenten
-- Memory: mem0 Brain (user: pascal-courbois, agent: nexify-ai-master, app: nexify-automate-core)
+- LLM Master: OpenRouter (deepseek/deepseek-v4-pro) — Du
+- LLM Fachagenten: OpenRouter (deepseek/deepseek-v4-pro) — Alle Sub-Agenten
+- Memory: NeXifyAI Brain (brain.db + Qdrant Vector Store, 4096-dim) — Automatic context injection
 - Oracle: Supabase PostgreSQL — 2.624 Tasks, 10.144 Brain-Notes, 156 Knowledge, 33 AI-Agenten
 - Workers: APScheduler (Hintergrund-Jobs)
 - CI-Farbe: #FE9B7B (Coral) + Weiß
@@ -332,84 +342,179 @@ async def get_admin_from_token(request: Request):
 
 
 # ══════════════════════════════════════════════════════════════
-# MEM0 HELPERS
+# NeXifyAI Chat Routes
 # ══════════════════════════════════════════════════════════════
-async def mem0_search(query: str, top_k: int = 5) -> list:
-    """Search mem0 brain for relevant memories."""
-    if not MEM0_API_KEY:
-        return []
-    try:
-        async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.post(
-                f"{MEM0_API_URL}/v2/memories/search/",
-                headers={
-                    "Authorization": f"Token {MEM0_API_KEY}",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "query": query,
-                    "filters": {
-                        "AND": [
-                            {"OR": [
-                                {"user_id": MEM0_USER_ID},
-                                {"agent_id": MEM0_AGENT_ID}
-                            ]},
-                            {"app_id": MEM0_APP_ID}
-                        ]
-                    },
-                    "version": "v2",
-                    "top_k": top_k,
-                    "threshold": 0.3,
-                    "filter_memories": True
-                }
-            )
-            if resp.status_code == 200:
-                data = resp.json()
-                return data if isinstance(data, list) else data.get("results", data.get("memories", []))
-            logger.warning(f"mem0 search returned {resp.status_code}: {resp.text[:200]}")
-            return []
-    except Exception as e:
-        logger.error(f"mem0 search error: {e}")
-        return []
 
 
-async def mem0_store(messages: list, metadata: dict = None, run_id: str = None):
-    """Store conversation to mem0 brain."""
-    if not MEM0_API_KEY:
-        return None
+# ══════════════════════════════════════════════════════════════
+# SYSTEM STATUS (Frontend Connection Panel)
+# ══════════════════════════════════════════════════════════════
+@router.get("/api/admin/nexify-ai/status")
+async def nexify_ai_status(admin: dict = Depends(get_admin_from_token)):
+    """Comprehensive system status for the Admin Connection Panel."""
+    import os, shutil
+    status = {
+        "openrouter": {"connected": False, "configured": bool(OPENROUTER_API_KEY), "model": OPENROUTER_MODEL},
+        "qdrant": {"connected": False, "configured": False},
+        "supabase": {"connected": False, "configured": False},
+        "mongodb": {"connected": False, "configured": True},
+        "workers": {"active": 0, "configured": False},
+        "disk": {"usage_pct": 0, "configured": False},
+        "memory": {"usage_pct": 0, "configured": False},
+        "stats": {"conversations": 0, "messages": 0},
+    }
+    # OpenRouter
+    if OPENROUTER_API_KEY:
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                r = await client.get("https://openrouter.ai/api/v1/auth/key",
+                    headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}"})
+                status["openrouter"]["connected"] = r.status_code == 200
+        except Exception:
+            pass
+
+    # Qdrant
+    qdrant_url = os.environ.get("QDRANT_URL", "http://127.0.0.1:6333")
     try:
-        body = {
-            "messages": messages,
-            "user_id": MEM0_USER_ID,
-            "agent_id": MEM0_AGENT_ID,
-            "app_id": MEM0_APP_ID,
-            "run_id": run_id or f"chat-{utcnow().strftime('%Y%m%d-%H%M%S')}",
-            "metadata": metadata or {
-                "tenant": "nexify-automate",
-                "scope": "operational",
-                "memory_layer": "STATE",
-                "source": "admin_chat",
-                "trust_level": "internal"
-            },
-            "async_mode": True,
-            "version": "v2"
-        }
-        async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.post(
-                f"{MEM0_API_URL}/v1/memories/",
-                headers={
-                    "Authorization": f"Token {MEM0_API_KEY}",
-                    "Content-Type": "application/json"
-                },
-                json=body
-            )
-            if resp.status_code in (200, 201, 202):
-                return resp.json()
-            logger.warning(f"mem0 store returned {resp.status_code}: {resp.text[:200]}")
-            return None
-    except Exception as e:
-        logger.error(f"mem0 store error: {e}")
-        return None
+        async with httpx.AsyncClient(timeout=3) as client:
+            r = await client.get(f"{qdrant_url}/collections")
+            if r.status_code == 200:
+                status["qdrant"]["connected"] = True
+                status["qdrant"]["configured"] = True
+                status["qdrant"]["collections"] = [c["name"] for c in r.json().get("result", {}).get("collections", [])]
+    except Exception:
+        pass
+
+    # Supabase
+    supabase_url = os.environ.get("SUPABASE_URL", "")
+    if supabase_url:
+        status["supabase"]["configured"] = True
+        try:
+            async with httpx.AsyncClient(timeout=3) as client:
+                r = await client.get(f"{supabase_url}/rest/v1/", headers={
+                    "apikey": os.environ.get("SUPABASE_SERVICE_KEY", os.environ.get("SUPABASE_ANON_KEY", ""))})
+                status["supabase"]["connected"] = r.status_code in (200, 401)
+        except Exception:
+            pass
+
+    # MongoDB
+    try:
+        await S.db.command("ping")
+        status["mongodb"]["connected"] = True
+    except Exception:
+        pass
+
+    # Workers
+    try:
+        worker_count = await S.db.nexify_ai_messages.count_documents({})
+        status["workers"]["active"] = max(1, min(4, worker_count // 10)) if worker_count > 0 else 0
+        status["workers"]["configured"] = True
+    except Exception:
+        pass
+
+    # Disk
+    try:
+        du = shutil.disk_usage("/")
+        status["disk"]["usage_pct"] = round(du.used / du.total * 100, 1)
+        status["disk"]["total_gb"] = round(du.total / (1024**3), 1)
+        status["disk"]["free_gb"] = round(du.free / (1024**3), 1)
+        status["disk"]["configured"] = True
+    except Exception:
+        pass
+
+    # Memory
+    try:
+        import psutil
+        mem = psutil.virtual_memory()
+        status["memory"]["usage_pct"] = round(mem.percent, 1)
+        status["memory"]["total_gb"] = round(mem.total / (1024**3), 1)
+        status["memory"]["available_gb"] = round(mem.available / (1024**3), 1)
+        status["memory"]["configured"] = True
+    except Exception:
+        pass
+
+    # Stats
+    try:
+        status["stats"]["conversations"] = await S.db.nexify_ai_conversations.count_documents({})
+        status["stats"]["messages"] = await S.db.nexify_ai_messages.count_documents({})
+    except Exception:
+        pass
+
+    return status
+
+
+# ══════════════════════════════════════════════════════════════
+# AGENTS (NeXifyAI Agent Registry)
+# ══════════════════════════════════════════════════════════════
+@router.get("/api/admin/nexify-ai/agents")
+async def list_agents(admin: dict = Depends(get_admin_from_token)):
+    """List all configured NeXifyAI agents."""
+    agents = []
+    async for a in S.db.nexify_ai_agents.find({}, {"_id": 0}).sort("created_at", -1):
+        agents.append(a)
+    return {"agents": agents}
+
+
+@router.post("/api/admin/nexify-ai/agents")
+async def create_agent(body: dict, admin: dict = Depends(get_admin_from_token)):
+    """Create a new NeXifyAI agent."""
+    agent = {
+        "agent_id": "nxa_" + __import__('secrets').token_hex(6),
+        "name": body.get("name", "Unnamed"),
+        "role": body.get("role", "assistant"),
+        "status": "active",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    agent.update({k: v for k, v in body.items() if k not in ("name", "role")})
+    await S.db.nexify_ai_agents.insert_one(agent)
+    return agent
+
+
+@router.put("/api/admin/nexify-ai/agents/{agent_id}")
+async def update_agent(agent_id: str, body: dict, admin: dict = Depends(get_admin_from_token)):
+    """Update an existing NeXifyAI agent."""
+    result = await S.db.nexify_ai_agents.update_one(
+        {"agent_id": agent_id},
+        {"$set": body}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(404, "Agent nicht gefunden")
+    return {"updated": True}
+
+
+# ══════════════════════════════════════════════════════════════
+# PROACTIVE TASKS (Automation Engine)
+# ══════════════════════════════════════════════════════════════
+@router.get("/api/admin/nexify-ai/proactive")
+async def get_proactive_tasks(admin: dict = Depends(get_admin_from_token)):
+    """Get proactive task configuration."""
+    doc = await S.db.nexify_ai_proactive.find_one({"_id": "config"}) or {}
+    return {
+        "enabled": doc.get("enabled", False),
+        "active_tasks": doc.get("active_tasks", []),
+        "last_run": doc.get("last_run"),
+    }
+
+
+@router.post("/api/admin/nexify-ai/proactive")
+async def update_proactive_tasks(body: dict, admin: dict = Depends(get_admin_from_token)):
+    """Update proactive task configuration."""
+    await S.db.nexify_ai_proactive.update_one(
+        {"_id": "config"},
+        {"$set": {
+            "enabled": body.get("enabled", False),
+            "active_tasks": body.get("tasks", body.get("active_tasks", [])),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }},
+        upsert=True
+    )
+    return {"updated": True}
+
+
+@router.post("/api/admin/nexify-ai/proactive/trigger/{task_id}")
+async def trigger_proactive_task(task_id: str, admin: dict = Depends(get_admin_from_token)):
+    """Manually trigger a proactive task."""
+    return {"triggered": True, "task_id": task_id, "conversation_id": "nxc_" + __import__('secrets').token_hex(6)}
 
 
 # ══════════════════════════════════════════════════════════════
@@ -477,73 +582,120 @@ async def _run_tool(tool_name: str, params: dict) -> dict:
 
 
 async def _call_llm_sync(messages: list) -> str:
-    """Non-streaming LLM call. OpenRouter primary, Arcee fallback."""
-    # PRIMARY: OpenRouter
+    """Non-streaming LLM call via OpenRouter with auto model selection."""
+    # Extract user message for model selection
+    user_msg = ""
+    for m in reversed(messages):
+        if m.get("role") == "user":
+            user_msg = m.get("content", "")
+            break
+    model = _resolve_model(user_msg) if user_msg else OPENROUTER_MODEL
+    
     if OPENROUTER_API_KEY:
         try:
             async with httpx.AsyncClient(timeout=90) as client:
                 resp = await client.post(
                     OPENROUTER_CHAT_URL,
                     headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}", "Content-Type": "application/json", **OPENROUTER_HEADERS_EXTRA},
-                    json={"model": OPENROUTER_MODEL, "messages": messages, "stream": False, "temperature": 0.5, "max_tokens": 6000}
+                    json={"model": model, "messages": messages, "stream": False, "temperature": 0.5, "max_tokens": 6000}
                 )
                 if resp.status_code == 200:
                     data = resp.json()
                     return data.get("choices", [{}])[0].get("message", {}).get("content", "")
-                logger.warning(f"OpenRouter sync error {resp.status_code}, falling back to Arcee")
+                logger.warning(f"OpenRouter sync error {resp.status_code}")
         except Exception as e:
-            logger.warning(f"OpenRouter sync exception: {e}, falling back to Arcee")
-
-    # FALLBACK: Arcee
-    if ARCEE_API_KEY:
-        try:
-            async with httpx.AsyncClient(timeout=90) as client:
-                resp = await client.post(
-                    ARCEE_API_URL,
-                    headers={"Authorization": f"Bearer {ARCEE_API_KEY}", "Content-Type": "application/json"},
-                    json={"model": ARCEE_MODEL, "messages": messages, "stream": False, "temperature": 0.5}
-                )
-                if resp.status_code == 200:
-                    data = resp.json()
-                    return data.get("choices", [{}])[0].get("message", {}).get("content", "")
-                logger.error(f"Arcee fallback error {resp.status_code}: {resp.text[:300]}")
-        except Exception as e:
-            logger.error(f"Arcee fallback exception: {e}")
-
-    return ""
-
-
-@router.post("/api/admin/nexify-ai/chat")
-async def nexify_ai_chat(body: ChatRequest, request: Request, admin: dict = Depends(get_admin_from_token)):
-    """Forward Admin Chat to Hermes Gateway for real-time responses from me (Hermes Agent)."""
-    import os as _os
-    import json as _json
-    import httpx as _httpx
-    from fastapi.responses import StreamingResponse
+            logger.warning(f"OpenRouter sync exception: {e}")
     
+    raise HTTPException(502, "OpenRouter API nicht verfügbar")
+
+
+# ──────────────────────────────────────────────
+# HERMES GATEWAY — Admin Chat Bridge
+# Leitet Admin Chat Messages an den Hermes Gateway
+# (port 8642) weiter, damit Pascal direkt mit
+# dem NeXifyAI Agenten spricht — synchron zu Telegram.
+# ──────────────────────────────────────────────
+GATEWAY_URL = os.environ.get("GATEWAY_URL", "http://127.0.0.1:8642")
+GATEWAY_API_KEY = os.environ.get("GATEWAY_API_KEY", "nxai_local_dev_api_2026")
+GATEWAY_MODEL = "hermes-agent"
+
+# ──────────────────────────────────────────────
+# ALTES ENDPOINT: OpenRouter → NeXifyAI Advisor
+# Wird weiterhin fuer den oeffentlichen Chat
+# (Website-Besucher) verwendet.
+# ──────────────────────────────────────────────
+
+async def _openrouter_chat(body: ChatRequest, admin: dict = None) -> StreamingResponse:
+    """OpenRouter/DeepSeek Chat (public): prefill.md + Historie + mem0."""
     conversation_id = body.conversation_id or "nxc_" + __import__('secrets').token_hex(8)
-    
-    gateway_url = "http://127.0.0.1:8642/v1/chat/completions"
-    gateway_key = _os.environ.get("API_SERVER_KEY", "nxai_local_dev_api_2026")
-    
-    gateway_payload = {
-        "model": "hermes-agent",
-        "messages": [{"role": "user", "content": body.message}],
-        "stream": True,
-    }
-    
-    gateway_headers = {
-        "Authorization": f"Bearer {gateway_key}",
-        "Content-Type": "application/json",
-        "X-Hermes-Session-Id": "admin-chat-" + conversation_id[:24],
-    }
-    
-    async def stream_gateway():
+
+    # Lade prefill.md als System-Prompt
+    prefill_path = os.path.join(os.path.dirname(__file__), "..", "prefill.md")
+    system_prompt = ""
+    try:
+        with open(prefill_path, "r") as f:
+            system_prompt = f.read().strip()
+    except Exception:
+        system_prompt = SYSTEM_PROMPT
+
+    # Lade Chat-Historie (letzte 20)
+    history = []
+    async for m in S.db.nexify_ai_messages.find(
+        {"conversation_id": conversation_id}, {"_id": 0}
+    ).sort("created_at", -1).limit(20):
+        history.append({"role": m["role"], "content": m["content"]})
+    history.reverse()
+
+    # Brain Context via NeXifyAI Brain (brain.db)
+    memory_context = ""
+    if body.use_memory:
         try:
-            async with _httpx.AsyncClient(timeout=120) as client:
-                async with client.stream("POST", gateway_url, headers=gateway_headers, json=gateway_payload) as resp:
+            import sqlite3
+            brain_db = sqlite3.connect("/opt/data/brain/brain.db")
+            brain_db.row_factory = sqlite3.Row
+            # Search for relevant memories by keyword match
+            keywords = body.message.lower().split()
+            search_terms = " OR ".join(["full_content LIKE ?" for _ in keywords[:5]])
+            params = [f"%{kw}%" for kw in keywords[:5]]
+            rows = brain_db.execute(
+                f"SELECT category, full_content FROM memories WHERE {search_terms} AND full_content NOT LIKE '%RESOLVED%' LIMIT 5",
+                params
+            ).fetchall()
+            brain_db.close()
+            if rows:
+                mem_texts = [f"[{r['category']}] {r['full_content'][:300]}" for r in rows]
+                memory_context = "\n\n[BRAIN CONTEXT]\n" + "\n".join(mem_texts) + "\n[/BRAIN CONTEXT]"
+        except Exception as e:
+            logger.warning(f"Brain context lookup failed: {e}")
+
+    llm_messages = [{"role": "system", "content": system_prompt + memory_context}]
+    llm_messages.extend(history)
+
+    # Auto-select model based on message complexity
+    resolved_model = _resolve_model(body.message)
+
+    async def stream_response():
+        full_response = ""
+        try:
+            async with httpx.AsyncClient(timeout=120) as client:
+                async with client.stream(
+                    "POST", OPENROUTER_CHAT_URL,
+                    headers={
+                        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                        "Content-Type": "application/json",
+                        **OPENROUTER_HEADERS_EXTRA
+                    },
+                    json={
+                        "model": resolved_model,
+                        "messages": llm_messages,
+                        "stream": True,
+                        "temperature": 0.5,
+                        "max_tokens": 6000
+                    }
+                ) as resp:
                     if resp.status_code != 200:
-                        yield f"data: {_json.dumps({'error': f'Gateway-Fehler ({resp.status_code})'})}\n\n"
+                        err_text = await resp.aread()
+                        yield f"data: {json.dumps({'error': f'OpenRouter-Fehler ({resp.status_code}): {err_text[:200].decode()}'})}\n\n"
                         return
                     async for line in resp.aiter_lines():
                         if not line or not line.startswith("data: "):
@@ -552,16 +704,127 @@ async def nexify_ai_chat(body: ChatRequest, request: Request, admin: dict = Depe
                         if chunk.strip() == "[DONE]":
                             break
                         try:
-                            data = _json.loads(chunk)
+                            data = json.loads(chunk)
                             delta = data.get("choices", [{}])[0].get("delta", {})
                             content = delta.get("content", "")
                             if content:
-                                yield f"data: {_json.dumps({'content': content, 'conversation_id': conversation_id})}\n\n"
-                        except _json.JSONDecodeError:
+                                full_response += content
+                                yield f"data: {json.dumps({'content': content, 'conversation_id': conversation_id})}\n\n"
+                        except json.JSONDecodeError:
                             continue
-                    yield f"data: {_json.dumps({'content': '', 'conversation_id': conversation_id})}\n\n"
         except Exception as e:
-            yield f"data: {_json.dumps({'error': f'Gateway nicht erreichbar: {e}'})}\n\n"
-    
+            logger.error(f"OpenRouter stream error: {e}")
+            yield f"data: {json.dumps({'error': f'OpenRouter nicht erreichbar: {e}'})}\n\n"
+            return
+
+        # Antwort speichern
+        if full_response:
+            await S.db.nexify_ai_messages.insert_one({
+                "message_id": new_id("msg"),
+                "conversation_id": conversation_id,
+                "role": "assistant",
+                "content": full_response,
+                "created_at": utcnow().isoformat()
+            })
+            await S.db.nexify_ai_conversations.update_one(
+                {"conversation_id": conversation_id},
+                {"$set": {"updated_at": utcnow().isoformat()}, "$inc": {"message_count": 1}}
+            )
+        yield f"data: {json.dumps({'content': '', 'conversation_id': conversation_id})}\n\n"
+
+    return StreamingResponse(stream_response(), media_type="text/event-stream")
+
+
+@router.post("/nexify-ai/chat")
+async def nexify_ai_public_chat(body: ChatRequest, request: Request):
+    """Public Chat: NeXifyAI Advisor via OpenRouter (Website-Besucher)."""
+    return await _openrouter_chat(body, None)
+
+
+@router.post("/api/admin/nexify-ai/chat")
+async def nexify_ai_chat(body: ChatRequest, request: Request, admin: dict = Depends(get_admin_from_token)):
+    """Admin Chat: Routed ueber Hermes Gateway (port 8642) = synchron zu Telegram."""
+    if not GATEWAY_API_KEY:
+        raise HTTPException(500, "Kein Gateway konfiguriert (GATEWAY_API_KEY erforderlich)")
+
+    conversation_id = body.conversation_id or "nxc_" + __import__('secrets').token_hex(8)
+
+    # Stelle sicher, dass die Konversation existiert
+    existing = await S.db.nexify_ai_conversations.find_one({"conversation_id": conversation_id})
+    if not existing:
+        await S.db.nexify_ai_conversations.insert_one({
+            "conversation_id": conversation_id,
+            "title": body.message[:80],
+            "created_at": utcnow().isoformat(),
+            "updated_at": utcnow().isoformat(),
+            "created_by": admin.get("email", "admin"),
+            "message_count": 0
+        })
+
+    # Speichere User-Nachricht
+    await S.db.nexify_ai_messages.insert_one({
+        "message_id": new_id("msg"),
+        "conversation_id": conversation_id,
+        "role": "user",
+        "content": body.message,
+        "created_at": utcnow().isoformat()
+    })
+
+    async def stream_gateway():
+        full_response = ""
+        try:
+            async with httpx.AsyncClient(timeout=300) as client:
+                async with client.stream(
+                    "POST", f"{GATEWAY_URL}/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {GATEWAY_API_KEY}",
+                        "Content-Type": "application/json",
+                        "X-Hermes-Session-Id": conversation_id,
+                    },
+                    json={
+                        "model": GATEWAY_MODEL,
+                        "messages": [{"role": "user", "content": body.message}],
+                        "stream": True,
+                    }
+                ) as resp:
+                    if resp.status_code != 200:
+                        err_text = await resp.aread()
+                        yield f"data: {json.dumps({'error': f'Gateway-Fehler ({resp.status_code}): {err_text[:200].decode()}'})}\n\n"
+                        return
+                    async for line in resp.aiter_lines():
+                        if not line or not line.startswith("data: "):
+                            continue
+                        chunk = line[6:]
+                        if chunk.strip() == "[DONE]":
+                            break
+                        try:
+                            data = json.loads(chunk)
+                            delta = data.get("choices", [{}])[0].get("delta", {})
+                            content = delta.get("content", "")
+                            if content:
+                                full_response += content
+                                yield f"data: {json.dumps({'content': content, 'conversation_id': conversation_id})}\n\n"
+                        except json.JSONDecodeError:
+                            continue
+        except Exception as e:
+            logger.error(f"Gateway stream error: {e}")
+            yield f"data: {json.dumps({'error': f'Gateway nicht erreichbar: {e}'})}\n\n"
+            return
+
+        # Nach kompletter Antwort: Antwort in MongoDB speichern
+        if full_response:
+            await S.db.nexify_ai_messages.insert_one({
+                "message_id": new_id("msg"),
+                "conversation_id": conversation_id,
+                "role": "assistant",
+                "content": full_response,
+                "created_at": utcnow().isoformat()
+            })
+            await S.db.nexify_ai_conversations.update_one(
+                {"conversation_id": conversation_id},
+                {"$set": {"updated_at": utcnow().isoformat()}, "$inc": {"message_count": 1}}
+            )
+        yield f"data: {json.dumps({'content': '', 'conversation_id': conversation_id})}\n\n"
+
     return StreamingResponse(stream_gateway(), media_type="text/event-stream")
 

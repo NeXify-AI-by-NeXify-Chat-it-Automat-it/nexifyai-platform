@@ -1,7 +1,7 @@
 // Outbound Auto-Engine Trigger
 // Läuft täglich 09:00 UTC, ruft Backend an, das die Pipeline autonom abarbeitet.
 
-const BACKEND_URL = 'https://contract-os.preview.emergentagent.com';
+const BACKEND_URL = 'http://localhost:8001';
 const CRON_SECRET = process.env.CRON_SECRET || '';
 
 export default async function handler(req) {

@@ -55,29 +55,29 @@ async def _store_event(source: str, event_type: str, payload: dict, customer_id:
     is_push = event_type == "push"
 
     if is_error and TELEGRAM_BOT_TOKEN:
-        _send_telegram(f"❌ [{source}] {event_type}: {json.dumps(payload, indent=2)[:200]}")
+        await _send_telegram(f"❌ [{source}] {event_type}: {json.dumps(payload, indent=2)[:200]}")
     elif is_pr and TELEGRAM_BOT_TOKEN:
         pr_action = payload.get("action", "?")
         pr_title = payload.get("pull_request", {}).get("title", "?")
-        _send_telegram(f"🔄 [{source}] PR {pr_action}: {pr_title}")
+        await _send_telegram(f"🔄 [{source}] PR {pr_action}: {pr_title}")
     elif is_success and TELEGRAM_BOT_TOKEN:
         logger.info(f"[{source}] Erfolg: {event_type}")
 
 
-def _send_telegram(message: str):
-    """Sendet Nachricht an Pascal via Telegram Bot API."""
+async def _send_telegram(message: str):
+    """Sendet Nachricht an Pascal via Telegram Bot API (async via httpx)."""
     if not TELEGRAM_BOT_TOKEN:
         return
-    import urllib.request
-    import urllib.parse
+    import httpx
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    data = urllib.parse.urlencode({
+    payload = {
         "chat_id": os.environ.get("TELEGRAM_CHAT_ID", ""),
         "text": message[:4000],
         "parse_mode": "HTML",
-    }).encode()
+    }
     try:
-        urllib.request.urlopen(url, data=data, timeout=5)
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            await client.post(url, data=payload)
     except Exception as e:
         logger.error(f"Telegram send failed: {e}")
 
@@ -160,7 +160,7 @@ async def github_webhook(request: Request):
         })
         # Bei CI-Failure: sofort Telegram
         if conclusion == "failure":
-            _send_telegram(f"❌ CI FAILED: {name} in {repo}\nCheck: {check_run.get('html_url', '?')}")
+            await _send_telegram(f"❌ CI FAILED: {name} in {repo}\nCheck: {check_run.get('html_url', '?')}")
 
     elif event_type == "workflow_run":
         workflow = payload.get("workflow_run", {})
@@ -232,7 +232,7 @@ async def vercel_webhook(request: Request):
         "payload_preview": json.dumps(payload)[:500],
     })
     if is_error:
-        _send_telegram(f"❌ VERCEL DEPLOY FAILED: {project_name}\nEvent: {event_type}\nURL: https://{deployment_url}")
+        await _send_telegram(f"❌ VERCEL DEPLOY FAILED: {project_name}\nEvent: {event_type}\nURL: https://{deployment_url}")
 
     return {"status": "ok", "event": event_type}
 

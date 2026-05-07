@@ -303,7 +303,7 @@ async def send_admin_notification(event_type: str, details: dict) -> dict:
 <h1>{label}</h1>
 <p>Neues Ereignis im System:</p>
 <div class="card">{rows}</div>
-<a href="https://contract-os.preview.emergentagent.com/login" class="btn">Admin-Dashboard öffnen</a>
+<a href="http://localhost:8001/login" class="btn">Admin-Dashboard öffnen</a>
 """
     return await send_email(
         to_email=admin_email,

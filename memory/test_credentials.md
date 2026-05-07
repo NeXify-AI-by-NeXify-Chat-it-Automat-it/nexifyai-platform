@@ -8,8 +8,8 @@
 - **Auth Header**: Authorization: Bearer {access_token}
 
 ## App URLs
-- **Frontend**: https://contract-os.preview.emergentagent.com
-- **Admin Panel**: https://contract-os.preview.emergentagent.com/admin
+- **Frontend**: https://nexifyai.nexifyai.cloud
+- **Admin Panel**: https://nexifyai.nexifyai.cloud/admin
 
 ## Key API Endpoints
 - GET /api/admin/stats

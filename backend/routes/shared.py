@@ -15,7 +15,6 @@ from fastapi import HTTPException, Depends, Request
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel, EmailStr, Field
 from jose import JWTError, jwt
-import resend
 
 from domain import (
     Channel, LeadStatus, MessageDirection, ConversationStatus,
@@ -269,6 +268,11 @@ async def send_email(to: List[str], subject: str, html: str, category: str = "tr
 
     # 2. Resend — Fallback (with retry on rate-limit 429)
     if not result and S.RESEND_API_KEY:
+        try:
+            import resend
+        except ImportError:
+            logger.warning("resend package not installed — skipping Resend fallback")
+            return result
         import asyncio
         last_error = None
         for attempt in range(3):

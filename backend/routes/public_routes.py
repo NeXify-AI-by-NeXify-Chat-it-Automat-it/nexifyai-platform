@@ -161,8 +161,8 @@ async def health():
 
     # API-Key Checks
     for key_name, label in [
-        ("OPENROUTER_API_KEY", "openrouter"), ("ARCEE_API_KEY", "arcee"),
-        ("MEM0_API_KEY", "mem0"), ("RESEND_API_KEY", "resend"),
+        ("OPENROUTER_API_KEY", "openrouter"),
+        ("RESEND_API_KEY", "resend"),
         ("REVOLUT_SECRET_KEY", "revolut"),
     ]:
         val = os.environ.get(key_name, "")
@@ -177,6 +177,58 @@ async def health():
 
     if any(s.get("status") == "error" for s in services.values()):
         overall = "degraded"
+
+    # Qdrant
+    qdrant_ok = False
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=3) as client:
+            qr = await client.get(os.environ.get("QDRANT_URL", "http://127.0.0.1:6333") + "/collections")
+            if qr.status_code < 400:
+                colls = qr.json().get("result", {}).get("collections", [])
+                services["qdrant"] = {
+                    "status": "ok",
+                    "connected": True,
+                    "configured": True,
+                    "collections": [c["name"] for c in colls]
+                }
+                qdrant_ok = True
+    except Exception as e:
+        services["qdrant"] = {"status": "error", "error": str(e)[:80], "connected": False}
+
+    # Disk usage
+    try:
+        import shutil
+        du = shutil.disk_usage("/")
+        usage_pct = round(du.used / du.total * 100, 1)
+        services["disk"] = {
+            "usage_pct": usage_pct,
+            "total_gb": round(du.total / (1024**3), 1),
+            "free_gb": round(du.free / (1024**3), 1),
+            "status": "ok" if usage_pct < 85 else "warn" if usage_pct < 95 else "error",
+            "configured": True,
+        }
+        if usage_pct >= 85:
+            overall = "degraded"
+    except Exception as e:
+        services["disk"] = {"status": "error", "error": str(e)[:80]}
+
+    # Memory
+    try:
+        import psutil
+        mem = psutil.virtual_memory()
+        usage_pct = round(mem.percent, 1)
+        services["memory"] = {
+            "usage_pct": usage_pct,
+            "total_gb": round(mem.total / (1024**3), 1),
+            "available_gb": round(mem.available / (1024**3), 1),
+            "status": "ok" if usage_pct < 85 else "warn" if usage_pct < 95 else "error",
+            "configured": True,
+        }
+        if usage_pct >= 85:
+            overall = "degraded"
+    except Exception as e:
+        services["memory"] = {"status": "error", "error": str(e)[:80]}
 
     return {
         "status": overall,

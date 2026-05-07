@@ -17,7 +17,6 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
-import resend
 
 from agents.orchestrator import Orchestrator
 from agents.research import create_research_agent
@@ -54,7 +53,11 @@ ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 
 if RESEND_API_KEY:
-    resend.api_key = RESEND_API_KEY
+    try:
+        import resend
+        resend.api_key = RESEND_API_KEY
+    except ImportError:
+        pass
 
 
 # ══════════════════════════════════════════════════════════════
@@ -419,14 +422,16 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 CORS_ORIGINS = [
     os.environ.get("FRONTEND_URL", "").rstrip("/"),
-    "https://contract-os.preview.emergentagent.com",
+    "https://nexifyai.nexifyai.cloud",
     "http://localhost:3000",
+    "http://localhost:3001",
 ]
 CORS_ORIGINS = [o for o in CORS_ORIGINS if o]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS if CORS_ORIGINS else ["*"],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -461,7 +466,13 @@ from routes.comms_routes import router as comms_router
 from routes.contract_routes import router as contract_router
 from routes.project_routes import router as project_router
 from routes.outbound_routes import router as outbound_router
+from routes.crm_routes import router as crm_router
+from routes.chat_hub_routes import router as chat_hub_router
+from routes.secrets_routes import router as secrets_router
 from routes.monitoring_routes import router as monitoring_router
+from routes.signatures_routes import router as signatures_router
+from routes.newsletter_routes import router as newsletter_router
+from routes.analytics_routes import router as analytics_router
 from routes.api_v1_routes import router as api_v1_router
 from routes.nexify_ai_routes import router as nexify_ai_router
 from routes.oracle_routes import router as oracle_router
@@ -469,6 +480,7 @@ from routes.template_routes import router as template_router
 from routes.intelligence_routes import router as intelligence_router
 from routes.trigger_routes import router as trigger_router
 from routes.compliance_routes import router as compliance_router
+from routes.forms_routes import router as forms_router
 
 app.include_router(auth_router)
 app.include_router(public_router)
@@ -479,7 +491,12 @@ app.include_router(comms_router)
 app.include_router(contract_router)
 app.include_router(project_router)
 app.include_router(outbound_router)
+app.include_router(crm_router)
+app.include_router(secrets_router)
 app.include_router(monitoring_router)
+app.include_router(signatures_router)
+app.include_router(newsletter_router)
+app.include_router(analytics_router)
 app.include_router(api_v1_router)
 app.include_router(nexify_ai_router)
 app.include_router(oracle_router)
@@ -487,3 +504,5 @@ app.include_router(template_router)
 app.include_router(intelligence_router)
 app.include_router(trigger_router)
 app.include_router(compliance_router)
+app.include_router(forms_router)
+app.include_router(chat_hub_router)

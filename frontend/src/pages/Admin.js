@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import OracleView from './OracleView';
 import './Admin.css';
+import DOMPurify from 'dompurify';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
 const I = ({ n }) => <span className="material-symbols-outlined">{n}</span>;
@@ -48,6 +49,7 @@ const Admin = () => {
   const [leads, setLeads] = useState([]);
   const [leadsTotal, setLeadsTotal] = useState(0);
   const [leadsSearch, setLeadsSearch] = useState('');
+  const [debouncedLeadsSearch, setDebouncedLeadsSearch] = useState('');
   const [leadsFilter, setLeadsFilter] = useState('all');
   const [selectedLead, setSelectedLead] = useState(null);
   const [calMonth, setCalMonth] = useState(() => new Date().toISOString().slice(0, 7));
@@ -56,6 +58,7 @@ const Admin = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [customers, setCustomers] = useState([]);
   const [custSearch, setCustSearch] = useState('');
+  const [debouncedCustSearch, setDebouncedCustSearch] = useState('');
   const [custDetail, setCustDetail] = useState(null);
   const [blockForm, setBlockForm] = useState({ date: '', time: '', reason: '', all_day: false });
   const [showBlockForm, setShowBlockForm] = useState(false);
@@ -185,9 +188,13 @@ const Admin = () => {
   const headers = useMemo(() => ({ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }), [token]);
 
   const apiFetch = useCallback(async (url, opts = {}) => {
-    const r = await fetch(`${API}${url}`, { ...opts, headers: { ...headers, ...opts.headers } });
-    if (r.status === 401) { setToken(''); localStorage.removeItem('nx_admin_token'); localStorage.removeItem('nx_auth'); return null; }
-    return r.json();
+    try {
+      const r = await fetch(`${API}${url}`, { ...opts, headers: { ...headers, ...opts.headers } });
+      if (r.status === 401) { setToken(''); localStorage.removeItem('nx_admin_token'); localStorage.removeItem('nx_auth'); return null; }
+      if (!r.ok) { console.error(`API ${r.status} on ${url}`); return null; }
+      const ct = r.headers.get('content-type') || '';
+      return ct.includes('application/json') ? await r.json() : null;
+    } catch (e) { console.error(`API fetch error on ${url}:`, e.message); return null; }
   }, [headers]);
 
   const login = async (e) => {
@@ -209,14 +216,24 @@ const Admin = () => {
     apiFetch('/api/admin/audit/health').then(d => d && setSystemHealth(d));
   }, [token, apiFetch]);
 
+  /* Debounce search inputs to avoid firing API on every keystroke */
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedLeadsSearch(leadsSearch), 300);
+    return () => clearTimeout(timer);
+  }, [leadsSearch]);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedCustSearch(custSearch), 300);
+    return () => clearTimeout(timer);
+  }, [custSearch]);
+
   /* Load leads */
   useEffect(() => {
     if (!token || view !== 'leads') return;
     const params = new URLSearchParams();
-    if (leadsSearch) params.set('search', leadsSearch);
+    if (debouncedLeadsSearch) params.set('search', debouncedLeadsSearch);
     if (leadsFilter !== 'all') params.set('status', leadsFilter);
     apiFetch(`/api/admin/leads?${params}`).then(d => { if (d) { setLeads(d.leads || []); setLeadsTotal(d.total || 0); } });
-  }, [token, view, leadsSearch, leadsFilter, apiFetch]);
+  }, [token, view, debouncedLeadsSearch, leadsFilter, apiFetch]);
 
   /* Load calendar */
   useEffect(() => {
@@ -227,9 +244,9 @@ const Admin = () => {
   /* Load customers */
   useEffect(() => {
     if (!token || view !== 'customers') return;
-    const params = custSearch ? `?search=${encodeURIComponent(custSearch)}` : '';
+    const params = debouncedCustSearch ? `?search=${encodeURIComponent(debouncedCustSearch)}` : '';
     apiFetch(`/api/admin/customers${params}`).then(d => d && setCustomers(d.customers || []));
-  }, [token, view, custSearch, apiFetch]);
+  }, [token, view, debouncedCustSearch, apiFetch]);
 
   /* Load commercial data */
   useEffect(() => {
@@ -643,6 +660,14 @@ const Admin = () => {
   useEffect(() => { if (token && view === 'monitoring') loadMonitoring(); }, [token, view]); // eslint-disable-line
   useEffect(() => { if (token && view === 'api_keys') loadApiKeys(); }, [token, view]); // eslint-disable-line
   useEffect(() => { if (token && view === 'nexify_ai') { loadNxConversations(); loadNxStatus(); if (nxActiveConvo) loadNxConversation(nxActiveConvo); } }, [token, view]); // eslint-disable-line
+  // Auto-refresh nxStatus every 30s for real-time service status
+  useEffect(() => {
+    if (!(token && view === 'nexify_ai')) return;
+    const interval = setInterval(() => {
+      apiFetch('/api/admin/nexify-ai/status').then(d => d && setNxStatus(d));
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [token, view, apiFetch]);
 
   const logout = () => {
     // Komplettes Cleanup ALLER Session-bezogenen Keys
@@ -946,7 +971,7 @@ const Admin = () => {
                   <button
                     key={k}
                     className={`adm-status-btn ${selectedBooking.status === k ? 'active' : ''}`}
-                    style={{ '--sc': v.color }}
+                    style={{ ['--sc']: v.color }}
                     onClick={() => updateBooking(selectedBooking.booking_id, { status: k })}
                     data-testid={`booking-status-${k}`}
                   ><I n={v.icon} /> {v.label}</button>
@@ -1852,7 +1877,7 @@ const Admin = () => {
                     const d = await apiFetch(`/api/admin/conversations/${c.conversation_id}`);
                     if (d) setSelectedConvo(d);
                   }}>
-                    <td>{c.contact?.email?.replace('@placeholder.nexifyai.de','') || c.contact?.first_name || '—'}</td>
+                    <td>{c.contact?.email || c.contact?.first_name || '—'}</td>
                     <td>{(c.channels || []).map(ch => <span key={ch} className="adm-channel-badge">{ch}</span>)}</td>
                     <td><span className={`adm-status-dot ${c.status}`}></span> {c.status}</td>
                     <td>{c.message_count}</td>
@@ -2076,7 +2101,7 @@ const Admin = () => {
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:12}}>
             <div className="adm-field"><label>Name</label><input value={nxAgentForm.name} onChange={e => setNxAgentForm(p => ({...p, name: e.target.value}))} placeholder="z.B. Sales Agent" data-testid="agent-name-input" /></div>
             <div className="adm-field"><label>Rolle</label><input value={nxAgentForm.role} onChange={e => setNxAgentForm(p => ({...p, role: e.target.value}))} placeholder="z.B. sales, pm, code" data-testid="agent-role-input" /></div>
-            <div className="adm-field"><label>Modell</label><input value={nxAgentForm.model} onChange={e => setNxAgentForm(p => ({...p, model: e.target.value}))} placeholder="trinity-large-preview" data-testid="agent-model-input" /></div>
+            <div className="adm-field"><label>Modell</label><input value={nxAgentForm.model} onChange={e => setNxAgentForm(p => ({...p, model: e.target.value}))} placeholder="deepseek/deepseek-v4-pro" data-testid="agent-model-input" /></div>
             <div className="adm-field"><label>Status</label>
               <select value={nxAgentForm.status} onChange={e => setNxAgentForm(p => ({...p, status: e.target.value}))} data-testid="agent-status-select" style={{width:'100%',padding:'10px 12px',background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)',color:'#e2e8f0',borderRadius:6}}>
                 <option value="active">Aktiv</option>
@@ -3088,7 +3113,7 @@ const Admin = () => {
     const d = await apiFetch('/api/admin/api-keys');
     if (d?.keys) setApiKeys(d.keys);
     setApiKeysLoading(false);
-  }, []);
+  }, [apiFetch]);
 
   const createApiKey = async () => {
     const body = { name: newApiKeyForm.name, scopes: newApiKeyForm.scopes === 'all' ? ['all'] : newApiKeyForm.scopes.split(',').map(s => s.trim()), rate_limit_per_hour: parseInt(newApiKeyForm.rate_limit_per_hour) || 1000, description: newApiKeyForm.description };
@@ -3134,6 +3159,14 @@ const Admin = () => {
     loadNxConversations();
   };
 
+  const [healthStatus, setHealthStatus] = useState(null);
+  const loadHealthStatus = useCallback(async () => {
+    try {
+      const res = await fetch('/api/health');
+      if (res.ok) setHealthStatus(await res.json());
+    } catch (e) { /* offline */ }
+  }, []);
+
   const loadNxStatus = useCallback(async () => {
     const d = await apiFetch('/api/admin/nexify-ai/status');
     if (d) setNxStatus(d);
@@ -3151,21 +3184,91 @@ const Admin = () => {
     });
   };
 
+  const escapeHtml = (text) => {
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  };
+
   const renderMarkdown = (text) => {
     if (!text) return '';
-    let html = text
-      .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
-      .replace(/`([^`]+)`/g, '<code>$1</code>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-      .replace(/^- (.+)$/gm, '<li>$1</li>')
-      .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>')
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/\n/g, '<br/>');
-    if (!html.startsWith('<')) html = '<p>' + html + '</p>';
-    return html;
+    // Process inline formatting on a line of text
+    const formatInline = (line) => {
+      return escapeHtml(line)
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    };
+    // Split into blocks by double newlines, then process each block
+    const blocks = text.split(/\n\n+/);
+    let result = '';
+    let inList = false, listTag = '';
+    for (const block of blocks) {
+      const lines = block.split('\n');
+      const firstLine = lines[0];
+      // Code blocks (fenced)
+      if (firstLine.startsWith('```')) {
+        if (inList) { result += '</' + listTag + '>'; inList = false; }
+        const lang = firstLine.slice(3).trim();
+        const codeLines = lines.slice(1);
+        // Remove trailing ```
+        if (codeLines.length && codeLines[codeLines.length - 1].trim() === '```') codeLines.pop();
+        result += '<pre><code>' + escapeHtml(codeLines.join('\n')) + '</code></pre>';
+        continue;
+      }
+      // Headings
+      if (firstLine.startsWith('### ')) {
+        if (inList) { result += '</' + listTag + '>'; inList = false; }
+        result += '<h3>' + formatInline(firstLine.slice(4)) + '</h3>';
+        continue;
+      }
+      if (firstLine.startsWith('## ')) {
+        if (inList) { result += '</' + listTag + '>'; inList = false; }
+        result += '<h2>' + formatInline(firstLine.slice(3)) + '</h2>';
+        continue;
+      }
+      if (firstLine.startsWith('# ')) {
+        if (inList) { result += '</' + listTag + '>'; inList = false; }
+        result += '<h1>' + formatInline(firstLine.slice(2)) + '</h1>';
+        continue;
+      }
+      // Unordered list
+      if (firstLine.startsWith('- ')) {
+        if (!inList || listTag !== 'ul') {
+          if (inList) result += '</' + listTag + '>';
+          result += '<ul>';
+          inList = true; listTag = 'ul';
+        }
+        for (const line of lines) {
+          if (line.startsWith('- ')) result += '<li>' + formatInline(line.slice(2)) + '</li>';
+        }
+        continue;
+      }
+      // Ordered list
+      if (/^\d+\.\s/.test(firstLine)) {
+        if (!inList || listTag !== 'ol') {
+          if (inList) result += '</' + listTag + '>';
+          result += '<ol>';
+          inList = true; listTag = 'ol';
+        }
+        for (const line of lines) {
+          const m = line.match(/^\d+\.\s(.+)/);
+          if (m) result += '<li>' + formatInline(m[1]) + '</li>';
+        }
+        continue;
+      }
+      // Regular paragraph
+      if (inList) { result += '</' + listTag + '>'; inList = false; }
+      const paraHtml = lines.map(l => formatInline(l)).join('<br/>');
+      result += '<p>' + paraHtml + '</p>';
+    }
+    if (inList) { result += '</' + listTag + '>'; }
+    return result;
+  };
+
+  const safeRenderMarkdown = (text) => {
+    const html = renderMarkdown(text);
+    return DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'code', 'pre', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'span', 'a'],
+      ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
+    });
   };
 
   const nxUpdateStream = (text) => {
@@ -3510,7 +3613,7 @@ const Admin = () => {
           <h3 style={{marginBottom:12}}>Recovery & Self-Healing</h3>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:12}}>
             {[
-              { label: 'LLM Fallback', status: sys.llm?.active_provider === 'openrouter' ? 'OpenRouter primär' : 'Fallback aktiv (Emergent GPT)', ok: sys.llm?.active_provider === 'openrouter', action: sys.llm?.active_provider !== 'openrouter' ? 'OPENROUTER_API_KEY setzen für Zielarchitektur' : null },
+              { label: 'LLM Fallback', status: sys.llm?.active_provider === 'openrouter' ? 'OpenRouter primär (deepseek-v4-pro)' : 'Fallback aktiv (Lokal)', ok: sys.llm?.active_provider === 'openrouter', action: sys.llm?.active_provider !== 'openrouter' ? 'OPENROUTER_API_KEY setzen für Zielarchitektur' : null },
               { label: 'Dead Letter Queue', status: sys.dead_letter_queue?.count === 0 ? 'Leer — kein Handlungsbedarf' : `${sys.dead_letter_queue?.count} Jobs wartend`, ok: sys.dead_letter_queue?.count === 0, action: sys.dead_letter_queue?.count > 0 ? 'Dead-letter-Jobs in Admin prüfen und ggf. neu einreihen' : null },
               { label: 'E-Mail Delivery', status: sys.email?.api_key_set ? `${sys.email?.total_failed} Fehler von ${sys.email?.total_sent + sys.email?.total_failed} gesamt` : 'Nicht konfiguriert', ok: sys.email?.api_key_set && sys.email?.total_failed === 0, action: sys.email?.total_failed > 0 ? 'Fehlgeschlagene E-Mails in Email-Stats prüfen' : null },
               { label: 'Payment Provider', status: sys.payments?.revolut?.api_key_set ? 'Revolut aktiv' : 'Kein Provider', ok: sys.payments?.revolut?.api_key_set },
@@ -3658,8 +3761,8 @@ curl ${API}/api/v1/docs`}
         </div>
         {nxStatus && (
           <div style={{padding:'12px 16px',borderTop:'1px solid rgba(255,255,255,0.04)',fontSize:'.6875rem',color:'#4a5568',display:'flex',flexDirection:'column',gap:4}}>
-            <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:nxStatus.arcee?.configured?'#10b981':'#ef4444'}} />{nxStatus.arcee?.model}</div>
-            <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:nxStatus.mem0?.configured?'#10b981':'#ef4444'}} />mem0 Brain</div>
+            <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:nxStatus.openrouter?.configured?'#10b981':'#ef4444'}} />{nxStatus.openrouter?.model || 'OpenRouter'}</div>
+            <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:nxStatus.qdrant?.connected?'#10b981':'#ef4444'}} />Qdrant Brain</div>
             <div>{nxStatus.stats?.conversations} Konv. / {nxStatus.stats?.messages} Msgs</div>
           </div>
         )}
@@ -3705,7 +3808,7 @@ curl ${API}/api/v1/docs`}
             <div key={m._key || m.message_id || `msg_${i}_${m.created_at}`} className={`nxai-msg ${m.role}`}>
               <div className="nxai-msg-avatar">{m.role === 'assistant' ? 'NX' : 'PC'}</div>
               <div>
-                <div className="nxai-msg-bubble" dangerouslySetInnerHTML={{ __html: renderMarkdown(m.content) }} />
+                <div className="nxai-msg-bubble" dangerouslySetInnerHTML={{ __html: safeRenderMarkdown(m.content) }} />
                 <div className="nxai-msg-time">{fmtTime(m.created_at)}</div>
               </div>
             </div>
@@ -3726,9 +3829,9 @@ curl ${API}/api/v1/docs`}
             <button className="nxai-send-btn" onClick={() => sendNxMessage()} disabled={!nxInput.trim() || nxStreaming} data-testid="nxai-send"><I n="send" /></button>
           </div>
           <div className="nxai-status-bar">
-            <span>OpenRouter deepseek-v4-flash</span>
+            <span>{nxStatus?.openrouter?.model || 'OpenRouter'}</span>
             <span>|</span>
-            <span>{nxUseMemory ? 'mem0 Brain aktiv' : 'Ohne Brain'}</span>
+            <span>{nxUseMemory ? 'Brain aktiv (Qdrant)' : 'Ohne Brain'}</span>
           </div>
         </div>
       </div>
@@ -3854,17 +3957,23 @@ curl ${API}/api/v1/docs`}
             <div style={{display:'flex',flexDirection:'column',gap:4}}>
               {[
                 {n:'OpenRouter',ok:nxStatus.openrouter?.connected,cfg:nxStatus.openrouter?.configured},
-                {n:'Arcee AI',ok:nxStatus.arcee?.connected,cfg:nxStatus.arcee?.configured},
-                {n:'mem0 Brain',ok:nxStatus.mem0?.connected,cfg:nxStatus.mem0?.configured},
-                {n:'Supabase',ok:true,cfg:true},
-                {n:'MongoDB',ok:true,cfg:true},
-              ].map(s => (
+                {n:'Qdrant (Brain)',ok:nxStatus.qdrant?.connected,cfg:nxStatus.qdrant?.configured},
+                {n:'Supabase',ok:nxStatus.supabase?.connected,cfg:nxStatus.supabase?.configured},
+                {n:'MongoDB',ok:nxStatus.mongodb?.connected,cfg:nxStatus.mongodb?.configured},
+                {n:'Workers',ok:nxStatus.workers?.active > 0,cfg:nxStatus.workers?.configured},
+                {n:'Disk',ok:nxStatus.disk?.usage_pct < 85,cfg:nxStatus.disk?.configured},
+                {n:'Memory',ok:nxStatus.memory?.usage_pct < 85,cfg:nxStatus.memory?.configured},
+              ].map(s => {
+                const statusText = ['Disk','Memory'].includes(s.n)
+                  ? (s.ok ? 'ok' : 'kritisch')
+                  : (s.ok ? 'verbunden' : s.cfg ? 'konfiguriert' : 'fehlt');
+                return (
                 <div key={s.n} style={{display:'flex',alignItems:'center',gap:6,fontSize:'.6875rem'}}>
                   <span className="nxai-ctrl-dot" style={{background:s.ok?'#10b981':s.cfg?'#f59e0b':'#ef4444'}} />
                   <span style={{color:'#c8d1dc'}}>{s.n}</span>
-                  <span style={{fontSize:'.5625rem',color:'#4a5568',marginLeft:'auto'}}>{s.ok?'verbunden':s.cfg?'konfiguriert':'fehlt'}</span>
+                  <span style={{fontSize:'.5625rem',color:'#4a5568',marginLeft:'auto'}}>{statusText}</span>
                 </div>
-              ))}
+              )})}
             </div>
           )}
         </div>

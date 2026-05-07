@@ -363,7 +363,7 @@ class DeepSeekDirectProvider(LLMProvider):
     }
 
     def __init__(self):
-        self._api_key = "sk-3802b5319f5b46f4bc755e80cf629e38"
+        self._api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
         self._base_url = "https://api.deepseek.com/v1"
         self._default_model = "deepseek-chat"
         self._sessions: Dict[str, list] = {}

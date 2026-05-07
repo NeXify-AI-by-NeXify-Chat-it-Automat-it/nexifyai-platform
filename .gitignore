@@ -44,6 +44,7 @@ test_reports/
 *.bak
 *.backup
 *.backup-*
+*.backup.*
 node_modules/
 build/
 .vercel/
@@ -55,3 +56,4 @@ backend/routes/forms_routes.py
 backend/routes/newsletter_routes.py
 backend/routes/secrets_routes.py
 backend/routes/signatures_routes.py
+.env*.local

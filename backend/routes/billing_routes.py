@@ -285,6 +285,10 @@ async def send_quote(quote_id: str, current_user: dict = Depends(get_current_adm
         try:
             import base64
             pdf_b64 = base64.b64encode(doc["pdf_data"]).decode()
+            try:
+                import resend
+            except ImportError:
+                pass
             resend.Emails.send({
                 "from": f"NeXifyAI <{S.SENDER_EMAIL}>",
                 "to": customer_email,
@@ -592,6 +596,10 @@ async def send_invoice(invoice_id: str, current_user: dict = Depends(get_current
             gross_val = totals.get("gross", 0)
             gross_str = f"{gross_val:,.2f} EUR" if isinstance(gross_val, (int, float)) else str(gross_val)
 
+            try:
+                import resend
+            except ImportError:
+                pass
             resend.Emails.send({
                 "from": f"NeXifyAI <{S.SENDER_EMAIL}>",
                 "to": customer_email,
