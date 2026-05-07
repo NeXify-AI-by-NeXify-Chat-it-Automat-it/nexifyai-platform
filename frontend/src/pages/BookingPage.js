@@ -150,7 +150,7 @@ export default function BookingPage() {
         <div className="container">
           <div className="footer-grid">
             <div className="footer-brand">
-              <div className="footer-logo"><img src="/nexifyai-logo-light.png" alt="neXifyAI" height="28" style="height:28px;width:auto" /><span>NeXify<span className="brand-ai">AI</span></span></div>
+              <div className="footer-logo"><img src="/nexifyai-logo-light.png" alt="neXifyAI" height="28" /><span>NeXify<span className="brand-ai">AI</span></span></div>
               <div className="footer-tagline">{t.footer.tagline}</div>
               <div className="footer-legal-name">{COMPANY.legal}</div>
               <address className="footer-contact">
