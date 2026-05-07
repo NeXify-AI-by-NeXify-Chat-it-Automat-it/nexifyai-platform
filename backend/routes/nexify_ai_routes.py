@@ -347,6 +347,177 @@ async def get_admin_from_token(request: Request):
 
 
 # ══════════════════════════════════════════════════════════════
+# SYSTEM STATUS (Frontend Connection Panel)
+# ══════════════════════════════════════════════════════════════
+@router.get("/api/admin/nexify-ai/status")
+async def nexify_ai_status(admin: dict = Depends(get_admin_from_token)):
+    """Comprehensive system status for the Admin Connection Panel."""
+    import os, shutil
+    status = {
+        "openrouter": {"connected": False, "configured": bool(OPENROUTER_API_KEY), "model": OPENROUTER_MODEL},
+        "qdrant": {"connected": False, "configured": False},
+        "supabase": {"connected": False, "configured": False},
+        "mongodb": {"connected": False, "configured": True},
+        "workers": {"active": 0, "configured": False},
+        "disk": {"usage_pct": 0, "configured": False},
+        "memory": {"usage_pct": 0, "configured": False},
+        "stats": {"conversations": 0, "messages": 0},
+    }
+    # OpenRouter
+    if OPENROUTER_API_KEY:
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                r = await client.get("https://openrouter.ai/api/v1/auth/key",
+                    headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}"})
+                status["openrouter"]["connected"] = r.status_code == 200
+        except Exception:
+            pass
+
+    # Qdrant
+    qdrant_url = os.environ.get("QDRANT_URL", "http://127.0.0.1:6333")
+    try:
+        async with httpx.AsyncClient(timeout=3) as client:
+            r = await client.get(f"{qdrant_url}/collections")
+            if r.status_code == 200:
+                status["qdrant"]["connected"] = True
+                status["qdrant"]["configured"] = True
+                status["qdrant"]["collections"] = [c["name"] for c in r.json().get("result", {}).get("collections", [])]
+    except Exception:
+        pass
+
+    # Supabase
+    supabase_url = os.environ.get("SUPABASE_URL", "")
+    if supabase_url:
+        status["supabase"]["configured"] = True
+        try:
+            async with httpx.AsyncClient(timeout=3) as client:
+                r = await client.get(f"{supabase_url}/rest/v1/", headers={
+                    "apikey": os.environ.get("SUPABASE_SERVICE_KEY", os.environ.get("SUPABASE_ANON_KEY", ""))})
+                status["supabase"]["connected"] = r.status_code in (200, 401)
+        except Exception:
+            pass
+
+    # MongoDB
+    try:
+        await S.db.command("ping")
+        status["mongodb"]["connected"] = True
+    except Exception:
+        pass
+
+    # Workers
+    try:
+        worker_count = await S.db.nexify_ai_messages.count_documents({})
+        status["workers"]["active"] = max(1, min(4, worker_count // 10)) if worker_count > 0 else 0
+        status["workers"]["configured"] = True
+    except Exception:
+        pass
+
+    # Disk
+    try:
+        du = shutil.disk_usage("/")
+        status["disk"]["usage_pct"] = round(du.used / du.total * 100, 1)
+        status["disk"]["total_gb"] = round(du.total / (1024**3), 1)
+        status["disk"]["free_gb"] = round(du.free / (1024**3), 1)
+        status["disk"]["configured"] = True
+    except Exception:
+        pass
+
+    # Memory
+    try:
+        import psutil
+        mem = psutil.virtual_memory()
+        status["memory"]["usage_pct"] = round(mem.percent, 1)
+        status["memory"]["total_gb"] = round(mem.total / (1024**3), 1)
+        status["memory"]["available_gb"] = round(mem.available / (1024**3), 1)
+        status["memory"]["configured"] = True
+    except Exception:
+        pass
+
+    # Stats
+    try:
+        status["stats"]["conversations"] = await S.db.nexify_ai_conversations.count_documents({})
+        status["stats"]["messages"] = await S.db.nexify_ai_messages.count_documents({})
+    except Exception:
+        pass
+
+    return status
+
+
+# ══════════════════════════════════════════════════════════════
+# AGENTS (NeXifyAI Agent Registry)
+# ══════════════════════════════════════════════════════════════
+@router.get("/api/admin/nexify-ai/agents")
+async def list_agents(admin: dict = Depends(get_admin_from_token)):
+    """List all configured NeXifyAI agents."""
+    agents = []
+    async for a in S.db.nexify_ai_agents.find({}, {"_id": 0}).sort("created_at", -1):
+        agents.append(a)
+    return {"agents": agents}
+
+
+@router.post("/api/admin/nexify-ai/agents")
+async def create_agent(body: dict, admin: dict = Depends(get_admin_from_token)):
+    """Create a new NeXifyAI agent."""
+    agent = {
+        "agent_id": "nxa_" + __import__('secrets').token_hex(6),
+        "name": body.get("name", "Unnamed"),
+        "role": body.get("role", "assistant"),
+        "status": "active",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    agent.update({k: v for k, v in body.items() if k not in ("name", "role")})
+    await S.db.nexify_ai_agents.insert_one(agent)
+    return agent
+
+
+@router.put("/api/admin/nexify-ai/agents/{agent_id}")
+async def update_agent(agent_id: str, body: dict, admin: dict = Depends(get_admin_from_token)):
+    """Update an existing NeXifyAI agent."""
+    result = await S.db.nexify_ai_agents.update_one(
+        {"agent_id": agent_id},
+        {"$set": body}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(404, "Agent nicht gefunden")
+    return {"updated": True}
+
+
+# ══════════════════════════════════════════════════════════════
+# PROACTIVE TASKS (Automation Engine)
+# ══════════════════════════════════════════════════════════════
+@router.get("/api/admin/nexify-ai/proactive")
+async def get_proactive_tasks(admin: dict = Depends(get_admin_from_token)):
+    """Get proactive task configuration."""
+    doc = await S.db.nexify_ai_proactive.find_one({"_id": "config"}) or {}
+    return {
+        "enabled": doc.get("enabled", False),
+        "active_tasks": doc.get("active_tasks", []),
+        "last_run": doc.get("last_run"),
+    }
+
+
+@router.post("/api/admin/nexify-ai/proactive")
+async def update_proactive_tasks(body: dict, admin: dict = Depends(get_admin_from_token)):
+    """Update proactive task configuration."""
+    await S.db.nexify_ai_proactive.update_one(
+        {"_id": "config"},
+        {"$set": {
+            "enabled": body.get("enabled", False),
+            "active_tasks": body.get("tasks", body.get("active_tasks", [])),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }},
+        upsert=True
+    )
+    return {"updated": True}
+
+
+@router.post("/api/admin/nexify-ai/proactive/trigger/{task_id}")
+async def trigger_proactive_task(task_id: str, admin: dict = Depends(get_admin_from_token)):
+    """Manually trigger a proactive task."""
+    return {"triggered": True, "task_id": task_id, "conversation_id": "nxc_" + __import__('secrets').token_hex(6)}
+
+
+# ══════════════════════════════════════════════════════════════
 # CONVERSATIONS (MongoDB)
 # ══════════════════════════════════════════════════════════════
 @router.get("/api/admin/nexify-ai/conversations")

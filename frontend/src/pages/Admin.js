@@ -188,9 +188,13 @@ const Admin = () => {
   const headers = useMemo(() => ({ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }), [token]);
 
   const apiFetch = useCallback(async (url, opts = {}) => {
-    const r = await fetch(`${API}${url}`, { ...opts, headers: { ...headers, ...opts.headers } });
-    if (r.status === 401) { setToken(''); localStorage.removeItem('nx_admin_token'); localStorage.removeItem('nx_auth'); return null; }
-    return r.json();
+    try {
+      const r = await fetch(`${API}${url}`, { ...opts, headers: { ...headers, ...opts.headers } });
+      if (r.status === 401) { setToken(''); localStorage.removeItem('nx_admin_token'); localStorage.removeItem('nx_auth'); return null; }
+      if (!r.ok) { console.error(`API ${r.status} on ${url}`); return null; }
+      const ct = r.headers.get('content-type') || '';
+      return ct.includes('application/json') ? await r.json() : null;
+    } catch (e) { console.error(`API fetch error on ${url}:`, e.message); return null; }
   }, [headers]);
 
   const login = async (e) => {
@@ -3756,7 +3760,7 @@ curl ${API}/api/v1/docs`}
         {nxStatus && (
           <div style={{padding:'12px 16px',borderTop:'1px solid rgba(255,255,255,0.04)',fontSize:'.6875rem',color:'#4a5568',display:'flex',flexDirection:'column',gap:4}}>
             <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:nxStatus.openrouter?.configured?'#10b981':'#ef4444'}} />{nxStatus.openrouter?.model || 'OpenRouter'}</div>
-            <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:nxStatus.openrouter?.configured?'#10b981':'#ef4444'}} />Qdrant Brain</div>
+            <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:nxStatus.qdrant?.connected?'#10b981':'#ef4444'}} />Qdrant Brain</div>
             <div>{nxStatus.stats?.conversations} Konv. / {nxStatus.stats?.messages} Msgs</div>
           </div>
         )}
