@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../i18n/LanguageContext';
 import T from '../i18n/translations';
 import SEOHead from '../components/SEOHead';
-import { COMPANY, LEGAL_PATHS, Logo, I, Footer } from '../components/shared';
+import { COMPANY, LEGAL_PATHS, Logo, I, Footer, track } from '../components/shared';
 import './BookingPage.css';
 
 const TEXTS = {
