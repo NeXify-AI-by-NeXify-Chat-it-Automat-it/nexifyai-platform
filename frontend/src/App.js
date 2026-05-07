@@ -405,7 +405,7 @@ const Ft = ({ onCookieSettings, t, lang }) => {
               <li><a href="#loesungen">{t.nav.leistungen}</a></li><li><a href="#use-cases">{t.nav.usecases}</a></li>
               <li><a href="#app-dev">{t.nav.appdev}</a></li><li><a href="#integrationen">{t.nav.integrationen}</a></li>
               <li><a href="#preise">{t.nav.tarife}</a></li><li><a href="#ki-seo">{lang === 'en' ? 'SEO' : 'KI-SEO'}</a></li><li><a href="#services">{lang === 'en' ? 'Services' : lang === 'nl' ? 'Diensten' : 'Services'}</a></li>
-              <li><a href="#trust">{lang === 'en' ? 'Trust' : lang === 'nl' ? 'Vertrouwen' : 'Vertrauen'}</a></li><li><a href="#kontakt">{t.footer.kontakt}</a></li>
+              <li><a href="#trust">{lang === 'en' ? 'Trust' : lang === 'nl' ? 'Vertrouwen' : 'Vertrauen'}</a></li><li><a href="#kontakt">{t.footer.kontakt}</a></li><li><a href={`/${lang}/blog`}>{lang === 'en' ? 'Blog' : lang === 'nl' ? 'Blog' : 'Blog'}</a></li>
             </ul>
           </nav>
           <nav className="footer-nav-col">
