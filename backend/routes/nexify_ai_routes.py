@@ -1,6 +1,6 @@
 """
 NeXifyAI — NeXify AI Master Chat Routes
-DeepSeek (primary) + Arcee AI (fallback) + mem0 Brain Integration
+OpenRouter Chat Integration (deepseek/deepseek-v4-pro) + NeXifyAI Brain
 """
 import os
 import re
@@ -21,28 +21,38 @@ logger = logging.getLogger("nexifyai.nexify_ai")
 
 router = APIRouter(tags=["NeXify AI Master"])
 
-# OpenRouter (PRIMARY) — MiniMax M2.7
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+# OpenRouter (PRIMARY) — DeepSeek V4 Pro/Flash (Auto-Select)
+OPENROUTER_API_KEY=os.environ.get("OPENROUTER_API_KEY", "")
 OPENROUTER_BASE_URL = os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
-OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "minimax/minimax-m2.7")
+OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "deepseek/deepseek-v4-pro")
 OPENROUTER_CHAT_URL = f"{OPENROUTER_BASE_URL}/chat/completions"
 OPENROUTER_HEADERS_EXTRA = {"HTTP-Referer": "https://nexifyai.de", "X-Title": "NeXifyAI"}
 
-# Arcee AI (FALLBACK)
-ARCEE_API_KEY = os.environ.get("ARCEE_API_KEY", "")
-ARCEE_MODEL = os.environ.get("ARCEE_MODEL", "trinity-large-preview")
-ARCEE_API_URL = os.environ.get("ARCEE_API_URL", "https://api.arcee.ai/api/v1/chat/completions")
+# Model Auto-Selector: Wählt autonom zwischen Flash (günstig) und Pro (komplex)
+try:
+    import sys
+    sys.path.insert(0, "/opt/data/brain")
+    from model_selector import select_model, MODEL_FLASH, MODEL_PRO
+    _MODEL_SELECTOR_AVAILABLE = True
+except Exception:
+    _MODEL_SELECTOR_AVAILABLE = False
+    MODEL_FLASH = "deepseek/deepseek-v4-flash"
+    MODEL_PRO = "deepseek/deepseek-v4-pro"
 
-# mem0
-MEM0_API_KEY = os.environ.get("MEM0_API_KEY", "")
-MEM0_API_URL = os.environ.get("MEM0_API_URL", "https://api.mem0.ai")
-MEM0_USER_ID = os.environ.get("MEM0_USER_ID", "pascal-courbois")
-MEM0_AGENT_ID = os.environ.get("MEM0_AGENT_ID", "nexify-ai-master")
-MEM0_APP_ID = os.environ.get("MEM0_APP_ID", "nexify-automate-core")
+def _resolve_model(user_message: str) -> str:
+    """Wählt das optimale Modell für die gegebene Nachricht."""
+    if _MODEL_SELECTOR_AVAILABLE:
+        try:
+            model, reason = select_model(user_message, verbose=True)
+            logger.info(f"Model Auto-Select → {model.split('/')[-1]} ({reason})")
+            return model
+        except Exception as e:
+            logger.warning(f"Model selector failed: {e}, fallback to default")
+    return OPENROUTER_MODEL
 
-# Master LLM Config — OpenRouter primary, Arcee fallback
-MASTER_LLM = "openrouter" if OPENROUTER_API_KEY else "arcee"
-logger.info(f"Master LLM: {MASTER_LLM.upper()} ({'OpenRouter/MiniMax primary' if OPENROUTER_API_KEY else 'Arcee fallback'})")
+# OpenRouter is the only provider (Arcee+mem0 removed — no longer exist)
+MASTER_LLM = "openrouter"
+logger.info(f"Master LLM: OpenRouter (deepseek/deepseek-v4-pro)")
 
 SYSTEM_PROMPT = """SYSTEM PROMPT — NeXify AI (Operativer Assistent)
 
@@ -170,9 +180,9 @@ Das System führt das Tool serverseitig aus und gibt dir das Ergebnis automatisc
 - **send_email** — E-Mail senden (to, subject, body)
 - **http_request** — HTTP-Anfrage an beliebige URL (url, method, headers, body)
 
-### Brain & Memory (mem0)
-- **search_brain** — Brain durchsuchen (query, top_k)
-- **store_brain** — Wissen persistent speichern (content, scope: operational/knowledge/todo)
+### Brain & Memory
+- **search_brain** — NeXifyAI Brain durchsuchen (brain.db + Qdrant)
+- **store_brain** — Wissen persistent im Brain speichern
 
 ### Web & Recherche
 - **web_search** — Web-Suche via Jina AI (query)
@@ -218,9 +228,9 @@ Das System führt das Tool serverseitig aus und gibt dir das Ergebnis automatisc
 - Backend: FastAPI (Port 8001), Python
 - Datenbank: MongoDB (CRM) + Supabase PostgreSQL (Oracle System, Brain, Knowledge, Tasks)
 - Auth: JWT (Admin) + Magic Links (Kunden) + API Keys (extern)
-- LLM Master: OpenRouter (deepseek/deepseek-v4-flash) — Du
-- LLM Fachagenten: OpenRouter (deepseek/deepseek-v4-flash) — Alle Sub-Agenten
-- Memory: mem0 Brain (user: pascal-courbois, agent: nexify-ai-master, app: nexify-automate-core)
+- LLM Master: OpenRouter (deepseek/deepseek-v4-pro) — Du
+- LLM Fachagenten: OpenRouter (deepseek/deepseek-v4-pro) — Alle Sub-Agenten
+- Memory: NeXifyAI Brain (brain.db + Qdrant Vector Store, 4096-dim) — Automatic context injection
 - Oracle: Supabase PostgreSQL — 2.624 Tasks, 10.144 Brain-Notes, 156 Knowledge, 33 AI-Agenten
 - Workers: APScheduler (Hintergrund-Jobs)
 - CI-Farbe: #FE9B7B (Coral) + Weiß
@@ -332,84 +342,8 @@ async def get_admin_from_token(request: Request):
 
 
 # ══════════════════════════════════════════════════════════════
-# MEM0 HELPERS
+# NeXifyAI Chat Routes
 # ══════════════════════════════════════════════════════════════
-async def mem0_search(query: str, top_k: int = 5) -> list:
-    """Search mem0 brain for relevant memories."""
-    if not MEM0_API_KEY:
-        return []
-    try:
-        async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.post(
-                f"{MEM0_API_URL}/v2/memories/search/",
-                headers={
-                    "Authorization": f"Token {MEM0_API_KEY}",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "query": query,
-                    "filters": {
-                        "AND": [
-                            {"OR": [
-                                {"user_id": MEM0_USER_ID},
-                                {"agent_id": MEM0_AGENT_ID}
-                            ]},
-                            {"app_id": MEM0_APP_ID}
-                        ]
-                    },
-                    "version": "v2",
-                    "top_k": top_k,
-                    "threshold": 0.3,
-                    "filter_memories": True
-                }
-            )
-            if resp.status_code == 200:
-                data = resp.json()
-                return data if isinstance(data, list) else data.get("results", data.get("memories", []))
-            logger.warning(f"mem0 search returned {resp.status_code}: {resp.text[:200]}")
-            return []
-    except Exception as e:
-        logger.error(f"mem0 search error: {e}")
-        return []
-
-
-async def mem0_store(messages: list, metadata: dict = None, run_id: str = None):
-    """Store conversation to mem0 brain."""
-    if not MEM0_API_KEY:
-        return None
-    try:
-        body = {
-            "messages": messages,
-            "user_id": MEM0_USER_ID,
-            "agent_id": MEM0_AGENT_ID,
-            "app_id": MEM0_APP_ID,
-            "run_id": run_id or f"chat-{utcnow().strftime('%Y%m%d-%H%M%S')}",
-            "metadata": metadata or {
-                "tenant": "nexify-automate",
-                "scope": "operational",
-                "memory_layer": "STATE",
-                "source": "admin_chat",
-                "trust_level": "internal"
-            },
-            "async_mode": True,
-            "version": "v2"
-        }
-        async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.post(
-                f"{MEM0_API_URL}/v1/memories/",
-                headers={
-                    "Authorization": f"Token {MEM0_API_KEY}",
-                    "Content-Type": "application/json"
-                },
-                json=body
-            )
-            if resp.status_code in (200, 201, 202):
-                return resp.json()
-            logger.warning(f"mem0 store returned {resp.status_code}: {resp.text[:200]}")
-            return None
-    except Exception as e:
-        logger.error(f"mem0 store error: {e}")
-        return None
 
 
 # ══════════════════════════════════════════════════════════════
@@ -477,40 +411,31 @@ async def _run_tool(tool_name: str, params: dict) -> dict:
 
 
 async def _call_llm_sync(messages: list) -> str:
-    """Non-streaming LLM call. OpenRouter primary, Arcee fallback."""
-    # PRIMARY: OpenRouter
+    """Non-streaming LLM call via OpenRouter with auto model selection."""
+    # Extract user message for model selection
+    user_msg = ""
+    for m in reversed(messages):
+        if m.get("role") == "user":
+            user_msg = m.get("content", "")
+            break
+    model = _resolve_model(user_msg) if user_msg else OPENROUTER_MODEL
+    
     if OPENROUTER_API_KEY:
         try:
             async with httpx.AsyncClient(timeout=90) as client:
                 resp = await client.post(
                     OPENROUTER_CHAT_URL,
                     headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}", "Content-Type": "application/json", **OPENROUTER_HEADERS_EXTRA},
-                    json={"model": OPENROUTER_MODEL, "messages": messages, "stream": False, "temperature": 0.5, "max_tokens": 6000}
+                    json={"model": model, "messages": messages, "stream": False, "temperature": 0.5, "max_tokens": 6000}
                 )
                 if resp.status_code == 200:
                     data = resp.json()
                     return data.get("choices", [{}])[0].get("message", {}).get("content", "")
-                logger.warning(f"OpenRouter sync error {resp.status_code}, falling back to Arcee")
+                logger.warning(f"OpenRouter sync error {resp.status_code}")
         except Exception as e:
-            logger.warning(f"OpenRouter sync exception: {e}, falling back to Arcee")
-
-    # FALLBACK: Arcee
-    if ARCEE_API_KEY:
-        try:
-            async with httpx.AsyncClient(timeout=90) as client:
-                resp = await client.post(
-                    ARCEE_API_URL,
-                    headers={"Authorization": f"Bearer {ARCEE_API_KEY}", "Content-Type": "application/json"},
-                    json={"model": ARCEE_MODEL, "messages": messages, "stream": False, "temperature": 0.5}
-                )
-                if resp.status_code == 200:
-                    data = resp.json()
-                    return data.get("choices", [{}])[0].get("message", {}).get("content", "")
-                logger.error(f"Arcee fallback error {resp.status_code}: {resp.text[:300]}")
-        except Exception as e:
-            logger.error(f"Arcee fallback exception: {e}")
-
-    return ""
+            logger.warning(f"OpenRouter sync exception: {e}")
+    
+    raise HTTPException(502, "OpenRouter API nicht verfügbar")
 
 
 # ──────────────────────────────────────────────
@@ -550,22 +475,33 @@ async def _openrouter_chat(body: ChatRequest, admin: dict = None) -> StreamingRe
         history.append({"role": m["role"], "content": m["content"]})
     history.reverse()
 
-    # mem0 Kontext
+    # Brain Context via NeXifyAI Brain (brain.db)
     memory_context = ""
-    if body.use_memory and MEM0_API_KEY:
-        memories = await mem0_search(body.message, top_k=5)
-        if memories:
-            mem_texts = []
-            for mem in memories:
-                if isinstance(mem, dict):
-                    text = mem.get("memory", mem.get("content", mem.get("text", "")))
-                    if text:
-                        mem_texts.append(f"- {text}")
-            if mem_texts:
+    if body.use_memory:
+        try:
+            import sqlite3
+            brain_db = sqlite3.connect("/opt/data/brain/brain.db")
+            brain_db.row_factory = sqlite3.Row
+            # Search for relevant memories by keyword match
+            keywords = body.message.lower().split()
+            search_terms = " OR ".join(["full_content LIKE ?" for _ in keywords[:5]])
+            params = [f"%{kw}%" for kw in keywords[:5]]
+            rows = brain_db.execute(
+                f"SELECT category, full_content FROM memories WHERE {search_terms} AND full_content NOT LIKE '%RESOLVED%' LIMIT 5",
+                params
+            ).fetchall()
+            brain_db.close()
+            if rows:
+                mem_texts = [f"[{r['category']}] {r['full_content'][:300]}" for r in rows]
                 memory_context = "\n\n[BRAIN CONTEXT]\n" + "\n".join(mem_texts) + "\n[/BRAIN CONTEXT]"
+        except Exception as e:
+            logger.warning(f"Brain context lookup failed: {e}")
 
     llm_messages = [{"role": "system", "content": system_prompt + memory_context}]
     llm_messages.extend(history)
+
+    # Auto-select model based on message complexity
+    resolved_model = _resolve_model(body.message)
 
     async def stream_response():
         full_response = ""
@@ -579,7 +515,7 @@ async def _openrouter_chat(body: ChatRequest, admin: dict = None) -> StreamingRe
                         **OPENROUTER_HEADERS_EXTRA
                     },
                     json={
-                        "model": OPENROUTER_MODEL,
+                        "model": resolved_model,
                         "messages": llm_messages,
                         "stream": True,
                         "temperature": 0.5,

@@ -946,7 +946,7 @@ const Admin = () => {
                   <button
                     key={k}
                     className={`adm-status-btn ${selectedBooking.status === k ? 'active' : ''}`}
-                    style={{ '--sc': v.color }}
+                    style={{ ['--sc']: v.color }}
                     onClick={() => updateBooking(selectedBooking.booking_id, { status: k })}
                     data-testid={`booking-status-${k}`}
                   ><I n={v.icon} /> {v.label}</button>
@@ -3151,9 +3151,14 @@ const Admin = () => {
     });
   };
 
+  const escapeHtml = (text) => {
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  };
+
   const renderMarkdown = (text) => {
     if (!text) return '';
-    let html = text
+    // Erst HTML escapen (XSS-Schutz), dann Markdown parsen
+    let html = escapeHtml(text)
       .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
       .replace(/`([^`]+)`/g, '<code>$1</code>')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')

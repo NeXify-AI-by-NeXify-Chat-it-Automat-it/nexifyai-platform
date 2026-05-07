@@ -161,8 +161,8 @@ async def health():
 
     # API-Key Checks
     for key_name, label in [
-        ("OPENROUTER_API_KEY", "openrouter"), ("ARCEE_API_KEY", "arcee"),
-        ("MEM0_API_KEY", "mem0"), ("RESEND_API_KEY", "resend"),
+        ("OPENROUTER_API_KEY", "openrouter"),
+        ("RESEND_API_KEY", "resend"),
         ("REVOLUT_SECRET_KEY", "revolut"),
     ]:
         val = os.environ.get(key_name, "")
