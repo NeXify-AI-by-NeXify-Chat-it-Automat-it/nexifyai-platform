@@ -24,7 +24,7 @@ export const track = async (ev, props = {}) => {
     const sid = sessionStorage.getItem('nx_s') || genSid();
     sessionStorage.setItem('nx_s', sid);
     await fetch(`${API}/api/analytics/track`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: ev, properties: { ...props, ts: new Date().toISOString() }, session_id: sid }) });
-  } catch (_) {}
+  } catch (_) { if (process.env.NODE_ENV === 'development') console.error('Analytics track failed:', _); }
 };
 
 export const I = ({ n, c = '' }) => <span className={`material-symbols-outlined ${c}`} aria-hidden="true">{n}</span>;

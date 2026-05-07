@@ -513,37 +513,82 @@ async def _call_llm_sync(messages: list) -> str:
     return ""
 
 
-@router.post("/api/admin/nexify-ai/chat")
-async def nexify_ai_chat(body: ChatRequest, request: Request, admin: dict = Depends(get_admin_from_token)):
-    """Forward Admin Chat to Hermes Gateway for real-time responses from me (Hermes Agent)."""
-    import os as _os
-    import json as _json
-    import httpx as _httpx
-    from fastapi.responses import StreamingResponse
-    
+# ──────────────────────────────────────────────
+# HERMES GATEWAY — Admin Chat Bridge
+# Leitet Admin Chat Messages an den Hermes Gateway
+# (port 8642) weiter, damit Pascal direkt mit
+# dem NeXifyAI Agenten spricht — synchron zu Telegram.
+# ──────────────────────────────────────────────
+GATEWAY_URL = os.environ.get("GATEWAY_URL", "http://127.0.0.1:8642")
+GATEWAY_API_KEY = os.environ.get("GATEWAY_API_KEY", "nxai_local_dev_api_2026")
+GATEWAY_MODEL = "hermes-agent"
+
+# ──────────────────────────────────────────────
+# ALTES ENDPOINT: OpenRouter → NeXifyAI Advisor
+# Wird weiterhin fuer den oeffentlichen Chat
+# (Website-Besucher) verwendet.
+# ──────────────────────────────────────────────
+
+async def _openrouter_chat(body: ChatRequest, admin: dict = None) -> StreamingResponse:
+    """OpenRouter/DeepSeek Chat (public): prefill.md + Historie + mem0."""
     conversation_id = body.conversation_id or "nxc_" + __import__('secrets').token_hex(8)
-    
-    gateway_url = "http://127.0.0.1:8642/v1/chat/completions"
-    gateway_key = _os.environ.get("API_SERVER_KEY", "nxai_local_dev_api_2026")
-    
-    gateway_payload = {
-        "model": "hermes-agent",
-        "messages": [{"role": "user", "content": body.message}],
-        "stream": True,
-    }
-    
-    gateway_headers = {
-        "Authorization": f"Bearer {gateway_key}",
-        "Content-Type": "application/json",
-        "X-Hermes-Session-Id": "admin-chat-" + conversation_id[:24],
-    }
-    
-    async def stream_gateway():
+
+    # Lade prefill.md als System-Prompt
+    prefill_path = os.path.join(os.path.dirname(__file__), "..", "prefill.md")
+    system_prompt = ""
+    try:
+        with open(prefill_path, "r") as f:
+            system_prompt = f.read().strip()
+    except Exception:
+        system_prompt = SYSTEM_PROMPT
+
+    # Lade Chat-Historie (letzte 20)
+    history = []
+    async for m in S.db.nexify_ai_messages.find(
+        {"conversation_id": conversation_id}, {"_id": 0}
+    ).sort("created_at", -1).limit(20):
+        history.append({"role": m["role"], "content": m["content"]})
+    history.reverse()
+
+    # mem0 Kontext
+    memory_context = ""
+    if body.use_memory and MEM0_API_KEY:
+        memories = await mem0_search(body.message, top_k=5)
+        if memories:
+            mem_texts = []
+            for mem in memories:
+                if isinstance(mem, dict):
+                    text = mem.get("memory", mem.get("content", mem.get("text", "")))
+                    if text:
+                        mem_texts.append(f"- {text}")
+            if mem_texts:
+                memory_context = "\n\n[BRAIN CONTEXT]\n" + "\n".join(mem_texts) + "\n[/BRAIN CONTEXT]"
+
+    llm_messages = [{"role": "system", "content": system_prompt + memory_context}]
+    llm_messages.extend(history)
+
+    async def stream_response():
+        full_response = ""
         try:
-            async with _httpx.AsyncClient(timeout=120) as client:
-                async with client.stream("POST", gateway_url, headers=gateway_headers, json=gateway_payload) as resp:
+            async with httpx.AsyncClient(timeout=120) as client:
+                async with client.stream(
+                    "POST", OPENROUTER_CHAT_URL,
+                    headers={
+                        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                        "Content-Type": "application/json",
+                        **OPENROUTER_HEADERS_EXTRA
+                    },
+                    json={
+                        "model": OPENROUTER_MODEL,
+                        "messages": llm_messages,
+                        "stream": True,
+                        "temperature": 0.5,
+                        "max_tokens": 6000
+                    }
+                ) as resp:
                     if resp.status_code != 200:
-                        yield f"data: {_json.dumps({'error': f'Gateway-Fehler ({resp.status_code})'})}\n\n"
+                        err_text = await resp.aread()
+                        yield f"data: {json.dumps({'error': f'OpenRouter-Fehler ({resp.status_code}): {err_text[:200].decode()}'})}\n\n"
                         return
                     async for line in resp.aiter_lines():
                         if not line or not line.startswith("data: "):
@@ -552,16 +597,127 @@ async def nexify_ai_chat(body: ChatRequest, request: Request, admin: dict = Depe
                         if chunk.strip() == "[DONE]":
                             break
                         try:
-                            data = _json.loads(chunk)
+                            data = json.loads(chunk)
                             delta = data.get("choices", [{}])[0].get("delta", {})
                             content = delta.get("content", "")
                             if content:
-                                yield f"data: {_json.dumps({'content': content, 'conversation_id': conversation_id})}\n\n"
-                        except _json.JSONDecodeError:
+                                full_response += content
+                                yield f"data: {json.dumps({'content': content, 'conversation_id': conversation_id})}\n\n"
+                        except json.JSONDecodeError:
                             continue
-                    yield f"data: {_json.dumps({'content': '', 'conversation_id': conversation_id})}\n\n"
         except Exception as e:
-            yield f"data: {_json.dumps({'error': f'Gateway nicht erreichbar: {e}'})}\n\n"
-    
+            logger.error(f"OpenRouter stream error: {e}")
+            yield f"data: {json.dumps({'error': f'OpenRouter nicht erreichbar: {e}'})}\n\n"
+            return
+
+        # Antwort speichern
+        if full_response:
+            await S.db.nexify_ai_messages.insert_one({
+                "message_id": new_id("msg"),
+                "conversation_id": conversation_id,
+                "role": "assistant",
+                "content": full_response,
+                "created_at": utcnow().isoformat()
+            })
+            await S.db.nexify_ai_conversations.update_one(
+                {"conversation_id": conversation_id},
+                {"$set": {"updated_at": utcnow().isoformat()}, "$inc": {"message_count": 1}}
+            )
+        yield f"data: {json.dumps({'content': '', 'conversation_id': conversation_id})}\n\n"
+
+    return StreamingResponse(stream_response(), media_type="text/event-stream")
+
+
+@router.post("/nexify-ai/chat")
+async def nexify_ai_public_chat(body: ChatRequest, request: Request):
+    """Public Chat: NeXifyAI Advisor via OpenRouter (Website-Besucher)."""
+    return await _openrouter_chat(body, None)
+
+
+@router.post("/api/admin/nexify-ai/chat")
+async def nexify_ai_chat(body: ChatRequest, request: Request, admin: dict = Depends(get_admin_from_token)):
+    """Admin Chat: Routed ueber Hermes Gateway (port 8642) = synchron zu Telegram."""
+    if not GATEWAY_API_KEY:
+        raise HTTPException(500, "Kein Gateway konfiguriert (GATEWAY_API_KEY erforderlich)")
+
+    conversation_id = body.conversation_id or "nxc_" + __import__('secrets').token_hex(8)
+
+    # Stelle sicher, dass die Konversation existiert
+    existing = await S.db.nexify_ai_conversations.find_one({"conversation_id": conversation_id})
+    if not existing:
+        await S.db.nexify_ai_conversations.insert_one({
+            "conversation_id": conversation_id,
+            "title": body.message[:80],
+            "created_at": utcnow().isoformat(),
+            "updated_at": utcnow().isoformat(),
+            "created_by": admin.get("email", "admin"),
+            "message_count": 0
+        })
+
+    # Speichere User-Nachricht
+    await S.db.nexify_ai_messages.insert_one({
+        "message_id": new_id("msg"),
+        "conversation_id": conversation_id,
+        "role": "user",
+        "content": body.message,
+        "created_at": utcnow().isoformat()
+    })
+
+    async def stream_gateway():
+        full_response = ""
+        try:
+            async with httpx.AsyncClient(timeout=300) as client:
+                async with client.stream(
+                    "POST", f"{GATEWAY_URL}/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {GATEWAY_API_KEY}",
+                        "Content-Type": "application/json",
+                        "X-Hermes-Session-Id": conversation_id,
+                    },
+                    json={
+                        "model": GATEWAY_MODEL,
+                        "messages": [{"role": "user", "content": body.message}],
+                        "stream": True,
+                    }
+                ) as resp:
+                    if resp.status_code != 200:
+                        err_text = await resp.aread()
+                        yield f"data: {json.dumps({'error': f'Gateway-Fehler ({resp.status_code}): {err_text[:200].decode()}'})}\n\n"
+                        return
+                    async for line in resp.aiter_lines():
+                        if not line or not line.startswith("data: "):
+                            continue
+                        chunk = line[6:]
+                        if chunk.strip() == "[DONE]":
+                            break
+                        try:
+                            data = json.loads(chunk)
+                            delta = data.get("choices", [{}])[0].get("delta", {})
+                            content = delta.get("content", "")
+                            if content:
+                                full_response += content
+                                yield f"data: {json.dumps({'content': content, 'conversation_id': conversation_id})}\n\n"
+                        except json.JSONDecodeError:
+                            continue
+        except Exception as e:
+            logger.error(f"Gateway stream error: {e}")
+            yield f"data: {json.dumps({'error': f'Gateway nicht erreichbar: {e}'})}\n\n"
+            return
+
+        # Nach kompletter Antwort: Antwort in MongoDB speichern
+        if full_response:
+            await S.db.nexify_ai_messages.insert_one({
+                "message_id": new_id("msg"),
+                "conversation_id": conversation_id,
+                "role": "assistant",
+                "content": full_response,
+                "created_at": utcnow().isoformat()
+            })
+            await S.db.nexify_ai_conversations.update_one(
+                {"conversation_id": conversation_id},
+                {"$set": {"updated_at": utcnow().isoformat()}, "$inc": {"message_count": 1}}
+            )
+        yield f"data: {json.dumps({'content': '', 'conversation_id': conversation_id})}\n\n"
+
     return StreamingResponse(stream_gateway(), media_type="text/event-stream")
 

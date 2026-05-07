@@ -44,6 +44,7 @@ test_reports/
 *.bak
 *.backup
 *.backup-*
+*.backup.*
 node_modules/
 build/
 .vercel/
