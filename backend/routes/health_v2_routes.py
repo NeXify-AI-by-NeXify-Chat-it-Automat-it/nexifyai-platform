@@ -22,6 +22,15 @@ from backend.health.enterprise_health import EnterpriseHealth, HealthStatus
 router = APIRouter(prefix="/api/health", tags=["health"])
 
 # Cache with TTL to prevent parallel refresh storms
+#
+# ESCALATION PATH (single-worker → multi-worker):
+#   Current:  threading.Lock() — works for 1 Uvicorn worker (shared memory)
+#   Step 1:   asyncio.Lock() — needed for async handlers (avoids blocking event loop)
+#   Step 2:   Redis cache — cross-process, cross-container (SETEX health:v2 5 ...)
+#   Step 3:   Background refresh task — fully decoupled, writes to Redis every N seconds
+#
+# When moving to multi-worker (gunicorn -w 4), replace this with Redis or a
+# dedicated background thread that refreshes on a timer, not on request.
 _CACHE_TTL = 5  # seconds
 _cache: dict = {
     "data": None,
