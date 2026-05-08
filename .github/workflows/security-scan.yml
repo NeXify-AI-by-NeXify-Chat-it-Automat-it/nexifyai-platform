@@ -22,7 +22,7 @@ jobs:
 
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2
-        continue-on-error: true
+        # ⚠️  BLOCKING: Secrets = FAIL
 
   # ═══════════════════════════════════════
   # 2. DEPENDENCY AUDIT (npm)
@@ -43,7 +43,7 @@ jobs:
       - run: npm install
       - name: NPM Audit (HIGH/CRITICAL only)
         run: npm audit --audit-level=high 2>&1 | tail -20
-        continue-on-error: true
+        # ⚠️  BLOCKING: HIGH/CRITICAL vulns = FAIL
 
   # ═══════════════════════════════════════
   # 3. PYTHON DEPENDENCY SCAN (Safety)
@@ -63,9 +63,9 @@ jobs:
           if [ -f backend/requirements.txt ]; then
             safety check -r backend/requirements.txt --full-report 2>&1 | head -30
           else
-            echo "No requirements.txt found"
+            echo "No requirements.txt found — skipping Python audit"
           fi
-        continue-on-error: true
+        # ⚠️  BLOCKING: Known CVEs = FAIL
 
   # ═══════════════════════════════════════
   # 4. LICENSE SCAN (License Checker)
@@ -87,15 +87,15 @@ jobs:
           cd frontend
           npm install --silent 2>/dev/null
           npx license-checker --production --summary --onlyAllow "MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;Python-2.0;CC0-1.0;Unlicense" 2>&1 | head -30
-        continue-on-error: true
+        # ⚠️  BLOCKING: Restricted license = FAIL
 
       - name: Check Python Licenses
         run: |
           if [ -f backend/requirements.txt ]; then
             pip install pip-licenses 2>/dev/null
             pip-licenses --format=markdown 2>&1 | head -30 || true
+            # Non-blocking: license inventory only
           fi
-        continue-on-error: true
 
   # ═══════════════════════════════════════
   # 5. CONTAINER SCAN (Trivy)

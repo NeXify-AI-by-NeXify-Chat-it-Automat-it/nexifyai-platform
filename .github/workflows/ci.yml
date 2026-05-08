@@ -1,4 +1,4 @@
-name: CI — NeXifyAI Quality Gates
+name: CI — NeXifyAI Quality Gates (HARD)
 
 on:
   pull_request:
@@ -12,10 +12,10 @@ concurrency:
 
 jobs:
   # ═══════════════════════════════════════
-  # 1. QUALITY GATES
+  # 1. QUALITY GATES (FAIL-FAST)
   # ═══════════════════════════════════════
   quality:
-    name: Quality Gates
+    name: Quality Gates (Fail-Fast)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -33,62 +33,67 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Lint (ESLint)
-        run: npx eslint src/ --max-warnings=0 --no-error-on-unmatched-pattern 2>&1 || true
-        continue-on-error: true
-        # TODO: --max-warnings=0 aktivieren nach Code-Cleanup
+      - name: Lint (ESLint — blocking)
+        run: npx eslint src/ --max-warnings=50 --no-error-on-unmatched-pattern
+        # ⚠️  BLOCKING: Errors = FAIL. Warnings capped at 50.
+        # Reduce --max-warnings to 0 after cleanup.
 
-      - name: Typecheck (Flow/PropTypes)
-        run: npx tsc --noEmit --strict 2>&1 || true
-        continue-on-error: true
-        # TODO: TypeScript-Migration abschließen
+      - name: Typecheck (TypeScript — blocking)
+        run: npx tsc --noEmit
+        # ⚠️  BLOCKING: Type errors = FAIL.
 
       - name: Production build
         run: npm run build
         env:
           CI: false
           GENERATE_SOURCEMAP: false
+        # ⚠️  BLOCKING: Build failure = FAIL.
 
       - name: Bundle size check
         run: |
           BUILD_DIR="build/static/js"
-          if [ -d "$BUILD_DIR" ]; then
-            MAX_SIZE=500000  # 500KB
-            for f in "$BUILD_DIR"/*.js; do
-              SIZE=$(stat -c%s "$f")
-              echo "  $(basename $f): $((SIZE/1024))KB"
-              if [ $SIZE -gt $MAX_SIZE ]; then
-                echo "  ⚠️  $(basename $f) is $((SIZE/1024))KB (limit: $((MAX_SIZE/1024))KB)"
-              fi
-            done
+          if [ ! -d "$BUILD_DIR" ]; then
+            echo "⛔ Build directory not found. Build must succeed first."
+            exit 1
           fi
+          MAX_SIZE=500000
+          FAILED=0
+          for f in "$BUILD_DIR"/*.js; do
+            SIZE=$(stat -c%s "$f")
+            echo "  $(basename $f): $((SIZE/1024))KB"
+            if [ $SIZE -gt $MAX_SIZE ]; then
+              echo "  ❌ $(basename $f) EXCEEDS LIMIT: $((SIZE/1024))KB > $((MAX_SIZE/1024))KB"
+              FAILED=1
+            fi
+          done
+          exit $FAILED
 
   # ═══════════════════════════════════════
-  # 2. SECURITY SCAN
+  # 2. SECURITY SCAN (FAIL-FAST)
   # ═══════════════════════════════════════
   security:
-    name: Security Scan
+    name: Security Scan (Fail-Fast)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Secret Scan (Gitleaks)
+      - name: Secret Scan (Gitleaks — blocking)
         uses: gitleaks/gitleaks-action@v2
-        continue-on-error: true
+        # ⚠️  BLOCKING: Secrets found = FAIL.
 
-      - name: Dependency Audit (npm)
+      - name: Dependency Audit (npm — blocking)
         run: |
           cd frontend
-          npm audit --audit-level=high 2>&1 | tail -5 || true
-        continue-on-error: true
+          npm audit --audit-level=high
+        # ⚠️  BLOCKING: HIGH/CRITICAL vulns = FAIL.
 
-      - name: Dependency Audit (Python)
+      - name: Dependency Audit (Python — blocking)
         run: |
           if [ -f backend/requirements.txt ]; then
-            pip install safety 2>/dev/null
-            safety check -r backend/requirements.txt --full-report 2>&1 | head -20 || true
+            pip install safety --break-system-packages 2>/dev/null || pip install safety
+            safety check -r backend/requirements.txt --full-report
           fi
-        continue-on-error: true
+        # ⚠️  BLOCKING: Known CVEs = FAIL.
 
   # ═══════════════════════════════════════
   # 3. DOS COMPLIANCE CHECK
@@ -101,76 +106,46 @@ jobs:
 
       - name: Check directory structure
         run: |
-          for dir in docs docs/adrs docs/governance docs/incidents packages/config packages/events automations/cron; do
+          MISSING=0
+          for dir in docs docs/adrs docs/governance docs/incidents packages/config packages/events packages/workflows packages/services automations/cron; do
             if [ -d "$dir" ]; then
               echo "✅ $dir"
             else
-              echo "❌ $dir fehlt"
+              echo "❌ $dir MISSING"
+              MISSING=1
             fi
           done
+          exit $MISSING
 
       - name: Check critical files
         run: |
+          MISSING=0
           for file in docs/DOS-v2.0.md docs/adrs/ADR_TEMPLATE.md docs/governance/raci.yaml packages/config/api-standards.ts; do
             if [ -f "$file" ]; then
               SIZE=$(wc -c < "$file")
               echo "✅ $file ($SIZE bytes)"
             else
-              echo "❌ $file fehlt"
+              echo "❌ $file MISSING"
+              MISSING=1
             fi
           done
+          exit $MISSING
 
   # ═══════════════════════════════════════
-  # 4. LIGHTHOUSE CI (Performance & SEO)
-  # ═══════════════════════════════════════
-  lighthouse:
-    name: Lighthouse CI
-    runs-on: ubuntu-latest
-    needs: [quality]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm install -g @lhci/cli 2>/dev/null || true
-      - name: Lighthouse ready
-        run: echo "✅ Lighthouse CI configured — activate with lighthouserc.json"
-
-  # ═══════════════════════════════════════
-  # 5. ACCESSIBILITY AUDIT (WCAG 2.1 AA)
-  # ═══════════════════════════════════════
-  accessibility:
-    name: Accessibility Check
-    runs-on: ubuntu-latest
-    needs: [quality]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: Axe-core ready
-        run: echo "✅ Accessibility check configured"
-
-  # ═══════════════════════════════════════
-  # 6. PERFORMANCE REGRESSION
+  # 4. BUNDLE PERFORMANCE GATE
   # ═══════════════════════════════════════
   perf:
-    name: Bundle Performance
+    name: Bundle Performance Gate
     runs-on: ubuntu-latest
     needs: [quality]
     steps:
       - uses: actions/checkout@v4
-      - name: Check bundle size history
-        run: echo "✅ Bundle analysis configured — integrate bundlesize or size-limit"
-
-  # ═══════════════════════════════════════
-  # 7. PREVIEW DEPLOYMENT CHECK
-  # ═══════════════════════════════════════
-  preview:
-    name: Preview Deploy Check
-    runs-on: ubuntu-latest
-    needs: [quality, security]
-    if: github.event_name == 'pull_request'
-    steps:
-      - name: Preview ready
-        run: echo "✅ Preview deployment — Vercel auto-deploys PR branches"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install size-limit
+        run: cd frontend && npm install --save-dev size-limit @size-limit/preset-app 2>/dev/null || true
+      - name: Run size-limit
+        run: cd frontend && npx size-limit
+        # ⚠️  REQUIRES: .size-limit.json in frontend/
+        # Create: { "limit": "500 KB", "path": "build/**/*.{js,css}" }

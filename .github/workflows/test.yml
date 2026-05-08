@@ -29,8 +29,8 @@ jobs:
       - name: Run pytest
         run: |
           cd backend
-          python -m pytest tests/ --tb=short -x 2>&1 || true
-        continue-on-error: true
+          python -m pytest tests/ --tb=short -x 2>&1
+        # ⚠️  BLOCKING: Test failure = FAIL
 
   # ═══════════════════════════════════════
   # 2. FRONTEND TESTS (jest)
@@ -54,4 +54,4 @@ jobs:
 
       - name: Run jest
         run: npx jest --passWithNoTests --ci --maxWorkers=2 2>&1
-        continue-on-error: true
+        # ⚠️  BLOCKING: Test failure = FAIL
