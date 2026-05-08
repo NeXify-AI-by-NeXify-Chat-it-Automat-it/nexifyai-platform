@@ -1,0 +1,44 @@
+name: Uptime Check
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Alle 5 Minuten
+  workflow_dispatch:
+
+jobs:
+  uptime:
+    name: Health Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Website
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://www.nexify-automate.com)
+          if [ "$STATUS" != "200" ]; then
+            echo "❌ Website returned HTTP $STATUS"
+            exit 1
+          fi
+          echo "✅ Website OK (HTTP $STATUS)"
+
+      - name: Check API Health
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://www.nexify-automate.com/api/health 2>/dev/null || echo "000")
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ API Health OK"
+          else
+            echo "⚠️  API Health returned $STATUS (backend may be starting)"
+          fi
+
+      - name: Check Admin
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://www.nexify-automate.com/admin)
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ Admin OK"
+          else
+            echo "⚠️  Admin returned $STATUS"
+          fi
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "## 🚨 Uptime Alert" >> $GITHUB_STEP_SUMMARY
+          echo "One or more health checks failed at $(date -u)." >> $GITHUB_STEP_SUMMARY
