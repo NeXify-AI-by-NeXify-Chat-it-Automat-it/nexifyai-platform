@@ -1,8 +1,11 @@
--- Migration 003: Add memory search indexes
--- Optimizes hybrid search performance.
+-- Migration 003: Add memory search indexes (SQLite-native)
+-- Optimizes hybrid search performance WITHOUT PostgreSQL-specific syntax.
 
-CREATE INDEX IF NOT EXISTS idx_memories_content_fts ON memories(content);
-CREATE INDEX IF NOT EXISTS idx_memories_tags_gin ON memories(tags);
+-- Regular B-tree index on content for prefix/substring matching
+CREATE INDEX IF NOT EXISTS idx_memories_content ON memories(content);
+
+-- Regular index on tags (SQLite does not support GIN)
+CREATE INDEX IF NOT EXISTS idx_memories_tags ON memories(tags);
 
 -- Add memory_meta table for key-value metadata
 CREATE TABLE IF NOT EXISTS memory_meta (

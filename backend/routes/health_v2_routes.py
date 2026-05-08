@@ -9,18 +9,46 @@ Endpoints:
   GET /api/health/metrics  — Prometheus metrics endpoint (future)
 
 Architecture: NO new logic. All data from EnterpriseHealth.refresh_from_system().
+Thread-safety: TTL cache (5s) prevents parallel refresh storms and request blocking.
 """
 
 import os
 import time
+import threading
 import sqlite3
 from fastapi import APIRouter, Response
 from backend.health.enterprise_health import EnterpriseHealth, HealthStatus
 
 router = APIRouter(prefix="/api/health", tags=["health"])
 
-# Singleton — refreshed per request for fresh data
-_health = EnterpriseHealth()
+# Cache with TTL to prevent parallel refresh storms
+_CACHE_TTL = 5  # seconds
+_cache: dict = {
+    "data": None,
+    "timestamp": 0,
+    "lock": threading.Lock(),
+}
+
+
+def _get_health():
+    """Thread-safe cached health refresh. Max 1 refresh per _CACHE_TTL seconds."""
+    now = time.time()
+    
+    # Fast path: cache valid
+    if _cache["data"] is not None and (now - _cache["timestamp"]) < _CACHE_TTL:
+        return _cache["data"]
+    
+    # Slow path: refresh under lock
+    with _cache["lock"]:
+        # Double-check: another thread might have refreshed while we waited
+        if _cache["data"] is not None and (now - _cache["timestamp"]) < _CACHE_TTL:
+            return _cache["data"]
+        
+        health = EnterpriseHealth()
+        health.refresh_from_system()
+        _cache["data"] = health
+        _cache["timestamp"] = time.time()
+        return health
 
 
 # ══════════════════════════════════════════════
@@ -73,13 +101,14 @@ async def health_ready():
 async def health_v2():
     """
     Full 10-component Enterprise Health diagnostic.
-    Backed by EnterpriseHealth.refresh_from_system().
+    Backed by EnterpriseHealth.refresh_from_system() with 5s TTL cache.
     """
-    score = _health.refresh_from_system()
-    status = _health.get_status(score)
+    health = _get_health()
+    score = health.compute_score()
+    status = health.get_status(score)
 
     components = {}
-    for name, comp in _health.components.items():
+    for name, comp in health.components.items():
         components[name] = {
             "score": round(comp.score, 1),
             "status": comp.status.value,

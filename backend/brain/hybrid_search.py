@@ -130,63 +130,95 @@ def hybrid_search(
 
 def _search_sqlite(query: str, top_k: int = 10) -> List[SearchResult]:
     """
-    Search brain.db memories table using LIKE matching.
-    Falls back to substring matching on content field.
+    Search brain.db using FTS5 full-text search (primary).
+    Falls back to LIKE matching if FTS5 table doesn't exist.
     """
     results = []
-    
+
     try:
         conn = sqlite3.connect(BRAIN_DB_PATH)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        
-        # Split query into terms for multi-word matching
+
+        # Try FTS5 first (proper full-text search with ranking)
+        try:
+            cursor.execute("""
+                SELECT m.content, m.category, m.source, m.created_at,
+                       bm25(memories_fts, 0.0, 1.0) as relevance
+                FROM memories_fts f
+                JOIN memories m ON f.rowid = m.rowid
+                WHERE memories_fts MATCH ?
+                ORDER BY bm25(memories_fts, 0.0, 1.0)
+                LIMIT ?
+            """, (query, top_k))
+            rows = cursor.fetchall()
+            
+            if rows:
+                for row in rows:
+                    # Normalize BM25 score to 0-1 range (BM25 is unbounded)
+                    raw_score = abs(row['relevance']) if row['relevance'] else 5.0
+                    normalized = min(1.0, raw_score / 15.0)
+                    
+                    results.append(SearchResult(
+                        content=(row['content'] or '')[:500],
+                        source='sqlite',
+                        score=normalized,
+                        metadata={
+                            'category': row['category'] or 'unknown',
+                            'source': row['source'] or 'unknown',
+                            'created_at': row['created_at'] or '',
+                            'search_method': 'fts5',
+                        }
+                    ))
+                conn.close()
+                return results
+        except sqlite3.OperationalError:
+            pass  # FTS5 table doesn't exist — fall through to LIKE
+
+        # LIKE fallback: multi-term substring matching
         terms = query.lower().split()
-        
-        # Build WHERE clause: each term must appear in content
         if terms:
             conditions = " AND ".join(["LOWER(content) LIKE ?" for _ in terms])
             params = [f"%{t}%" for t in terms]
-            
+
             cursor.execute(f"""
                 SELECT content, category, source, created_at,
-                       (CASE WHEN LOWER(content) LIKE ? THEN 1.0 ELSE 0.5 END) as relevance
-                FROM memories 
+                       (CASE WHEN LOWER(content) LIKE ? THEN 0.8 ELSE 0.4 END) as relevance
+                FROM memories
                 WHERE {conditions}
                 ORDER BY created_at DESC
                 LIMIT ?
             """, [f"%{query.lower()}%"] + params + [top_k])
-        
-        rows = cursor.fetchall()
-        
-        if not rows:
-            # Fallback: single-term search
-            cursor.execute("""
-                SELECT content, category, source, created_at, 0.4 as relevance
-                FROM memories 
-                WHERE LOWER(content) LIKE ?
-                ORDER BY created_at DESC
-                LIMIT ?
-            """, (f"%{query.lower().split()[0]}%", top_k))
+
             rows = cursor.fetchall()
-        
-        for row in rows:
-            content_preview = row['content'][:500] if row['content'] else "(empty)"
-            results.append(SearchResult(
-                content=content_preview,
-                source='sqlite',
-                score=row['relevance'],
-                metadata={
-                    'category': row['category'] or 'unknown',
-                    'source': row['source'] or 'unknown',
-                    'created_at': row['created_at'] or '',
-                }
-            ))
-        
+            
+            if not rows:
+                cursor.execute("""
+                    SELECT content, category, source, created_at, 0.3 as relevance
+                    FROM memories
+                    WHERE LOWER(content) LIKE ?
+                    ORDER BY created_at DESC
+                    LIMIT ?
+                """, (f"%{query.lower().split()[0]}%", top_k))
+                rows = cursor.fetchall()
+
+            for row in rows:
+                results.append(SearchResult(
+                    content=(row['content'] or '')[:500],
+                    source='sqlite',
+                    score=row['relevance'],
+                    metadata={
+                        'category': row['category'] or 'unknown',
+                        'source': row['source'] or 'unknown',
+                        'created_at': row['created_at'] or '',
+                        'search_method': 'like',
+                    }
+                ))
+
         conn.close()
     except Exception as e:
         print(f"[brain] SQLite error: {e}")
-    
+
     return results
 
 
