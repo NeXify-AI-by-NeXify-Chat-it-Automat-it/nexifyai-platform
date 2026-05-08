@@ -423,3 +423,245 @@ class UncertaintyProfile:
             "hallucination_risk": self.hallucination_risk,
             "safe_for_autonomy": self.is_safe_for_autonomy(),
         }
+
+
+# ══════════════════════════════════════════════
+# R5.1a — POLICY PROVENANCE
+# ══════════════════════════════════════════════
+
+@dataclass
+class PolicyProvenance:
+    """
+    Full audit trail for every policy decision.
+    Answers: Who created this policy? On what evidence? Who approved?
+    """
+    policy_id: str
+    created_by: str                      # Human or agent
+    evidence_basis: List[str] = field(default_factory=list)  # Incident IDs, simulation results
+    simulation_basis: str = ""           # Counterfactual result that justified this
+    supersedes: Optional[str] = None     # Previous policy this replaces
+    approval_chain: List[str] = field(default_factory=list)  # Who approved (human or gate)
+    rationale: str = ""                  # Why this policy exists
+    created_at: float = field(default_factory=time.time)
+    version: int = 1
+    
+    def to_audit_record(self) -> Dict:
+        return {
+            "policy_id": self.policy_id,
+            "created_by": self.created_by,
+            "evidence_basis": self.evidence_basis,
+            "simulation_basis": self.simulation_basis,
+            "supersedes": self.supersedes,
+            "approval_chain": self.approval_chain,
+            "rationale": self.rationale,
+            "version": self.version,
+            "created_at": datetime.fromtimestamp(self.created_at, tz=timezone.utc).isoformat(),
+        }
+
+
+# ══════════════════════════════════════════════
+# R5.1b — BYZANTINE OBSERVATION RESISTANCE
+# ══════════════════════════════════════════════
+
+@dataclass
+class ObserverReputation:
+    """Track observer reliability over time."""
+    observer_id: str
+    total_observations: int = 0
+    correct_observations: int = 0
+    contradictions_caused: int = 0
+    false_positives: int = 0
+    reputation_score: float = 0.5  # 0=untrustworthy, 1=perfect
+    
+    def record_observation(self, correct: bool, caused_contradiction: bool = False):
+        self.total_observations += 1
+        if correct:
+            self.correct_observations += 1
+        if caused_contradiction:
+            self.contradictions_caused += 1
+        self._recompute()
+    
+    def _recompute(self):
+        if self.total_observations == 0:
+            return
+        accuracy = self.correct_observations / self.total_observations
+        contradiction_penalty = self.contradictions_caused / max(1, self.total_observations)
+        self.reputation_score = round(max(0.1, accuracy - contradiction_penalty * 0.3), 2)
+
+
+class ByzantineObservationResistance:
+    """
+    Cross-observer validation to resist faulty/malicious/stale observers.
+    
+    Requires quorum agreement before accepting an observation as truth.
+    A single faulty probe cannot poison the epistemic model.
+    """
+    
+    MIN_QUORUM = 2          # Minimum observers that must agree
+    MIN_REPUTATION = 0.3     # Minimum reputation to be trusted
+    
+    def __init__(self):
+        self.reputations: Dict[str, ObserverReputation] = {}
+        self.contradictions: List[Dict] = []
+    
+    def get_reputation(self, observer_id: str) -> ObserverReputation:
+        if observer_id not in self.reputations:
+            self.reputations[observer_id] = ObserverReputation(observer_id=observer_id)
+        return self.reputations[observer_id]
+    
+    def validate_observation(
+        self, observer_id: str, service: str, claims_reachable: bool,
+        other_observers: Dict[str, bool] = None,
+    ) -> Tuple[bool, str]:
+        """
+        Validate an observation against quorum and reputation.
+        Returns (accepted, reason).
+        """
+        rep = self.get_reputation(observer_id)
+        
+        # Low reputation → untrusted
+        if rep.reputation_score < self.MIN_REPUTATION:
+            return False, f"Observer {observer_id} reputation too low ({rep.reputation_score})"
+        
+        # Quorum check
+        if other_observers:
+            agreeing = sum(1 for v in other_observers.values() if v == claims_reachable)
+            if agreeing < self.MIN_QUORUM:
+                self.contradictions.append({
+                    "observer": observer_id, "service": service,
+                    "claims": claims_reachable, "quorum_agrees": agreeing,
+                    "total_observers": len(other_observers),
+                    "timestamp": time.time(),
+                })
+                return False, f"Quorum not met: {agreeing}/{len(other_observers)} agree"
+        
+        return True, "Observation validated"
+    
+    def cross_observer_contradiction_score(self, service: str) -> float:
+        """How contradictory are observations for this service? 0=all agree, 1=total disagreement."""
+        relevant = [c for c in self.contradictions if c["service"] == service]
+        if not relevant:
+            return 0.0
+        return min(1.0, len(relevant) / max(1, sum(1 for r in self.reputations.values() if r.total_observations > 0)))
+    
+    def stats(self) -> Dict:
+        return {
+            "observers": len(self.reputations),
+            "total_contradictions": len(self.contradictions),
+            "reputations": {
+                oid: {"score": r.reputation_score, "accuracy": round(r.correct_observations / max(1, r.total_observations), 2)}
+                for oid, r in self.reputations.items()
+            },
+        }
+
+
+# ══════════════════════════════════════════════
+# R5.1c — RECOVERY BUDGETING
+# ══════════════════════════════════════════════
+
+class RecoveryBudgetExceeded(Exception):
+    """Raised when recovery budget is exhausted."""
+    pass
+
+
+class RecoveryBudget:
+    """
+    Prevents locally rational but globally destabilizing recovery loops.
+    
+    Limits:
+    - max_restarts per hour per service
+    - max topology changes per hour
+    - cumulative risk budget
+    - service instability budget
+    """
+    
+    def __init__(
+        self,
+        max_restarts_per_hour: int = 3,
+        max_rollbacks_per_hour: int = 1,
+        max_topology_changes_per_hour: int = 2,
+        cumulative_risk_budget: float = 0.5,   # Max sum of rollback_risks per hour
+        service_instability_budget: int = 5,    # Max confidence drops per service per hour
+    ):
+        self.max_restarts_per_hour = max_restarts_per_hour
+        self.max_rollbacks_per_hour = max_rollbacks_per_hour
+        self.max_topology_changes_per_hour = max_topology_changes_per_hour
+        self.cumulative_risk_budget = cumulative_risk_budget
+        self.service_instability_budget = service_instability_budget
+        
+        self._restarts: Dict[str, List[float]] = {}
+        self._rollbacks: List[float] = []
+        self._topology_changes: List[float] = []
+        self._risk_spent: float = 0.0
+        self._instability_events: Dict[str, List[float]] = {}
+        self._budget_exceeded_events: List[Dict] = []
+    
+    def _prune_window(self, events: List[float]) -> List[float]:
+        """Keep only events from the last hour."""
+        cutoff = time.time() - 3600
+        return [t for t in events if t > cutoff]
+    
+    def check_restart(self, service: str) -> bool:
+        """Check if restart is within budget. Raises RecoveryBudgetExceeded if not."""
+        if service not in self._restarts:
+            self._restarts[service] = []
+        
+        self._restarts[service] = self._prune_window(self._restarts[service])
+        
+        if len(self._restarts[service]) >= self.max_restarts_per_hour:
+            self._budget_exceeded_events.append({
+                "type": "restart", "service": service, "count": len(self._restarts[service]),
+                "limit": self.max_restarts_per_hour, "timestamp": time.time(),
+            })
+            raise RecoveryBudgetExceeded(
+                f"Restart budget exceeded for {service}: {len(self._restarts[service])}/{self.max_restarts_per_hour} per hour"
+            )
+        
+        self._restarts[service].append(time.time())
+        return True
+    
+    def check_rollback(self) -> bool:
+        """Check if rollback is within budget."""
+        self._rollbacks = self._prune_window(self._rollbacks)
+        
+        if len(self._rollbacks) >= self.max_rollbacks_per_hour:
+            raise RecoveryBudgetExceeded(
+                f"Rollback budget exceeded: {len(self._rollbacks)}/{self.max_rollbacks_per_hour} per hour"
+            )
+        
+        self._rollbacks.append(time.time())
+        return True
+    
+    def spend_risk(self, rollback_risk: float) -> bool:
+        """Spend from the cumulative risk budget."""
+        if self._risk_spent + rollback_risk > self.cumulative_risk_budget:
+            raise RecoveryBudgetExceeded(
+                f"Cumulative risk budget exceeded: {self._risk_spent + rollback_risk:.2f}/{self.cumulative_risk_budget}"
+            )
+        
+        self._risk_spent += rollback_risk
+        return True
+    
+    def check_instability(self, service: str) -> bool:
+        """Check if service has had too many confidence drops."""
+        if service not in self._instability_events:
+            self._instability_events[service] = []
+        
+        self._instability_events[service] = self._prune_window(self._instability_events[service])
+        
+        if len(self._instability_events[service]) >= self.service_instability_budget:
+            raise RecoveryBudgetExceeded(
+                f"Instability budget exceeded for {service}: {len(self._instability_events[service])}/{self.service_instability_budget}"
+            )
+        
+        self._instability_events[service].append(time.time())
+        return True
+    
+    def stats(self) -> Dict:
+        return {
+            "restarts": {s: len(self._prune_window(t)) for s, t in self._restarts.items()},
+            "rollbacks": len(self._prune_window(self._rollbacks)),
+            "risk_spent": round(self._risk_spent, 2),
+            "risk_budget": self.cumulative_risk_budget,
+            "budget_exceeded": len(self._budget_exceeded_events),
+        }
