@@ -307,21 +307,65 @@ class ConvergenceValidator:
         return ConvergenceState.UNKNOWN
     
     def _compute_confidence(self, record: RecoveryRecord) -> float:
-        """Compute confidence in the recovery outcome."""
+        """Compute confidence with temporal decay."""
         total = max(len(record.post_snapshots), 1)
         agree = total - record.contradictions_after
         
         base_confidence = agree / total
         
-        # Penalize if execution failed
+        # Temporal decay: confidence ages
+        if record.completed_at and record.executed_at:
+            age_hours = (time.time() - record.executed_at) / 3600
+            decay = 0.95 ** age_hours
+            base_confidence *= decay
+        
+        # Penalize execution failures
         if record.execution_duration_ms > 10000:
             base_confidence *= 0.7
         
-        # Bonus if contradictions decreased
+        # Penalize increased contradictions
+        if record.contradictions_after > record.contradictions_before:
+            base_confidence *= 0.5
+        
+        # Penalize observer disagreement
+        if record.contradictions_after > 0:
+            base_confidence *= 0.7
+        
+        # Penalize regression
+        if record.convergence == ConvergenceState.REGRESSED:
+            base_confidence *= 0.3
+        
+        # Bonus for convergence
         if record.contradictions_after < record.contradictions_before:
             base_confidence = min(1.0, base_confidence * 1.2)
         
+        if record.convergence == ConvergenceState.CONVERGED:
+            base_confidence = min(1.0, base_confidence + 0.1)
+        
         return round(base_confidence, 2)
+    
+    def decay_all_confidences(self) -> Dict[str, float]:
+        """
+        Apply temporal decay to ALL stored recovery records.
+        Returns {incident_id: new_confidence}.
+        """
+        updates = {}
+        for record in self.records:
+            if record.executed_at is None:
+                continue
+            
+            age_hours = (time.time() - record.executed_at) / 3600
+            
+            if age_hours > 48:
+                record.confidence = 0.0
+                record.convergence = ConvergenceState.UNKNOWN
+                updates[record.incident_id] = 0.0
+            else:
+                old = record.confidence
+                record.confidence = round(old * (0.95 ** age_hours), 2)
+                updates[record.incident_id] = record.confidence
+        
+        return updates
     
     def _extract_lessons(self, record: RecoveryRecord) -> List[str]:
         """Extract operational lessons from recovery outcome."""
