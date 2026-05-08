@@ -44,14 +44,16 @@ def sync_dos_to_brain():
             conn = sqlite3.connect(BRAIN_DB)
             cursor = conn.cursor()
             # Tabelle anlegen falls nicht vorhanden
-            cursor.execute("CREATE TABLE IF NOT EXISTS memories (key TEXT PRIMARY KEY, value TEXT, category TEXT, timestamp TEXT)")
+            cursor.execute("CREATE TABLE IF NOT EXISTS memories (id TEXT PRIMARY KEY, content TEXT, category TEXT, source TEXT, created_at TIMESTAMP, updated_at TIMESTAMP)")
             cursor.execute("""
-                INSERT OR REPLACE INTO memories (key, value, category, timestamp)
-                VALUES (?, ?, ?, ?)
+                INSERT OR REPLACE INTO memories (id, content, category, source, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?)
             """, (
                 "dos_v2_chapters",
                 json.dumps({"chapters": chapters, "count": len(chapters), "timestamp": datetime.now(timezone.utc).isoformat()}),
                 "governance",
+                "brain-sync-cron",
+                datetime.now(timezone.utc).isoformat(),
                 datetime.now(timezone.utc).isoformat()
             ))
             conn.commit()
@@ -67,16 +69,28 @@ def sync_dos_to_brain():
 def check_notebook():
     """Prüft ob Open Notebook erreichbar ist."""
     try:
+        # MASTER-WIKI D5: Open Notebook Port 32770 (nicht 32774)
+        # Open Notebook hat KEIN /api/health — prüfe /api/sources statt dessen
         result = subprocess.run(
-            ["curl", "-s", "--connect-timeout", "5", "http://localhost:32774/"],
+            ["curl", "-s", "--connect-timeout", "5", "http://localhost:32770/api/sources"],
             capture_output=True, text=True, timeout=10
         )
-        if result.returncode == 0 and "notebooks" in result.stdout.lower():
-            print("✅ Open Notebook erreichbar")
-            return True
+        if result.returncode == 0 and result.stdout.strip().startswith("["):
+            # Valide JSON-Array-Antwort — Notebook läuft
+            try:
+                sources = json.loads(result.stdout)
+                embedded = sum(1 for s in sources if s.get("embedded"))
+                total = len(sources)
+                print(f"✅ Open Notebook erreichbar ({total} Quellen, {embedded} embedded)")
+                if total > 0 and embedded == 0:
+                    print("⚠️ Keine Quellen embedded — Embedding-Pipeline prüfen!")
+                return True
+            except json.JSONDecodeError:
+                print(f"⚠️ Open Notebook antwortet, aber kein valides JSON: {result.stdout[:80]}")
+                return False
         elif result.returncode == 0:
-            print("✅ Open Notebook erreichbar (Root OK)")
-            return True
+            print(f"⚠️ Open Notebook unerwartete Antwort: {result.stdout[:100]}")
+            return False
         else:
             print("⚠️ Open Notebook nicht erreichbar")
             return False
