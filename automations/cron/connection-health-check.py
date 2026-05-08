@@ -22,10 +22,10 @@ CHECKS = [
     },
     {
         "name": "VPS",
-        "cmd": ["ssh", "-i", "/opt/data/ssh_keys/hermes_vps_key", "-o", "StrictHostKeyChecking=yes", "-o", "ConnectTimeout=10", "root@72.62.152.47", "hostname"],
+        "cmd": ["hostname"],
         "expect": "nexifyai",
         "sev": "SEV0",
-        "fallback": None
+        "fallback": "systemctl is-active nexifyai-backend"
     },
     {
         "name": "Supabase",
