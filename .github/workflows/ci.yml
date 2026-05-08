@@ -162,3 +162,34 @@ jobs:
         # ⚠️  BLOCKING: New HIGH-severity design violations = FAIL
         # Current: 142 HIGH — legacy debt. Phased: high → medium → low
         # Create: { "limit": "500 KB", "path": "build/**/*.{js,css}" }
+
+  # ═══════════════════════════════════════
+  # 6. OPERATIONAL RECONCILE GATE (E6.7)
+  # ═══════════════════════════════════════
+  reconcile:
+    name: Operational Reconciliation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for blocking issues
+        run: |
+          echo "═══ OPERATIONAL RECONCILIATION ═══"
+          # Check if P0/P1 issues are open > 24h
+          python3 -c "
+import sys, os
+sys.path.insert(0, '.')
+try:
+    from backend.runtime.issue_decay import reconcile_issues
+    report = reconcile_issues()
+    blocking = report.get('blocking_deploy', 0)
+    if blocking > 0:
+        print(f'⛔ BLOCKED: {blocking} P0/P1 issues open >24h — resolve before deploying')
+        print('  Unresolved contradictions invalidate deployment confidence.')
+        print('  See Constitution §I.2: No mutation without re-observation.')
+        sys.exit(1)
+    else:
+        print(f'✅ No blocking issues ({report.get(\"total_open\", 0)} open, 0 blocking)')
+except ImportError:
+    print('⚠️  Issue decay engine not available — gate skipped')
+          " 2>&1
+        # ⚠️  BLOCKING: Stale P0/P1 issues = BLOCK DEPLOY
