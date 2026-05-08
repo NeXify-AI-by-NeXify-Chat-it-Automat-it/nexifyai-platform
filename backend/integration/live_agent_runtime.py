@@ -367,126 +367,129 @@ class MCPToolRouter:
 
     def _call_github_mcp(self, tool: str, args: Dict, timeout: int) -> Dict:
         """
-        Real GitHub execution via gh CLI (authenticated as nexifyai-dev).
+        Real GitHub execution via REST API (GH_TOKEN).
+
+        NOT subprocess.run(['gh', ...]) — that breaks on PAT scopes, SSH auth,
+        stdout parsing, and CLI fragility.
+
+        INSTEAD: typed httpx → api.github.com → structured JSON responses.
+        Every call is: replayable, auditierbar, telemetry-fähig, governance-fähig.
 
         Routes:
-          github.create_issue  → gh issue create
-          github.create_pr     → gh pr create
-          github.list_issues   → gh issue list --json
-          github.list_pull_requests → gh pr list --json
-          github.get_pr        → gh pr view --json
-          github.search_code   → gh search code
-          github.get_issue     → gh issue view --json
-          github.update_issue  → gh issue edit
-          github.create_repo   → gh repo create
-          github.fork_repo     → gh repo fork
-
-        All calls are real. No stubs. No {"executed": True}.
+          github.create_issue  → POST /repos/{owner}/{repo}/issues
+          github.list_issues   → GET  /repos/{owner}/{repo}/issues
+          github.get_issue     → GET  /repos/{owner}/{repo}/issues/{num}
+          github.update_issue  → PATCH /repos/{owner}/{repo}/issues/{num}
+          github.list_pull_requests → GET /repos/{owner}/{repo}/pulls
+          github.create_pr     → POST /repos/{owner}/{repo}/pulls
+          github.get_pr        → GET  /repos/{owner}/{repo}/pulls/{num}
+          github.search_code   → GET  /search/code?q=...
+          github.create_repo   → POST /user/repos
         """
-        import subprocess, json as _json
+        import os, httpx
 
+        token = os.getenv("GH_TOKEN", os.getenv("GITHUB_TOKEN", os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN", "")))
         owner = args.get("owner", "nexifyai-dev")
         repo = args.get("repo", "nexifyai-website-sicherheitskopie")
+        base = f"https://api.github.com/repos/{owner}/{repo}"
 
-        command_map = {
-            "github.create_issue": [
-                "gh", "issue", "create",
-                "--repo", f"{owner}/{repo}",
-                "--title", args.get("title", "Untitled"),
-                "--body", args.get("body", ""),
-            ],
-            "github.list_issues": [
-                "gh", "issue", "list",
-                "--repo", f"{owner}/{repo}",
-                "--state", args.get("state", "open"),
-                "--limit", str(args.get("per_page", 10)),
-                "--json", "number,title,state,labels,createdAt",
-            ],
-            "github.get_issue": [
-                "gh", "issue", "view", str(args.get("issue_number", 1)),
-                "--repo", f"{owner}/{repo}",
-                "--json", "number,title,state,body,labels",
-            ],
-            "github.update_issue": [
-                "gh", "issue", "edit", str(args.get("issue_number", 1)),
-                "--repo", f"{owner}/{repo}",
-                "--title", args.get("title", ""),
-                "--body", args.get("body", ""),
-            ],
-            "github.list_pull_requests": [
-                "gh", "pr", "list",
-                "--repo", f"{owner}/{repo}",
-                "--state", args.get("state", "open"),
-                "--limit", str(args.get("per_page", 10)),
-                "--json", "number,title,state,headRefName,baseRefName,createdAt",
-            ],
-            "github.create_pr": [
-                "gh", "pr", "create",
-                "--repo", f"{owner}/{repo}",
-                "--title", args.get("title", "Untitled PR"),
-                "--body", args.get("body", ""),
-                "--head", args.get("head", "main"),
-                "--base", args.get("base", "main"),
-            ],
-            "github.get_pr": [
-                "gh", "pr", "view", str(args.get("pull_number", 1)),
-                "--repo", f"{owner}/{repo}",
-                "--json", "number,title,state,body,headRefName,baseRefName",
-            ],
-            "github.search_code": [
-                "gh", "search", "code", args.get("q", ""),
-                "--limit", str(args.get("per_page", 10)),
-            ],
-            "github.create_repo": [
-                "gh", "repo", "create", f"{owner}/{args.get('name', 'new-repo')}",
-                "--description", args.get("description", ""),
-                "--public" if not args.get("private") else "--private",
-            ],
+        # ── Route map: (method, url_template, body_builder) ──
+        routes = {
+            "github.create_issue": (
+                "POST", f"{base}/issues",
+                lambda a: {"title": a["title"], "body": a.get("body", ""),
+                           "labels": a.get("labels", []), "assignees": a.get("assignees", [])}
+            ),
+            "github.list_issues": (
+                "GET", f"{base}/issues",
+                lambda a: {"state": a.get("state", "open"), "per_page": a.get("per_page", 30),
+                           "page": a.get("page", 1)}
+            ),
+            "github.get_issue": (
+                "GET", f"{base}/issues/{args.get('issue_number', 1)}",
+                lambda a: {}
+            ),
+            "github.update_issue": (
+                "PATCH", f"{base}/issues/{args.get('issue_number', 1)}",
+                lambda a: {k: v for k, v in {
+                    "title": a.get("title"), "body": a.get("body"),
+                    "state": a.get("state"), "labels": a.get("labels"),
+                }.items() if v}
+            ),
+            "github.list_pull_requests": (
+                "GET", f"{base}/pulls",
+                lambda a: {"state": a.get("state", "open"), "per_page": a.get("per_page", 30),
+                           "sort": a.get("sort", "updated"), "page": a.get("page", 1)}
+            ),
+            "github.create_pr": (
+                "POST", f"{base}/pulls",
+                lambda a: {"title": a["title"], "head": a.get("head", "main"),
+                           "base": a.get("base", "main"), "body": a.get("body", ""),
+                           "draft": a.get("draft", False)}
+            ),
+            "github.get_pr": (
+                "GET", f"{base}/pulls/{args.get('pull_number', 1)}",
+                lambda a: {}
+            ),
+            "github.search_code": (
+                "GET", "https://api.github.com/search/code",
+                lambda a: {"q": a.get("q", ""), "per_page": a.get("per_page", 30),
+                           "page": a.get("page", 1)}
+            ),
+            "github.create_repo": (
+                "POST", "https://api.github.com/user/repos",
+                lambda a: {"name": a["name"], "description": a.get("description", ""),
+                           "private": a.get("private", False), "auto_init": a.get("auto_init", True)}
+            ),
         }
 
-        cmd = command_map.get(tool)
-        if not cmd:
-            # Generic fallback for unregistered tools
-            return {
-                "handler": "github_mcp",
-                "tool": tool,
-                "args": args,
-                "executed": False,
-                "error": f"Tool '{tool}' not in gh CLI command map",
-                "timestamp": time.time(),
-            }
+        route = routes.get(tool)
+        if not route:
+            return {"handler": "github_rest", "tool": tool, "args": args,
+                    "executed": False, "error": f"Tool '{tool}' not in REST route map",
+                    "timestamp": time.time()}
+
+        method, url, body_fn = route
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+            "User-Agent": "NeXifyAI-LiveAgentRuntime/1.0",
+        }
 
         try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True, text=True,
-                timeout=min(timeout, 30000) / 1000,
-                env={**__import__('os').environ, "GH_NO_UPDATE_NOTIFIER": "1"},
-            )
+            if method == "GET":
+                resp = httpx.get(url, headers=headers, params=body_fn(args),
+                                 timeout=min(timeout, 30000) / 1000)
+            elif method == "POST":
+                resp = httpx.post(url, headers=headers, json=body_fn(args),
+                                  timeout=min(timeout, 30000) / 1000)
+            elif method == "PATCH":
+                resp = httpx.patch(url, headers=headers, json=body_fn(args),
+                                   timeout=min(timeout, 30000) / 1000)
+            else:
+                raise RuntimeError(f"Unsupported HTTP method: {method}")
 
-            if result.returncode != 0:
-                raise RuntimeError(result.stderr.strip() or f"gh exit {result.returncode}")
-
-            # Parse JSON output if present
-            output = result.stdout.strip()
-            try:
-                parsed = _json.loads(output)
-            except _json.JSONDecodeError:
-                parsed = {"text": output}
+            if resp.status_code >= 400:
+                raise RuntimeError(
+                    f"GitHub API {resp.status_code}: {resp.text[:500]}"
+                )
 
             return {
-                "handler": "github_mcp",
+                "handler": "github_rest",
                 "tool": tool,
-                "args": {"owner": owner, "repo": repo},
+                "method": method,
+                "url": url,
                 "executed": True,
-                "exit_code": result.returncode,
-                "result": parsed,
+                "status_code": resp.status_code,
+                "result": resp.json(),
+                "rate_limit_remaining": resp.headers.get("x-ratelimit-remaining", "?"),
                 "timestamp": time.time(),
             }
-        except subprocess.TimeoutExpired:
-            raise RuntimeError(f"GitHub tool '{tool}' timed out after {timeout}ms")
+        except httpx.TimeoutException:
+            raise RuntimeError(f"GitHub REST '{tool}' timed out after {timeout}ms")
         except Exception as e:
-            raise RuntimeError(f"GitHub tool '{tool}' failed: {str(e)}")
+            raise RuntimeError(f"GitHub REST '{tool}' failed: {str(e)}")
 
     def _call_vercel_mcp(self, tool: str, args: Dict, timeout: int) -> Dict:
         """Real Vercel execution via vercel CLI."""
