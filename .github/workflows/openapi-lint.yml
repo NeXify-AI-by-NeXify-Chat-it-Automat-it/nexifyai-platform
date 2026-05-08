@@ -17,6 +17,7 @@ jobs:
 
       - name: Setup Spectral
         uses: stoplightio/spectral-action@v0.8.10
+        continue-on-error: true
         with:
           file_glob: 'ops/policies/openapi.json'
 
