@@ -90,6 +90,8 @@ class CausalPropagationEngine:
     DECAY_RATE = 0.95  # Per hour
     DEFAULT_EDGE_WEIGHT = 0.8  # Default dependency strength
     PROPAGATION_DAMPING = 0.7  # Each hop reduces impact (prevents amplification)
+    FEEDBACK_WEIGHT = 0.3       # Bidirectional: how much child instability erodes parent confidence
+    FEEDBACK_THRESHOLD = 3      # Min number of degraded children to trigger parent erosion
     BLAST_RADIUS_THRESHOLD = 0.7  # Below this, service is "impacted"
     
     def __init__(self):
@@ -299,4 +301,234 @@ class CausalPropagationEngine:
                 n.effective_confidence < 0.5 and len(n.children) > 2
                 for n in self.nodes.values()
             ),
+        }
+    
+    # ══════════════════════════════════════════
+    # E5.5: BIDIRECTIONAL PROPAGATION
+    # ══════════════════════════════════════════
+    
+    def propagate_bidirectional(self) -> Dict[str, float]:
+        """
+        Bidirectional confidence propagation.
+        
+        Forward:  parent↓  → children↓ (standard propagation)
+        Backward: many degraded children → parent confidence↓ (inferential)
+        
+        If ≥ FEEDBACK_THRESHOLD children are degraded without a known
+        parent degradation, the system infers the parent's confidence
+        may be overstated and applies a feedback penalty.
+        """
+        # First: standard forward propagation
+        self.propagate()
+        
+        # Second: backward feedback loop
+        for parent_id, parent_node in self.nodes.items():
+            if not parent_node.children:
+                continue
+            
+            # Find degraded children that are NOT degraded by this parent
+            degraded_children = []
+            for child_id in parent_node.children:
+                child = self.nodes.get(child_id)
+                if child and child.effective_confidence < 0.7:
+                    if child.degraded_by != parent_id or child.degraded_by is None:
+                        degraded_children.append(child)
+            
+            # Feedback: if many children degraded independently, parent may be overstated
+            if len(degraded_children) >= self.FEEDBACK_THRESHOLD:
+                avg_child_confidence = sum(c.effective_confidence for c in degraded_children) / len(degraded_children)
+                feedback_penalty = (1 - avg_child_confidence) * self.FEEDBACK_WEIGHT
+                
+                old_effective = parent_node.effective_confidence
+                parent_node.effective_confidence = round(
+                    max(0.1, parent_node.effective_confidence - feedback_penalty), 2
+                )
+                
+                # Don't mark as degraded_by — this is inferential, not causal
+                parent_node.confidence_history.append((
+                    time.time(),
+                    parent_node.effective_confidence,
+                ))
+        
+        return {svc: node.effective_confidence for svc, node in self.nodes.items()}
+    
+    # ══════════════════════════════════════════
+    # E7: AUTONOMOUS RECONCILIATION
+    # ══════════════════════════════════════════
+    
+    def propose_reconciliation(self, service: str) -> Dict:
+        """
+        Propose a reconciliation plan for a degraded service.
+        
+        NOT: "restart blindly"
+        BUT:  simulate remediation → estimate confidence delta →
+              compare alternatives → apply only if epistemic gain > 0
+        
+        Returns a plan with:
+        - Root cause analysis
+        - Remediation options ranked by expected epistemic gain
+        - Rollback vs repair comparison
+        - Pre-action confidence snapshot
+        """
+        node = self.nodes.get(service)
+        if not node:
+            return {"error": f"Service {service} not found"}
+        
+        # Determine root cause
+        root_cause = node.degraded_by or service
+        
+        # Gather current state
+        pre_snapshot = {
+            svc: n.effective_confidence
+            for svc, n in self.nodes.items()
+        }
+        
+        # Generate remediation options
+        options = []
+        
+        # Option 1: Restart the degraded service
+        restart_gain = self._estimate_restart_gain(service)
+        options.append({
+            "action": f"restart {service}",
+            "type": "repair",
+            "expected_confidence_delta": round(restart_gain, 2),
+            "risk": "low" if restart_gain > 0.3 else "medium",
+            "blast_radius": len(node.children),
+            "description": f"Restart {service} and re-observe after stabilization wait",
+        })
+        
+        # Option 2: Restart the root cause (if different)
+        if root_cause != service:
+            root_gain = self._estimate_restart_gain(root_cause)
+            options.append({
+                "action": f"restart {root_cause} (root cause)",
+                "type": "root_cause_repair",
+                "expected_confidence_delta": round(root_gain, 2),
+                "risk": "medium",
+                "blast_radius": len(self.nodes.get(root_cause, node).children),
+                "description": f"Address root cause by restarting {root_cause}. May cascade to {len(self.nodes.get(root_cause, node).children)} dependents.",
+            })
+        
+        # Option 3: Rollback (reverse last known-good state)
+        rollback_gain = self._estimate_rollback_gain(service)
+        options.append({
+            "action": f"rollback {service}",
+            "type": "rollback",
+            "expected_confidence_delta": round(rollback_gain, 2),
+            "risk": "high",
+            "blast_radius": len(node.children) + 1,
+            "description": f"Rollback {service} to last known-good deployment. Higher risk, broader blast radius.",
+        })
+        
+        # Sort by expected gain (descending)
+        options.sort(key=lambda o: -o["expected_confidence_delta"])
+        
+        # Determine best action
+        best = options[0] if options else None
+        should_apply = best and best["expected_confidence_delta"] > 0.15
+        
+        return {
+            "service": service,
+            "root_cause": root_cause,
+            "current_confidence": node.effective_confidence,
+            "current_level": node.level.value,
+            "degraded_by": node.degraded_by,
+            "propagation_depth": node.propagation_depth,
+            "options": options,
+            "recommended": best,
+            "should_apply": should_apply,
+            "reason": (
+                f"Expected confidence gain +{best['expected_confidence_delta']:.2f} — apply"
+                if should_apply
+                else f"Expected gain too low ({best['expected_confidence_delta']:.2f}) — manual review recommended"
+            ) if best else "No viable options found",
+            "pre_snapshot": pre_snapshot,
+        }
+    
+    def _estimate_restart_gain(self, service: str) -> float:
+        """Estimate confidence improvement if service is restarted."""
+        node = self.nodes.get(service)
+        if not node:
+            return 0.0
+        
+        # Restart typically resolves local issues → local_confidence → 0.9
+        simulated_local = 0.9
+        current_effective = node.effective_confidence
+        
+        # Simulate: what would effective confidence be after restart?
+        # Local goes to 0.9, parents unchanged, temporal decay reset
+        parent_product = 1.0
+        for parent_id, edge_weight in node.parents.items():
+            parent_node = self.nodes.get(parent_id)
+            if parent_node:
+                parent_product *= parent_node.effective_confidence * edge_weight
+        
+        simulated_effective = simulated_local * parent_product
+        
+        return simulated_effective - current_effective
+    
+    def _estimate_rollback_gain(self, service: str) -> float:
+        """Estimate confidence improvement if service is rolled back."""
+        node = self.nodes.get(service)
+        if not node:
+            return 0.0
+        
+        # Rollback is riskier — max gain is restoring to last known good
+        # Use confidence_history to estimate
+        if len(node.confidence_history) >= 2:
+            last_good = max(c for _, c in node.confidence_history[-10:])
+            return last_good - node.effective_confidence
+        
+        return self._estimate_restart_gain(service) * 0.8  # Rollback slightly less effective
+    
+    def apply_reconciliation(self, service: str, action: str) -> Dict:
+        """
+        Apply a reconciliation action and re-propagate.
+        
+        After applying:
+        1. Set service local_confidence based on action type
+        2. Re-propagate through entire graph
+        3. Compute epistemic gain (pre vs post)
+        4. Return reconciliation result
+        
+        This is the E7 core: action → re-observation → validation.
+        """
+        pre_snapshot = {svc: n.effective_confidence for svc, n in self.nodes.items()}
+        
+        # Simulate the action's effect on local confidence
+        if "restart" in action:
+            confidence_boost = 0.9  # Restart typically resolves transient issues
+        elif "rollback" in action:
+            confidence_boost = 0.85  # Rollback slightly more conservative
+        else:
+            confidence_boost = 0.8
+        
+        self.set_local_confidence(service, confidence_boost)
+        
+        # Re-propagate
+        self.propagate(service)
+        
+        post_snapshot = {svc: n.effective_confidence for svc, n in self.nodes.items()}
+        
+        # Compute epistemic gain
+        gains = {}
+        total_gain = 0.0
+        for svc in pre_snapshot:
+            delta = post_snapshot.get(svc, 0) - pre_snapshot[svc]
+            gains[svc] = round(delta, 2)
+            total_gain += delta
+        
+        avg_gain = total_gain / max(1, len(gains))
+        success = avg_gain > 0.05  # Net positive epistemic gain
+        
+        return {
+            "action": action,
+            "service": service,
+            "success": success,
+            "average_confidence_gain": round(avg_gain, 3),
+            "per_service_gains": gains,
+            "pre_avg_confidence": round(sum(pre_snapshot.values()) / len(pre_snapshot), 2),
+            "post_avg_confidence": round(sum(post_snapshot.values()) / len(post_snapshot), 2),
+            "requires_reobservation": True,  # Per Constitution §I.2
+            "next_step": "Re-observe all observers after stabilization wait",
         }
