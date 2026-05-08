@@ -357,4 +357,38 @@ def cli_audit(scan_dir: str = None) -> str:
 
 
 if __name__ == '__main__':
+    import sys
+    
+    # CLI: python design-audit.py [--fail-on high|medium|low] [--drift-budget N]
+    fail_on = None
+    drift_budget = None
+    
+    args = sys.argv[1:]
+    for i, arg in enumerate(args):
+        if arg == '--fail-on' and i + 1 < len(args):
+            fail_on = args[i + 1]
+        if arg == '--drift-budget' and i + 1 < len(args):
+            drift_budget = int(args[i + 1])
+    
     print(cli_audit())
+    
+    violations = scan_directory('/opt/nexifyai-website-sicherheitskopie/frontend/src')
+    
+    # Exit code based on severity threshold
+    if fail_on:
+        severity_map = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}
+        threshold = severity_map.get(fail_on.lower(), 0)
+        failing = [v for v in violations if severity_map.get(v.severity.value, 99) <= threshold]
+        if failing:
+            print(f"\n⛔ BLOCKED: {len(failing)} violations at or above --fail-on={fail_on}")
+            sys.exit(1)
+    
+    # Drift budget check (total violations must not exceed budget)
+    if drift_budget is not None:
+        if len(violations) > drift_budget:
+            print(f"\n⛔ DRIFT BUDGET EXCEEDED: {len(violations)} violations > budget of {drift_budget}")
+            sys.exit(1)
+        else:
+            print(f"\n✅ Drift budget OK: {len(violations)} ≤ {drift_budget}")
+    
+    sys.exit(0)

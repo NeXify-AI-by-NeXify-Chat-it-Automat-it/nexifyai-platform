@@ -148,4 +148,17 @@ jobs:
       - name: Run size-limit
         run: cd frontend && npx size-limit
         # ⚠️  REQUIRES: .size-limit.json in frontend/
+
+  # ═══════════════════════════════════════
+  # 5. DESIGN SYSTEM AUDIT (FAIL-FAST)
+  # ═══════════════════════════════════════
+  design-audit:
+    name: Design System Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Design Audit
+        run: python3 packages/ui/design-audit.py --fail-on high
+        # ⚠️  BLOCKING: New HIGH-severity design violations = FAIL
+        # Current: 142 HIGH — legacy debt. Phased: high → medium → low
         # Create: { "limit": "500 KB", "path": "build/**/*.{js,css}" }
