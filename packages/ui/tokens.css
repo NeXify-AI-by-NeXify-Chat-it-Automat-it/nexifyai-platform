@@ -75,6 +75,62 @@
 
   /* ━━━━━━━ Breakpoints (Referenz) ━━━━━━━ */
   /* 375px / 768px / 1024px / 1280px / 1440px */
+
+  /* ━━━━━━━ Logo System (Canonical) ━━━━━━━ */
+  --logo-height-desktop: 36px;
+  --logo-height-mobile: 28px;
+  --logo-gap: 10px;               /* Abstand Icon ↔ Wordmark */
+  --logo-safe-area: 16px;         /* Mindestabstand zu anderen Elementen */
+  --logo-min-width: 120px;        /* Minimale Breite (Wordmark) */
+  --logo-max-width: 200px;        /* Maximale Breite */
+  --logo-alignment: flex-start;   /* Anchor-Punkt in Navbar */
+
+  /* ━━━━━━━ Navbar / Header ━━━━━━━ */
+  --navbar-height: 72px;
+  --navbar-height-mobile: 64px;
+  --navbar-padding-x: var(--space-6);
+  --navbar-padding-x-mobile: var(--space-4);
+  --navbar-z-index: 100;
+
+  /* ━━━━━━━ Layout Grid ━━━━━━━ */
+  --container-max-width: 1280px;
+  --container-narrow: 800px;
+  --container-wide: 1440px;
+  --grid-columns: 12;
+  --grid-gap: var(--space-6);
+  --grid-gap-mobile: var(--space-4);
+  --page-padding-x: var(--space-6);
+  --page-padding-x-mobile: var(--space-4);
+
+  /* ━━━━━━━ CTA Weight System ━━━━━━━ */
+  --cta-primary-height: 48px;
+  --cta-primary-padding-x: var(--space-8);
+  --cta-secondary-height: 44px;
+  --cta-secondary-padding-x: var(--space-6);
+  --cta-text-height: 36px;
+  --cta-text-padding-x: var(--space-2);
+  --cta-gap: var(--space-4);          /* Abstand zwischen CTAs */
+  --cta-font-weight: 600;
+  --cta-border-radius: var(--radius-md);
+
+  /* ━━━━━━━ Vertical Rhythm (Baseline Grid) ━━━━━━━ */
+  --baseline-unit: 4px;
+  --section-gap: 96px;               /* Abstand zwischen Sections */
+  --section-gap-mobile: 64px;
+  --card-padding: var(--space-6);
+  --card-padding-mobile: var(--space-4);
+  --card-gap: var(--space-6);
+  --input-height: 48px;
+  --input-padding-x: var(--space-4);
+
+  /* ━━━━━━━ Z-Index Scale ━━━━━━━ */
+  --z-base: 0;
+  --z-dropdown: 50;
+  --z-sticky: 100;
+  --z-overlay: 200;
+  --z-modal: 300;
+  --z-toast: 400;
+  --z-tooltip: 500;
 }
 
 /* Dark Mode Overrides */
