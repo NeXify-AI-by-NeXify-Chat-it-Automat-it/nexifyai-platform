@@ -28,7 +28,7 @@ class AgentStatus(Enum):
 class AgentResult:
     """Standardized agent execution result."""
     agent_name: str
-    status: AgentStatus
+    status: AgentStatus = AgentStatus.IDLE
     findings: List[str] = field(default_factory=list)
     recommendations: List[str] = field(default_factory=list)
     actions_taken: List[str] = field(default_factory=list)

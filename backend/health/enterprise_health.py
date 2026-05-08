@@ -132,6 +132,86 @@ class EnterpriseHealth:
         elif score >= 50:
             return HealthStatus.DEGRADED
         return HealthStatus.CRITICAL
+
+    # ══════════════════════════════════════════
+    # REAL SYSTEM DATA REFRESH
+    # ══════════════════════════════════════════
+
+    def refresh_from_system(self) -> float:
+        """Pull real metrics from health-score.py, brain.db, filesystem."""
+        import subprocess, sqlite3, os, json
+
+        # 1. RELIABILITY — parse health-score.py output
+        health_script = "/opt/nexifyai-website-sicherheitskopie/automations/cron/health-score.py"
+        try:
+            result = subprocess.run(["python3", health_script], capture_output=True, text=True, timeout=15)
+            output = result.stdout + result.stderr
+            for line in output.split("\n"):
+                if "HEALTH SCORE:" in line:
+                    score = float(line.split("HEALTH SCORE:")[1].split("%")[0].strip())
+                    self.update_component("reliability", score)
+                if "Uptime:" in line:
+                    try:
+                        uptime = float(line.split("Uptime:")[1].split("%")[0].strip())
+                        self.update_component("reliability", uptime)
+                    except: pass
+        except Exception as e:
+            self.update_component("reliability", 0, {"error": str(e)})
+
+        # 2. SECURITY — check if security files exist
+        security_score = 100
+        checks = {
+            "gitleaks": ".github/workflows/security-scan.yml",
+            "dependabot": ".github/dependabot.yml",
+            "csp": "backend/middleware/security.py",
+            "security_txt": "public/.well-known/security.txt",
+        }
+        repo = "/opt/nexifyai-website-sicherheitskopie"
+        passed = sum(1 for f in checks.values() if os.path.exists(os.path.join(repo, f)))
+        security_score = (passed / len(checks)) * 100
+        self.update_component("security", security_score, checks)
+
+        # 3. KNOWLEDGE COMPLETENESS — brain.db + docs count
+        k_score = 50
+        brain_db = "/opt/data/brain/brain.db"
+        if os.path.exists(brain_db):
+            try:
+                conn = sqlite3.connect(brain_db)
+                mem_count = conn.execute("SELECT COUNT(*) FROM memories").fetchone()[0]
+                conn.close()
+                k_score = min(100, mem_count / 10)  # 1000 entries = 100%
+            except: pass
+        self.update_component("knowledge_completeness", k_score)
+
+        # 4. TECHNICAL DEBT — TODO count approximation
+        todo_count = 0
+        import subprocess
+        try:
+            r = subprocess.run(["grep", "-r", "TODO", "--include=*.py", "--include=*.ts", repo],
+                             capture_output=True, text=True, timeout=10)
+            todo_count = len([l for l in r.stdout.split("\n") if l.strip()])
+        except: pass
+        td_score = max(0, 100 - todo_count * 2)  # Each TODO = -2%
+        self.update_component("technical_debt", td_score)
+
+        # 5. TEST STABILITY — count test files  
+        test_count = 0
+        test_dir = os.path.join(repo, "backend/tests")
+        if os.path.exists(test_dir):
+            for _, _, files in os.walk(test_dir):
+                test_count += sum(1 for f in files if f.startswith("test_"))
+        test_score = min(100, test_count * 5)  # 20 tests = 100%
+        self.update_component("test_stability", test_score)
+
+        # 6. INCIDENT FREQUENCY — check incidents dir
+        inc_dir = os.path.join(repo, "docs/incidents")
+        inc_count = 0
+        if os.path.exists(inc_dir):
+            inc_count = len([f for f in os.listdir(inc_dir) if f.endswith(".md")])
+        inc_score = max(0, 100 - inc_count * 10)
+        self.update_component("incident_frequency", inc_score)
+
+        return self.compute_score()
     
     # ══════════════════════════════════════════
     # REPORTING

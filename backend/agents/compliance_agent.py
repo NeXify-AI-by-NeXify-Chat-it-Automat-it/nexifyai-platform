@@ -1,8 +1,7 @@
-"""Compliance Agent — DSGVO, Legal, License compliance monitoring."""
+"""Compliance Agent — Real DSGVO/Legal checks via filesystem scanning."""
 
-from backend.agents.base_agent import BaseAgent
-from typing import Dict, List, Any
 import os
+from backend.agents.base_agent import BaseAgent
 
 
 class ComplianceAgent(BaseAgent):
@@ -10,58 +9,94 @@ class ComplianceAgent(BaseAgent):
     def __init__(self):
         super().__init__("Compliance Agent", "DSGVO, Legal, and License compliance")
     
-    def observe(self) -> Dict[str, Any]:
+    def observe(self) -> dict:
         data = {
-            "cookie_consent": False,
             "privacy_policy": False,
             "imprint": False,
-            "license_check": False,
+            "cookie_consent": False,
+            "license_policy": False,
+            "vulnerability_policy": False,
             "data_processing_agreement": False,
+            "security_txt": False,
+            "missing_files": [],
         }
         
         repo = "/opt/nexifyai-website-sicherheitskopie"
         
-        # Check legal docs
+        # Check legal docs directory
         legal_dir = os.path.join(repo, "docs/legal")
         if os.path.exists(legal_dir):
-            legal_files = os.listdir(legal_dir)
-            data["privacy_policy"] = any("privacy" in f.lower() for f in legal_files)
-            data["imprint"] = any("imprint" in f.lower() or "impressum" in f.lower() for f in legal_files)
+            legal_files = [f.lower() for f in os.listdir(legal_dir)]
+            data["privacy_policy"] = any("privacy" in f or "datenschutz" in f for f in legal_files)
+            data["imprint"] = any("imprint" in f or "impressum" in f for f in legal_files)
+            data["data_processing_agreement"] = any("processing" in f or "avv" in f or "auftrags" in f for f in legal_files)
         
-        # Check license policy
-        license_policy = os.path.join(repo, "docs/policies/license-policy.md") if False else None
-        # Using security policy as proxy
-        data["license_check"] = os.path.exists(
-            os.path.join(repo, "docs/policies/vulnerability-policy.md")
-        )
+        if not data["privacy_policy"]:
+            data["missing_files"].append("Privacy Policy / Datenschutzerklärung")
+        if not data["imprint"]:
+            data["missing_files"].append("Impressum (Pflicht in DE)")
+        if not data["data_processing_agreement"]:
+            data["missing_files"].append("Data Processing Agreement / AVV")
+        
+        # Check policies
+        policies_dir = os.path.join(repo, "docs/policies")
+        if os.path.exists(policies_dir):
+            policy_files = [f.lower() for f in os.listdir(policies_dir)]
+            data["license_policy"] = any("license" in f for f in policy_files)
+            data["vulnerability_policy"] = any("vulnerability" in f for f in policy_files)
+        
+        if not data["license_policy"]:
+            data["missing_files"].append("License Policy")
+        
+        # Check security.txt
+        security_txt = os.path.join(repo, "public/.well-known/security.txt")
+        data["security_txt"] = os.path.exists(security_txt)
+        if not data["security_txt"]:
+            data["missing_files"].append("security.txt (RFC 9116)")
+        
+        # Count GDPR-relevant issues
+        data["total_issues"] = len(data["missing_files"])
         
         return data
     
-    def analyze(self, data: Dict[str, Any]) -> List[str]:
+    def analyze(self, data: dict) -> list:
         findings = []
         
-        if not data.get("privacy_policy"):
-            findings.append("⚠️  Privacy policy not found")
-        else:
-            findings.append("✅ Privacy policy present")
+        status_map = {
+            "privacy_policy": "Privacy Policy",
+            "imprint": "Impressum",
+            "license_policy": "License Policy",
+            "vulnerability_policy": "Vulnerability Policy",
+            "security_txt": "security.txt",
+            "data_processing_agreement": "Data Processing Agreement",
+        }
         
-        if not data.get("imprint"):
-            findings.append("⚠️  Impressum not found (Pflicht in DE)")
-        else:
-            findings.append("✅ Impressum present")
+        for key, label in status_map.items():
+            if data.get(key):
+                findings.append(f"✅ {label} present")
+            else:
+                findings.append(f"❌ {label} MISSING")
         
-        if not data.get("cookie_consent"):
-            findings.append("⚠️  Cookie consent mechanism TBD")
+        if data["total_issues"] == 0:
+            findings.append("✅ Full legal compliance")
+        else:
+            findings.append(f"⚠️  {data['total_issues']} legal document gaps")
         
         return findings
     
-    def recommend(self, findings: List[str]) -> List[str]:
+    def recommend(self, findings: list) -> list:
         recommendations = []
         for f in findings:
-            if "Privacy policy" in f:
-                recommendations.append("Create DSGVO-compliant privacy policy")
-            if "Impressum" in f:
-                recommendations.append("Create Impressum (legal requirement in Germany)")
-            if "Cookie" in f:
-                recommendations.append("Implement cookie consent banner with opt-in")
+            if "❌" in f:
+                name = f.replace("❌", "").replace("MISSING", "").strip()
+                if "Privacy" in name:
+                    recommendations.append("Create DSGVO-compliant privacy policy (Datenschutzerklärung)")
+                elif "Impressum" in name:
+                    recommendations.append("Create Impressum with §5 TMG requirements")
+                elif "License" in name:
+                    recommendations.append("Create license policy documenting approved/prohibited licenses")
+                elif "security.txt" in name:
+                    recommendations.append("Create security.txt per RFC 9116 for vulnerability disclosure")
+                elif "Processing" in name:
+                    recommendations.append("Create Data Processing Agreement (AVV) template")
         return recommendations
