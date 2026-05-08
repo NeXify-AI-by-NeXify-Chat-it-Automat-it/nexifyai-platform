@@ -417,7 +417,7 @@ const CookieConsent = ({ show, onAccept, onReject, t, lang }) => {
 };
 
 /* ═══════════ MAIN APP ═══════════ */
-export default function App() {
+function App() {
   const { lang } = useLanguage();
   
   // Event-Tracking initialisieren (DOS v2.0)
