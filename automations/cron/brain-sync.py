@@ -69,10 +69,10 @@ def sync_dos_to_brain():
 def check_notebook():
     """Prüft ob Open Notebook erreichbar ist."""
     try:
-        # MASTER-WIKI D5: Open Notebook Port 32770 (nicht 32774)
+        # Open Notebook: Port 32770, Docker Gateway 172.17.0.1 (nicht localhost!)
         # Open Notebook hat KEIN /api/health — prüfe /api/sources statt dessen
         result = subprocess.run(
-            ["curl", "-s", "--connect-timeout", "5", "http://localhost:32770/api/sources"],
+            ["curl", "-s", "--connect-timeout", "5", "http://172.17.0.1:32770/api/sources"],
             capture_output=True, text=True, timeout=10
         )
         if result.returncode == 0 and result.stdout.strip().startswith("["):

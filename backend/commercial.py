@@ -279,7 +279,7 @@ SERVICE_CATALOG = {
         "price_monthly_eur": 499.00,
         "billing_mode": "monthly",
         "features": [
-            "Workflow-Automation (Zapier/n8n/custom)",
+            "Workflow-Automation (native event-driven/custom)",
             "E-Mail-Automation",
             "Dokumentenverarbeitung",
             "CRM-Sync",
@@ -528,7 +528,7 @@ PRODUCT_DESCRIPTIONS = {
         "what": "KI-gesteuerte Prozessautomation für Workflows, E-Mail-Automation und CRM-Synchronisation.",
         "for_whom": "KMU und Mittelstand, die manuelle Prozesse automatisieren und Systembrüche eliminieren möchten.",
         "results": "Automatisierte Workflows, eliminierte Medienbrüche, synchronisierte Systeme, messbare Zeitersparnis.",
-        "included": "Workflow-Automation (Zapier/n8n/custom), E-Mail-Automation, Dokumentenverarbeitung, CRM-Sync, API-Integrationen, Monitoring & Alerting.",
+        "included": "Workflow-Automation (native event-driven/custom), E-Mail-Automation, Dokumentenverarbeitung, CRM-Sync, API-Integrationen, Monitoring & Alerting.",
         "not_included": "Individuelle ML-Modelle, Hardware-Integration.",
         "process": "Prozessanalyse → Automation-Design → Implementierung → Testing → Go-Live. Ca. 2–3 Wochen.",
         "contract_terms": "499 EUR/Monat netto. Monatlich kündbar. Keine Mindestlaufzeit.",

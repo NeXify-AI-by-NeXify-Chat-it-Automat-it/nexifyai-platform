@@ -1,6 +1,6 @@
 """
 NeXifyAI — Domain Layer: Unified Communication & CRM Models
-API-First Architecture. n8n is NOT the primary default.
+API-First Architecture. Native event-driven services (Cron/Vercel/systemd/BullMQ).
 
 Domain entities:
 - Customer/Lead (unified identity)

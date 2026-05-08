@@ -1,0 +1,22 @@
+{
+  "name": "@nexifyai/services",
+  "version": "1.0.0",
+  "description": "NeXifyAI — Internal TypeScript services: CRM, Automation, Analytics, Telemetry.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@nexifyai/events": "*",
+    "@nexifyai/workflows": "*",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0",
+    "jest": "^29.0.0"
+  }
+}
