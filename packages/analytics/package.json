@@ -1,0 +1,20 @@
+{
+  "name": "@nexifyai/analytics",
+  "version": "1.0.0",
+  "description": "NeXifyAI Analytics — Event aggregation, batching, and reporting.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@nexifyai/events": "*",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}
