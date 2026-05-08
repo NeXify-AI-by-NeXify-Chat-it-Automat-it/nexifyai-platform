@@ -36,6 +36,9 @@ Thumbs.db
 # Vercel
 .vercel/output/
 
+# Cron output
+automations/cron/output/
+
 # Test reports
 test_reports/
 
