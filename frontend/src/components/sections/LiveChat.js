@@ -138,7 +138,6 @@ const LiveChat = ({ isOpen, onClose, initialQ, onBook, t, lang }) => {
           </button>
           <div className="chat-mobile-brand">
             <img src="/nexifyai-logo-light.png" alt="neXifyAI" style={{height:18,flexShrink:0}} />
-            <span className="chat-mobile-title">NeXify<span className="chat-accent">AI</span> {aiLabel[lang] || aiLabel.de}</span>
           </div>
           <div className="chat-mobile-status"><span className="status-dot on" /></div>
         </div>
