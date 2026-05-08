@@ -1,7 +1,8 @@
 -- Quickstart: NeXifyAI Revolut Business Integration v1.0
 -- Ersetzt: Stripe (entfernt)
 -- Ziel: native Payment-Logik mit Ledger-Hintergrund gemäß Leitfassung
--- Ref: https://developer.revolut.com/docs/merchant/merchant-api
+-- Ref: https://developer.revolut.com/docs/merchant/merchant-api (Hosted Checkout Page)
+-- Ref: https://developer.revolut.com/api-reference/merchant (API Reference)
 
 -- 1. Tabelle für Revolut-Orders (statt Stripe Payment Intents)
 create table if not exists revolut_orders (

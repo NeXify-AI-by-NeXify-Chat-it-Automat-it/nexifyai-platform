@@ -23,3 +23,16 @@
 | RLS-Template | rls-template.sql | is_staff(), user_tenant_id() — Muster für neue Tabellen |
 | Timestamp-Automation | timestamp-automation.sql | set_timestamp() Trigger |
 | Revolut Business | nexifyai-revolut-business.sql | Ersetzt Stripe — revolut_orders, webhook_events, configs |
+
+## Offizielle Supabase-Quickstarts (Referenzen)
+
+| Quickstart | Schema-Prüfung | Status |
+|-----------|---------------|--------|
+| **User Management Starter** | profiles: id (uuid), username (text), avatar_url (text), website (text) — Supabase nutzt auth.users mit optionaler public.profiles | 🔄 Abweichung: Unser profiles hat organization_id, role, settings. Erweiterung ist korrekt für Multi-Tenant. |
+| **Todo List** | tasks: id, user_id, task (text), is_complete (boolean), inserted_at (timestamptz) | 🔄 Unser tasks ist erweitert (assignee, priority, rice_score, retry_count). Korrekt für Autopilot. |
+| **Slack Clone** | conversations + messages mit RLS: user kann nur eigene sehen, participant kann Room sehen | ✅ Unsere Migration 006 entspricht dem Pattern. Unterschied: Wir haben workspace-Zuordnung für Multi-Tenant. |
+| **Stripe Subscriptions** | ❌ Ersetzt durch Revolut Business | Entfernt. Siehe nexifyai-revolut-business.sql |
+| **NextAuth Schema Setup** | ❌ Nicht benötigt | Supabase GoTrue deckt Auth vollständig ab. NextAuth würde nur Komplexität hinzufügen ohne Mehrwert. |
+| **OpenAI Vector Search** | ⏸️ Vorgemerkt | Qdrant bleibt primär. Supabase `pgvector` als Fallback für Blog/Knowledge-Suche dokumentiert. |
+| **LangChain** | ⏸️ Evaluiert | Siehe /docs/system/llm-frameworks.md |
+| **Colors** | ✅ triviale Lookup-Tabelle | Kann in tenant_branding (Migration 008) integriert werden. |
