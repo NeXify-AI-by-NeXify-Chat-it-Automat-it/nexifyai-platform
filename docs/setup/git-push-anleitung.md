@@ -2,7 +2,28 @@
 
 ## Status (08.05.2026)
 
-Der Hermes-Container hat **keinen direkten GitHub SSH-Zugriff**. Ein neuer ED25519-Key wurde generiert:
+**✅ SSH-Key registriert.** Push funktioniert direkt vom Container.
+
+### Voraussetzung: Git-User konfigurieren
+```bash
+git config --global user.name "Pascal Courbois"
+git config --global user.email "u6288408171@gmail.com"
+```
+
+### Commit und Push
+```bash
+cd /opt/nexifyai-website-sicherheitskopie
+git add -A
+git commit -m "MESSAGE"
+GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_nexifyai -o StrictHostKeyChecking=no" git push origin main
+```
+
+### Wichtig: GitHub/Vercel Identity Mismatch
+- **GitHub Org:** `nexifyai-dev`
+- **Commit-Autor:** `Pascal Courbois <u6288408171@gmail.com>`
+- **Vercel:** Separat verbunden, blockt Deployments von unverified Commits
+- **Prüfung:** `git log --format='%an <%ae>' -3` zeigt aktuellen Commit-Autor
+- **Fix bei Wechsel:** Immer `git config user.name` + `user.email` setzen vor Commit
 ```
 ~/.ssh/id_ed25519_nexifyai
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMQS7CU0K8Fe1tBh3rR2RwE0+dKL3043YKBNPTxZ6quM nexifyai@container
