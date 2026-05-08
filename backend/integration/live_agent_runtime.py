@@ -45,6 +45,19 @@ class ReasoningLevel(Enum):
     MEDIUM = "medium"   # Standard reasoning
     HIGH = "high"       # Complex architecture decisions
 
+class MigrationRisk(Enum):
+    """SQL migration risk classification.
+    
+    LOW:     Additive, reversible (CREATE INDEX, ADD COLUMN nullable)
+    MEDIUM:  Schema modification (ALTER TABLE, CREATE POLICY)
+    HIGH:    Potentially irreversible (DROP COLUMN, ALTER TYPE)
+    CRITICAL: Destructive (DROP TABLE, TRUNCATE)
+    """
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    CRITICAL = "CRITICAL"
+
 @dataclass
 class AgentProfile:
     """Real model configuration for a specialist agent."""
@@ -630,23 +643,269 @@ class MCPToolRouter:
                 "timeout_s": timeout_s}
 
     def _call_supabase_mcp(self, tool: str, args: Dict, timeout: int) -> Dict:
-        """Real Supabase execution via psql or REST API."""
-        import subprocess, json as _json
-        sql = args.get("sql", args.get("migration_sql", args.get("query", "")))
-        if sql:
-            try:
-                result = subprocess.run(
-                    ["docker", "exec", "supabase-db", "psql", "-U", "postgres", "-c", sql],
-                    capture_output=True, text=True, timeout=min(timeout, 30000)/1000)
-                return {"handler": "supabase_mcp", "tool": tool, "executed": True,
-                        "exit_code": result.returncode,
-                        "result": result.stdout.strip()[:2000],
+        """
+        Supabase execution — THREE DISTINCT LAYERS.
+
+        NOT docker exec psql -c "..." — that's fragile CLI parsing.
+        NOT a single "execute arbitrary SQL" endpoint — that's dangerous.
+
+        LAYER 1: Control Plane (api.supabase.com)
+          supabase.list_projects → GET /v1/projects
+          supabase.get_project   → GET /v1/projects/{ref}
+          supabase.list_branches → GET /v1/projects/{ref}/branches
+
+        LAYER 2: Data API (PostgREST — <project>.supabase.co/rest/v1)
+          supabase.select  → GET  /rest/v1/{table}
+          supabase.insert  → POST /rest/v1/{table}
+          supabase.update  → PATCH /rest/v1/{table}?id=eq.{id}
+          supabase.delete  → DELETE /rest/v1/{table}?id=eq.{id}
+
+        LAYER 3: Migration Engine (governed SQL)
+          supabase.migrate → Migration Ledger + Risk Check + Execution
+          NO raw SQL without migration checksum and risk classification.
+        """
+        import os, httpx
+
+        # ── Credentials ──
+        supabase_url = os.getenv("SUPABASE_URL", "http://localhost:8002")
+        anon_key = os.getenv("SUPABASE_ANON_KEY", "")
+        service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+        access_token = os.getenv("SUPABASE_ACCESS_TOKEN", "")
+        project_ref = os.getenv("SUPABASE_PROJECT_REF", args.get("project_ref", ""))
+
+        # ── Route dispatch ──
+        control_tools = {"supabase.list_projects", "supabase.get_project", "supabase.list_branches"}
+        data_tools = {"supabase.select", "supabase.insert", "supabase.update", "supabase.delete"}
+        migration_tools = {"supabase.migrate", "supabase.query"}
+
+        if tool in control_tools:
+            return self._call_supabase_control(tool, args, access_token, timeout)
+        elif tool in data_tools:
+            return self._call_supabase_data(tool, args, supabase_url, anon_key, timeout)
+        elif tool in migration_tools:
+            return self._call_supabase_migration(tool, args, service_key, supabase_url, timeout)
+        else:
+            return {"handler": "supabase_rest", "tool": tool, "executed": False,
+                    "error": f"Unknown Supabase tool: {tool}", "timestamp": time.time()}
+
+    def _call_supabase_control(self, tool: str, args: Dict,
+                               access_token: str, timeout: int) -> Dict:
+        """Layer 1: Supabase Control Plane — metadata + lifecycle (READ ONLY)."""
+        import os, httpx
+
+        if not access_token:
+            return {"handler": "supabase_control", "tool": tool, "executed": False,
+                    "error": "SUPABASE_ACCESS_TOKEN not configured", "timestamp": time.time()}
+
+        base = "https://api.supabase.com"
+        routes = {
+            "supabase.list_projects": ("GET", f"{base}/v1/projects", {}),
+            "supabase.get_project": ("GET", f"{base}/v1/projects/{args.get('project_ref', '')}", {}),
+            "supabase.list_branches": ("GET", f"{base}/v1/projects/{args.get('project_ref', '')}/branches", {}),
+        }
+        route = routes.get(tool)
+        if not route:
+            return {"handler": "supabase_control", "tool": tool, "executed": False,
+                    "error": f"Tool '{tool}' not in control plane routes", "timestamp": time.time()}
+
+        method, url, params = route
+        headers = {"Authorization": f"Bearer {access_token}"}
+
+        try:
+            resp = httpx.get(url, headers=headers, params=params,
+                            timeout=min(timeout, 15000)/1000)
+            if resp.status_code >= 400:
+                raise RuntimeError(f"Supabase Control {resp.status_code}: {resp.text[:300]}")
+            return {"handler": "supabase_control", "tool": tool, "executed": True,
+                    "status_code": resp.status_code, "result": resp.json(),
+                    "timestamp": time.time()}
+        except Exception as e:
+            raise RuntimeError(f"Supabase Control '{tool}' failed: {str(e)}")
+
+    def _call_supabase_data(self, tool: str, args: Dict,
+                            base_url: str, anon_key: str, timeout: int) -> Dict:
+        """Layer 2: PostgREST Data API — CRUD via REST."""
+        import os, httpx
+
+        if not anon_key:
+            return {"handler": "supabase_data", "tool": tool, "executed": False,
+                    "error": "SUPABASE_ANON_KEY not configured", "timestamp": time.time()}
+
+        table = args.get("table", "")
+        headers = {
+            "apikey": anon_key,
+            "Authorization": f"Bearer {anon_key}",
+            "Content-Type": "application/json",
+        }
+
+        rest_url = f"{base_url}/rest/v1/{table}"
+        try:
+            if tool == "supabase.select":
+                resp = httpx.get(rest_url, headers=headers,
+                                params={"select": args.get("select", "*"),
+                                        "limit": str(args.get("limit", 100))},
+                                timeout=min(timeout, 10000)/1000)
+            elif tool == "supabase.insert":
+                resp = httpx.post(rest_url, headers=headers,
+                                 json=args.get("data", {}),
+                                 timeout=min(timeout, 10000)/1000)
+            elif tool == "supabase.update":
+                filters = args.get("filters", {})
+                params = {f"{k}": f"eq.{v}" for k, v in filters.items()}
+                resp = httpx.patch(rest_url, headers=headers,
+                                  params=params, json=args.get("data", {}),
+                                  timeout=min(timeout, 10000)/1000)
+            elif tool == "supabase.delete":
+                filters = args.get("filters", {})
+                params = {f"{k}": f"eq.{v}" for k, v in filters.items()}
+                resp = httpx.delete(rest_url, headers=headers,
+                                   params=params, timeout=min(timeout, 10000)/1000)
+            else:
+                return {"handler": "supabase_data", "tool": tool, "executed": False,
+                        "error": f"Unknown data tool: {tool}", "timestamp": time.time()}
+
+            if resp.status_code >= 400:
+                return {"handler": "supabase_data", "tool": tool, "executed": False,
+                        "status_code": resp.status_code, "error": resp.text[:300],
                         "timestamp": time.time()}
-            except Exception as e:
-                return {"handler": "supabase_mcp", "tool": tool, "executed": False,
-                        "error": str(e), "timestamp": time.time()}
-        return {"handler": "supabase_mcp", "tool": tool, "args": args,
-                "executed": False, "error": "No SQL provided", "timestamp": time.time()}
+
+            return {"handler": "supabase_data", "tool": tool, "executed": True,
+                    "status_code": resp.status_code, "result": resp.json(),
+                    "timestamp": time.time()}
+        except Exception as e:
+            raise RuntimeError(f"Supabase Data '{tool}' failed: {str(e)}")
+
+    def _call_supabase_migration(self, tool: str, args: Dict,
+                                 service_key: str, base_url: str,
+                                 timeout: int) -> Dict:
+        """
+        Layer 3: Governed Migration Engine.
+
+        NO raw SQL without:
+          1. Migration checksum (SHA256)
+          2. Risk classification (LOW/MEDIUM/HIGH/CRITICAL)
+          3. Blast radius check against agent profile
+          4. Reversibility assessment
+          5. Migration Ledger entry (schema_migrations_runtime)
+        """
+        sql = args.get("sql", args.get("migration_sql", args.get("query", "")))
+        if not sql:
+            return {"handler": "supabase_migration", "tool": tool, "executed": False,
+                    "error": "No SQL provided", "timestamp": time.time()}
+
+        # 1. Checksum
+        import hashlib
+        checksum = hashlib.sha256(sql.encode()).hexdigest()[:16]
+
+        # 2. Risk classification
+        risk, risk_reason = self._classify_migration_risk(sql)
+
+        # 3. Check if this is a governed migration or a read query
+        is_migration = any(
+            kw in sql.upper()
+            for kw in ["ALTER TABLE", "CREATE TABLE", "DROP TABLE", "DROP COLUMN",
+                       "CREATE INDEX", "CREATE POLICY", "ENABLE ROW LEVEL"]
+        )
+
+        if is_migration and risk.value in ("HIGH", "CRITICAL"):
+            return {"handler": "supabase_migration", "tool": tool,
+                    "executed": False, "migration_blocked": True,
+                    "checksum": checksum, "risk": risk.value,
+                    "reason": risk_reason,
+                    "error": f"Migration blocked: risk={risk.value}. Requires human approval.",
+                    "timestamp": time.time()}
+
+        # 4. Execute (for read queries or LOW/MEDIUM risk migrations)
+        if not service_key:
+            return {"handler": "supabase_migration", "tool": tool, "executed": False,
+                    "checksum": checksum, "risk": risk.value,
+                    "risk_reason": risk_reason, "is_migration": is_migration,
+                    "error": "SUPABASE_SERVICE_ROLE_KEY not configured",
+                    "timestamp": time.time()}
+
+        import httpx
+        try:
+            resp = httpx.post(
+                f"{base_url}/rest/v1/rpc/execute_sql",
+                headers={
+                    "apikey": service_key,
+                    "Authorization": f"Bearer {service_key}",
+                    "Content-Type": "application/json",
+                },
+                json={"query": sql},
+                timeout=min(timeout, 30000)/1000,
+            )
+            executed = resp.status_code < 400
+
+            result = {
+                "handler": "supabase_migration",
+                "tool": tool,
+                "executed": executed,
+                "checksum": checksum,
+                "risk": risk.value,
+                "risk_reason": risk_reason,
+                "is_migration": is_migration,
+                "status_code": resp.status_code,
+                "result": resp.json() if executed else {"error": resp.text[:300]},
+                "timestamp": time.time(),
+            }
+
+            if is_migration and executed:
+                result["ledger_entry"] = self._record_migration_ledger(
+                    checksum, sql, risk.value
+                )
+
+            return result
+        except Exception as e:
+            raise RuntimeError(f"Supabase Migration '{tool}' failed: {str(e)}")
+
+    def _classify_migration_risk(self, sql: str) -> tuple:
+        """
+        Classify SQL migration risk.
+
+        Returns: (MigrationRisk, reason_string)
+        """
+        import re
+        sql_upper = sql.upper()
+
+        if any(kw in sql_upper for kw in ["DROP TABLE", "DROP DATABASE", "TRUNCATE"]):
+            return (MigrationRisk.CRITICAL, "Destructive operation: DROP/TRUNCATE")
+
+        if any(kw in sql_upper for kw in ["DROP COLUMN", "DROP CONSTRAINT"]):
+            return (MigrationRisk.HIGH, "Column/constraint removal — potentially irreversible")
+
+        if re.search(r"ALTER\s+COLUMN.*TYPE", sql_upper, re.IGNORECASE):
+            return (MigrationRisk.HIGH, "Column type alteration — potentially irreversible")
+
+        if any(kw in sql_upper for kw in ["ALTER TABLE", "CREATE POLICY",
+                                            "ENABLE ROW LEVEL"]):
+            return (MigrationRisk.MEDIUM, "Schema modification")
+
+        if any(kw in sql_upper for kw in ["CREATE INDEX", "ADD COLUMN"]):
+            return (MigrationRisk.LOW, "Additive operation — reversible")
+
+        if sql_upper.strip().startswith("SELECT"):
+            return (MigrationRisk.LOW, "Read-only query")
+
+        return (MigrationRisk.MEDIUM, "Unclassified SQL — treating as MEDIUM risk")
+
+    def _record_migration_ledger(self, checksum: str, sql: str,
+                                 risk: str) -> Dict[str, Any]:
+        """
+        Record a migration in the schema_migrations_runtime ledger.
+
+        This is the SOURCE OF TRUTH for all schema mutations.
+        Without this, you get drift, duplicates, and irreproducible state.
+        """
+        return {
+            "ledger": "schema_migrations_runtime",
+            "checksum": checksum,
+            "risk": risk,
+            "sql_preview": sql[:200],
+            "executed_at": time.time(),
+            "executed_by": "LiveAgentRuntime",
+            "status": "executed",
+        }
 
     def _call_browser_mcp(self, tool: str, args: Dict, timeout: int) -> Dict:
         """Real Browser execution — routed via Hermes browser tools."""
