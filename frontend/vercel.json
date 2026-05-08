@@ -3,6 +3,12 @@
   "outputDirectory": "build",
   "installCommand": "npm ci",
   "framework": "create-react-app",
+  "rewrites": [
+    {
+      "source": "/api/((?!cron/).*)",
+      "destination": "http://72.62.152.47:8001/api/$1"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -25,12 +31,6 @@
           "value": "public, max-age=31536000, immutable"
         }
       ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/((?!cron/).*)",
-      "destination": "http://72.62.152.47:8001/api/$1"
     }
   ]
 }

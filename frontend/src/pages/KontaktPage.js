@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../i18n/LanguageContext';
 import T from '../i18n/translations';
@@ -17,6 +17,149 @@ const META = {
     description: 'Contact NeXifyAI for AI consulting. Phone: +31 6 133 188 56, Email: support@nexify-automate.com. Free initial consultation.',
     keywords: 'AI consulting contact, AI agency contact, NeXifyAI contact' }
 };
+
+function ContactForm({ lang, t }) {
+  const f = t.contact.form;
+  const v = t.contact.validation;
+  const [form, setForm] = useState({ vorname: '', nachname: '', email: '', telefon: '', unternehmen: '', nachricht: '', consent: false, '_hp': '' });
+  const [errors, setErrors] = useState({});
+  const [status, setStatus] = useState('idle'); // idle | sending | success | error
+
+  const validate = () => {
+    const e = {};
+    if (!form.vorname.trim() || form.vorname.trim().length < 2) e.vorname = v.firstName;
+    if (!form.nachname.trim() || form.nachname.trim().length < 2) e.nachname = v.lastName;
+    if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = v.email;
+    if (!form.nachricht.trim() || form.nachricht.trim().length < 10) e.nachricht = v.message;
+    if (!form.consent) e.consent = lang === 'en' ? 'Please accept the privacy policy.' : lang === 'nl' ? 'Accepteer het privacybeleid.' : 'Bitte Datenschutzerklärung akzeptieren.';
+    return e;
+  };
+
+  const handleChange = (field, value) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors(prev => { const n = { ...prev }; delete n[field]; return n; });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const errs = validate();
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+    setStatus('sending');
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vorname: form.vorname.trim(),
+          nachname: form.nachname.trim(),
+          email: form.email.trim(),
+          telefon: form.telefon.trim() || null,
+          unternehmen: form.unternehmen.trim() || null,
+          nachricht: form.nachricht.trim(),
+          source: 'contact_form',
+          language: lang,
+          consent: true,
+          datenschutz_akzeptiert: true,
+          _hp: form._hp
+        })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setStatus('success');
+      setForm({ vorname: '', nachname: '', email: '', telefon: '', unternehmen: '', nachricht: '', consent: false, '_hp': '' });
+    } catch (err) {
+      setStatus('error');
+    }
+  };
+
+  const heading = lang === 'en' ? 'Send us a message' : lang === 'nl' ? 'Stuur een bericht' : 'Nachricht senden';
+  const responseTime = lang === 'en' ? 'We typically respond within 24 hours.' : lang === 'nl' ? 'Wij reageren meestal binnen 24 uur.' : 'Wir antworten in der Regel innerhalb von 24 Stunden.';
+  const consentText = lang === 'en' ? 'I accept the privacy policy and consent to the processing of my data.' : lang === 'nl' ? 'Ik accepteer het privacybeleid en stem in met de verwerking van mijn gegevens.' : 'Ich akzeptiere die Datenschutzerklärung und willige in die Verarbeitung meiner Daten ein.';
+
+  if (status === 'success') {
+    return (
+      <div className="contact-form" style={{ padding: '2rem', textAlign: 'center' }}>
+        <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>✅</div>
+        <h2 style={{ marginBottom: '0.75rem', color: '#FE9B7B' }}>{lang === 'en' ? 'Message sent!' : lang === 'nl' ? 'Bericht verzonden!' : 'Nachricht gesendet!'}</h2>
+        <p style={{ color: '#8892a0' }}>{f.success}</p>
+        <button className="btn btn-ghost" style={{ marginTop: '1.5rem' }} onClick={() => setStatus('idle')}>
+          {lang === 'en' ? 'Send another message' : lang === 'nl' ? 'Nog een bericht sturen' : 'Weitere Nachricht senden'}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form className="contact-form" style={{ padding: '2rem' }} onSubmit={handleSubmit} noValidate>
+      <h2 style={{ marginBottom: '0.5rem', fontSize: '1.3rem' }}>{heading}</h2>
+      <p style={{ color: '#8892a0', marginBottom: '1.25rem', fontSize: '0.875rem' }}>{responseTime}</p>
+
+      {/* Honeypot — invisible to humans */}
+      <div style={{ position: 'absolute', opacity: 0, height: 0, overflow: 'hidden' }}>
+        <input type="text" name="_hp" tabIndex={-1} autoComplete="off" value={form._hp} onChange={e => handleChange('_hp', e.target.value)} />
+      </div>
+
+      <div className="form-split" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div className="form-group">
+          <label className="form-label">{f.firstName} *</label>
+          <input type="text" className={`form-input${errors.vorname ? ' error' : ''}`} value={form.vorname} onChange={e => handleChange('vorname', e.target.value)} placeholder={f.firstName} />
+          {errors.vorname && <span className="form-error">{errors.vorname}</span>}
+        </div>
+        <div className="form-group">
+          <label className="form-label">{f.lastName} *</label>
+          <input type="text" className={`form-input${errors.nachname ? ' error' : ''}`} value={form.nachname} onChange={e => handleChange('nachname', e.target.value)} placeholder={f.lastName} />
+          {errors.nachname && <span className="form-error">{errors.nachname}</span>}
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">{f.email} *</label>
+        <input type="email" className={`form-input${errors.email ? ' error' : ''}`} value={form.email} onChange={e => handleChange('email', e.target.value)} placeholder="name@unternehmen.de" />
+        {errors.email && <span className="form-error">{errors.email}</span>}
+      </div>
+
+      <div className="form-split" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div className="form-group">
+          <label className="form-label">{f.phone}</label>
+          <input type="tel" className="form-input" value={form.telefon} onChange={e => handleChange('telefon', e.target.value)} placeholder="+31 6 133 188 56" />
+        </div>
+        <div className="form-group">
+          <label className="form-label">{f.company}</label>
+          <input type="text" className="form-input" value={form.unternehmen} onChange={e => handleChange('unternehmen', e.target.value)} placeholder={f.company} />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">{f.message} *</label>
+        <textarea className={`form-textarea${errors.nachricht ? ' error' : ''}`} rows={4} value={form.nachricht} onChange={e => handleChange('nachricht', e.target.value)}
+          placeholder={lang === 'en' ? 'Describe your challenge…' : lang === 'nl' ? 'Beschrijf uw uitdaging…' : 'Beschreiben Sie Ihre Herausforderung…'} />
+        {errors.nachricht && <span className="form-error">{errors.nachricht}</span>}
+      </div>
+
+      <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '0.8125rem', color: '#8892a0', lineHeight: 1.5 }}>
+        <input type="checkbox" checked={form.consent} onChange={e => handleChange('consent', e.target.checked)}
+          style={{ marginTop: '2px', accentColor: '#FE9B7B', width: '16px', height: '16px', flexShrink: 0 }} />
+        <span>{consentText} <a href={`/${lang}/datenschutz`} target="_blank" rel="noopener noreferrer" style={{ color: '#FE9B7B', textDecoration: 'underline' }}>
+          {lang === 'en' ? 'Privacy Policy' : lang === 'nl' ? 'Privacybeleid' : 'Datenschutzerklärung'}
+        </a></span>
+      </label>
+      {errors.consent && <span className="form-error">{errors.consent}</span>}
+
+      <button type="submit" className="btn btn-primary btn-glow contact-submit" disabled={status === 'sending'}>
+        {status === 'sending' ? (
+          <><span className="spinner" style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.2)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.6s linear infinite', marginRight: 8, verticalAlign: 'middle' }} /> {f.sending}</>
+        ) : (
+          <><I n="mail" /> {f.submit}</>
+        )}
+      </button>
+
+      {status === 'error' && (
+        <div className="form-status" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#fca5a5' }}>
+          <I n="warning" /> {f.error}
+        </div>
+      )}
+    </form>
+  );
+}
 
 export default function KontaktPage() {
   const { lang } = useLanguage();
@@ -86,24 +229,7 @@ export default function KontaktPage() {
                 </div>
               </div>
               <div className="contact-form-box" style={{ width: '100%', maxWidth: 500 }}>
-                <div className="contact-form" style={{ padding: '2rem', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                  <h2 style={{ marginBottom: '1.5rem', fontSize: '1.3rem' }}>
-                    {lang === 'en' ? 'Send us a message' : lang === 'nl' ? 'Stuur een bericht' : 'Nachricht senden'}
-                  </h2>
-                  <p style={{ color: '#8892a0', marginBottom: '1.5rem' }}>
-                    {lang === 'en' ? 'We typically respond within 24 hours.' :
-                     lang === 'nl' ? 'Wij reageren meestal binnen 24 uur.' :
-                     'Wir antworten in der Regel innerhalb von 24 Stunden.'}
-                  </p>
-                  <a href={`mailto:${COMPANY.email}`} className="btn btn-primary btn-glow" style={{ width: '100%', textAlign: 'center' }}>
-                    <I n="mail" /> {lang === 'en' ? 'Send Email' : lang === 'nl' ? 'E-mail sturen' : 'E-Mail senden'}
-                  </a>
-                  <div style={{ marginTop: '1rem' }}>
-                    <a href="https://wa.me/31613318856" target="_blank" rel="noopener noreferrer" className="btn btn-secondary" style={{ width: '100%', textAlign: 'center' }}>
-                      <I n="chat" /> {lang === 'en' ? 'Chat on WhatsApp' : lang === 'nl' ? 'Chat op WhatsApp' : 'Chat auf WhatsApp'}
-                    </a>
-                  </div>
-                </div>
+                <ContactForm lang={lang} t={t} />
               </div>
             </div>
           </div>

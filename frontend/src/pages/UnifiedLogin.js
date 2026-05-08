@@ -110,13 +110,29 @@ const UnifiedLogin = () => {
       const res = await fetch(`${API}/api/admin/login`, { method: 'POST', body: form });
       if (res.ok) {
         const data = await res.json();
-        localStorage.setItem('nx_auth', JSON.stringify({ token: data.access_token, role: 'admin', email: email.trim() }));
-        window.location.href = '/admin';
+        const token = data.access_token;
+        // Setze ALLE Admin-Storage-Keys für Kompatibilität
+        localStorage.setItem('nx_admin_token', token);
+        localStorage.setItem('nx_auth', JSON.stringify({ token, role: 'admin', email: email.trim() }));
+        // Räume alte/defekte Keys auf
+        ['nx_active_convo','nx_portal_token','nx_portal_email','nx_portal_name'].forEach(k => localStorage.removeItem(k));
+        // Verifiziere dass Token gespeichert wurde, dann navigiere
+        setTimeout(() => {
+          const check = localStorage.getItem('nx_admin_token');
+          if (check === token) {
+            window.location.assign('/admin');
+          } else {
+            // Fallback: nochmal speichern + navigieren
+            localStorage.setItem('nx_admin_token', token);
+            window.location.assign('/admin');
+          }
+        }, 100);
       } else {
-        setError('Ungültige Anmeldedaten');
+        const errData = await res.json().catch(() => ({}));
+        setError(errData.detail || 'Ungültige Anmeldedaten');
       }
-    } catch {
-      setError('Verbindungsfehler');
+    } catch (err) {
+      setError('Verbindungsfehler: ' + (err.message || ''));
     }
     setLoading(false);
   };

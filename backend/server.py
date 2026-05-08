@@ -35,6 +35,7 @@ from services.billing import BillingService
 from services.outbound import OutboundLeadMachine
 from services.legal_guardian import LegalGuardian
 from services.llm_provider import create_llm_provider
+from services.supabase_db import SupabaseDB
 
 import routes.shared as shared
 
@@ -484,6 +485,7 @@ from routes.newsletter_routes import router as newsletter_router
 from routes.analytics_routes import router as analytics_router
 from routes.api_v1_routes import router as api_v1_router
 from routes.nexify_ai_routes import router as nexify_ai_router
+from routes.admin_cockpit_chat import router as admin_cockpit_chat_router
 from routes.oracle_routes import router as oracle_router
 from routes.template_routes import router as template_router
 from routes.intelligence_routes import router as intelligence_router
@@ -508,6 +510,7 @@ app.include_router(newsletter_router)
 app.include_router(analytics_router)
 app.include_router(api_v1_router)
 app.include_router(nexify_ai_router)
+app.include_router(admin_cockpit_chat_router)
 app.include_router(oracle_router)
 app.include_router(template_router)
 app.include_router(intelligence_router)

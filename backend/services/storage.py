@@ -31,7 +31,7 @@ def init_storage():
         logger.info("Object Storage initialisiert")
         return _storage_key
     except Exception as e:
-        logger.error(f"Object Storage Init-Fehler: {e}")
+        logger.warning(f"Object Storage Init-Fehler (non-critical): {e}")
         return None
 
 

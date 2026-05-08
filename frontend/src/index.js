@@ -6,7 +6,6 @@ import { LanguageProvider } from './i18n/LanguageContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
 import App from './App';
-import Admin from './pages/Admin';
 import LegalPage from './pages/LegalPages';
 import QuotePortal from './pages/QuotePortal';
 import CustomerPortal from './pages/CustomerPortal';
@@ -20,6 +19,8 @@ import PreisePage from './pages/PreisePage';
 import KontaktPage from './pages/KontaktPage';
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
+
+import Admin from './pages/Admin';
 
 /* Language-aware redirect: / → /<detected lang> */
 function LangRedirect() {
@@ -76,7 +77,7 @@ root.render(
             <Route path="/termin" element={<BookingPage />} />
             <Route path="/booking" element={<BookingPage />} />
 
-            {/* Admin (no language prefix) */}
+            {/* Admin */}
             <Route path="/admin" element={<Admin />} />
 
             {/* Integration SEO Pages */}

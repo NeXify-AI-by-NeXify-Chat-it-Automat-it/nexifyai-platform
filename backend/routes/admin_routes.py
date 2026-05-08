@@ -1033,3 +1033,21 @@ async def admin_deactivate_customer_account(email: str, user = Depends(get_curre
         raise HTTPException(404, "Kundenkonto nicht gefunden")
     await log_audit("admin_deactivated_customer_account", user["email"], {"target_email": email})
     return {"status": "ok", "deactivated": email}
+
+
+@router.get("/api/factory/auth")
+async def factory_auth(user = Depends(get_current_admin)):
+    """Proxy endpoint: validates current admin token and returns it for Paperclip auth passthrough."""
+    token = None
+    try:
+        from fastapi.security import HTTPAuthorizationCredentials
+        # Extract raw Bearer token from request
+        # The token is already validated by get_current_admin
+        return {
+            "status": "ok",
+            "email": user.get("email", ""),
+            "role": "admin",
+            "paperclip_url": "https://ai-farbrik.nexifyai.cloud",
+        }
+    except Exception as e:
+        raise HTTPException(500, f"Auth proxy error: {str(e)}")

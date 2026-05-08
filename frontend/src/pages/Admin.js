@@ -27,6 +27,20 @@ const BOOKING_STATUS = {
 
 const Admin = () => {
   useEffect(() => { document.body.classList.add('hide-wa'); return () => document.body.classList.remove('hide-wa'); }, []);
+  // Fallback: Token neu aus localStorage laden beim Mount (sicherer als useState allein)
+  useEffect(() => {
+    if (!token) {
+      const t = localStorage.getItem('nx_admin_token');
+      if (t) { setToken(t); return; }
+      try {
+        const a = JSON.parse(localStorage.getItem('nx_auth') || '{}');
+        if (a.role === 'admin' && a.token) {
+          localStorage.setItem('nx_admin_token', a.token);
+          setToken(a.token);
+        }
+      } catch {}
+    }
+  }, []);
   const [token, setToken] = useState(() => {
     // Check both storage keys for backward compatibility
     const directToken = localStorage.getItem('nx_admin_token');
