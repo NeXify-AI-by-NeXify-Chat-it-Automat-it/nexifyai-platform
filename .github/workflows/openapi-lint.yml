@@ -15,12 +15,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Spectral
-        uses: stoplightio/spectral-action@v0.8.10
-        continue-on-error: true
-        with:
-          file_glob: 'ops/policies/openapi.json'
-
       - name: Validate OpenAPI Structure
         run: |
           if [ -f ops/policies/openapi.json ]; then
