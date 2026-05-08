@@ -54,6 +54,9 @@ class IncrementalPropagationEngine:
         self.nodes: Dict[str, IncrementalNode] = {}
         self._computation_log: List[Dict] = []
         self._total_computations_saved: int = 0
+        self._cache: Dict[str, float] = {}  # Memoization cache
+        self._cache_hits: int = 0
+        self._epoch: int = 0  # Incremented on topology change
         self._load_topology()
     
     def _load_topology(self):
@@ -199,9 +202,20 @@ class IncrementalPropagationEngine:
         return result
     
     def _recompute_node(self, node: IncrementalNode):
-        """Recompute effective confidence for a single node."""
-        parent_product = 1.0
+        """Recompute effective confidence with memoization."""
+        # Build cache key: (local, parent versions, epoch)
+        parent_versions = tuple(
+            (pid, self.nodes[pid].version if pid in self.nodes else 0)
+            for pid in sorted(node.parents.keys())
+        )
+        cache_key = f"{node.service}:{node.local_confidence:.4f}:{parent_versions}:{self._epoch}"
         
+        if cache_key in self._cache:
+            node.effective_confidence = self._cache[cache_key]
+            self._cache_hits += 1
+            return
+        
+        parent_product = 1.0
         for parent_id, edge_weight in node.parents.items():
             parent_node = self.nodes.get(parent_id)
             if parent_node:
@@ -209,7 +223,9 @@ class IncrementalPropagationEngine:
                 contribution = parent_node.effective_confidence * edge_weight * temporal
                 parent_product *= max(0.3, contribution)
         
-        node.effective_confidence = round(node.local_confidence * parent_product, 2)
+        result = round(node.local_confidence * parent_product, 2)
+        self._cache[cache_key] = result
+        node.effective_confidence = result
     
     def propagate_full(self) -> Dict[str, float]:
         """Full propagation (fallback). Use only when topology changes."""
@@ -224,6 +240,8 @@ class IncrementalPropagationEngine:
         return {
             "total_propagations": len(self._computation_log),
             "total_computations_saved": self._total_computations_saved,
+            "cache_hits": self._cache_hits,
+            "cache_size": len(self._cache),
             "average_savings_pct": round(
                 sum(l["savings_pct"] for l in self._computation_log) / max(1, len(self._computation_log)), 1
             ),

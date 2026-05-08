@@ -77,6 +77,15 @@ class MemoryCompactor:
     MAX_COMPRESSED_EVENTS = 200  # L1 capacity
     PATTERN_MIN_OCCURRENCES = 2  # Min occurrences to become a pattern
     
+    # Semantic eviction weights: keep valuable, evict noise
+    KEEP_WEIGHT = {
+        "contradiction": 0.9,     # Keep contradictions — high diagnostic value
+        "recovery_failed": 0.85,  # Keep failed recoveries — rare, informative
+        "deployment": 0.5,        # Moderate value
+        "recovery": 0.4,          # Keep some recovery history
+        "observation_stable": 0.1, # Evict repetitive stable confirmations
+    }
+    
     def __init__(self):
         self.compressed_events: List[CompressedEvent] = []
         self.patterns: Dict[str, IndexedPattern] = {}
@@ -136,9 +145,9 @@ class MemoryCompactor:
         self._compaction_count += 1
         self.compressed_events.append(event)
         
-        # Prune old compressed events
+        # Prune old compressed events with semantic eviction
         if len(self.compressed_events) > self.MAX_COMPRESSED_EVENTS:
-            self.compressed_events = self.compressed_events[-self.MAX_COMPRESSED_EVENTS:]
+            self._semantic_evict()
         
         # Update patterns
         self._update_patterns(event)
@@ -215,6 +224,29 @@ class MemoryCompactor:
         # Estimate token count (rough: ~1.3 tokens per character)
         total_chars = sum(len(e.summary) for e in recent)
         self.active_context.total_tokens_estimate = int(total_chars * 0.4)
+    
+    def _semantic_evict(self):
+        """Semantic eviction: keep valuable, evict noise."""
+        # Score each event by keep-weight
+        scored = []
+        for e in self.compressed_events:
+            if e.outcome == "contradictory":
+                weight = self.KEEP_WEIGHT["contradiction"]
+            elif e.category == "recovery" and e.outcome != "converged":
+                weight = self.KEEP_WEIGHT["recovery_failed"]
+            elif e.category == "deployment":
+                weight = self.KEEP_WEIGHT["deployment"]
+            elif e.category == "recovery":
+                weight = self.KEEP_WEIGHT["recovery"]
+            else:
+                weight = self.KEEP_WEIGHT["observation_stable"]
+            scored.append((weight, e.timestamp, e))
+        
+        # Sort: highest weight first, then newest first
+        scored.sort(key=lambda x: (-x[0], -x[1]))
+        
+        # Keep top MAX_COMPRESSED_EVENTS
+        self.compressed_events = [e for _, _, e in scored[:self.MAX_COMPRESSED_EVENTS]]
     
     def get_llm_context(self) -> str:
         """
