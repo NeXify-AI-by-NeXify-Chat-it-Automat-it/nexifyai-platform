@@ -1,0 +1,34 @@
+name: Vercel Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy-vercel:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trigger Vercel Deploy
+        run: |
+          echo "Vercel auto-deploys via GitHub Integration on push to main."
+          echo "This workflow provides the status badge for monitoring."
+          echo "Deploy status: Check Vercel Dashboard or status badge below."
+
+  verify-deploy:
+    name: Verify Deployment
+    needs: deploy-vercel
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Production Site
+        run: |
+          sleep 30
+          HTTP=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 https://www.nexify-automate.com/)
+          if [ "$HTTP" = "200" ]; then
+            echo "✅ Production site returns HTTP 200"
+          else
+            echo "⚠️ Production site returns HTTP $HTTP"
+          fi

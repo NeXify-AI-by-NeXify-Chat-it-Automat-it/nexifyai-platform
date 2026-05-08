@@ -61,6 +61,13 @@
   .bar-low { background: var(--danger) }
   .timestamp { text-align: center; color: var(--muted); font-size: 0.75rem; margin-top: 2rem }
   .refresh { text-align: center; margin-top: 0.5rem; font-size: 0.8rem; color: var(--accent) }
+  .badge-grid {
+    display: flex; flex-wrap: wrap; gap: 0.75rem;
+    justify-content: center; align-items: center;
+  }
+  .badge-grid img { height: 20px; flex-shrink: 0 }
+  .badge-grid a { opacity: 0.85; transition: opacity 0.2s }
+  .badge-grid a:hover { opacity: 1 }
   @media (max-width: 600px) {
     body { padding: 1rem }
     .big-score { font-size: 3.5rem }
@@ -78,6 +85,24 @@
   </div>
 
   <div class="components" id="components"></div>
+
+  <div class="badges-section" id="badges">
+    <div class="subtitle" style="margin-top:1.5rem;margin-bottom:1rem">📊 Workflow Status</div>
+    <div class="badge-grid">
+      <a href="https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/security-scan.yml" target="_blank" rel="noopener">
+        <img src="https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/security-scan.yml/badge.svg?branch=main&event=push" alt="Security Scan" loading="lazy">
+      </a>
+      <a href="https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/ci.yml" target="_blank" rel="noopener">
+        <img src="https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/ci.yml/badge.svg?branch=main&event=push" alt="CI Quality Gates" loading="lazy">
+      </a>
+      <a href="https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/test.yml" target="_blank" rel="noopener">
+        <img src="https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/test.yml/badge.svg?branch=main&event=push" alt="Tests" loading="lazy">
+      </a>
+      <a href="https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/deploy.yml" target="_blank" rel="noopener">
+        <img src="https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/deploy.yml/badge.svg?branch=main&event=push" alt="Vercel Deploy" loading="lazy">
+      </a>
+    </div>
+  </div>
 
   <div class="timestamp" id="timestamp"></div>
   <div class="refresh">Auto-Refresh alle 5 Min</div>
