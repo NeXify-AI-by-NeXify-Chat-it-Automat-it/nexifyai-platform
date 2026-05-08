@@ -1,0 +1,102 @@
+{
+  "timestamp": "2026-05-08T02:00:01.877544+00:00",
+  "total_expected": 18,
+  "events": {
+    "abandon_form": {
+      "defined": true,
+      "tracked_in_code": true,
+      "fired_last_24h": null
+    },
+    "add_to_cart": {
+      "defined": true,
+      "tracked_in_code": true,
+      "fired_last_24h": null
+    },
+    "begin_checkout": {
+      "defined": true,
+      "tracked_in_code": true,
+      "fired_last_24h": null
+    },
+    "calendar_booked": {
+      "defined": true,
+      "tracked_in_code": true,
+      "fired_last_24h": null
+    },
+    "cta_click": {
+      "defined": true,
+      "tracked_in_code": true,
+      "fired_last_24h": null
+    },
+    "demo_request": {
+      "defined": true,
+      "tracked_in_code": true,
+      "fired_last_24h": null
+    },
+    "email_subscribe": {
+      "defined": true,
+      "tracked_in_code": true,
+      "fired_last_24h": null
+    },
+    "form_error": {
+      "defined": true,
+      "tracked_in_code": true,
+      "fired_last_24h": null
+    },
+    "form_start": {
+      "defined": true,
+      "tracked_in_code": true,
+      "fired_last_24h": null
+    },
+    "form_submit": {
+      "defined": true,
+      "tracked_in_code": true,
+      "fired_last_24h": null
+    },
+    "lead_scored": {
+      "defined": true,
+      "tracked_in_code": true,
+      "fired_last_24h": null
+    },
+    "page_view": {
+      "defined": true,
+      "tracked_in_code": true,
+      "fired_last_24h": null
+    },
+    "plan_select": {
+      "defined": true,
+      "tracked_in_code": true,
+      "fired_last_24h": null
+    },
+    "pricing_view": {
+      "defined": true,
+      "tracked_in_code": true,
+      "fired_last_24h": null
+    },
+    "purchase": {
+      "defined": true,
+      "tracked_in_code": true,
+      "fired_last_24h": null
+    },
+    "returning_user": {
+      "defined": true,
+      "tracked_in_code": true,
+      "fired_last_24h": null
+    },
+    "scroll_depth": {
+      "defined": true,
+      "tracked_in_code": true,
+      "fired_last_24h": null
+    },
+    "search_internal": {
+      "defined": true,
+      "tracked_in_code": true,
+      "fired_last_24h": null
+    }
+  },
+  "backend_status": "healthy",
+  "summary": {
+    "tracked": 18,
+    "untracked": 0,
+    "untracked_list": []
+  }
+}

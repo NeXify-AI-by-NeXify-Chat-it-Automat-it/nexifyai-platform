@@ -1,0 +1,39 @@
+{
+  "timestamp": "2026-05-08T04:00:02.329891+00:00",
+  "dos_version": "2.0",
+  "summary": {
+    "passes": 25,
+    "warnings": 0,
+    "issues": 0,
+    "compliance_score": 100.0
+  },
+  "passes": [
+    "✅ docs/ existiert: /opt/nexifyai-website-sicherheitskopie/docs",
+    "✅ docs/adrs/ existiert: /opt/nexifyai-website-sicherheitskopie/docs/adrs",
+    "✅ docs/governance/ existiert: /opt/nexifyai-website-sicherheitskopie/docs/governance",
+    "✅ packages/ existiert: /opt/nexifyai-website-sicherheitskopie/packages",
+    "✅ packages/ui/ existiert: /opt/nexifyai-website-sicherheitskopie/packages/ui",
+    "✅ packages/config/ existiert: /opt/nexifyai-website-sicherheitskopie/packages/config",
+    "✅ packages/events/ existiert: /opt/nexifyai-website-sicherheitskopie/packages/events",
+    "✅ ops/ existiert: /opt/nexifyai-website-sicherheitskopie/ops",
+    "✅ ops/ci/ existiert: /opt/nexifyai-website-sicherheitskopie/ops/ci",
+    "✅ automations/ existiert: /opt/nexifyai-website-sicherheitskopie/automations",
+    "✅ automations/cron/ existiert: /opt/nexifyai-website-sicherheitskopie/automations/cron",
+    "✅ DOS v2.0 existiert: /opt/nexifyai-website-sicherheitskopie/docs/DOS-v2.0.md",
+    "✅ RACI-Matrix existiert: /opt/nexifyai-website-sicherheitskopie/docs/governance/raci.yaml",
+    "✅ ADR Template existiert: /opt/nexifyai-website-sicherheitskopie/docs/adrs/ADR_TEMPLATE.md",
+    "✅ ADR-001 existiert: /opt/nexifyai-website-sicherheitskopie/docs/adrs/ADR-001-dos-v2-adoption.md",
+    "✅ API Standards existiert: /opt/nexifyai-website-sicherheitskopie/packages/config/api-standards.ts",
+    "✅ FastAPI erkannt (OpenAPI via /docs)",
+    "✅ API Error-Schema definiert",
+    "✅ Designsystem existiert: /opt/nexifyai-website-sicherheitskopie/packages/ui",
+    "✅ Design Tokens existiert: /opt/nexifyai-website-sicherheitskopie/design_guidelines.json",
+    "✅ Events existiert: /opt/nexifyai-website-sicherheitskopie/packages/events",
+    "✅ Event-Taxonomie: 1 Dateien",
+    "✅ CI Workflow existiert: /opt/nexifyai-website-sicherheitskopie/.github/workflows/ci.yml",
+    "✅ Tests gefunden: 2246 Dateien",
+    "✅ Brain DB: 12,288 Bytes"
+  ],
+  "warnings": [],
+  "issues": []
+}
