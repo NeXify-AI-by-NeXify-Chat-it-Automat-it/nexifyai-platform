@@ -58,17 +58,17 @@ Token-Ablauf → 30-Tage-Warnung → automatische Erneuerung oder Eskalation.
 | **Health-Check** | `curl -H "Authorization: Bearer $OPENROUTER_API_KEY" https://openrouter.ai/api/v1/models` |
 | **Status** | ✅ Aktiv |
 
-## 5. Plausible CE
+## 5. Umami Analytics
 
 | Feld | Wert |
 |------|------|
-| **Typ** | Self-Hosted Docker |
+| **Typ** | Self-Hosted Docker (PostgreSQL) |
 | **Host** | analytics.nexifyai.cloud → 127.0.0.1:8088 |
 | **Auth-Methode** | Kein Token (intern) |
 | **Ablauf** | Nie (self-hosted) |
 | **Erneuerung** | N/A |
-| **Health-Check** | `curl -o /dev/null -w "%{http_code}" https://analytics.nexifyai.cloud` |
-| **Status** | ✅ Aktiv |
+| **Health-Check** | `curl -s -o /dev/null -w "%{http_code}" http://localhost:8088` |
+| **Status** | ✅ Aktiv (Umami ersetzt Plausible CE) |
 
 ## 6. Resend (E-Mail)
 

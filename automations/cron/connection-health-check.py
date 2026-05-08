@@ -49,11 +49,11 @@ CHECKS = [
         "fallback": None
     },
     {
-        "name": "Plausible",
+        "name": "Umami",
         "cmd": ["curl", "-s", "--connect-timeout", "10", "-o", "/dev/null", "-w", "%{http_code}", "http://localhost:8088"],
         "expect": "200",
         "sev": "SEV3",
-        "fallback": "docker restart plausible-plausible-1"
+        "fallback": "docker restart umami"
     },
     {
         "name": "Resend",
@@ -64,8 +64,8 @@ CHECKS = [
     },
     {
         "name": "Traefik",
-        "cmd": ["curl", "-s", "--connect-timeout", "10", "-k", "https://mail.nexifyai.cloud"],
-        "expect": "html",
+        "cmd": ["curl", "-s", "--connect-timeout", "10", "-o", "/dev/null", "-w", "%{http_code}", "-H", "Host: mail.nexifyai.cloud", "http://localhost"],
+        "expect": "200",
         "sev": "SEV1",
         "fallback": "docker restart traefik-tcja-traefik-1"
     },
