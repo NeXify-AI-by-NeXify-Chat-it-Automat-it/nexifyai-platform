@@ -69,6 +69,7 @@ legal:
         purpose: "LLM API"
         location: "US"
         dpa_signed: true
+        note: "DPA reicht vorerst. Langfristig EU-Alternative prüfen (siehe model-routing.yaml)."
 
       - name: "Supabase"
         purpose: "Database + Auth"
