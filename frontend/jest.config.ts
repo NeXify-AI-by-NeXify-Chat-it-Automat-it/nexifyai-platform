@@ -13,12 +13,13 @@ module.exports = {
     '!src/**/*.d.ts',
     '!src/**/*.stories.{ts,tsx}',
   ],
-  coverageThresholds: {
+  coverageThreshold: {
+    // Phased rollout: 20% (now) → 40% → 60% → 80% (target)
     global: {
-      branches: 70,
-      functions: 70,
-      lines: 80,
-      statements: 80,
+      branches: 20,
+      functions: 20,
+      lines: 20,
+      statements: 20,
     },
   },
   testMatch: ['**/__tests__/**/*.test.{ts,tsx}'],
