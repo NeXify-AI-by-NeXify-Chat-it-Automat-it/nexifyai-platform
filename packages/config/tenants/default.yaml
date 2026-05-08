@@ -1,0 +1,46 @@
+# Tenant Configuration
+# DOS v2.0 Chapter 27: Multi-Tenant-Architektur
+# Version: 1.0 | Stand: 2026-05-08
+#
+# Jeder Tenant bekommt eine eigene Config-Datei.
+# Feature-Flags und Themes sind pro Tenant konfigurierbar.
+
+defaults:
+  theme: nexifyai
+  locale: de
+  features:
+    chat: true
+    analytics: true
+    email_automation: false
+    white_label: false
+api_rate_limit: 1000  # Requests/Stunde
+
+# ━━━━━━━ AKTIVE TENANTS ━━━━━━━
+
+tenants:
+  nexifyai:
+    name: "NeXifyAI"
+    domain: "nexify-automate.com"
+    theme: nexifyai
+    locale: de
+    features:
+      chat: true
+      analytics: true
+      email_automation: true
+      white_label: false
+    api_rate_limit: 5000
+    auth_provider: supabase
+
+  # Beispiel-Tenant (Vorlage für Neukunden)
+  template:
+    name: "[Kundenname]"
+    domain: "[kunde].nexifyai.cloud"
+    theme: default
+    locale: de
+    features:
+      chat: false
+      analytics: false
+      email_automation: false
+      white_label: false
+    api_rate_limit: 1000
+    auth_provider: supabase

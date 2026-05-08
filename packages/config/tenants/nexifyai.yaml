@@ -1,0 +1,22 @@
+# NeXifyAI Tenant: Primary
+tenant_id: nexifyai
+name: "NeXifyAI by NeXify — Chat it. Automate it."
+domain: nexify-automate.com
+aliases:
+  - www.nexify-automate.com
+  - nexifyai.cloud
+theme: nexifyai
+locale: de
+locales_supported: [de, en, nl]
+features:
+  chat: true
+  analytics: true
+  email_automation: true
+  white_label: false
+api_rate_limit: 5000
+auth:
+  provider: supabase
+  mfa_required: false
+billing:
+  provider: revolut
+  currency: EUR

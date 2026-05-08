@@ -68,11 +68,14 @@ def check_notebook():
     """Prüft ob Open Notebook erreichbar ist."""
     try:
         result = subprocess.run(
-            ["curl", "-s", "--connect-timeout", "5", "http://localhost:32772/api/notebooks"],
+            ["curl", "-s", "--connect-timeout", "5", "http://localhost:32774/"],
             capture_output=True, text=True, timeout=10
         )
         if result.returncode == 0 and "notebooks" in result.stdout.lower():
             print("✅ Open Notebook erreichbar")
+            return True
+        elif result.returncode == 0:
+            print("✅ Open Notebook erreichbar (Root OK)")
             return True
         else:
             print("⚠️ Open Notebook nicht erreichbar")

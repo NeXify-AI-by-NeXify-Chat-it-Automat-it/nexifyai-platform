@@ -1,0 +1,109 @@
+# NeXifyAI Template-Registry
+# DOS v2.0 Chapter 32: Marketplace-/Template-System
+# Version: 1.0 | Stand: 2026-05-08
+
+templates:
+  # ━━━━━━━ PROJEKT-TEMPLATES ━━━━━━━
+  saas-platform:
+    name: "SaaS Platform Starter"
+    type: "A"
+    tech: [nextjs, tailwindcss, shadcn-ui, supabase, stripe]
+    status: planned
+    compatibility: [A, D, F]
+
+  b2c-shop:
+    name: "B2C Shop Starter"
+    type: "B"
+    tech: [nextjs, tailwindcss, medusajs, stripe]
+    status: planned
+    compatibility: [B, D]
+
+  b2b-portal:
+    name: "B2B Portal Starter"
+    type: "C"
+    tech: [nextjs, tailwindcss, supabase, hubspot]
+    status: planned
+    compatibility: [C, D]
+
+  service-consulting:
+    name: "Service/Consulting Website"
+    type: "E"
+    tech: [nextjs, tailwindcss, calendly, resend]
+    status: planned
+    compatibility: [E]
+
+  landing-page:
+    name: "Landing Page (One-Pager)"
+    type: "any"
+    tech: [nextjs, tailwindcss, framer-motion]
+    status: planned
+    compatibility: [A, B, C, D, E, F]
+
+  # ━━━━━━━ KOMPONENTEN-TEMPLATES ━━━━━━━
+  pricing-table:
+    name: "Pricing Table Komponente"
+    type: "component"
+    tech: [react, tailwindcss]
+    status: planned
+
+  hero-section:
+    name: "Hero Section mit CTA"
+    type: "component"
+    tech: [react, tailwindcss]
+    status: planned
+
+  # ━━━━━━━ INFRASTRUKTUR-TEMPLATES ━━━━━━━
+  supabase-selfhosted:
+    name: "Supabase Self-Hosted Setup"
+    type: "infrastructure"
+    tech: [docker, supabase, traefik]
+    status: active
+    path: "/docs/supabase/"
+
+  vercel-react-backend:
+    name: "Vercel React + VPS Backend Bridge"
+    type: "infrastructure"
+    tech: [vercel, traefik, fastapi]
+    status: active
+    path: "/docs/infrastructure/"
+
+# ━━━━━━━ APPROVED INTEGRATIONS ━━━━━━━
+approved_integrations:
+  - name: "Supabase"
+    category: "Backend-as-a-Service"
+    license: "MIT"
+    status: active
+
+  - name: "OpenRouter"
+    category: "AI/LLM"
+    license: "Proprietary (API)"
+    status: active
+
+  - name: "Vercel"
+    category: "Hosting/CI"
+    license: "Proprietary"
+    status: active
+
+  - name: "Resend"
+    category: "Email"
+    license: "Proprietary (API)"
+    status: active
+
+  - name: "Umami Cloud"
+    category: "Analytics"
+    license: "MIT (OSS)"
+    status: active
+
+  - name: "Revolut Business"
+    category: "Payment"
+    license: "Proprietary (API)"
+    status: planned
+
+# ━━━━━━━ COMPATIBILITY MATRIX ━━━━━━━
+# Zeilen = Template, Spalten = Projekttyp
+compatibility:
+  saas-platform:     [yes, no,  no, yes, no,  yes]
+  b2c-shop:          [no,  yes, no,  yes, no,  no]
+  b2b-portal:        [no,  no,  yes, yes, no,  no]
+  service-consulting:[no,  no,  no,  no,  yes, no]
+  landing-page:      [yes, yes, yes, yes, yes, yes]

@@ -16,14 +16,14 @@ REPO_ROOT = "/opt/nexifyai-website-sicherheitskopie"
 BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8001")
 
 WEIGHTS = {
-    "uptime": 0.20,
-    "error_rate": 0.15,
-    "latency": 0.10,
-    "deploy_frequency": 0.08,
-    "mttr": 0.08,
-    "security": 0.10,
-    "conversion": 0.05,
-    "system_stability": 0.24,  # Anteil fehlerfreier Verbindungen
+    # DOS v2.0 Chapter 31 — Zusammengesetzter Health-Score
+    "uptime": 0.25,           # Uptime (30 Tage) via Watchdog
+    "error_rate": 0.20,       # Error Rate via Backend-Logs
+    "latency": 0.15,          # Latency (P95) via Health-Endpoint
+    "deploy_frequency": 0.10, # Deploy Frequency via Git
+    "mttr": 0.10,             # MTTR via Incident-Log
+    "security": 0.10,         # Security Score via CVE-Scanner
+    "conversion": 0.10,       # Conversion Rate via Analytics
 }
 
 def calculate_health_score(metrics: dict) -> dict:
@@ -73,11 +73,6 @@ def calculate_health_score(metrics: dict) -> dict:
     elif events >= 5:      scores["conversion"] = 75.0
     elif events >= 1:      scores["conversion"] = 50.0
     else:                  scores["conversion"] = 0.0
-    
-    # System Stability: Anteil fehlerfreier Verbindungen
-    stable = metrics.get("connections_passed", 0)
-    total_conn = metrics.get("connections_total", 8)
-    scores["system_stability"] = (stable / max(total_conn, 1)) * 100
     
     total = sum(scores[k] * WEIGHTS[k] for k in WEIGHTS)
     
