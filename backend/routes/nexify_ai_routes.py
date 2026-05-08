@@ -319,67 +319,38 @@ class MemoryStoreRequest(BaseModel):
 # AUTH DEPENDENCY (reuse admin auth)
 # ══════════════════════════════════════════════════════════════
 async def get_admin_from_token(request: Request):
-    """Extract admin user from Authorization header. Supports Supabase JWT + Legacy."""
+    """Validate admin JWT token. Tries Supabase JWT first, then legacy secret."""
     auth = request.headers.get("Authorization", "")
     if not auth.startswith("Bearer "):
-        raise HTTPException(401, "Nicht authentifiziert")
-    token = auth[7:]
-    email = None
-    import jwt, os
+        raise HTTPException(401, "Fehlender oder ungültiger Authorization-Header")
+    token = auth[7:].strip()
 
-    supabase_secret = os.environ.get("SUPABASE_JWT_SECRET", "7qhWu1m2qAkVMFkagKHvQcdlx9yFzCl8wPm1Ptb/")
-    legacy_secret = os.environ.get("SECRET_KEY", "")
-
-    for secret in [supabase_secret, legacy_secret]:
-        if not secret:
-            continue
+    # Try Supabase JWT first
+    supabase_jwt = os.environ.get("SUPABASE_JWT_SECRET", "")
+    if supabase_jwt:
         try:
-            payload = jwt.decode(token, secret, algorithms=["HS256"])
+            import jwt as pyjwt
+            payload = pyjwt.decode(token, supabase_jwt, algorithms=["HS256"], audience="authenticated")
             email = payload.get("email") or payload.get("sub")
-            if not email:
-                continue
-            role_val = payload.get("role", "")
-            if role_val == "authenticated":
-                role_val = payload.get("user_metadata", {}).get("role", "") or payload.get("app_metadata", {}).get("role", "")
-            if role_val and role_val != "admin":
-                email = None
-                continue
-            break
-        except:
-            continue
+            role = payload.get("user_metadata", {}).get("role") or payload.get("app_metadata", {}).get("role")
+            if email and role == "admin":
+                logger.info(f"Admin authenticated via Supabase JWT: {email}")
+                return {"email": email, "role": role, "sub": payload.get("sub")}
+        except Exception:
+            pass
 
-    if not email:
-        raise HTTPException(401, "Nicht authentifiziert")
-
-    import asyncpg
+    # Fallback: Legacy backend JWT
     try:
-        dsn = os.environ.get("ALT_SUPABASE_POSTGRESQL", "")
-        if dsn:
-            conn = await asyncpg.connect(dsn)
-            row = await conn.fetchrow(
-                "SELECT email, raw_user_meta_data->>'role' as role FROM auth.users WHERE email=$1 AND is_super_admin=true",
-                email.lower()
-            )
-            await conn.close()
-            if row:
-                return {"email": row["email"], "role": "admin"}
-    except:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        email = payload.get("sub") or payload.get("email")
+        if email:
+            user = await S.db.admin_users.find_one({"email": email})
+            if user:
+                return {"email": user["email"], "role": user.get("role", "admin")}
+    except Exception:
         pass
 
-    user = await S.db.admin_users.find_one({"email": email.lower()}, {"_id": 0})
-    if not user:
-        raise HTTPException(401, "Admin nicht gefunden")
-    return user
-
-
-# ══════════════════════════════════════════════════════════════
-# NeXifyAI Chat Routes
-# ══════════════════════════════════════════════════════════════
-
-
-# ══════════════════════════════════════════════════════════════
-# SYSTEM STATUS (Frontend Connection Panel)
-# ══════════════════════════════════════════════════════════════
+    raise HTTPException(401, "Ungültiger Token oder keine Admin-Berechtigung")
 @router.get("/api/admin/nexify-ai/status")
 async def nexify_ai_status(admin: dict = Depends(get_admin_from_token)):
     """Comprehensive system status for the Admin Connection Panel."""
@@ -858,4 +829,404 @@ async def nexify_ai_chat(body: ChatRequest, request: Request, admin: dict = Depe
         yield f"data: {json.dumps({'content': '', 'conversation_id': conversation_id})}\n\n"
 
     return StreamingResponse(stream_gateway(), media_type="text/event-stream")
+
+
+# ─── Admin Cockpit Chat (OpenRouter SSE, with Brain/Tasks context) ───
+@router.post("/api/admin/chat")
+async def admin_cockpit_chat(body: ChatRequest, request: Request, admin: dict = Depends(get_admin_from_token)):
+    """Admin Cockpit Chat: OpenRouter SSE mit voller System-Kontext-Integration."""
+    import time as _time
+
+    conversation_id = body.conversation_id or "acc_" + __import__('secrets').token_hex(8)
+    user_message = body.message
+
+    # Ensure conversation exists
+    existing = await S.db.nexify_ai_conversations.find_one({"conversation_id": conversation_id})
+    if not existing:
+        await S.db.nexify_ai_conversations.insert_one({
+            "conversation_id": conversation_id,
+            "title": user_message[:80],
+            "created_at": utcnow().isoformat(),
+            "updated_at": utcnow().isoformat(),
+            "created_by": admin.get("email", "admin"),
+            "message_count": 0,
+            "platform": "admin-cockpit",
+        })
+
+    # Store user message
+    await S.db.nexify_ai_messages.insert_one({
+        "message_id": new_id("msg"),
+        "conversation_id": conversation_id,
+        "role": "user",
+        "content": user_message,
+        "created_at": utcnow().isoformat(),
+    })
+
+    # Also save to chat_hub for cross-platform sync
+    try:
+        await S.db.chat_hub.insert_one({
+            "platform": "admin-cockpit",
+            "role": "user",
+            "content": user_message,
+            "conversation_id": conversation_id,
+            "created_at": utcnow().isoformat(),
+        })
+    except Exception:
+        pass
+
+    # Build system context: Brain summary + tasks + incidents
+    system_context_parts = []
+
+    # 1. Brain stats
+    try:
+        brain_notes_count = await S.db.get_collection("brain_notes").count_documents({}) if hasattr(S.db, "get_collection") else 0
+        if brain_notes_count > 0:
+            system_context_parts.append(f"Brain: {brain_notes_count} Eintraege verfuegbar (semantische Suche moeglich).")
+    except Exception:
+        pass
+
+    # 2. Open tasks
+    try:
+        tasks_coll = S.db.get_collection("oracle_tasks") if hasattr(S.db, "get_collection") else S.db.oracle_tasks
+        open_tasks = await tasks_coll.count_documents({"status": {"$in": ["waiting", "in_progress"]}})
+        if open_tasks > 0:
+            recent_tasks = await tasks_coll.find({"status": {"$in": ["waiting", "in_progress"]}}).sort("created_at", -1).limit(5).to_list(5)
+            task_lines = [f"- {t.get('title', 'Task')} [{t.get('status', '?')}]" for t in recent_tasks]
+            system_context_parts.append(f"Offene Tasks ({open_tasks}):\n" + "\n".join(task_lines))
+    except Exception:
+        pass
+
+    # 3. Active agents  
+    try:
+        agents_coll = S.db.get_collection("ai_agents") if hasattr(S.db, "get_collection") else S.db.ai_agents
+        active_agents = await agents_coll.count_documents({"status": "active"})
+        if active_agents > 0:
+            system_context_parts.append(f"Aktive Agenten: {active_agents}.")
+    except Exception:
+        pass
+
+    # 4. Skills summary
+    try:
+        skills_count = 0
+        try:
+            import sqlite3
+            brain_db = sqlite3.connect("/opt/data/brain/brain.db")
+            skills_count = brain_db.execute("SELECT COUNT(*) FROM skills_cache").fetchone()[0]
+            brain_db.close()
+        except Exception:
+            pass
+        if skills_count > 0:
+            system_context_parts.append(f"Skills: {skills_count} registriert (aktivieren/deaktivieren moeglich).")
+    except Exception:
+        pass
+
+    system_context = "\n".join(system_context_parts) if system_context_parts else "Kein spezifischer System-Kontext geladen."
+
+    # Build messages array
+    messages = [
+        {
+            "role": "system",
+            "content": f"""Du bist das NeXifyAI Admin Cockpit (Hermes Agent). Du steuerst das gesamte NeXifyAI-System.
+
+Deine Faehigkeiten:
+- Tasks anlegen/verwalten in Supabase (oracle_tasks)
+- Brain durchsuchen (semantische Vektorsuche ueber Qdrant)
+- Skills aktivieren/deaktivieren (Liste ueber API abrufbar)
+- Subagenten delegieren: Code-Review, Security-Audit, Dependency-Scan
+- Wissensquellen durchsuchen (Supabase-Docs, Anwendungs-Doku)
+- Health-Score abrufen (/api/autopilot/health)
+- GitHub-Commit-Status abfragen ueber MCP
+- Build- und Deploy-Status abrufen
+
+SYSTEM-KONTEXT (live):
+{system_context}
+
+Der Benutzer ist der CEO (Pascal Courbois), Admin. Antworte kompakt, faktisch, auf Deutsch, in Du-Form. Keine KI-Floskeln.
+Bei Auftraegen: Sage WAS du tun wirst, fuehre es aus, melde das Ergebnis.
+Bei Fehlern: Analysiere die Ursache und schlage einen Fix vor.
+Format: Strukturiert mit **Fettschrift** und Aufzaehlungen."""
+        },
+        {"role": "user", "content": user_message}
+    ]
+
+    # Stream from OpenRouter
+    async def stream_openrouter():
+        full_response = ""
+        started = _time.time()
+        try:
+            openrouter_url = os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1") + "/chat/completions"
+            openrouter_key = os.environ.get("OPENROUTER_API_KEY", "")
+            model = os.environ.get("OPENROUTER_MODEL", "deepseek/deepseek-v4-pro")
+
+            if not openrouter_key:
+                yield f"data: {json.dumps({'error': 'OPENROUTER_API_KEY nicht konfiguriert'})}\n\n"
+                return
+
+            async with httpx.AsyncClient(timeout=300) as client:
+                async with client.stream(
+                    "POST", openrouter_url,
+                    headers={
+                        "Authorization": f"Bearer {openrouter_key}",
+                        "Content-Type": "application/json",
+                        "HTTP-Referer": "https://admin.nexifyai.cloud",
+                        "X-Title": "NeXifyAI Admin Cockpit",
+                    },
+                    json={
+                        "model": model,
+                        "messages": messages,
+                        "temperature": 0.5,
+                        "max_tokens": 6000,
+                        "stream": True,
+                    }
+                ) as resp:
+                    if resp.status_code != 200:
+                        err_text = await resp.aread()
+                        err_msg = err_text[:300].decode('utf-8', errors='replace')
+                        yield f"data: {json.dumps({'error': f'OpenRouter-Fehler ({resp.status_code}): {err_msg}'})}\n\n"
+                        return
+
+                    async for line in resp.aiter_lines():
+                        if not line or not line.startswith("data: "):
+                            continue
+                        chunk = line[6:]
+                        if chunk.strip() == "[DONE]":
+                            break
+                        try:
+                            data = json.loads(chunk)
+                            delta = data.get("choices", [{}])[0].get("delta", {})
+                            content = delta.get("content", "")
+                            if content:
+                                full_response += content
+                                yield f"data: {json.dumps({'content': content, 'conversation_id': conversation_id})}\n\n"
+                        except json.JSONDecodeError:
+                            continue
+
+        except Exception as e:
+            logger.error(f"Admin cockpit chat stream error: {e}")
+            yield f"data: {json.dumps({'error': f'Stream-Fehler: {str(e)}'})}\n\n"
+            return
+
+        # Store assistant response
+        if full_response:
+            await S.db.nexify_ai_messages.insert_one({
+                "message_id": new_id("msg"),
+                "conversation_id": conversation_id,
+                "role": "assistant",
+                "content": full_response,
+                "created_at": utcnow().isoformat(),
+            })
+            await S.db.nexify_ai_conversations.update_one(
+                {"conversation_id": conversation_id},
+                {"$set": {"updated_at": utcnow().isoformat()}, "$inc": {"message_count": 1}}
+            )
+            # Sync to chat_hub
+            try:
+                await S.db.chat_hub.insert_one({
+                    "platform": "admin-cockpit",
+                    "role": "assistant",
+                    "content": full_response,
+                    "conversation_id": conversation_id,
+                    "created_at": utcnow().isoformat(),
+                })
+            except Exception:
+                pass
+
+        elapsed = _time.time() - started
+        yield f"data: {json.dumps({'content': '', 'conversation_id': conversation_id, 'done': True, 'elapsed_ms': int(elapsed*1000)})}\n\n"
+
+    return StreamingResponse(stream_openrouter(), media_type="text/event-stream")
+
+
+# ─── Dashboard Endpoint for Admin Cockpit ───
+@router.get("/api/admin/dashboard")
+async def admin_dashboard(admin: dict = Depends(get_admin_from_token)):
+    """Aggregated dashboard data for the Admin Cockpit."""
+    try:
+        tasks_coll = S.db.get_collection("oracle_tasks") if hasattr(S.db, "get_collection") else S.db.oracle_tasks
+        agents_coll = S.db.get_collection("ai_agents") if hasattr(S.db, "get_collection") else S.db.ai_agents
+
+        open_tasks = await tasks_coll.count_documents({"status": {"$in": ["waiting", "in_progress"]}})
+        today = utcnow().strftime("%Y-%m-%d")
+        today_incidents = await tasks_coll.count_documents({
+            "status": "failed",
+            "created_at": {"$regex": f"^{today}"}
+        })
+        active_agents = await agents_coll.count_documents({"status": "active"})
+
+        return {
+            "open_tasks": open_tasks,
+            "today_incidents": today_incidents,
+            "active_agents": active_agents,
+            "timestamp": utcnow().isoformat(),
+        }
+    except Exception as e:
+        return {"error": str(e), "open_tasks": 0, "today_incidents": 0, "active_agents": 0}
+
+
+# ─── Workflow Status for Admin Cockpit ───
+@router.get("/api/admin/workflow-status")
+async def workflow_status(admin: dict = Depends(get_admin_from_token)):
+    """GitHub Workflow badge status for the dashboard."""
+    return {
+        "workflows": {
+            "Security Scan": {"status": "unknown", "url": "https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/security-scan.yml"},
+            "CI Quality Gates": {"status": "unknown", "url": "https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/quality-gates.yml"},
+            "Tests": {"status": "unknown", "url": "https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/tests.yml"},
+            "Vercel Deploy": {"status": "unknown", "url": "https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/deploy.yml"},
+        },
+        "timestamp": utcnow().isoformat(),
+    }
+
+
+# ─── Skills List for Admin Cockpit ───
+@router.get("/api/admin/skills")
+async def list_skills(admin: dict = Depends(get_admin_from_token)):
+    """List all registered skills with status."""
+    skills = []
+    try:
+        import sqlite3
+        brain_db = sqlite3.connect("/opt/data/brain/brain.db")
+        rows = brain_db.execute("SELECT name, description, category, active FROM skills_cache ORDER BY name").fetchall()
+        brain_db.close()
+        for row in rows:
+            skills.append({
+                "name": row[0],
+                "description": row[1] or "",
+                "category": row[2] or "",
+                "active": bool(row[3]) if row[3] is not None else True,
+            })
+    except Exception as e:
+        logger.warning(f"Skills list error: {e}")
+
+    return {"skills": skills}
+
+
+# ─── Toggle Skill for Admin Cockpit ───
+@router.patch("/api/admin/skills/{skill_name}")
+async def toggle_skill(skill_name: str, body: dict, admin: dict = Depends(get_admin_from_token)):
+    """Toggle a skill active/inactive."""
+    active = body.get("active", True)
+    try:
+        import sqlite3
+        brain_db = sqlite3.connect("/opt/data/brain/brain.db")
+        brain_db.execute("UPDATE skills_cache SET active = ? WHERE name = ?", (int(active), skill_name))
+        brain_db.commit()
+        brain_db.close()
+        return {"name": skill_name, "active": active, "status": "ok"}
+    except Exception as e:
+        return {"error": str(e), "status": "failed"}
+
+
+# ─── Brain Search for Admin Cockpit ───
+@router.get("/api/brain/search")
+async def brain_search(q: str = "", admin: dict = Depends(get_admin_from_token)):
+    """Semantic search over Brain entries (from brain.db)."""
+    if not q or len(q.strip()) < 2:
+        return {"results": []}
+
+    results = []
+    try:
+        import sqlite3
+        brain_db = sqlite3.connect("/opt/data/brain/brain.db")
+        # Simple FTS-like search on memories table
+        rows = brain_db.execute(
+            "SELECT key, content, category FROM memories WHERE content LIKE ? OR key LIKE ? LIMIT 10",
+            (f"%{q}%", f"%{q}%")
+        ).fetchall()
+        brain_db.close()
+        for row in rows:
+            results.append({
+                "title": row[0] or "Eintrag",
+                "content": (row[1] or "")[:300],
+                "category": row[2] or "",
+            })
+    except Exception as e:
+        logger.warning(f"Brain search error: {e}")
+
+    return {"results": results}
+
+
+# ─── GitHub Last Commit for Admin Cockpit ───
+@router.get("/api/admin/github/last-commit")
+async def last_commit(admin: dict = Depends(get_admin_from_token)):
+    """Fetch last commit info via git on VPS."""
+    import subprocess
+    try:
+        result = subprocess.run(
+            ["git", "log", "-1", "--format=%H|%s|%an|%ai"],
+            capture_output=True, text=True, timeout=10,
+            cwd="/opt/nexifyai-website-sicherheitskopie"
+        )
+        if result.returncode == 0:
+            parts = result.stdout.strip().split("|")
+            return {
+                "sha": parts[0] if len(parts) > 0 else "",
+                "message": parts[1] if len(parts) > 1 else "",
+                "author": parts[2] if len(parts) > 2 else "",
+                "date": parts[3] if len(parts) > 3 else "",
+            }
+    except Exception as e:
+        logger.warning(f"Git last commit error: {e}")
+
+    return {"sha": "unknown", "message": "nicht verfuegbar", "author": "", "date": ""}
+
+
+# ─── Build Report for Admin Cockpit ───
+@router.get("/api/admin/build-report")
+async def build_report(admin: dict = Depends(get_admin_from_token)):
+    """Current build and deploy status."""
+    import subprocess
+    report = {"status": "unknown", "last_deploy": "", "branch": "", "commit": ""}
+
+    try:
+        result = subprocess.run(
+            ["git", "log", "-1", "--format=%H|%s|%ai"],
+            capture_output=True, text=True, timeout=10,
+            cwd="/opt/nexifyai-website-sicherheitskopie"
+        )
+        if result.returncode == 0:
+            parts = result.stdout.strip().split("|")
+            report["commit"] = parts[0] if len(parts) > 0 else ""
+            report["last_deploy"] = parts[2] if len(parts) > 2 else ""
+    except Exception:
+        pass
+
+    try:
+        result = subprocess.run(
+            ["git", "branch", "--show-current"],
+            capture_output=True, text=True, timeout=5,
+            cwd="/opt/nexifyai-website-sicherheitskopie"
+        )
+        report["branch"] = result.stdout.strip()
+    except Exception:
+        pass
+
+    # Check if backend is running
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=5) as client:
+            resp = await client.get("http://127.0.0.1:8001/api/health")
+            if resp.status_code == 200:
+                report["status"] = "healthy"
+    except Exception:
+        report["status"] = "backend_down"
+
+    return report
+
+
+# ─── Supabase Auth JWT Validation Helper ───
+async def validate_supabase_jwt(token: str) -> dict | None:
+    """Validate a Supabase JWT token and return user info if valid."""
+    import jwt as pyjwt
+    supabase_jwt_secret = os.environ.get("SUPABASE_JWT_SECRET", "")
+    if not supabase_jwt_secret:
+        return None
+
+    try:
+        payload = pyjwt.decode(token, supabase_jwt_secret, algorithms=["HS256"], audience="authenticated")
+        email = payload.get("email") or payload.get("sub")
+        role = payload.get("user_metadata", {}).get("role") or payload.get("app_metadata", {}).get("role")
+        return {"email": email, "role": role, "id": payload.get("sub")}
+    except Exception:
+        return None
 

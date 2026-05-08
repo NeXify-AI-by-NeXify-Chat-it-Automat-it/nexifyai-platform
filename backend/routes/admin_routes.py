@@ -59,7 +59,7 @@ async def admin_stats(user = Depends(get_current_admin)):
     invoices_total = await col('invoices').count_documents({})
     projects_total = await col('projects').count_documents({})
     
-    status_agg = await col('leads').aggregate([{"$group": {"_id": "$status", "count": {"$sum": 1}}}])
+    status_agg = await col('leads').aggregate([{"$group": {"_id": "$status", "count": {"$sum": 1}}}]).to_list(None)
     
     recent_leads = []
     async for l in col('leads').find({}, {"_id": 0}):
@@ -303,7 +303,7 @@ async def admin_customers(user = Depends(get_current_admin), search: str = None)
             {"email": {"$regex": search, "$options": "i"}},
             {"unternehmen": {"$regex": search, "$options": "i"}}
         ]}})
-    customers = await col('leads').aggregate(pipeline)
+    customers = await col('leads').aggregate(pipeline).to_list(None)
     for c in customers:
         c["email"] = c.pop("_id")
         booking_count = await col('bookings').count_documents({"email": c["email"]})

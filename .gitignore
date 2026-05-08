@@ -60,3 +60,9 @@ backend/routes/newsletter_routes.py
 backend/routes/secrets_routes.py
 backend/routes/signatures_routes.py
 .env*.local
+
+# Cron output
+automations/cron/output/*.json
+
+# Backup files
+*.bak-*
