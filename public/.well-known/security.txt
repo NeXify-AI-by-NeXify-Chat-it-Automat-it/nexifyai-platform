@@ -1,0 +1,8 @@
+# NeXifyAI Security Contact
+Contact: mailto:security@nexify-automate.com
+Expires: 2027-05-08T23:59:59Z
+Encryption: https://www.nexify-automate.com/pgp-key.asc
+Acknowledgments: https://www.nexify-automate.com/security/hall-of-fame
+Policy: https://www.nexify-automate.com/security/policy
+Hiring: https://www.nexify-automate.com/careers
+Canonical: https://www.nexify-automate.com/.well-known/security.txt

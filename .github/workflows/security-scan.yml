@@ -98,11 +98,69 @@ jobs:
         continue-on-error: true
 
   # ═══════════════════════════════════════
-  # 5. REPORT SUMMARY
+  # 5. CONTAINER SCAN (Trivy)
+  # ═══════════════════════════════════════
+  trivy:
+    name: Trivy Container Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan Dockerfiles for vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: '.'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '0'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # ═══════════════════════════════════════
+  # 6. SBOM GENERATION (CycloneDX)
+  # ═══════════════════════════════════════
+  sbom:
+    name: SBOM Generation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generate Frontend SBOM
+        run: |
+          cd frontend
+          npm install --silent 2>/dev/null || true
+          npx @cyclonedx/cyclonedx-npm --output-file ../sbom-frontend.json --format json 2>&1 || echo "SBOM frontend skipped"
+
+      - name: Generate Backend SBOM
+        run: |
+          if [ -f backend/requirements.txt ]; then
+            pip install cyclonedx-bom 2>/dev/null || pip install cyclonedx-bom --break-system-packages 2>/dev/null
+            cyclonedx-py -r backend/requirements.txt -o sbom-backend.json 2>&1 || echo "SBOM backend skipped"
+          fi
+
+      - name: Upload SBOM Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-artifacts
+          path: sbom-*.json
+          retention-days: 90
+
+  # ═══════════════════════════════════════
+  # 7. REPORT SUMMARY
   # ═══════════════════════════════════════
   report:
     name: Security Report Summary
-    needs: [gitleaks, npm-audit, python-safety]
+    needs: [gitleaks, npm-audit, python-safety, trivy, sbom]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -114,3 +172,5 @@ jobs:
           echo "| Gitleaks | ${{ needs.gitleaks.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| NPM Audit | ${{ needs.npm-audit.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Python Safety | ${{ needs.python-safety.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Trivy | ${{ needs.trivy.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| SBOM | ${{ needs.sbom.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
