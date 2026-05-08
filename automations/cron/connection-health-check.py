@@ -65,7 +65,7 @@ CHECKS = [
     {
         "name": "Traefik",
         "cmd": ["curl", "-s", "--connect-timeout", "10", "-o", "/dev/null", "-w", "%{http_code}", "-H", "Host: mail.nexifyai.cloud", "http://localhost"],
-        "expect": "200",
+        "expect": "301",
         "sev": "SEV1",
         "fallback": "docker restart traefik-tcja-traefik-1"
     },

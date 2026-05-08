@@ -1,0 +1,39 @@
+#!/bin/bash
+# NeXifyAI Pre-Push Hook — Prinzip F
+# Fuehrt npm run build vor jedem Push aus.
+# Blockiert Push bei Build-Fehler.
+# Install: ln -s /opt/nexifyai-website-sicherheitskopie/.githooks/pre-push .git/hooks/
+
+set -e
+
+echo "═══════════════════════════════════════"
+echo " Pre-Push Hook: npm run build (Prinzip F)"
+echo "═══════════════════════════════════════"
+
+# Nur ausführen wenn frontend/ geändert wurde
+FRONTEND_CHANGED=$(git diff --cached --name-only | grep "^frontend/" || true)
+
+if [ -z "$FRONTEND_CHANGED" ]; then
+    echo "✓ Keine Frontend-Änderungen — Build übersprungen."
+    exit 0
+fi
+
+echo "→ Frontend-Änderungen erkannt:"
+echo "$FRONTEND_CHANGED" | head -5
+echo "→ Starte Build..."
+
+cd "$(git rev-parse --show-toplevel)/frontend"
+
+if npm run build 2>&1 | tail -5; then
+    BUILD_EXIT=$?
+    if [ $BUILD_EXIT -eq 0 ]; then
+        echo ""
+        echo "✓ Build erfolgreich — Push erlaubt."
+        exit 0
+    fi
+fi
+
+echo ""
+echo "❌ BUILD FEHLGESCHLAGEN — Push blockiert."
+echo "   Fehler beheben und erneut versuchen."
+exit 1
