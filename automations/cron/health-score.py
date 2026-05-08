@@ -72,7 +72,7 @@ def calculate_health_score(metrics: dict) -> dict:
     if events >= 10:       scores["conversion"] = 100.0
     elif events >= 5:      scores["conversion"] = 75.0
     elif events >= 1:      scores["conversion"] = 50.0
-    else:                  scores["conversion"] = 0.0
+    else:                  scores["conversion"] = 50.0  # 0 events = kein Traffic (early stage, kein Alarm)
     
     total = sum(scores[k] * WEIGHTS[k] for k in WEIGHTS)
     
