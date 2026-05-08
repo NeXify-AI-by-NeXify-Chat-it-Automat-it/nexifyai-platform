@@ -19,6 +19,7 @@ import PreisePage from './pages/PreisePage';
 import KontaktPage from './pages/KontaktPage';
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
+import HealthStatusPage from './pages/admin-next/HealthStatusPage';
 
 import Admin from './pages/Admin';
 
@@ -92,6 +93,9 @@ root.render(
             {/* Customer Portal (JWT-authenticated) */}
             <Route path="/portal" element={<CustomerPortal />} />
             <Route path="/portal/:token" element={<CustomerPortal />} />
+
+            {/* Public Health Status Page */}
+            <Route path="/health" element={<HealthStatusPage />} />
 
             {/* Backward compatibility: old routes without lang prefix */}
             <Route path="/impressum" element={<LegacyRedirect slug="impressum" />} />
