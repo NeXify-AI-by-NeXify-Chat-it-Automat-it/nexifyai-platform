@@ -492,24 +492,142 @@ class MCPToolRouter:
             raise RuntimeError(f"GitHub REST '{tool}' failed: {str(e)}")
 
     def _call_vercel_mcp(self, tool: str, args: Dict, timeout: int) -> Dict:
-        """Real Vercel execution via vercel CLI."""
-        import subprocess, json as _json
-        project = args.get("project", "nexify-automate")
-        cmd_map = {
-            "vercel.deploy": ["vercel", "--prod", "--yes", "--force"],
-            "vercel.get_status": ["vercel", "ls", "--limit", "1"],
-            "vercel.list_deployments": ["vercel", "ls", "--limit", str(args.get("limit", 5))],
-            "vercel.rollback": ["vercel", "rollback", args.get("deployment_id", "")],
+        """
+        Real Vercel execution via REST API (VERCEL_TOKEN).
+
+        NOT subprocess.run(['vercel', ...]) — same reasons as GitHub.
+        INSTEAD: typed httpx → api.vercel.com → structured JSON.
+
+        Deployment State Machine:
+          QUEUED → BUILDING → READY | ERROR | CANCELED
+          READY → PROMOTING → production or rollback
+
+        Routes:
+          vercel.deploy          → POST /v13/deployments
+          vercel.get_status      → GET  /v13/deployments/{id}
+          vercel.list_deployments → GET  /v6/deployments?projectId=...
+          vercel.rollback        → POST /v13/deployments/{id}/rollback
+          vercel.get_project     → GET  /v9/projects/{id}
+        """
+        import os, httpx
+
+        token = os.getenv("VERCEL_TOKEN", "")
+        project = args.get("project", "frontend")
+        project_id = args.get("project_id", "prj_abAYg51SsmuIzdVKdITCLwGtQCF7")
+        team_id = args.get("team_id", "team_HdaGZDUM4UwY92m4EfTBQgHn")
+        base = "https://api.vercel.com"
+
+        # Team scope parameter for all requests
+        team_param = {"teamId": team_id} if team_id else {}
+
+        routes = {
+            "vercel.get_status": (
+                "GET", f"{base}/v13/deployments/{args.get('deployment_id', '')}",
+                lambda a: {**team_param}
+            ),
+            "vercel.list_deployments": (
+                "GET", f"{base}/v6/deployments",
+                lambda a: {
+                    **team_param,
+                    "projectId": project_id,
+                    "limit": min(a.get("limit", 5), 100),
+                }
+            ),
+            "vercel.get_project": (
+                "GET", f"{base}/v9/projects/{project_id}",
+                lambda a: {**team_param}
+            ),
         }
-        cmd = cmd_map.get(tool, ["vercel", "ls"])
+
+        route = routes.get(tool)
+        if not route:
+            return {
+                "handler": "vercel_rest", "tool": tool, "args": args,
+                "executed": False,
+                "error": f"Tool '{tool}' not in Vercel REST route map",
+                "timestamp": time.time(),
+            }
+
+        method, url, param_fn = route
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        }
+
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True,
-                timeout=min(timeout, 120000)/1000)
-            return {"handler": "vercel_mcp", "tool": tool, "executed": True,
-                    "exit_code": result.returncode, "result": result.stdout.strip()[:2000],
-                    "timestamp": time.time()}
+            if method == "GET":
+                resp = httpx.get(url, headers=headers, params=param_fn(args),
+                                 timeout=min(timeout, 30000) / 1000)
+            else:
+                resp = httpx.request(method, url, headers=headers,
+                                     params=param_fn(args),
+                                     timeout=min(timeout, 30000) / 1000)
+
+            if resp.status_code >= 400:
+                raise RuntimeError(
+                    f"Vercel API {resp.status_code}: {resp.text[:500]}"
+                )
+
+            data = resp.json()
+            return {
+                "handler": "vercel_rest",
+                "tool": tool,
+                "method": method,
+                "url": url,
+                "executed": True,
+                "status_code": resp.status_code,
+                "result": data,
+                "timestamp": time.time(),
+            }
+        except httpx.TimeoutException:
+            raise RuntimeError(f"Vercel REST '{tool}' timed out after {timeout}ms")
         except Exception as e:
-            raise RuntimeError(f"Vercel tool '{tool}' failed: {str(e)}")
+            raise RuntimeError(f"Vercel REST '{tool}' failed: {str(e)}")
+
+    def wait_for_deployment(self, deployment_id: str,
+                            timeout_s: int = 300,
+                            poll_interval_s: int = 3) -> Dict:
+        """
+        Poll Vercel deployment until READY or ERROR.
+
+        Returns final deployment state with structured status.
+        NOT time.sleep(10) blindly.
+        """
+        import os, httpx, time as _time
+
+        token = os.getenv("VERCEL_TOKEN", "")
+        team_id = "team_HdaGZDUM4UwY92m4EfTBQgHn"
+        deadline = _time.monotonic() + timeout_s
+
+        while _time.monotonic() < deadline:
+            resp = httpx.get(
+                f"https://api.vercel.com/v13/deployments/{deployment_id}",
+                headers={"Authorization": f"Bearer {token}"},
+                params={"teamId": team_id},
+                timeout=15.0,
+            )
+
+            if resp.status_code != 200:
+                return {"state": "ERROR", "status_code": resp.status_code,
+                        "error": resp.text[:500]}
+
+            data = resp.json()
+            state = data.get("readyState", data.get("state", "UNKNOWN"))
+
+            if state in ("READY", "ERROR", "CANCELED"):
+                return {
+                    "deployment_id": deployment_id,
+                    "state": state,
+                    "url": data.get("url", ""),
+                    "inspector_url": f"https://vercel.com/agentur/frontend/{deployment_id}",
+                    "ready": data.get("ready", 0),
+                    "created_at": data.get("createdAt", 0),
+                }
+
+            _time.sleep(poll_interval_s)
+
+        return {"deployment_id": deployment_id, "state": "TIMEOUT",
+                "timeout_s": timeout_s}
 
     def _call_supabase_mcp(self, tool: str, args: Dict, timeout: int) -> Dict:
         """Real Supabase execution via psql or REST API."""
