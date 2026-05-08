@@ -397,7 +397,7 @@ const AdminCockpit = ({ onFallback }) => {
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#080c12', color: '#fff', fontFamily: 'var(--f-sans), -apple-system, BlinkMacSystemFont, sans-serif' }}>
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <img src="/nexifyai-logo-light.png" alt="NeXifyAI" height="22" />
+          <img src="/nexifyai-logo-light.png" alt="NeXifyAI by NeXify — Chat it. Automate it." height="22" />
           <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>Admin Cockpit v2</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: '0.8rem' }}>
