@@ -43,6 +43,8 @@ def sync_dos_to_brain():
         try:
             conn = sqlite3.connect(BRAIN_DB)
             cursor = conn.cursor()
+            # Tabelle anlegen falls nicht vorhanden
+            cursor.execute("CREATE TABLE IF NOT EXISTS memories (key TEXT PRIMARY KEY, value TEXT, category TEXT, timestamp TEXT)")
             cursor.execute("""
                 INSERT OR REPLACE INTO memories (key, value, category, timestamp)
                 VALUES (?, ?, ?, ?)
@@ -83,9 +85,9 @@ def check_repo_integrity():
     """Prüft ob alle DOS-Pflichtverzeichnisse im Repo existieren."""
     required = [
         "docs", "docs/adrs", "docs/governance", "docs/policies",
-        "packages", "packages/ui", "packages/events", "packages/config",
-        "ops", "ops/ci", "ops/infra", "ops/policies",
-        "automations", "automations/n8n", "automations/cron"
+        "packages", "packages/events", "packages/config",
+        "ops", "ops/policies",
+        "automations", "automations/serverless", "automations/cron"
     ]
 
     missing = []
