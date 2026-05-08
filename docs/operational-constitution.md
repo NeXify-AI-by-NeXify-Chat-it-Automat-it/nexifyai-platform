@@ -217,3 +217,75 @@ This constitution governs:
 - **Auto-Fix Engine** (`packages/ui/violation_lineage.py`)
 
 No component is exempt. Local truth is forbidden. Method drift is an incident.
+
+
+
+## VI. DEPLOYMENT CONFIDENCE (E4.5)
+
+A deployment is a mutation. Per §I.2, every mutation requires re-observation.
+A deployment is NOT a point-in-time event — it is a continuously revalidated operational state.
+
+```
+DEPLOYED
+  → STABILIZING (≥3s)
+  → RE-OBSERVED (all observers)
+  → CANONICAL VERIFIED (systemctl/docker ps)
+  → TEMPORALLY VALIDATED (confidence fresh)
+  → CONVERGED (no contradictions)
+```
+
+### Deployment Confidence Model
+
+```
+deployment_confidence(t) = confidence_0 × decay(t) + convergence_score
+
+Where:
+  decay(t) = 0.95 ^ (t_hours)
+
+At t=0:    confidence = 1.0 (fresh deploy)
+At t=1h:   confidence *= 0.95
+At t=6h:   confidence *= 0.70
+At t=24h:  confidence *= 0.30
+At t=48h:  confidence → stale (must re-validate)
+
+Penalties:
+  dependency_contradiction: confidence *= 0.6
+  observer_divergence: confidence *= 0.7
+  runtime_degradation: confidence *= 0.5
+  no_reobservation >4h: confidence *= 0.4
+
+Bonuses:
+  all_observers_converge: confidence += 0.1
+  dependency_health_consistent: confidence += 0.05
+  temporal_freshness <1h: confidence += 0.05
+```
+
+### Deployment Illusions
+
+| Illusion | Reality | Detection |
+|----------|---------|-----------|
+| "Deploy succeeded" | Runtime degraded | Re-observe after deploy |
+| "CI green" | Observer contradiction | Multi-observer check |
+| "Last known healthy" | 4h stale truth | Temporal decay |
+| "All services up" | Dependency drifted | Truth Graph validation |
+| "Vercel deployed" | DNS not propagated | External observer probe |
+
+### Prohibited Deployment Patterns
+
+```
+❌ "latest deployment successful" WITHOUT:
+    - runtime convergence validation
+    - dependency convergence check
+    - canonical source verification
+    - temporal freshness <1h
+    - contradiction count = 0
+
+❌ Deploy-then-forget:
+    - No post-deploy health check
+    - No re-observation window
+    - No confidence tracking over time
+
+❌ CI/CD success == deployment success:
+    - CI exit code is EXECUTION layer, not CANONICAL
+    - A green pipeline does not mean the system converged
+```
