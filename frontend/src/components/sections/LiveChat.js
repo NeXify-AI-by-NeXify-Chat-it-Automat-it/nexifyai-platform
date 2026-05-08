@@ -137,7 +137,7 @@ const LiveChat = ({ isOpen, onClose, initialQ, onBook, t, lang }) => {
             <I n="arrow_back" />
           </button>
           <div className="chat-mobile-brand">
-            <img src="/nexifyai-logo-light.png" alt="neXifyAI" height="18" />
+            <img src="/nexifyai-logo-light.png" alt="neXifyAI" style={{height:18}} />
             <span className="chat-mobile-title">NeXify<span className="chat-accent">AI</span> {aiLabel[lang] || aiLabel.de}</span>
           </div>
           <div className="chat-mobile-status"><span className="status-dot on" /></div>
@@ -152,7 +152,7 @@ const LiveChat = ({ isOpen, onClose, initialQ, onBook, t, lang }) => {
           {/* Sidebar (Desktop only) */}
           <div className="chat-sidebar" data-testid="chat-sidebar">
             <div className="chat-sidebar-brand">
-              <img src="/nexifyai-logo-light.png" alt="neXifyAI" height="22" />
+              <img src="/nexifyai-logo-light.png" alt="neXifyAI" style={{height:22}} />
               <div>
                 <h2 id="chat-t" className="chat-sidebar-title">NeXify<span className="chat-accent">AI</span></h2>
                 <span className="chat-sidebar-role">{t.chat.sidebarRole}</span>
