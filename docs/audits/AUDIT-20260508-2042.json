@@ -1,0 +1,151 @@
+{
+  "audit_id": "AUDIT-20260508-2042",
+  "timestamp": "2026-05-08T20:42:57.404427",
+  "directive": "DOS-v2.1-Enterprise-Autonomous-Orchestration",
+  "health_score": 70.0,
+  "health_status": "FAIR (below 80% threshold)",
+  "connection_health": "4/8 (50%)",
+  "dos_compliance": "100% (25/25 passed)",
+  "findings": {
+    "critical": [
+      {
+        "id": "F-001",
+        "severity": "critical",
+        "category": "health",
+        "title": "Health-Score unter 80%: 70%",
+        "detail": "Backend nicht erreichbar (uptime: 0%). Verbindungs-Health 4/8.",
+        "affected": [
+          "Backend",
+          "Umami",
+          "Traefik",
+          "GitHub SSH"
+        ],
+        "recommendation": "Backend-Start pr\u00fcfen, Umami+Traefik Container neustarten, GitHub SSH-Key fixen"
+      },
+      {
+        "id": "F-002",
+        "severity": "critical",
+        "category": "architecture",
+        "title": "4 Pflicht-Dokumente fehlen",
+        "detail": "zielarchitektur-v2.md, bauplan.md, rollen-kompendium.md, license-policy.md",
+        "affected": [
+          "docs/architecture",
+          "docs/governance",
+          "docs/policies"
+        ],
+        "recommendation": "Dokumente aus DOS-v2.0 + nexify-builder Skill extrahieren und erstellen"
+      }
+    ],
+    "high": [
+      {
+        "id": "F-003",
+        "severity": "high",
+        "category": "mock",
+        "title": "Mock-Code: pass in Agent-Scan-Methoden",
+        "detail": "refactor_agent.py (2x), finops_agent.py (2x), retrieval_agent.py (1x) enthalten pass in Scan-Methoden",
+        "affected": [
+          "backend/agents/refactor_agent.py",
+          "backend/agents/finops_agent.py",
+          "backend/agents/retrieval_agent.py"
+        ],
+        "recommendation": "Echte Scan-Implementierung oder als NOOP deklarieren mit Begr\u00fcndung"
+      },
+      {
+        "id": "F-004",
+        "severity": "high",
+        "category": "mock",
+        "title": "return [] in runtime_governance.py Suchfunktionen",
+        "detail": "2 Instanzen von return [] ohne echte Qdrant/Honcho-Integration",
+        "affected": [
+          "backend/runtime/runtime_governance.py"
+        ],
+        "recommendation": "Echte Brain-Integration implementieren"
+      },
+      {
+        "id": "F-005",
+        "severity": "high",
+        "category": "security",
+        "title": "Gitleaks + Trivy nicht lokal installiert",
+        "detail": "Security-Tools fehlen im Container. CI hat sie, aber lokale Pre-Commit-Checks nicht m\u00f6glich.",
+        "affected": [
+          "Container-Image"
+        ],
+        "recommendation": "gitleaks + trivy in Container/Dockerfile installieren"
+      }
+    ],
+    "medium": [
+      {
+        "id": "F-006",
+        "severity": "medium",
+        "category": "mock",
+        "title": "except: pass in enterprise_health.py",
+        "detail": "3 bare except:pass Bl\u00f6cke verschlucken Exceptions still.",
+        "affected": [
+          "backend/health/enterprise_health.py"
+        ],
+        "recommendation": "Durch except Exception as e: logger.error(...) ersetzen"
+      },
+      {
+        "id": "F-007",
+        "severity": "medium",
+        "category": "docs",
+        "title": "ADR-Abdeckung nur 7 St\u00fcck",
+        "detail": "DOS v2.1 verlangt ADRs f\u00fcr jede relevante Architekturentscheidung. Aktuell nur ADR-001 bis 007.",
+        "affected": [
+          "docs/adrs/"
+        ],
+        "recommendation": "ADR-008+ f\u00fcr fehlende Entscheidungen (Runtime, Event-System, Multi-Tenant) erstellen"
+      },
+      {
+        "id": "F-008",
+        "severity": "medium",
+        "category": "tech_debt",
+        "title": "Veraltete Test-Referenzen auf MiniMax",
+        "detail": "test_openrouter_migration_iter81.py testet noch minimax/minimax-m2.7 Modell",
+        "affected": [
+          "backend/tests/test_openrouter_migration_iter81.py"
+        ],
+        "recommendation": "Tests auf aktuelles deepseek-v4-pro Modell migrieren"
+      }
+    ],
+    "low": [
+      {
+        "id": "F-009",
+        "severity": "low",
+        "category": "code_quality",
+        "title": "# TODO in health_v2_routes.py",
+        "detail": "Zeile 249: # TODO count",
+        "affected": [
+          "backend/routes/health_v2_routes.py"
+        ],
+        "recommendation": "TODO aufl\u00f6sen oder Ticket erstellen"
+      },
+      {
+        "id": "F-010",
+        "severity": "low",
+        "category": "docs",
+        "title": "Brain-Verzeichnis teilweise leer",
+        "detail": "brain/architecture, brain/audits, brain/incidents, brain/playbooks existieren aber Inhalte unklar",
+        "affected": [
+          "brain/"
+        ],
+        "recommendation": "Brain-Directories mit aktuellen Daten f\u00fcllen"
+      }
+    ]
+  },
+  "positive_findings": [
+    "\u2705 n8n komplett entfernt (0 Matches)",
+    "\u2705 Stripe nur in Test-Erw\u00e4hnungen + Forbidden-Liste",
+    "\u2705 DOS-Compliance 100% (25/25 Checks)",
+    "\u2705 7 ADRs vorhanden mit Template",
+    "\u2705 8 Packages im Monorepo (analytics, config, events, services, telemetry, ui, workflows)",
+    "\u2705 CI Workflows: 7 (all-badges, ci, deploy, openapi-lint, security-scan, test, uptime-check)",
+    "\u2705 Keine continue-on-error Blocker in CI/CD",
+    "\u2705 Keine echo 'configured' Fake-Meldungen in CI",
+    "\u2705 Brain DB: 4153 Memories, 29.65MB",
+    "\u2705 5 Cron-Scripte in automations/cron/"
+  ],
+  "action_required": true,
+  "sev1": false,
+  "pascal_notification": false
+}
