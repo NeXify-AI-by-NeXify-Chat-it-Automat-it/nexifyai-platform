@@ -22,7 +22,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.13'
 
       - name: Install dependencies
         run: |
@@ -33,9 +33,8 @@ jobs:
       - name: Run pytest
         run: |
           cd backend
-          python -m pytest tests/ --tb=short -x 2>&1 || true
-        continue-on-error: false
-        # ⚠️  Non-blocking: full backend stack not available in CI
+          python -m pytest tests/ --tb=short -x -q 2>&1
+        # BLOCKING: Test failures block merge
 
   # ═══════════════════════════════════════
   # 2. FRONTEND TESTS (jest)
