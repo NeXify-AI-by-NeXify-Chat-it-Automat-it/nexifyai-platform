@@ -119,9 +119,8 @@ Token-Ablauf → 30-Tage-Warnung → automatische Erneuerung oder Eskalation.
 
 ## Health-Check-Ergebnisse
 
-| Datum | GitHub | Vercel | Supabase | DeepSeek | Plausible | Resend | VPS | Traefik | Score |
-|-------|--------|--------|----------|----------|-----------|--------|-----|---------|-------|
-| 2026-05-08 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 100% |
+| 2026-05-09 | ❌ | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ | ❌ | 50% |
+
 
 ---
 
