@@ -28,14 +28,15 @@ jobs:
         run: |
           cd backend
           if [ -f requirements.txt ]; then pip install -r requirements.txt 2>/dev/null || true; fi
-          pip install pytest pytest-asyncio httpx 2>/dev/null
+          pip install pytest pytest-asyncio httpx 2>/dev/null || true
 
       - name: Run pytest
         continue-on-error: true
         run: |
           cd backend
-          python -m pytest tests/ --tb=short -x -q 2>&1 || true
+          python -m pytest tests/ --tb=short -x -q 2>&1
         # NON-BLOCKING: Full backend stack not available in CI.
+        # But we NO LONGER swallow errors with || true — failures are VISIBLE.
 
   # ═══════════════════════════════════════
   # 2. FRONTEND TESTS (jest)
@@ -59,5 +60,6 @@ jobs:
 
       - name: Run jest
         continue-on-error: true
-        run: npx jest --passWithNoTests --ci --maxWorkers=2 2>&1 || true
-        # ⚠️  NON-BLOCKING: Jest config requires ts-node (not in CI).
+        run: npx jest --passWithNoTests --ci --maxWorkers=2 2>&1
+        # NON-BLOCKING: Jest config requires ts-node (not in CI).
+        # But we NO LONGER swallow errors with || true — failures are VISIBLE.

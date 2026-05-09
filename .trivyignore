@@ -1,0 +1,22 @@
+# Trivy Ignore List — Accepted Risks
+# Last updated: 2026-05-09
+# Review quarterly or when fixed versions become available.
+
+# ecdsa 0.19.1 — Minerva timing attack. No fix available.
+# Only used in non-production test utilities. Not exposed to external input.
+CVE-2024-23342
+
+# nth-check 1.0.2 — ReDoS in CSS selector parser. Transitive dep of react-scripts.
+# Only used at build time (CSS optimization), not at runtime. Low real-world risk.
+CVE-2021-3803
+
+# serialize-javascript — RCE via RegExp.flags. Transitive dep of react-scripts/webpack.
+# Only used at build time. Not exposed to user input. Blocked by CSP in production.
+GHSA-5c6j-r48x-rmvq
+
+# underscore 1.13.6 — DoS via recursive flatten. Transitive dep of react-dev-utils.
+# Only used at build time (dev tools). Not exposed to user input.
+CVE-2026-27601
+
+# Secret scanning false positives — .env files contain placeholders, not real secrets.
+# These are template files committed for documentation purposes.
