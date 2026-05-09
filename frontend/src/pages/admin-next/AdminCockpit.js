@@ -1,63 +1,27 @@
 /**
  * AdminCockpit v2 — Neues Admin-Panel
- * Features: Supabase Auth, LiveDashboard, ChatWindow, CommandButtons
- * Lazy-loadable, fällt auf alte Admin.js zurück bei Fehlern
+ * Features: LiveDashboard, ChatWindow, CommandButtons
+ * Auth: Nur Backend JWT (kein Supabase — Frontend hat keinen Direktzugriff)
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { createClient } from '@supabase/supabase-js';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
-
-let supabase = null;
-const getSupabase = () => {
-  if (!supabase) {
-    const url = process.env.REACT_APP_SUPABASE_URL || 'https://placeholder.supabase.co';
-    const key = process.env.REACT_APP_SUPABASE_ANON_KEY || 'placeholder';
-    supabase = createClient(url, key);
-  }
-  return supabase;
-};
 
 const I = ({ n, c }) => (
   <span className={`material-symbols-outlined ${c || ''}`} style={{ fontSize: 'inherit' }}>{n}</span>
 );
 
-// ── Auth ──────────────────────────────────────────────────────────────
+// ── Auth (Backend JWT only) ───────────────────────────────────────────
 const getAdminSession = async () => {
-  // 1) Backend JWT from localStorage (primary — works with all backend endpoints)
   try {
     const storedAuth = JSON.parse(localStorage.getItem('nx_auth') || '{}');
-    if (storedAuth.token && storedAuth.role === 'admin') {
-      const res = await fetch(`${API}/api/admin/stats`, {
-        headers: { 'Authorization': `Bearer ${storedAuth.token}` },
-      });
-      if (res.ok) {
-        return { token: storedAuth.token, email: storedAuth.email, role: 'admin' };
-      }
-    }
-  } catch (e) { /* fallback */ }
-
-  // 2) Supabase session fallback
-  try {
-    const sb = getSupabase();
-    if (!sb) return null;
-    const { data: { session }, error } = await sb.auth.getSession();
-    if (!error && session?.user?.email) {
-      const res = await fetch(`${API}/api/auth/check-email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-        body: JSON.stringify({ email: session.user.email }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.role === 'admin' || data.role === 'dual') {
-          return { token: session.access_token, email: session.user.email, role: 'admin' };
-        }
-      }
-    }
-  } catch (e) { /* fallback */ }
-
-  return null;
+    if (!storedAuth.token || storedAuth.role !== 'admin') return null;
+    const res = await fetch(`${API}/api/admin/stats`, {
+      headers: { 'Authorization': `Bearer ${storedAuth.token}` },
+    });
+    if (!res.ok) return null;
+    return { token: storedAuth.token, email: storedAuth.email, role: 'admin' };
+  } catch (e) { return null; }
 };
 
 // ── Dashboard Card ────────────────────────────────────────────────────
