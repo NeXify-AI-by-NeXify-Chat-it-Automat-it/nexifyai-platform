@@ -180,7 +180,7 @@ uvicorn==0.34.0
 watchfiles==1.1.1
 websockets==16.0
 wrapt==2.1.2
-xxhash==3.6.0
+xxhash==3.7.0
 yarl==1.23.0
 zipp==3.23.0
 zstandard==0.25.0
