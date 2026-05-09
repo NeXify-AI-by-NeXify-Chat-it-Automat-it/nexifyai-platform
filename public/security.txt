@@ -1,0 +1,8 @@
+Contact: mailto:security@nexifyai.de
+Contact: mailto:p.courbois@icloud.com
+Expires: 2027-05-09T00:00:00Z
+Encryption: https://www.nexify-automate.com/.well-known/security.txt
+Acknowledgments: https://www.nexify-automate.com/security/hall-of-fame
+Policy: https://www.nexify-automate.com/SECURITY.md
+Preferred-Languages: en, de
+Canonical: https://www.nexify-automate.com/.well-known/security.txt
