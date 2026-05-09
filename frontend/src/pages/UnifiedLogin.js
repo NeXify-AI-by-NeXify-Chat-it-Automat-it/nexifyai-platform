@@ -53,10 +53,14 @@ const UnifiedLogin = () => {
     if (!email.trim()) { setError('Bitte E-Mail eingeben'); return; }
     setLoading(true);
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
       const res = await fetch(`${API}/api/auth/check-email`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim() }),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
       const data = await res.json();
       setRole(data.role);
       setHasPortalPassword(!!data.has_portal_password);
@@ -107,7 +111,10 @@ const UnifiedLogin = () => {
       const form = new URLSearchParams();
       form.append('username', email.trim());
       form.append('password', password);
-      const res = await fetch(`${API}/api/admin/login`, { method: 'POST', body: form });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      const res = await fetch(`${API}/api/admin/login`, { method: 'POST', body: form, signal: controller.signal });
+      clearTimeout(timeout);
       if (res.ok) {
         const data = await res.json();
         const token = data.access_token;

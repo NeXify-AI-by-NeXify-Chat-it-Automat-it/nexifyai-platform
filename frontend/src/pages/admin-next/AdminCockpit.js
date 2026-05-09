@@ -11,9 +11,9 @@ const API = process.env.REACT_APP_BACKEND_URL || '';
 let supabase = null;
 const getSupabase = () => {
   if (!supabase) {
-    const url = process.env.REACT_APP_SUPABASE_URL || '';
-    const key = process.env.REACT_APP_SUPABASE_ANON_KEY || '';
-    supabase = process.env.REACT_APP_SUPABASE_URL ? createClient(url, key) : null;
+    const url = process.env.REACT_APP_SUPABASE_URL || 'https://placeholder.supabase.co';
+    const key = process.env.REACT_APP_SUPABASE_ANON_KEY || 'placeholder';
+    supabase = createClient(url, key);
   }
   return supabase;
 };
@@ -40,6 +40,7 @@ const getAdminSession = async () => {
   // 2) Supabase session fallback
   try {
     const sb = getSupabase();
+    if (!sb) return null;
     const { data: { session }, error } = await sb.auth.getSession();
     if (!error && session?.user?.email) {
       const res = await fetch(`${API}/api/auth/check-email`, {
