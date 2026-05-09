@@ -178,7 +178,7 @@ uritemplate==4.2.0
 urllib3==2.6.3
 uvicorn==0.34.0
 watchfiles==1.1.1
-websockets==15.0.1
+websockets==16.0
 wrapt==2.1.2
 xxhash==3.6.0
 yarl==1.23.0
