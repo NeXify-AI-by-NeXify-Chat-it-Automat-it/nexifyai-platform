@@ -1,0 +1,14 @@
+[
+  {
+    "name": "main",
+    "path": "build/static/js/*.js",
+    "limit": "3 MB",
+    "running": false
+  },
+  {
+    "name": "css",
+    "path": "build/static/css/*.css",
+    "limit": "100 KB",
+    "running": false
+  }
+]
