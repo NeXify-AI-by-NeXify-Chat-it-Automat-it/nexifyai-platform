@@ -24,7 +24,7 @@ async function apiFetch(path, options = {}) {
     localStorage.removeItem('nx_admin_token');
     localStorage.removeItem('nx_auth');
     if (window.location.pathname !== '/admin/login') {
-      window.location.href = '/admin/login';
+      window.location.href = '/login';
     }
     throw new Error('Unauthorized');
   }

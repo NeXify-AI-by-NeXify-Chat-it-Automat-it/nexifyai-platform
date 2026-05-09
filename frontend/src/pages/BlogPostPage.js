@@ -47,7 +47,7 @@ export default function BlogPostPage() {
     description: m?.description || post.meta?.description,
     datePublished: post.published,
     author: { '@type': 'Organization', name: 'NeXifyAI by NeXify' },
-    publisher: { '@type': 'Organization', name: 'NeXifyAI by NeXify', logo: `${BASE_URL}/nexifyai-logo-light.png` },
+    publisher: { '@type': 'Organization', name: 'NeXifyAI by NeXify', logo: `${BASE_URL}/logo-light.svg` },
     mainEntityOfPage: canonical,
     image: `${BASE_URL}/og-image.png`
   };

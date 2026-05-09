@@ -49,7 +49,7 @@ export const BrandName = ({ className }) => <span className={className}>NeXify<s
 export const Logo = ({ size = 'md' }) => {
   const h = size === 'sm' ? 24 : size === 'lg' ? 40 : 32;
   return (
-    <img src="/nexifyai-logo-light.png" alt="neXifyAI" style={{ display: 'block', height: h, width: 'auto' }} />
+    <img src="/logo-light.svg" alt="neXifyAI" style={{ display: 'block', height: h, width: 'auto' }} />
   );
 };
 
@@ -62,7 +62,7 @@ export const Footer = ({ onCookieSettings, t, lang }) => {
       <div className="container">
         <div className="footer-grid">
           <div className="footer-brand">
-            <div className="footer-logo"><img src="/nexifyai-logo-light.png" alt="neXifyAI" height="28" /></div>
+            <div className="footer-logo"><img src="/logo-light.svg" alt="neXifyAI" height="28" /></div>
             <div className="footer-tagline">{t?.footer?.tagline || 'Chat it. Automate it.'}</div>
             <div className="footer-legal-name">{COMPANY.legal}</div>
             <div className="footer-founder-row">

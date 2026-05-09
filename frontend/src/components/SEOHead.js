@@ -92,7 +92,7 @@ export default function SEOHead({ lang = 'de', page = 'home' }) {
     name: "neXify - Chat it. Automat it.",
     alternateName: 'NeXifyAI',
     url: BASE_URL,
-    logo: `${BASE_URL}/nexifyai-logo-light.png`,
+    logo: `${BASE_URL}/logo-light.svg`,
     description: m.description,
     address: { '@type': 'PostalAddress', streetAddress: L10N_ADDR.nl.streetAddress, addressLocality: L10N_ADDR.nl.addressLocality, postalCode: L10N_ADDR.nl.postalCode, addressCountry: L10N_ADDR.nl.addressCountry },
     contactPoint: [
