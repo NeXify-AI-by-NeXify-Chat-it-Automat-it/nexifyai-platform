@@ -6,6 +6,10 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ═══════════════════════════════════════
   # 1. BACKEND TESTS (pytest)
@@ -30,7 +34,7 @@ jobs:
         run: |
           cd backend
           python -m pytest tests/ --tb=short -x 2>&1 || true
-        continue-on-error: true
+        continue-on-error: false
         # ⚠️  Non-blocking: full backend stack not available in CI
 
   # ═══════════════════════════════════════

@@ -5,6 +5,10 @@ on:
     - cron: '*/5 * * * *'  # Alle 5 Minuten
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   uptime:
     name: Health Check

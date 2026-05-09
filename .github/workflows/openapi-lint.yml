@@ -11,6 +11,10 @@ on:
       - '.github/workflows/openapi-lint.yml'
       - '.github/scripts/validate_openapi.py'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   spectral:
     name: OpenAPI Validation

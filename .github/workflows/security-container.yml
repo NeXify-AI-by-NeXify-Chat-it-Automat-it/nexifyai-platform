@@ -1,0 +1,57 @@
+name: Security — Container (Trivy)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "Dockerfile*"
+      - "docker/**"
+      - "backend/**"
+      - "infra/**"
+  push:
+    branches: [main]
+    paths:
+      - "Dockerfile*"
+      - "docker/**"
+      - "backend/**"
+      - "infra/**"
+  schedule:
+    - cron: "0 7 * * *"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trivy:
+    name: Trivy Filesystem Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trivy Scan (HIGH/CRITICAL — BLOCKING)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          format: table
+          exit-code: 1
+          # BLOCKING: HIGH/CRITICAL CVEs block merge
+
+  trivy-sarif:
+    name: Trivy SARIF Upload
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trivy Scan (SARIF)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-results.sarif
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif

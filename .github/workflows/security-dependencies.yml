@@ -1,0 +1,54 @@
+name: Security — Dependencies
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "frontend/package*.json"
+      - "backend/requirements*.txt"
+      - "backend/pyproject.toml"
+  push:
+    branches: [main]
+    paths:
+      - "frontend/package*.json"
+      - "backend/requirements*.txt"
+      - "backend/pyproject.toml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  npm-audit:
+    name: NPM Audit (HIGH/CRITICAL only)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Audit (HIGH/CRITICAL — BLOCKING)
+        run: npm audit --audit-level=high
+        # BLOCKING: HIGH/CRITICAL vulnerabilities block merge
+
+  pip-safety:
+    name: Python Safety Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install safety
+      - name: Safety Check (BLOCKING)
+        run: safety check -r requirements.txt --full-report
+        continue-on-error: false
