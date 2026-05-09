@@ -1,0 +1,42 @@
+name: Governance Audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  governance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Governance Kernel Test
+        run: |
+          cd packages/governance_kernel
+          python3 -c "
+          from governance_kernel import get_kernel, RiskLevel
+          k = get_kernel()
+          # Test: CRITICAL without human approval → denied
+          d = k.govern('supabase.migrate', RiskLevel.CRITICAL, ['supabase.write'], ['supabase.write'], 3, {})
+          assert d.status.value == 'pending', f'CRITICAL should require human, got {d.status.value}'
+          # Test: No Stripe
+          d2 = k.assess_risk(RiskLevel.MEDIUM, {'tags': ['stripe']})
+          assert d2.policy_violations, 'Stripe should be blocked'
+          print('Governance: ALL CHECKS PASSED')
+          "
+      - name: Brain Governance Test
+        run: |
+          cd packages/brain_governance
+          python3 -c "
+          from brain_governance import get_brain_governor
+          gov = get_brain_governor()
+          allowed, _ = gov.check_read_access('governance', 'agent-1', [])
+          assert not allowed, 'Restricted without cap should be denied'
+          allowed2, _ = gov.check_write_policy('governance', 'agent-1', 'test', 0.9, [])
+          assert not allowed2, 'Governed write without cap should be denied'
+          print('Brain Governance: ALL CHECKS PASSED')
+          "

@@ -1,0 +1,46 @@
+# Secrets & Environment
+.env
+*.env
+CREDENTIALS*
+*secret*
+*token*
+*key.pem*
+*.pem
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+!schema.sql
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Runtime State
+*.log
+*.pid
+sessions/
+state/
+tmp/
+temp/
+
+# Docker
+docker-compose.override.yml
+
+# Node
+node_modules/

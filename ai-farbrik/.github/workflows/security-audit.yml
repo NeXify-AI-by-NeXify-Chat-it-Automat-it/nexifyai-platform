@@ -1,0 +1,48 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * *"
+
+jobs:
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        with:
+          config-path: .gitleaks.toml
+
+  trivy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trivy Filesystem Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          format: table
+
+  secrets-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: No secrets in code
+        run: |
+          # Check for common secret patterns
+          patterns=("sk-[a-zA-Z0-9]{20,}" "ghp_[a-zA-Z0-9]{20,}" "vcp_[a-zA-Z0-9]{10,}" "eyJ[a-zA-Z0-9_-]{20,}\.[a-zA-Z0-9_-]{20,}\.[a-zA-Z0-9_-]{20,}")
+          for pattern in "${patterns[@]}"; do
+            if grep -rE "$pattern" packages/ core/ --include="*.py" --include="*.yml" 2>/dev/null; then
+              echo "SECRET DETECTED in code!"
+              exit 1
+            fi
+          done
+          echo "No secrets detected in code ✓"

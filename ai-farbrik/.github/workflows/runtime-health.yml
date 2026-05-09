@@ -1,0 +1,35 @@
+name: Runtime Health
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "*/30 * * * *"
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Runtime Connectivity Check
+        run: |
+          cd packages/runtime_connectivity
+          python3 -c "
+          from runtime_connectivity import get_orchestrator
+          orch = get_orchestrator()
+          dash = orch.health_dashboard()
+          print(f'Health: {dash[\"overall_score\"]}/100')
+          assert dash['overall_score'] > 0, 'No services reachable'
+          "
+      - name: Brain Integrity Check
+        run: |
+          cd packages/brain_governance
+          python3 -c "
+          from brain_governance import get_brain_governor
+          gov = get_brain_governor()
+          health = gov.check_brain_health()
+          print(f'Brain: {health[\"brain_health_score\"]}/100')
+          "
