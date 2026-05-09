@@ -33,17 +33,12 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
-<<<<<<< HEAD
-      - name: Audit (HIGH/CRITICAL — NON-BLOCKING)
-        run: npm audit --audit-level=high || echo "⚠️  Audit warnings in dev/build deps (react-scripts legacy)"
-        # NON-BLOCKING: Vulnerabilities are in react-scripts transients. Migration to Vite planned.
-=======
-      - name: Audit (HIGH/CRITICAL — non-blocking until deps stabilized)
+      - name: Audit (HIGH/CRITICAL — non-blocking, react-scripts legacy)
         continue-on-error: true
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=high || true
         # NON-BLOCKING: 14 HIGH vulns in react-scripts transitive deps (Issue #39).
-        # Cannot fix without major dependency upgrades. Switch to blocking after merges.
->>>>>>> 5532c38 (fix: Admin-Chat 404, Logo SVG-Migration, HSTS, SPA-Routing (NXA-AUDIT-09052026))
+        # Cannot fix without major dependency upgrades (React 19, Vite migration planned).
+        # Switch to blocking once Dependabot PRs are merged and deps stabilized.
 
   pip-safety:
     name: Python Safety Check
