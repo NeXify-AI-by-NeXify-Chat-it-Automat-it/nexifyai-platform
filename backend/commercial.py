@@ -1043,8 +1043,8 @@ def generate_contract_pdf(contract_data: dict, appendices: list = None, evidence
         try:
             from datetime import datetime as _dt
             c_date = _dt.fromisoformat(c_date.replace("Z", "+00:00")).strftime("%d.%m.%Y")
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("%s: %s: %s", "generate_contract_pdf", type(e).__name__, e)
 
     def make_header(canvas_obj, doc_obj):
         _header_footer(canvas_obj, doc_obj, "Vertrag", c_num, c_date)

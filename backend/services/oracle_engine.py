@@ -171,8 +171,8 @@ class OracleEngine:
                         reason="Auto-Reset: Stuck > 30min",
                         extra={"error_message": "Auto-Reset: Task hing > 30 Minuten im Bearbeitungsstatus"}
                     )
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning("%s: %s: %s", "process_cycle", type(e).__name__, e)
 
             # 1. Tasks holen: alte (pending/assigned) + neue (erkannt/eingeplant)
             pending = await supa.fetch(
@@ -378,8 +378,8 @@ class OracleEngine:
                         "retry_count": retry_count + 1
                     }
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning("%s: %s: %s", "unknown", type(e).__name__, e)
 
     # ═══════════════════════════════════════════════════════════
     # AGENT SELECTION
@@ -433,8 +433,8 @@ class OracleEngine:
             if details:
                 agent["system_prompt"] = details[0].get("description", "")
                 agent["capabilities"] = details[0].get("capabilities", "[]")
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("%s: %s: %s", "_select_agent", type(e).__name__, e)
 
         return agent
 
@@ -451,32 +451,32 @@ class OracleEngine:
             if brain:
                 brain_text = "\n".join([f"- {n.get('title', '')}: {n.get('content_preview', '')[:200]}" for n in brain])
                 parts.append(f"[BRAIN-NOTES]\n{brain_text}")
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("%s: %s: %s", "_aggregate_knowledge", type(e).__name__, e)
 
         try:
             knowledge = await supa.knowledge_search(limit=10)
             if knowledge:
                 kb_text = "\n".join([f"- [{k.get('category', '')}] {k.get('content', '')[:150]}" for k in knowledge[:5]])
                 parts.append(f"[KNOWLEDGE]\n{kb_text}")
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("%s: %s: %s", "_aggregate_knowledge", type(e).__name__, e)
 
         try:
             memory = await supa.memory_entries(limit=10)
             if memory:
                 mem_text = "\n".join([f"- {m.get('title', '')}: {m.get('content_preview', '')[:150]}" for m in memory[:5]])
                 parts.append(f"[MEMORY]\n{mem_text}")
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("%s: %s: %s", "_aggregate_knowledge", type(e).__name__, e)
 
         try:
             stats = {}
             for col in ["leads", "contacts", "quotes", "contracts", "invoices"]:
                 stats[col] = await self.db[col].count_documents({})
             parts.append(f"[IST-STATUS MongoDB]\nLeads: {stats.get('leads',0)}, Contacts: {stats.get('contacts',0)}, Quotes: {stats.get('quotes',0)}, Contracts: {stats.get('contracts',0)}, Invoices: {stats.get('invoices',0)}")
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("%s: %s: %s", "_aggregate_knowledge", type(e).__name__, e)
 
         return "\n\n".join(parts)
 
@@ -565,8 +565,8 @@ Bewerte: Ist das Ergebnis vollständig, korrekt und umsetzbar?""",
                         "verified_by": verifier,
                         "verified_at": datetime.now(timezone.utc).isoformat()
                     }
-            except (json.JSONDecodeError, ValueError):
-                pass
+            except (json.JSONDecodeError, ValueError) as e:
+                logger.debug("%s: %s: %s", "_verify_result", type(e).__name__, e)
 
             passed = "true" in resp.lower() and "passed" in resp.lower()
             return {
@@ -599,8 +599,8 @@ Bewerte: Ist das Ergebnis vollständig, korrekt und umsetzbar?""",
                     tags=["oracle", "verified", task.get("type", "general")],
                     created_by="oracle-engine"
                 )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("%s: %s: %s", "_store_learning", type(e).__name__, e)
 
     # ═══════════════════════════════════════════════════════════
     # LEITSTELLE — Live-Daten für das Command Center
@@ -736,8 +736,8 @@ Bewerte: Ist das Ergebnis vollständig, korrekt und umsetzbar?""",
                 created_by="oracle-engine"
             )
             await self._audit("font_audit_completed", {"files_scanned": files_scanned, "unique_fonts": len(fonts_found), "issues": len(issues)})
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("%s: %s: %s", "run_font_audit", type(e).__name__, e)
         return audit
 
     # ═══════════════════════════════════════════════════════════
@@ -808,8 +808,8 @@ Aktive MongoDB-Agenten: {len(agents)}
                    VALUES ($1, $2, 'oracle-engine', 'SUCCESS', $3::jsonb, NOW())""",
                 new_id("aud"), action, json.dumps(details, default=str, ensure_ascii=False)
             )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("%s: %s: %s", "_audit", type(e).__name__, e)
 
     def get_stats(self) -> dict:
         return {**self._stats, "running": self._running}

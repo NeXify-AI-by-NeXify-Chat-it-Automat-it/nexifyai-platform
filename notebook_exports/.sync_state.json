@@ -1,253 +1,351 @@
 {
-  "source:e2ztxyezeb8tkfd4yxmx": {
-    "hash": "5c7418d375594785",
-    "title": "GESAMTKONZEPT.md - NeXifyAI Gesamtkonzept (17 Kapitel)",
-    "updated": "2026-05-06 14:14:41.964064+00:00",
+  "source:pszjm3v7dxzgxc3rtwh3": {
+    "hash": "9f2db63246cf3524",
+    "title": "LLM Frameworks Overview",
+    "updated": "2026-05-09 09:42:09.897812+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:a1fx2x06de3ps93ror3s": {
-    "hash": "9e6466a2b9383e5c",
-    "title": "MASTER-WIKI.md - NeXifyAI Systemwissen",
-    "updated": "2026-05-06 14:14:34.155385+00:00",
+  "source:18f965x8a3ilkki8ndt7": {
+    "hash": "35607f2102e368b3",
+    "title": "Dependency Map",
+    "updated": "2026-05-09 09:42:08.241933+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:ahvx7mnae4mxll76cbdo": {
-    "hash": "ab4d6b1885a16a39",
-    "title": "Ai Agent Wissensbasis \u2013 Menschliche & Systemische Logiken",
-    "updated": "2026-05-06 13:20:30.709864+00:00",
+  "source:8c8y09wo4q52vqf0i4z3": {
+    "hash": "c1b3586fd5270496",
+    "title": "Release Policy",
+    "updated": "2026-05-09 09:42:06.627720+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:g5r9jp16boe2givdhlv8": {
-    "hash": "d65c3233df19d2fc",
-    "title": "AI Wissensbasis \u2013 Menschliche Begriffsdefinitionen (Teil 6)",
-    "updated": "2026-05-06 11:14:11.192764+00:00",
+  "source:6u192zoty9cb09bfbb5y": {
+    "hash": "b8b358871284865d",
+    "title": "PR Policy",
+    "updated": "2026-05-09 09:42:05.058540+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:ugpb5auqwcyvvc0b1lka": {
-    "hash": "d48696e851cfc762",
-    "title": "AI Wissensbasis \u2013 Menschliche Begriffsdefinitionen (Teil 5)",
-    "updated": "2026-05-06 11:13:16.773296+00:00",
+  "source:cy1yfgptk4b69sm7oswj": {
+    "hash": "371aca7f6ead0a49",
+    "title": "Commit Policy",
+    "updated": "2026-05-09 09:42:03.428134+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:h1lf2bew9r3rbfr79doj": {
-    "hash": "fa70e79b44640b58",
-    "title": "AI Wissensbasis \u2013 Menschliche Begriffsdefinitionen (Teil 4)",
-    "updated": "2026-05-06 11:12:22.858997+00:00",
+  "source:0aakpc18px6g64d40uy7": {
+    "hash": "e863fc97752c74f7",
+    "title": "Phase 2 Plan",
+    "updated": "2026-05-09 09:42:01.802887+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:lj87miwsn0afws8idxui": {
-    "hash": "7a5700a9bc92c566",
-    "title": "Hostinger API Reference",
-    "updated": "2026-05-06 11:11:01.045821+00:00",
+  "source:u4vs47fwa8qt4dw0lap9": {
+    "hash": "95c6d21db4bff01c",
+    "title": "Phase 0 Status",
+    "updated": "2026-05-09 09:42:00.078959+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:c6yx5g6iclqy9lcjcilt": {
-    "hash": "c95723b77b36bc20",
-    "title": "AI Wissensbasis \u2013 Menschliche Begriffsdefinitionen (Teil 3)",
-    "updated": "2026-05-06 11:10:01.749216+00:00",
+  "source:bhn2y00pz3buurhd6cvt": {
+    "hash": "2e678236f86f7e4e",
+    "title": "Connection Inventory",
+    "updated": "2026-05-09 09:41:58.500424+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:1yqpml607klioqql8kl2": {
-    "hash": "f4220dfb574a1d52",
-    "title": "AI Wissensbasis \u2013 Menschliche Begriffsdefinitionen (Teil 2)",
-    "updated": "2026-05-06 11:09:25.777889+00:00",
+  "source:anztpcxgg132txlyxu94": {
+    "hash": "590d3857f6ddbcfc",
+    "title": "Incident Template",
+    "updated": "2026-05-09 09:41:56.939134+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:7bhrqgg60w13cauhol8v": {
-    "hash": "5d8bc8ea076eef04",
-    "title": "AI Wissensbasis \u2013 Menschliche Begriffsdefinitionen",
-    "updated": "2026-05-06 11:08:47.197142+00:00",
+  "source:bko5elepxswz16i1ay5i": {
+    "hash": "8dba922ae02dfac8",
+    "title": "Event-Driven Autopilot Architecture",
+    "updated": "2026-05-09 09:41:55.367705+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:h27eevopo3r1amw7bgaq": {
-    "hash": "71450bc5f83393b5",
-    "title": "Begriff: Fortsetzen",
-    "updated": "2026-05-06 11:06:03.726481+00:00",
+  "source:a6mfoq9dnh8kertki44d": {
+    "hash": "08877c81bac3dcc8",
+    "title": "ADR Template",
+    "updated": "2026-05-09 09:41:53.685862+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:2nqijmtamqc1o4e5m3pz": {
-    "hash": "e2da50b9734190ce",
-    "title": "Begriff: Beginnen",
-    "updated": "2026-05-06 11:05:30.402111+00:00",
+  "source:ddxb1kqupsdp6y8fny3a": {
+    "hash": "f7bae7caa017d9ba",
+    "title": "ADR-004 Monorepo Package Structure",
+    "updated": "2026-05-09 09:41:52.140816+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:ng7a6sdtd4lzxh762cdy": {
-    "hash": "d57adb1d14c8285e",
-    "title": "Begriff: Fertigstellen",
-    "updated": "2026-05-06 11:04:37.142490+00:00",
+  "source:ie1sfgk4hfn509n3po2h": {
+    "hash": "e21534d4cd2b5d7d",
+    "title": "ADR-003 OpenRouter LLM Provider",
+    "updated": "2026-05-09 09:41:50.455080+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:65q3t010tud1dmxw6gco": {
-    "hash": "68e37f64965335de",
-    "title": "FAQ | DeepSeek API Docs",
-    "updated": "2026-05-06 10:24:33.517299+00:00",
+  "source:mybryzlzn8l3ab0lt0gr": {
+    "hash": "b8138939f206eab0",
+    "title": "ADR-002 Supabase Primary Database",
+    "updated": "2026-05-09 09:41:48.847085+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:cx8w5tza0eiyvbv3thtx": {
-    "hash": "66a9680c2481fef9",
-    "title": "DeepSeek V4 Flash - API Pricing & Providers",
-    "updated": "2026-05-06 10:23:57.033098+00:00",
+  "source:bjutnytqb6s879i78qbf": {
+    "hash": "1838adda7bf50ab9",
+    "title": "ADR-001 DOS v2 Adoption",
+    "updated": "2026-05-09 09:41:47.194226+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:9ofiagazgv3jh7jh4dos": {
-    "hash": "7c25217f74c02eee",
-    "title": "Models | OpenRouter",
-    "updated": "2026-05-06 10:22:55.179221+00:00",
+  "source:a5c4fo8k2pgji0ecfw1g": {
+    "hash": "6b930cae5b199c75",
+    "title": "Health History Data",
+    "updated": "2026-05-09 05:55:31.368548+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:o64gjmyap9eavxwhlc14": {
-    "hash": "ce324dbfc816b05c",
-    "title": "OpenRouter Quickstart Guide",
-    "updated": "2026-05-06 10:22:47.176884+00:00",
+  "source:rfkcypf7luqshsrnzgdf": {
+    "hash": "d66041c002de17d7",
+    "title": "Email Template",
+    "updated": "2026-05-09 05:55:29.818743+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:vzp1oflwwltatf5e1czb": {
-    "hash": "9d91aba56f08702c",
-    "title": "Your First API Call | DeepSeek API Docs",
-    "updated": "2026-05-06 10:22:09.134078+00:00",
+  "source:otfge9fbr5vr72ypefgg": {
+    "hash": "91825ef369a1fc99",
+    "title": "System Credentials (sanitized)",
+    "updated": "2026-05-09 05:55:28.314185+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:6ydlzrdvtw3sfbbtzn3p": {
-    "hash": "64a4d81bcfb18bb6",
-    "title": "Processing...",
-    "updated": "2026-05-06 10:11:31.976320+00:00",
+  "source:lb5hhrtfho4kfkapli71": {
+    "hash": "aff8b018c81e3bb5",
+    "title": "Hermes Prefill Config",
+    "updated": "2026-05-09 05:55:26.746575+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:nt6tixkhp53i9qarr3f0": {
-    "hash": "1dc63cf1a2cecefb",
-    "title": "Hostinger Tutorials",
-    "updated": "2026-05-06 09:47:23.740735+00:00",
+  "source:5m3n47mdhvc1o51rpjou": {
+    "hash": "bf1d4c0e4dcdbfb9",
+    "title": "Repo SETUP",
+    "updated": "2026-05-09 05:55:25.264515+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:ztjgd7eplnfbtaaa03se": {
-    "hash": "ccd204961ce36a54",
-    "title": "Processing...",
-    "updated": "2026-05-06 09:46:46.967789+00:00",
+  "source:o9rvuymk2u74bxv3eq7k": {
+    "hash": "f8bd140ae8824fbb",
+    "title": "Repo README",
+    "updated": "2026-05-09 05:55:23.782207+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:n74struogyh4a0nz7tmd": {
-    "hash": "5778d63609789bda",
-    "title": "Hostinger Support Center - Get help & guides 24/7",
-    "updated": "2026-05-06 09:46:07.729851+00:00",
+  "source:67vgiagxzmpkeeo8sj90": {
+    "hash": "85f38f6ef63eedf9",
+    "title": "Design Guidelines JSON",
+    "updated": "2026-05-09 05:55:22.255577+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:dqcy2ofaqznbvqdyu9r5": {
-    "hash": "81af2b758ba69050",
-    "title": "Vercel Documentation",
-    "updated": "2026-05-06 09:44:32.977141+00:00",
+  "source:hpr608ewwolw5pp45i5o": {
+    "hash": "83a17742c33ef58b",
+    "title": "Backend SECURITY",
+    "updated": "2026-05-09 05:55:20.731636+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:dhntvznyywonmb3h4scg": {
-    "hash": "e8d5d9df622be812",
-    "title": "GitHub",
-    "updated": "2026-05-06 09:43:58.383858+00:00",
+  "source:n2oruys5mpkimdhtpzuv": {
+    "hash": "7bb1d7ad9808d0e5",
+    "title": "Backend SETUP",
+    "updated": "2026-05-09 05:55:19.288602+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:yz7seeid74ros1ctv2w1": {
-    "hash": "46c9e4f41bc9ec64",
-    "title": "Build software better, together",
-    "updated": "2026-05-06 09:42:45.047630+00:00",
+  "source:qt744e7yvcjxpyjtvhg3": {
+    "hash": "6de0d558a4e2ce16",
+    "title": "Backend Projekt Template v2",
+    "updated": "2026-05-09 05:55:17.753651+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:zrrxtpmlxhjqdm58gd15": {
-    "hash": "5ae59070dd4ea39d",
-    "title": "Honcho Overview - Honcho",
-    "updated": "2026-05-06 09:42:11.841765+00:00",
+  "source:bwgr20y8rd408lxf3v51": {
+    "hash": "4c88c0609d3c94af",
+    "title": "Deprecation Policy",
+    "updated": "2026-05-09 05:55:16.307679+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:ad4w7mepu9u00ckp5hvf": {
-    "hash": "5a7793648827d14a",
-    "title": "GitHub - CaviraOSS/OpenMemory: Local persistent memory store for LLM applications including claude desktop, github copilot, codex, antigravity, etc.",
-    "updated": "2026-05-06 09:41:33.282414+00:00",
+  "source:6lbex36gdnvi187ap0dz": {
+    "hash": "5c222f71720cdbc2",
+    "title": "Policies README",
+    "updated": "2026-05-09 05:55:14.771248+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:4oeja16o2rqhdlxzwa9f": {
-    "hash": "5a93ece6222439db",
-    "title": "Documentation",
-    "updated": "2026-05-06 09:41:33.033705+00:00",
+  "source:8ygkklbkhs5ewym9smhv": {
+    "hash": "1835b902e6dcc073",
+    "title": "Git Push Anleitung",
+    "updated": "2026-05-09 05:55:13.248103+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:q27wmfbaztik246ij9ck": {
-    "hash": "29219da7bf655f89",
-    "title": "Supabase Docs",
-    "updated": "2026-05-06 09:41:20.857892+00:00",
+  "source:f7dlnp0ke0ivoy4kfmat": {
+    "hash": "7508fa2cc9834e99",
+    "title": "Incident 003 Vercel Deploy Errors",
+    "updated": "2026-05-09 05:55:11.781401+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:7pkonwrbmbcqdzps1w4n": {
-    "hash": "20af4273c03949d4",
-    "title": "Get Started | Open Notebook",
-    "updated": "2026-05-06 09:41:18.453692+00:00",
+  "source:a4kwqf2p6lprklbpe0bz": {
+    "hash": "08c6fad153dfa62d",
+    "title": "Incident 002 Build Error Blog Import",
+    "updated": "2026-05-09 05:55:10.321810+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:ehwtzfx0hu48u7ml8zih": {
-    "hash": "199d89597e5e96f5",
-    "title": "Ollama's documentation - Ollama",
-    "updated": "2026-05-06 09:39:22.710739+00:00",
+  "source:sl23s2xwvvofzpc6v05f": {
+    "hash": "6c628882f5ec97e2",
+    "title": "Plausible Self-Hosted Setup",
+    "updated": "2026-05-09 05:55:08.823946+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:jit928jgujpjggsv6sn5": {
-    "hash": "ac29589fd55c7e59",
-    "title": "Hermes Agent Documentation | Hermes Agent",
-    "updated": "2026-05-06 09:38:33.583082+00:00",
+  "source:k9wjjvmwzsvzg1ma6p6s": {
+    "hash": "76dec0c8ebad18be",
+    "title": "Supabase Timestamp Automation",
+    "updated": "2026-05-09 05:55:07.260523+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:kk2zlebt0o8h17b0twru": {
-    "hash": "6316b11c933b2354",
-    "title": "Processing...",
-    "updated": "2026-05-06 09:31:14.116565+00:00",
+  "source:xj2j1v7u18juoip4zj1a": {
+    "hash": "bed1d19a3b5a08f2",
+    "title": "Supabase RLS Template",
+    "updated": "2026-05-09 05:55:05.778462+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:a1mwxduu21j7pww882ky": {
-    "hash": "f2625a874975679d",
-    "title": "Processing...",
-    "updated": "2026-05-06 09:30:57.962659+00:00",
+  "source:unm4akvdxg8pg30eecj8": {
+    "hash": "ca340dedf9d24277",
+    "title": "Supabase Feature Flag Baseline",
+    "updated": "2026-05-09 05:55:04.293682+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:ngh02xnk1c1v4qajrwaw": {
-    "hash": "8645b112bf7a3a15",
-    "title": "Processing...",
-    "updated": "2026-05-06 09:30:43.254943+00:00",
+  "source:6tgxzis905337n6fmh0w": {
+    "hash": "b5d455787cea3f9a",
+    "title": "Supabase Event Tracking Baseline",
+    "updated": "2026-05-09 05:55:02.844859+00:00",
     "notebooks": [],
     "status": "completed"
   },
-  "source:p7wh6w20dth35xdromz3": {
-    "hash": "b03039ece4e9bf80",
-    "title": "NeXifyAI \u2013 KI-Agenten & Automationen f\u00fcr den DACH-Mittelstand",
-    "updated": "2026-05-06 07:42:29.275785+00:00",
+  "source:4avac4olcx6jz3r2zw1l": {
+    "hash": "3343d12a45b29a2c",
+    "title": "Supabase Audit Log Baseline",
+    "updated": "2026-05-09 05:55:01.137037+00:00",
+    "notebooks": [],
+    "status": "completed"
+  },
+  "source:kvellm2raeijonu1uvlo": {
+    "hash": "9993bf5a8245b9bb",
+    "title": "Supabase Revolut Business Schema",
+    "updated": "2026-05-09 05:54:59.611444+00:00",
+    "notebooks": [],
+    "status": "completed"
+  },
+  "source:r77zd6yyriiwgkmcfp9x": {
+    "hash": "c5a3613d8af802d5",
+    "title": "Supabase Schema Review Phase 2",
+    "updated": "2026-05-09 05:54:58.101099+00:00",
+    "notebooks": [],
+    "status": "completed"
+  },
+  "source:lx4qyteobx1w69wu71yb": {
+    "hash": "608d02bcc9491e87",
+    "title": "Supabase Quickstarts README",
+    "updated": "2026-05-09 05:54:56.610307+00:00",
+    "notebooks": [],
+    "status": "completed"
+  },
+  "source:owq1i3qxsrvt989suq0m": {
+    "hash": "1f741f1bb33f6f33",
+    "title": "VVT Data Protection",
+    "updated": "2026-05-09 05:54:55.071169+00:00",
+    "notebooks": [],
+    "status": "completed"
+  },
+  "source:pke4zoqatp6888v0kowq": {
+    "hash": "5fec64070c0daf14",
+    "title": "DPA NeXifyAI",
+    "updated": "2026-05-09 05:54:53.529297+00:00",
+    "notebooks": [],
+    "status": "completed"
+  },
+  "source:u8f9tfwpt3bxpg8i2crq": {
+    "hash": "52f5094646f53c53",
+    "title": "Email Conversations",
+    "updated": "2026-05-09 05:53:23.820550+00:00",
+    "notebooks": [],
+    "status": "completed"
+  },
+  "source:97ikq2wwqrjys91w9scp": {
+    "hash": "33f227f902899d10",
+    "title": "Support Tickets",
+    "updated": "2026-05-09 05:53:22.349119+00:00",
+    "notebooks": [],
+    "status": "completed"
+  },
+  "source:hmjacjgxwq4idww69cb2": {
+    "hash": "3eaf7cc93910fdc1",
+    "title": "Leads Database",
+    "updated": "2026-05-09 05:53:20.917076+00:00",
+    "notebooks": [],
+    "status": "completed"
+  },
+  "source:qnl2zbr1vju4k05pzj88": {
+    "hash": "46fbaee160e9b2e2",
+    "title": "Customers Registry",
+    "updated": "2026-05-09 05:53:19.456814+00:00",
+    "notebooks": [],
+    "status": "completed"
+  },
+  "source:uubyzhsww9ivemaesj30": {
+    "hash": "39729bb6275ed7d4",
+    "title": "Customer OpenMemory",
+    "updated": "2026-05-09 05:53:18.032696+00:00",
+    "notebooks": [],
+    "status": "completed"
+  },
+  "source:vkacxp7j3psv17ch4voh": {
+    "hash": "2b3fe999c4c2d393",
+    "title": "Customer Open Notebook",
+    "updated": "2026-05-09 05:53:16.588376+00:00",
+    "notebooks": [],
+    "status": "completed"
+  },
+  "source:xx1js83qjffqn8n6qes7": {
+    "hash": "7567f5b69e922df1",
+    "title": "Customer AI-Farbrik Landing",
+    "updated": "2026-05-09 05:53:15.122342+00:00",
+    "notebooks": [],
+    "status": "completed"
+  },
+  "source:7nl4iac6u5ltpufh507e": {
+    "hash": "2e2756030a433dea",
+    "title": "Customer Affilinet Portal",
+    "updated": "2026-05-09 05:53:13.673817+00:00",
+    "notebooks": [],
+    "status": "completed"
+  },
+  "source:hafw8ygvft7lt81gvwk9": {
+    "hash": "41c2e0b471aff4a5",
+    "title": "Final Implementation Order",
+    "updated": "2026-05-09 05:53:12.255222+00:00",
     "notebooks": [],
     "status": "completed"
   }

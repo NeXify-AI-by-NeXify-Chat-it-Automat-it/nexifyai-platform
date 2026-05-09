@@ -83,6 +83,7 @@ async def send_email(
     html_body: str,
     text_body: Optional[str] = None,
     reply_to: Optional[str] = None,
+    template_data: Optional[dict] = None,
 ) -> dict:
     """E-Mail senden via SMTP (SSL). Gibt Ergebnis-Dict zurück."""
     if not SMTP_USER or not SMTP_PASSWORD:
