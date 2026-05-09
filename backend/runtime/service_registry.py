@@ -274,28 +274,6 @@ CANONICAL_REGISTRY: Dict[str, ServiceNode] = {
         recovery_command="docker restart hermes-agent-ofbh-hermes-agent-1",
         recovery_validation="docker ps --filter name=hermes-agent",
     ),
-    "open-notebook": ServiceNode(
-        id="open-notebook",
-        service_type="notebook",
-        source_of_truth="docker ps",
-        source_of_truth_command="docker ps --filter name=notebook-open_notebook-1 --format '{{.Status}}' | grep Up",
-        container_name="notebook-open_notebook-1",
-        docker_network="notebook_default",
-        host_port="0.0.0.0:32770→8502",
-        runtime="docker",
-        endpoints=[
-            ServiceEndpoint("docker ps --filter name=notebook-open_notebook-1", EndpointType.CANONICAL, ObserverPosition.VPS_HOST, "docker-exec", "Up"),
-            ServiceEndpoint("http://localhost:32770/api/sources", EndpointType.HOST_LOCAL, ObserverPosition.VPS_HOST, "http", "200"),
-            ServiceEndpoint("http://notebook-open_notebook-1:8502/api/sources", EndpointType.INTERNAL, ObserverPosition.HERMES_CONTAINER, "http", "200 (⚠️ DNS not reachable from hermes)"),
-        ],
-        depends_on=["supabase-db"],
-        health_projections={
-            "vps-host": "healthy",
-            "hermes-container": "unreachable (DNS/network isolation)",
-        },
-        recovery_command="docker restart notebook-open_notebook-1",
-        recovery_validation="curl -sf http://localhost:32770/api/sources",
-    ),
 }
 
 

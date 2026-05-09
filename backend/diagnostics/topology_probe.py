@@ -93,15 +93,6 @@ SERVICE_CATALOG = {
         },
         "recovery": "docker restart supabase-db",
     },
-    "open_notebook": {
-        "canonical": "docker ps --filter name=notebook-open_notebook-1 --format '{{.Status}}'",
-        "endpoints": {
-            ObserverPosition.VPS_HOST: "http://localhost:32770/api/sources",
-            ObserverPosition.HERMES_CONTAINER: "http://localhost:32770/api/sources",
-            ObserverPosition.EXTERNAL: "http://72.62.152.47:32770/api/sources",
-        },
-        "recovery": "docker restart notebook-open_notebook-1",
-    },
     "paperclip": {
         "canonical": "docker ps --filter name=paperclip-etdf-paperclip-1 --format '{{.Status}}'",
         "endpoints": {

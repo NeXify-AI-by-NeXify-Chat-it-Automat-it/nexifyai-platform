@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 @dataclass
 class SearchResult:
     content: str
-    source: str  # 'qdrant', 'sqlite', 'open_notebook'
+    source: str  # 'qdrant', 'sqlite'
     score: float
     metadata: Dict = field(default_factory=dict)
     chunk_id: Optional[str] = None
@@ -53,15 +53,13 @@ class HybridSearchResult:
 # ══════════════════════════════════════════════
 
 BRAIN_DB_PATH = "/opt/data/brain/brain.db"
-QDRANT_URL = "http://localhost:6333"
+QDRANT_URL = "http://nexifyai-qdrant:6333"
 QDRANT_COLLECTION = "nexifyai_brain"  # migrated from nexifyai_memories (deprecated, 0 pts)
-OPEN_NOTEBOOK_URL = "http://localhost:32770"
 SEARCH_TIMEOUT = 5  # seconds
 
 SOURCE_WEIGHTS = {
     'sqlite': 0.9,
     'qdrant': 1.0,
-    'open_notebook': 0.6,
 }
 MIN_CONFIDENCE_THRESHOLD = 0.15
 
@@ -80,7 +78,7 @@ def hybrid_search(
     result = HybridSearchResult(query=query)
     all_results: List[SearchResult] = []
     
-    use_sources = sources or ['sqlite', 'qdrant', 'open_notebook']
+    use_sources = sources or ['sqlite', 'qdrant']
     
     if 'sqlite' in use_sources:
         try:
@@ -95,13 +93,6 @@ def hybrid_search(
             all_results.extend(qdrant_results)
         except Exception as e:
             print(f"[brain] Qdrant search skipped (unreachable): {e}")
-    
-    if 'open_notebook' in use_sources:
-        try:
-            on_results = _search_open_notebook(query, top_k)
-            all_results.extend(on_results)
-        except Exception as e:
-            print(f"[brain] Open Notebook skipped (unreachable): {e}")
     
     # Apply source weights
     for r in all_results:
@@ -271,34 +262,5 @@ def _search_qdrant(query: str, top_k: int = 10) -> List[SearchResult]:
         pass  # Qdrant unavailable — graceful degradation
     except Exception as e:
         print(f"[brain] Qdrant error: {e}")
-    
-    return results
-
-
-# ══════════════════════════════════════════════
-# OPEN NOTEBOOK — HTTP CLIENT
-# ══════════════════════════════════════════════
-
-def _search_open_notebook(query: str, top_k: int = 10) -> List[SearchResult]:
-    """Search Open Notebook via REST API."""
-    results = []
-    
-    try:
-        url = f"{OPEN_NOTEBOOK_URL}/api/search?q={urllib.parse.quote(query)}&limit={top_k}"
-        
-        with urllib.request.urlopen(url, timeout=SEARCH_TIMEOUT) as resp:
-            response = json.loads(resp.read())
-            
-            for item in response.get("results", []):
-                results.append(SearchResult(
-                    content=item.get("content", "")[:500],
-                    source='open_notebook',
-                    score=item.get("score", 0.5),
-                    metadata=item.get("metadata", {}),
-                ))
-    except (urllib.error.URLError, urllib.error.HTTPError, ConnectionRefusedError):
-        pass  # Open Notebook unavailable — graceful degradation
-    except Exception as e:
-        print(f"[brain] OpenNotebook error: {e}")
     
     return results

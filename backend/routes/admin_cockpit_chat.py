@@ -70,7 +70,7 @@ async def get_admin_session(request: Request) -> dict:
     raise HTTPException(status_code=401, detail="Unauthorized")
 
 
-@router.post("/chat")
+@router.post("/chat", operation_id="admin_cockpit_chat_v2")
 async def admin_cockpit_chat(body: AdminChatRequest, request: Request):
     """
     Admin Cockpit Chat — SSE-Streaming via OpenRouter.

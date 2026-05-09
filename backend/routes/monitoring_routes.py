@@ -379,7 +379,7 @@ async def llm_test(data: dict = None, current_user: dict = Depends(get_current_a
     if not S.llm_provider:
         raise HTTPException(503, "LLM-Provider nicht initialisiert")
     model = (data or {}).get("model")
-    prompt = (data or {}).get("prompt", "Antworte kurz: Antworte kurz: MiniMax M2.7 OpenRouter Test.")
+    prompt = (data or {}).get("prompt", "Antworte kurz: Antworte kurz: DeepSeek V4 Flash OpenRouter Test.")
     from services.llm_provider import LLMMessage
     try:
         response = await S.llm_provider.chat(

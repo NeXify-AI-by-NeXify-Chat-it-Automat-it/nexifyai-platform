@@ -1,5 +1,5 @@
 """
-NeXifyAI — OpenRouter LLM Provider (MiniMax M2.7)
+NeXifyAI — OpenRouter LLM Provider (DeepSeek V4 Flash)
 OpenRouter = Primary Master + alle Sub-Agenten. Arcee AI = Fallback.
 """
 import os

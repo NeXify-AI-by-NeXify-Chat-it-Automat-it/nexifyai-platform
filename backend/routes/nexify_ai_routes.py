@@ -832,7 +832,7 @@ async def nexify_ai_chat(body: ChatRequest, request: Request, admin: dict = Depe
 
 
 # ─── Admin Cockpit Chat (OpenRouter SSE, with Brain/Tasks context) ───
-@router.post("/api/admin/chat")
+@router.post("/api/admin/chat", operation_id="admin_cockpit_chat_legacy")
 async def admin_cockpit_chat(body: ChatRequest, request: Request, admin: dict = Depends(get_admin_from_token)):
     """Admin Cockpit Chat: OpenRouter SSE mit voller System-Kontext-Integration."""
     import time as _time

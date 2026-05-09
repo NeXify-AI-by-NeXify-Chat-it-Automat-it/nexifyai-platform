@@ -1,6 +1,6 @@
 """
 NeXifyAI — LLM Provider Abstraction Layer
-OpenRouter (MiniMax M2.7) = Primary. Emergent GPT = Fallback.
+OpenRouter (DeepSeek V4 Flash) = Primary. Emergent GPT = Fallback.
 """
 import os
 import time
@@ -55,12 +55,12 @@ class LLMProvider:
 
 
 # ══════════════════════════════════════════
-# OPENROUTER — PRIMÄRER PROVIDER (MiniMax M2.7)
+# OPENROUTER — PRIMÄRER PROVIDER (DeepSeek V4 Flash)
 # ══════════════════════════════════════════
 
 class OpenRouterProvider(LLMProvider):
     """
-    PRIMÄRER Provider: OpenRouter (MiniMax M2.7).
+    PRIMÄRER Provider: OpenRouter (DeepSeek V4 Flash).
     OpenAI-kompatible API mit Retry-Logik und Audit-Trail.
     """
 
