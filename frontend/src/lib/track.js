@@ -8,8 +8,9 @@
  *   track('cta_click', { id: 'hero-demo', label: 'Jetzt starten' });
  */
 
-const BACKEND_URL = process.env.REACT_APP_API_URL || 'https://nexifyai.nexifyai.cloud';
-const TRACK_ENDPOINT = BACKEND_URL + '/api/analytics/track';
+const API = process.env.REACT_APP_BACKEND_URL || '';
+const ANALYTICS_API = process.env.REACT_APP_API_URL || '';
+const TRACK_ENDPOINT = ANALYTICS_API ? ANALYTICS_API + '/api/analytics/track' : (process.env.REACT_APP_BACKEND_URL || '') + '/api/analytics/track';
 
 /* ═══════════════ SESSION ═══════════════ */
 let sessionId = null;

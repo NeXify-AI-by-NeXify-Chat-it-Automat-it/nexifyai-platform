@@ -377,7 +377,7 @@ const CustomerPortal = () => {
       {/* ══════ SIDEBAR ══════ */}
       <aside className="cp-sidebar" data-testid="cp-sidebar">
         <div className="cp-sidebar-logo">
-          <img src="/nexifyai-logo-light.png" alt="neXifyAI" height="24" />
+          <img src="/logo-light.svg" alt="neXifyAI" height="24" />
         </div>
         <button className="cp-collapse-btn" onClick={() => setSidebarOpen(!sidebarOpen)} title={sidebarOpen ? 'Einklappen' : 'Ausklappen'} data-testid="cp-sidebar-toggle">
           <I n={sidebarOpen ? 'chevron_left' : 'chevron_right'} />

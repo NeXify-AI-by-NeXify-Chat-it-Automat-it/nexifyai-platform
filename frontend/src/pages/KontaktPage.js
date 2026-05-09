@@ -46,7 +46,7 @@ function ContactForm({ lang, t }) {
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setStatus('sending');
     try {
-      const res = await fetch('/api/contact', {
+      const res = await fetch(`${API}/api/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
