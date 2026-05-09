@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@react-three/drei": "^9.120.3",
-    "@react-three/fiber": "^8.18.0",
+    "@react-three/fiber": "^9.6.1",
     "@supabase/supabase-js": "^2.105.3",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
