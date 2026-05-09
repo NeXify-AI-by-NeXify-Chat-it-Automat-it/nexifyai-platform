@@ -54,7 +54,7 @@ class HybridSearchResult:
 
 BRAIN_DB_PATH = "/opt/data/brain/brain.db"
 QDRANT_URL = "http://localhost:6333"
-QDRANT_COLLECTION = "nexifyai_memories"
+QDRANT_COLLECTION = "nexifyai_brain"  # migrated from nexifyai_memories (deprecated, 0 pts)
 OPEN_NOTEBOOK_URL = "http://localhost:32770"
 SEARCH_TIMEOUT = 5  # seconds
 

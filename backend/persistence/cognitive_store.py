@@ -99,7 +99,7 @@ class CognitiveStore:
     
     BRAIN_DB = "/opt/data/brain/brain.db"
     QDRANT_URL = "http://localhost:6333"
-    QDRANT_COLLECTION = "nexifyai_memories"
+    QDRANT_COLLECTION = "nexifyai_brain"  # migrated from nexifyai_memories (deprecated, 0 pts)
     
     # Hybrid retrieval weights (tunable)
     WEIGHTS = {
