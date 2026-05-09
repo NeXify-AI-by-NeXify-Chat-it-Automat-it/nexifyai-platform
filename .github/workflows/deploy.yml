@@ -34,10 +34,9 @@ jobs:
           sleep 15
 
       - name: RE-OBSERVE — Backend Health
-        continue-on-error: true
         run: |
-          # Try multiple health endpoints — backend may expose different paths
-          for ENDPOINT in /api/health /api/health/live /api/health/v2 /health; do
+          # Try multiple health endpoints
+          for ENDPOINT in /api/health /health; do
             STATUS=$(curl -sf -o /dev/null -w "%{http_code}" --max-time 10 "https://www.nexify-automate.com${ENDPOINT}" 2>/dev/null || echo "000")
             if [ "$STATUS" = "200" ]; then
               echo "✅ Backend reachable via ${ENDPOINT}"
@@ -45,14 +44,13 @@ jobs:
             fi
             echo "⚠️  ${ENDPOINT}: HTTP $STATUS"
           done
-          echo "⚠️  Backend not reachable via public URL — may be VPS-only (Issue #44)"
-          echo "ℹ️  This is expected: backend runs on localhost:8001, not publicly exposed"
-          # Non-blocking: Vercel frontend deploys independently of backend
+          echo "⛔ Backend health checks failed — deployment blocked"
+          echo "Backend must be healthy before marking deployment complete"
+          exit 1
 
       - name: VERIFY — Health Score
-        continue-on-error: true
         run: |
-          for ENDPOINT in /api/health/v2 /api/health /health; do
+          for ENDPOINT in /api/health /health; do
             HEALTH=$(curl -sf --max-time 10 "https://www.nexify-automate.com${ENDPOINT}" 2>/dev/null)
             if [ -n "$HEALTH" ]; then
               SCORE=$(echo "$HEALTH" | python3 -c "import sys,json; print(json.load(sys.stdin).get('score',100))" 2>/dev/null || echo "100")
@@ -64,7 +62,9 @@ jobs:
               exit 0
             fi
           done
-          echo "⚠️  Health endpoint not reachable — skipping score check"
+          echo "⛔ No health endpoint reachable — deployment confidence unknown"
+          echo "Frontend-only deployment without backend verification is not allowed"
+          exit 1
 
       - name: VERIFY — Frontend Reachability
         run: |
@@ -80,8 +80,7 @@ jobs:
         run: |
           echo "═══ POST-DEPLOY CONVERGENCE ═══"
           echo "✅ Frontend: verified"
-          echo "⚠️  Backend: VPS-only (not publicly verified)"
-          echo "✅ Dependencies: verified"
+          echo "✅ Backend: health verified via public endpoint"
+          echo "✅ Health score: verified"
           echo ""
-          echo "Deployment confidence: 0.85 (frontend-only convergence)"
-          echo "Backend health requires VPS-internal check (SSH or Docker API)"
+          echo "Deployment confidence: 1.0 (full convergence)"
