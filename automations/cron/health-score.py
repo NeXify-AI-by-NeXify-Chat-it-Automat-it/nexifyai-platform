@@ -141,7 +141,9 @@ def collect_metrics() -> dict:
         pass
     
     # 4. Security: CI-Workflows vorhanden?
-    sec_ci = os.path.isfile(f"{REPO_ROOT}/.github/workflows/security-scan.yml")
+    # Check for any security workflow file (actual files: security-container.yml, security-dependencies.yml, security-secrets.yml)
+    wf_dir = f"{REPO_ROOT}/.github/workflows"
+    sec_ci = any(f.startswith("security-") and f.endswith(".yml") for f in os.listdir(wf_dir)) if os.path.isdir(wf_dir) else False
     metrics["security_cve_ok"] = sec_ci
     metrics["security_secrets_ok"] = sec_ci  # Gleicher Workflow
     
