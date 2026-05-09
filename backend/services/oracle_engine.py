@@ -258,7 +258,7 @@ class OracleEngine:
                 agent=agent["name"],
                 extra={"result": {
                     "agent": agent["name"],
-                    "model": result.get("model", "minimax/minimax-m2.7"),
+                    "model": result.get("model", "deepseek/deepseek-v4-flash"),
                     "response": response_text[:2000],
                     "completed_at": datetime.now(timezone.utc).isoformat()
                 }}
@@ -282,7 +282,7 @@ class OracleEngine:
                     "score": score,
                     "reason": verification.get("reason", ""),
                     "verified_at": verification.get("verified_at", datetime.now(timezone.utc).isoformat()),
-                    "model": result.get("model", "minimax/minimax-m2.7"),
+                    "model": result.get("model", "deepseek/deepseek-v4-flash"),
                     "response_length": len(response_text),
                 }
 
@@ -296,7 +296,7 @@ class OracleEngine:
                         "evidence": evidence,
                         "result": {
                             "agent": agent["name"],
-                            "model": result.get("model", "minimax/minimax-m2.7"),
+                            "model": result.get("model", "deepseek/deepseek-v4-flash"),
                             "response": response_text[:2000],
                             "verification": verification,
                             "completed_at": datetime.now(timezone.utc).isoformat()

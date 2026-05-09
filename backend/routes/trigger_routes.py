@@ -183,7 +183,7 @@ async def _execute_locally(task_id: str, payload: dict, admin: dict) -> dict:
             "payload": payload,
             "status": "completed" if "error" not in result else "failed",
             "result": result.get("content", ""),
-            "model": result.get("model", "minimax/minimax-m2.7"),
+            "model": result.get("model", "deepseek/deepseek-v4-flash"),
             "fallback": True,
             "triggered_at": utcnow().isoformat(),
             "completed_at": utcnow().isoformat(),
