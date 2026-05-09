@@ -493,6 +493,7 @@ from routes.trigger_routes import router as trigger_router
 from routes.compliance_routes import router as compliance_router
 from routes.forms_routes import router as forms_router
 from routes.telemetry_routes import router as telemetry_router
+from routes.security_routes import router as security_router
 
 app.include_router(auth_router)
 app.include_router(public_router)
@@ -520,3 +521,4 @@ app.include_router(compliance_router)
 app.include_router(forms_router)
 app.include_router(chat_hub_router)
 app.include_router(telemetry_router)
+app.include_router(security_router)
