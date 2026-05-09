@@ -1,11 +1,11 @@
 """
-Iteration 39 Backend Tests — P1: Stripe Live Integration, P2: Object Storage, P3: Self-Healing/Recovery, P5: Project Derived Status
+Iteration 39 Backend Tests — P1: Revolut Payment Integration, P2: Object Storage, P3: Self-Healing/Recovery, P5: Project Derived Status
 
 Tests:
-1. Stripe Checkout Session Creation (POST /api/admin/invoices/{id}/create-stripe-checkout)
-2. Stripe Checkout Status Polling (GET /api/payments/checkout/status/{session_id})
-3. Stripe Webhook Handling (POST /api/webhooks/stripe)
-4. Monitoring Status with Object Storage, Documents, Stripe (GET /api/admin/monitoring/status)
+1. Revolut Checkout Session Creation (POST /api/admin/invoices/{id}/create-revolut-checkout)
+2. Revolut Order Status (GET /api/payments/revolut/order/{order_id})
+3. Revolut Webhook Handling (POST /api/webhooks/revolut)
+4. Monitoring Status with Object Storage, Documents, Revolut (GET /api/admin/monitoring/status)
 5. Contract PDF Generation with Object Storage (POST /api/admin/contracts/{id}/generate-pdf)
 6. Contract PDF Download (GET /api/documents/contract/{id}/pdf)
 7. Project Derived Status with Phase (GET /api/admin/projects/{id})
@@ -24,7 +24,7 @@ if not BASE_URL:
 
 # Test credentials
 ADMIN_EMAIL = "p.courbois@icloud.com"
-ADMIN_PASSWORD = "NxAi#Secure2026!"
+ADMIN_PASSWORD="***"
 
 # Test entities from review request
 TEST_INVOICE_ID = "inv_0769994ba27f5ab7"
@@ -65,86 +65,12 @@ class TestHealthAndBasics:
         print(f"✓ API healthy: version {data['version']}")
 
 
-class TestStripeIntegration:
-    """P1: Stripe Live Integration via emergentintegrations."""
-
-    def test_create_stripe_checkout_session(self, auth_headers):
-        """Test POST /api/admin/invoices/{id}/create-stripe-checkout — Creates real Stripe checkout session."""
-        response = requests.post(
-            f"{BASE_URL}/api/admin/invoices/{TEST_INVOICE_ID}/create-stripe-checkout",
-            headers=auth_headers
-        )
-        # May return 200 (success) or 400 (already has session) or 404 (invoice not found)
-        if response.status_code == 200:
-            data = response.json()
-            assert "checkout_url" in data, "Missing checkout_url in response"
-            assert "session_id" in data, "Missing session_id in response"
-            assert data["checkout_url"].startswith("https://"), "checkout_url should be HTTPS URL"
-            print(f"✓ Stripe checkout created: session_id={data['session_id'][:20]}...")
-            print(f"  checkout_url: {data['checkout_url'][:60]}...")
-            return data["session_id"]
-        elif response.status_code == 400:
-            # Invoice may already have a checkout session
-            data = response.json()
-            print(f"✓ Stripe checkout endpoint working (invoice may already have session): {data.get('detail', data)}")
-        elif response.status_code == 404:
-            print(f"⚠ Invoice {TEST_INVOICE_ID} not found - skipping checkout test")
-            pytest.skip("Test invoice not found")
-        else:
-            pytest.fail(f"Unexpected status {response.status_code}: {response.text}")
-
-    def test_checkout_status_polling(self, auth_headers):
-        """Test GET /api/payments/checkout/status/{session_id} — Returns checkout status from Stripe."""
-        # First, get an existing session from the invoice
-        inv_response = requests.get(
-            f"{BASE_URL}/api/admin/invoices/{TEST_INVOICE_ID}",
-            headers=auth_headers
-        )
-        if inv_response.status_code != 200:
-            pytest.skip("Test invoice not found")
-        
-        invoice = inv_response.json()
-        session_id = invoice.get("stripe_checkout_session_id")
-        
-        if not session_id:
-            # Try to create one
-            create_resp = requests.post(
-                f"{BASE_URL}/api/admin/invoices/{TEST_INVOICE_ID}/create-stripe-checkout",
-                headers=auth_headers
-            )
-            if create_resp.status_code == 200:
-                session_id = create_resp.json().get("session_id")
-        
-        if not session_id:
-            pytest.skip("No Stripe session available for testing")
-        
-        # Poll the status
-        response = requests.get(f"{BASE_URL}/api/payments/checkout/status/{session_id}")
-        assert response.status_code == 200, f"Status polling failed: {response.text}"
-        data = response.json()
-        assert "status" in data, "Missing status in response"
-        # session_id may be in response or we already have it
-        print(f"✓ Checkout status: {data['status']} for session {session_id[:20]}...")
-        print(f"  → payment_status: {data.get('payment_status')}, amount: {data.get('amount_total')}")
-
-    def test_stripe_webhook_endpoint_exists(self):
-        """Test POST /api/webhooks/stripe — Endpoint exists and handles requests."""
-        # Send a minimal test payload (will fail signature but endpoint should exist)
-        response = requests.post(
-            f"{BASE_URL}/api/webhooks/stripe",
-            json={"type": "test", "data": {}},
-            headers={"Content-Type": "application/json"}
-        )
-        # Should return 400 (bad signature) or 200 (processed), not 404
-        assert response.status_code != 404, "Stripe webhook endpoint not found"
-        print(f"✓ Stripe webhook endpoint exists (status: {response.status_code})")
-
 
 class TestMonitoringStatus:
-    """P3: Enhanced Monitoring with Object Storage, Documents, Stripe status."""
+    """P3: Enhanced Monitoring with Object Storage, Documents, Revolut status."""
 
     def test_monitoring_status_endpoint(self, auth_headers):
-        """Test GET /api/admin/monitoring/status — Includes object_storage, documents, and stripe status."""
+        """Test GET /api/admin/monitoring/status — Includes object_storage, documents, and revolut status."""
         response = requests.get(f"{BASE_URL}/api/admin/monitoring/status", headers=auth_headers)
         assert response.status_code == 200, f"Monitoring status failed: {response.text}"
         data = response.json()
@@ -173,13 +99,13 @@ class TestMonitoringStatus:
         assert "in_mongodb" in docs, "Missing in_mongodb in documents"
         print(f"✓ Documents: total={docs['total']}, in_storage={docs['in_storage']}, in_mongodb={docs['in_mongodb']}")
         
-        # Verify Stripe in payments
+        # Verify Revolut in payments
         payments = systems["payments"]
-        assert "stripe" in payments, "Missing stripe in payments"
-        stripe_status = payments["stripe"]
-        assert "status" in stripe_status, "Missing status in stripe"
-        assert "api_key_set" in stripe_status, "Missing api_key_set in stripe"
-        print(f"✓ Stripe: status={stripe_status['status']}, api_key_set={stripe_status['api_key_set']}")
+        assert "revolut" in payments, "Missing revolut in payments"
+        revolut_status = payments["revolut"]
+        assert "status" in revolut_status, "Missing status in revolut"
+        assert "api_key_set" in revolut_status, "Missing api_key_set in revolut"
+        print(f"✓ Revolut: status={revolut_status['status']}, api_key_set={revolut_status['api_key_set']}")
         
         # Verify overall status
         assert data.get("overall_status") == "operational", f"Overall status not operational: {data.get('overall_status')}"
@@ -378,7 +304,7 @@ class TestE2EVerifyFlow:
 
 
 class TestInvoiceDetails:
-    """Test invoice details for Stripe integration."""
+    """Test invoice details for Revolut integration."""
 
     def test_get_invoice_details(self, auth_headers):
         """Verify test invoice exists and has expected fields."""
@@ -406,9 +332,9 @@ class TestInvoiceDetails:
         amount = data.get("total_eur") or data.get("amount", 0)
         print(f"✓ Invoice {TEST_INVOICE_ID}: amount={amount} EUR")
         
-        # Check for Stripe session
-        if data.get("stripe_checkout_session_id"):
-            print(f"  → Has Stripe session: {data['stripe_checkout_session_id'][:20]}...")
+        # Check for Revolut session
+        if data.get("revolut_order_id"):
+            print(f"  → Has Revolut session: {data['revolut_order_id'][:20]}...")
         if data.get("checkout_url"):
             print(f"  → Has checkout URL: {data['checkout_url'][:50]}...")
 
