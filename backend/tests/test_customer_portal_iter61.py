@@ -9,9 +9,9 @@ import uuid
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 
-# Customer JWT token (expires 2026-04-05)
-CUSTOMER_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMmVAZTJlLXRlc3QuZGUiLCJyb2xlIjoiY3VzdG9tZXIiLCJleHAiOjE3NzUzNzYxMDR9.9OC_ao69s0CxsCPzGnMIoVbpqZqeTdPX7wJwuuDw570"
-CUSTOMER_EMAIL = "e2e@e2e-test.de"
+# Customer JWT token (from env, test-only — not a production secret)
+CUSTOMER_JWT = os.environ.get('CUSTOMER_JWT', 'test-jwt-placeholder')
+CUSTOMER_EMAIL = os.environ.get('CUSTOMER_EMAIL', 'e2e@e2e-test.de')
 
 
 @pytest.fixture
