@@ -666,16 +666,6 @@ const Admin = () => {
     window.location.href = '/login';
   };
 
-  /* ══════════ LOGIN SCREEN ══════════ */
-  if (!token) {
-    window.location.href = '/login';
-    return (
-      <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',background:'#080c12',color:'rgba(255,255,255,0.4)',fontSize:'0.875rem'}}>
-        Weiterleitung...
-      </div>
-    );
-  }
-
   /* ══════════ DASHBOARD VIEW ══════════ */
   const DashboardView = () => (
     <div className="adm-dashboard" data-testid="admin-dashboard">
@@ -4173,6 +4163,16 @@ curl ${API}/api/v1/docs`}
     { id: 'audit', icon: 'verified', label: 'Audit' },
     { id: 'monitoring', icon: 'monitor_heart', label: 'Monitoring' },
   ];
+
+  /* AUTH GATE — after all hooks, before render */
+  if (!token) {
+    window.location.href = '/login';
+    return (
+      <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',background:'#080c12',color:'rgba(255,255,255,0.4)',fontSize:'0.875rem'}}>
+        Weiterleitung...
+      </div>
+    );
+  }
 
   return (
     <div className={`adm-layout ${sidebarOpen ? '' : 'adm-collapsed'}`} data-testid="admin-panel">
