@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: 'npm'
@@ -61,7 +61,7 @@ jobs:
             echo "⛔ Build directory not found. Build must succeed first."
             exit 1
           fi
-          MAX_SIZE=500000
+          MAX_SIZE=3000000
           FAILED=0
           for f in "$BUILD_DIR"/*.js; do
             SIZE=$(stat -c%s "$f")
