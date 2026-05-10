@@ -341,7 +341,8 @@ async def get_admin_from_token(request: Request):
 
     # Fallback: Legacy backend JWT
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        import jwt as _fallback_jwt
+        payload = _fallback_jwt.decode(token, S.SECRET_KEY, algorithms=["HS256"])
         email = payload.get("sub") or payload.get("email")
         if email:
             user = await S.db.admin_users.find_one({"email": email})

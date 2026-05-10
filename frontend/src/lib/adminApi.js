@@ -46,8 +46,22 @@ export const api = {
   getAgents: () => apiFetch('/api/admin/agents/status').then(r => r.json()),
   getIncidents: () => apiFetch('/api/admin/incidents?today=true').then(r => r.json()),
 
+  // Dashboard Charts
+  getChartTrends: () => apiFetch('/api/admin/charts/trends').then(r => r.json()),
+  getChartIncidents: () => apiFetch('/api/admin/charts/incidents').then(r => r.json()),
+
   // Workflow Badges
   getWorkflowStatus: () => apiFetch('/api/admin/workflow-status').then(r => r.json()),
+
+  // MCP Tools
+  getMCPServers: () => apiFetch('/api/admin/mcp').then(r => r.json()),
+  getMCPStatus: () => apiFetch('/api/admin/mcp/status').then(r => r.json()),
+  callMCPTool: (server, tool, args) =>
+    apiFetch('/api/admin/mcp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ server, tool, args }),
+    }).then(r => r.json()),
 
   // Chat
   chatStream: function* () {}, // placeholder - handled via fetch directly for SSE

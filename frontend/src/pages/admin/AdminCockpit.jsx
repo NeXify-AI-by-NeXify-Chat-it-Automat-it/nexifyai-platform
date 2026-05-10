@@ -11,6 +11,7 @@ import SkillsView from './components/SkillsView';
 import BrainView from './components/BrainView';
 import LegalView from './components/LegalView';
 import LeadsView from './components/LeadsView';
+import MCPToolsView from './components/MCPToolsView';
 import './admin.css';
 
 const I = ({ n, s = 20 }) => (
@@ -227,6 +228,7 @@ export default function AdminCockpit() {
             {view === 'conversations' && 'Konversationen'}
             {view === 'tasks' && 'Tasks'}
             {view === 'skills' && 'Skills'}
+            {view === 'mcp' && 'MCP Tools'}
             {view === 'brain' && 'Brain'}
             {view === 'leads' && 'Leads'}
             {view === 'legal' && 'Legal'}
@@ -260,6 +262,7 @@ export default function AdminCockpit() {
           {view === 'tasks' && <TasksView />}
           {view === 'skills' && <SkillsView />}
           {view === 'brain' && <BrainView />}
+          {view === 'mcp' && <MCPToolsView />}
           {view === 'leads' && <LeadsView />}
           {view === 'legal' && <LegalView />}
         </div>

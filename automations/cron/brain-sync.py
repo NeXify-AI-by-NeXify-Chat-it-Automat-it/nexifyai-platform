@@ -66,15 +66,69 @@ def sync_dos_to_brain():
 
     return False
 
+SSH_KEY = "/opt/data/ssh_keys/hermes_vps_key"
+VPS_HOST = "72.62.152.47"
+NOTABLE_CONTAINER = "notebook-open_notebook-1"
+NOTABLE_CONTAINER_ALT = "open-notebook-y3ih"  # alter Name (Fallback)
+
+def _discover_notebook_port():
+    """Ermittelt den aktuellen Docker-Port per SSH (Dynamic Port Mapping)."""
+    for cname in [NOTABLE_CONTAINER, NOTABLE_CONTAINER_ALT]:
+        try:
+            # Zuerst 8502 probieren (aktuell), dann 8500 (Legacy)
+            r = subprocess.run(
+                ["ssh", "-i", SSH_KEY, "-o", "StrictHostKeyChecking=no",
+                 "-o", "ConnectTimeout=5", f"root@{VPS_HOST}",
+                 "docker port", cname, "8502"],
+                capture_output=True, text=True, timeout=15
+            )
+            if r.returncode == 0 and r.stdout.strip():
+                # Format: "0.0.0.0:33105" oder "[::]:33105" (kein "->")
+                port = r.stdout.strip().split("\n")[0].split(":")[-1]  # nimmt erste Zeile (IPv4 bevorzugt)
+                if port.isdigit():
+                    print(f"🔍 Open Notebook Port via SSH: {port} (Container: {cname})")
+                    return port, cname
+            # Fallback: ohne Port (zeigt alle)
+            r2 = subprocess.run(
+                ["ssh", "-i", SSH_KEY, "-o", "StrictHostKeyChecking=no",
+                 "-o", "ConnectTimeout=5", f"root@{VPS_HOST}",
+                 "docker port", cname],
+                capture_output=True, text=True, timeout=15
+            )
+            if r2.returncode == 0 and r2.stdout.strip():
+                for line in r2.stdout.strip().split("\n"):
+                    if "8502" in line or "8500" in line:
+                        port = line.split(":")[-1].strip()
+                        print(f"🔍 Open Notebook Port via SSH (Fallback): {port} (Container: {cname})")
+                        return port, cname
+        except Exception:
+            continue
+    return None, None
+
 def check_notebook():
     """Prüft ob Open Notebook erreichbar ist."""
     try:
-        # Open Notebook: Port 32770, Docker Gateway 172.17.0.1 (nicht localhost!)
-        # Open Notebook hat KEIN /api/health — prüfe /api/sources statt dessen
-        result = subprocess.run(
-            ["curl", "-s", "--connect-timeout", "5", "http://172.17.0.1:32770/api/sources"],
-            capture_output=True, text=True, timeout=10
-        )
+        # Option A: SSH Port-Forwarding + localhost (robust gegen UFW & Dynamic Port Mapping)
+        # Forward: localhost:18502 -> VPS:DYNAMIC_PORT -> Container:8502
+        # Nutzt den discovered Port + SSH-Tunnel
+        port, container = _discover_notebook_port()
+
+        if port:
+            # SSH Remote-Exec: curl vom VPS aus gegen localhost (kein Tunnel nötig)
+            # Umgeht UFW + Dynamic Port Mapping, ohne orphan-Prozesse zu hinterlassen
+            result = subprocess.run(
+                ["ssh", "-i", SSH_KEY, "-o", "StrictHostKeyChecking=no",
+                 "-o", "ConnectTimeout=10", f"root@{VPS_HOST}",
+                 f"curl -s --connect-timeout 5 http://localhost:{port}/api/sources"],
+                capture_output=True, text=True, timeout=20
+            )
+        else:
+            # Fallback: Direkter VPS-Port (wenn kein SSH möglich)
+            print("⚠️ Kein SSH-Zugriff, versuche Direktverbindung...")
+            result = subprocess.run(
+                ["curl", "-s", "--connect-timeout", "5", f"http://{VPS_HOST}:8502/api/sources"],
+                capture_output=True, text=True, timeout=10
+            )
         if result.returncode == 0 and result.stdout.strip().startswith("["):
             # Valide JSON-Array-Antwort — Notebook läuft
             try:

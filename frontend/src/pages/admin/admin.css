@@ -139,28 +139,25 @@ body { font-family: var(--font); background: var(--ac-bg); color: var(--ac-text)
 /* ── Content ── */
 .ac-content { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 
-/* ── Dashboard ── */
-.ac-dashboard {
+/* ── Dashboard v2 ── */
+.ac-dashboard-v2 {
   display: flex;
-  align-items: center;
-  gap: 20px;
+  flex-direction: column;
+  gap: 12px;
   padding: 14px 20px;
   border-bottom: 1px solid var(--ac-border);
   background: rgba(14, 20, 28, 0.5);
   flex-shrink: 0;
+  overflow-y: auto;
+  max-height: 75vh;
+}
+.ac-dash-top {
+  display: flex;
+  align-items: center;
+  gap: 20px;
   flex-wrap: wrap;
 }
-.ac-dash-section { display: flex; align-items: center; gap: 24px; }
-.ac-health-circle { position: relative; width: 88px; height: 88px; flex-shrink: 0; }
-.ac-health-value {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 1.5rem;
-  font-weight: 800;
-}
-.ac-dash-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+.ac-dash-stats { display: flex; gap: 10px; flex-wrap: wrap; }
 .ac-stat-badge {
   display: flex;
   align-items: center;
@@ -173,6 +170,9 @@ body { font-family: var(--font); background: var(--ac-bg); color: var(--ac-text)
 }
 .ac-stat-label { color: var(--ac-muted); min-width: 0; white-space: nowrap; }
 .ac-stat-value { font-weight: 700; }
+.ac-stat-trend { font-size: 0.65rem; font-weight: 700; }
+.ac-trend-up { color: #10b981; }
+.ac-trend-down { color: #ef4444; }
 .ac-dash-workflows { display: flex; gap: 6px; flex-wrap: wrap; }
 .ac-workflow-badge {
   display: flex;
@@ -191,6 +191,108 @@ body { font-family: var(--font); background: var(--ac-bg); color: var(--ac-text)
 .ac-badge-gray { background: rgba(107,123,141,0.12); color: #6b7b8d; }
 a.ac-workflow-badge { cursor: pointer; }
 a.ac-workflow-badge:hover { filter: brightness(1.2); }
+
+/* ── Chart Grid ── */
+.ac-dash-charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 900px) {
+  .ac-dash-charts { grid-template-columns: 1fr; }
+}
+
+/* ── Chart Card ── */
+.ac-chart-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 12px;
+  padding: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.ac-chart-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--ac-text);
+}
+.ac-chart-header .material-symbols-outlined {
+  font-size: 16px;
+  color: var(--ac-accent);
+}
+.ac-chart-sub {
+  margin-left: auto;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--ac-muted);
+}
+.ac-chart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px;
+  color: var(--ac-muted);
+  font-size: 0.8rem;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 12px;
+  min-height: 160px;
+}
+.ac-chart-empty .material-symbols-outlined { opacity: 0.3; }
+.ac-chart-legend {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding: 8px 0 0;
+  font-size: 0.7rem;
+  color: var(--ac-muted);
+}
+.ac-legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+/* ── Health Circle (legacy compat) ── */
+.ac-health-circle { position: relative; width: 88px; height: 88px; flex-shrink: 0; }
+.ac-health-value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+/* ── Unovis overrides ── */
+.vis-axis .tick text {
+  fill: var(--ac-muted) !important;
+  font-size: 10px !important;
+}
+.vis-axis .domain,
+.vis-axis .tick line {
+  stroke: rgba(255,255,255,0.06) !important;
+}
+.vis-crosshair-line {
+  stroke: rgba(255,255,255,0.15) !important;
+}
+.vis-tooltip {
+  background: rgba(14, 20, 28, 0.95) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  border-radius: 8px !important;
+  color: var(--ac-text) !important;
+  font-size: 0.75rem !important;
+  backdrop-filter: blur(8px) !important;
+}
 
 /* ── Chat ── */
 .ac-chat { flex: 1; display: flex; flex-direction: column; min-height: 0; }

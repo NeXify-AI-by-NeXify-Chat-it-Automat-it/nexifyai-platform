@@ -66,3 +66,4 @@ automations/cron/output/*.json
 
 # Backup files
 *.bak-*
+.vercel

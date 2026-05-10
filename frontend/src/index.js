@@ -21,7 +21,7 @@ import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
 import HealthStatusPage from './pages/admin-next/HealthStatusPage';
 
-import Admin from './pages/Admin';
+import Admin from './pages/admin';
 
 /* Language-aware redirect: / → /<detected lang> */
 function LangRedirect() {

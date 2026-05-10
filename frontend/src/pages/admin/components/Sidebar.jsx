@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { id: 'leads', label: 'Leads', icon: 'person_search' },
   { id: 'tasks', label: 'Tasks', icon: 'assignment' },
   { id: 'skills', label: 'Skills', icon: 'extension' },
+  { id: 'mcp', label: 'MCP Tools', icon: 'power_settings_new' },
   { id: 'brain', label: 'Brain', icon: 'psychology' },
   { id: 'legal', label: 'Legal', icon: 'gavel' },
 ];
