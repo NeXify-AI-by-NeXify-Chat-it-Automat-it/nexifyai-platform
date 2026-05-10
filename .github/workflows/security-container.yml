@@ -31,7 +31,7 @@ jobs:
     name: Trivy Filesystem Scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Trivy Scan (HIGH/CRITICAL — BLOCKING)
         uses: aquasecurity/trivy-action@master
         with:
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event_name == 'schedule'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Trivy Scan (SARIF)
         uses: aquasecurity/trivy-action@master
         with:
