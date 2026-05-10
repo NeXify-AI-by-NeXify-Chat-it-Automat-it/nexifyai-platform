@@ -40,12 +40,12 @@ jobs:
 
       - name: Typecheck (TypeScript — conditional)
         run: |
-          if ls src/**/*.{ts,tsx} 2>/dev/null | head -1 > /dev/null 2>&1; then
+          if [ -f tsconfig.json ]; then
             npx tsc --noEmit
           else
-            echo "⚠️ No TypeScript files found — skipping typecheck"
+            echo "⚠️ No tsconfig.json found — skipping typecheck"
           fi
-        # ⚠️  BLOCKING: Only fails if .ts/.tsx files exist AND have type errors.
+        # ⚠️  BLOCKING: Only fails if tsconfig.json exists AND has type errors.
 
       - name: Production build
         run: npm run build
