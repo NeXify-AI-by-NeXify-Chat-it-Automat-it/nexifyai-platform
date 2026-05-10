@@ -1,9 +1,8 @@
 """
-P3: Billing/Webhooks Testing — Revolut/Stripe Live-Webhooks & Billing-Status-Sync
+P3: Billing/Webhooks Testing — Revolut Live-Webhooks & Billing-Status-Sync
 
 Tests:
 - POST /api/webhooks/revolut — Revolut webhook (idempotent, ORDER_COMPLETED, ORDER_PAYMENT_FAILED)
-- POST /api/webhooks/stripe — Stripe webhook (idempotent, payment_intent.succeeded, payment_intent.payment_failed)
 - POST /api/admin/invoices/{id}/mark-paid — Manual payment confirmation (bank_transfer, bar, etc.)
 - POST /api/admin/invoices/{id}/send-reminder — Reminder/Mahnlogik (erinnerung → 1_mahnung → 2_mahnung)
 - GET /api/admin/billing/status — Unified billing dashboard
@@ -130,89 +129,6 @@ class TestBillingWebhooksP3:
         data = response.json()
         assert data.get("status") == "ok", f"Expected status 'ok', got: {data}"
         print(f"✅ Revolut ORDER_PAYMENT_FAILED webhook processed: {order_id}")
-
-    # ═══════════════════════════════════════════════════
-    # STRIPE WEBHOOK TESTS
-    # ═══════════════════════════════════════════════════
-
-    def test_stripe_webhook_payment_succeeded(self):
-        """Test Stripe webhook payment_intent.succeeded event"""
-        event_id = f"evt_test_{secrets.token_hex(8)}"
-        payment_intent_id = f"pi_test_{secrets.token_hex(8)}"
-        webhook_data = {
-            "id": event_id,
-            "type": "payment_intent.succeeded",
-            "data": {
-                "object": {
-                    "id": payment_intent_id,
-                    "amount": 100000,
-                    "currency": "eur",
-                    "metadata": {}
-                }
-            }
-        }
-        response = requests.post(
-            f"{BASE_URL}/api/webhooks/stripe",
-            json=webhook_data
-        )
-        assert response.status_code == 200, f"Stripe webhook failed: {response.text}"
-        data = response.json()
-        assert data.get("status") == "ok", f"Expected status 'ok', got: {data}"
-        print(f"✅ Stripe payment_intent.succeeded webhook processed: {event_id}")
-
-    def test_stripe_webhook_idempotent(self):
-        """Test Stripe webhook idempotency — same event should return already_processed"""
-        event_id = f"evt_test_idempotent_{secrets.token_hex(8)}"
-        payment_intent_id = f"pi_test_idempotent_{secrets.token_hex(8)}"
-        webhook_data = {
-            "id": event_id,
-            "type": "payment_intent.succeeded",
-            "data": {
-                "object": {
-                    "id": payment_intent_id,
-                    "amount": 50000,
-                    "currency": "eur",
-                    "metadata": {}
-                }
-            }
-        }
-        
-        # First call
-        response1 = requests.post(f"{BASE_URL}/api/webhooks/stripe", json=webhook_data)
-        assert response1.status_code == 200
-        assert response1.json().get("status") == "ok"
-        
-        # Second call (replay) — should be idempotent
-        response2 = requests.post(f"{BASE_URL}/api/webhooks/stripe", json=webhook_data)
-        assert response2.status_code == 200
-        data2 = response2.json()
-        assert data2.get("status") == "already_processed", f"Expected 'already_processed', got: {data2}"
-        print(f"✅ Stripe webhook idempotency verified: {event_id}")
-
-    def test_stripe_webhook_payment_failed(self):
-        """Test Stripe webhook payment_intent.payment_failed event"""
-        event_id = f"evt_test_failed_{secrets.token_hex(8)}"
-        payment_intent_id = f"pi_test_failed_{secrets.token_hex(8)}"
-        webhook_data = {
-            "id": event_id,
-            "type": "payment_intent.payment_failed",
-            "data": {
-                "object": {
-                    "id": payment_intent_id,
-                    "amount": 100000,
-                    "currency": "eur",
-                    "metadata": {}
-                }
-            }
-        }
-        response = requests.post(
-            f"{BASE_URL}/api/webhooks/stripe",
-            json=webhook_data
-        )
-        assert response.status_code == 200, f"Stripe webhook failed: {response.text}"
-        data = response.json()
-        assert data.get("status") == "ok", f"Expected status 'ok', got: {data}"
-        print(f"✅ Stripe payment_intent.payment_failed webhook processed: {event_id}")
 
     # ═══════════════════════════════════════════════════
     # MANUAL PAYMENT (MARK-PAID) TESTS
@@ -605,15 +521,6 @@ class TestWebhookEdgeCases:
         assert response.status_code == 400, f"Expected 400 for invalid JSON, got: {response.status_code}"
         print("✅ Revolut webhook correctly rejects invalid JSON")
 
-    def test_stripe_webhook_invalid_json(self):
-        """Test Stripe webhook with invalid JSON"""
-        response = requests.post(
-            f"{BASE_URL}/api/webhooks/stripe",
-            data="not valid json",
-            headers={"Content-Type": "application/json"}
-        )
-        assert response.status_code == 400, f"Expected 400 for invalid JSON, got: {response.status_code}"
-        print("✅ Stripe webhook correctly rejects invalid JSON")
 
     def test_revolut_webhook_empty_event(self):
         """Test Revolut webhook with empty event"""
@@ -629,20 +536,6 @@ class TestWebhookEdgeCases:
         assert response.status_code == 200, f"Expected 200, got: {response.status_code}"
         print("✅ Revolut webhook handles empty event gracefully")
 
-    def test_stripe_webhook_unknown_event_type(self):
-        """Test Stripe webhook with unknown event type"""
-        webhook_data = {
-            "id": f"evt_unknown_{secrets.token_hex(4)}",
-            "type": "unknown.event.type",
-            "data": {"object": {}}
-        }
-        response = requests.post(
-            f"{BASE_URL}/api/webhooks/stripe",
-            json=webhook_data
-        )
-        # Should still process (just won't match any handler)
-        assert response.status_code == 200, f"Expected 200, got: {response.status_code}"
-        print("✅ Stripe webhook handles unknown event type gracefully")
 
 
 class TestAuthRequired:

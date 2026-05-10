@@ -84,7 +84,6 @@ class TestMonitoringDashboard:
         
         # Validate Payments status
         assert "revolut" in systems["payments"]
-        assert "stripe" in systems["payments"]
         
         print(f"✅ Monitoring Status: {data['overall_status']}")
         print(f"  - API: {systems['api']['status']}, DB: {systems['database']['status']}")
