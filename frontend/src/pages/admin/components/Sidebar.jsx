@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { id: 'tasks', label: 'Tasks', icon: 'assignment' },
   { id: 'skills', label: 'Skills', icon: 'extension' },
   { id: 'mcp', label: 'MCP Tools', icon: 'power_settings_new' },
+  { id: 'workers', label: 'Worker Pool', icon: 'smart_toy' },
   { id: 'brain', label: 'Brain', icon: 'psychology' },
   { id: 'legal', label: 'Legal', icon: 'gavel' },
 ];

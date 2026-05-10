@@ -63,6 +63,24 @@ export const api = {
       body: JSON.stringify({ server, tool, args }),
     }).then(r => r.json()),
 
+  // Worker Pool (Multi-Agent Sandbox)
+  listWorkers: () => apiFetch('/api/admin/workers').then(r => r.json()),
+  spawnWorker: (type, task, timeout) =>
+    apiFetch('/api/admin/workers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, task, timeout }),
+    }).then(r => r.json()),
+  getWorker: (id) => apiFetch(`/api/admin/workers/${id}`).then(r => r.json()),
+  killWorker: (id) =>
+    apiFetch(`/api/admin/workers/${id}`, { method: 'DELETE' }).then(r => r.json()),
+  cleanupWorkers: () =>
+    apiFetch('/api/admin/workers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ _action: 'cleanup' }),
+    }).then(r => r.json()),
+
   // Chat
   chatStream: function* () {}, // placeholder - handled via fetch directly for SSE
 

@@ -9,6 +9,7 @@ import ConversationsView from './components/ConversationsView';
 import TasksView from './components/TasksView';
 import SkillsView from './components/SkillsView';
 import BrainView from './components/BrainView';
+import WorkerPoolView from './components/WorkerPoolView';
 import LegalView from './components/LegalView';
 import LeadsView from './components/LeadsView';
 import MCPToolsView from './components/MCPToolsView';
@@ -229,6 +230,7 @@ export default function AdminCockpit() {
             {view === 'tasks' && 'Tasks'}
             {view === 'skills' && 'Skills'}
             {view === 'mcp' && 'MCP Tools'}
+            {view === 'workers' && 'Worker Pool'}
             {view === 'brain' && 'Brain'}
             {view === 'leads' && 'Leads'}
             {view === 'legal' && 'Legal'}
