@@ -23,7 +23,7 @@ router = APIRouter(tags=["NeXify AI Master"])
 
 # OpenRouter (PRIMARY) — DeepSeek V4 Pro/Flash (Auto-Select)
 OPENROUTER_API_KEY=os.environ.get("OPENROUTER_API_KEY", "")
-OPENROUTER_BASE_URL = os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+OPENROUTER_BASE_URL = os.environ.get("CAMBRO_BASE_URL", os.environ.get("OPENROUTER_BASE_URL", "https://ai-router.nexifyai.cloud/v1"))
 OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "deepseek/deepseek-v4-pro")
 OPENROUTER_CHAT_URL = f"{OPENROUTER_BASE_URL}/chat/completions"
 OPENROUTER_HEADERS_EXTRA = {"HTTP-Referer": "https://nexifyai.de", "X-Title": "NeXifyAI"}
@@ -370,7 +370,7 @@ async def nexify_ai_status(admin: dict = Depends(get_admin_from_token)):
     if OPENROUTER_API_KEY:
         try:
             async with httpx.AsyncClient(timeout=5) as client:
-                r = await client.get("https://openrouter.ai/api/v1/auth/key",
+                r = await client.get("https://ai-router.nexifyai.cloud/v1/auth/key",
                     headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}"})
                 status["openrouter"]["connected"] = r.status_code == 200
         except Exception:
@@ -955,7 +955,7 @@ Format: Strukturiert mit **Fettschrift** und Aufzaehlungen."""
         full_response = ""
         started = _time.time()
         try:
-            openrouter_url = os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1") + "/chat/completions"
+            openrouter_url = os.environ.get("CAMBRO_BASE_URL", os.environ.get("OPENROUTER_BASE_URL", "https://ai-router.nexifyai.cloud/v1")) + "/chat/completions"
             openrouter_key = os.environ.get("OPENROUTER_API_KEY", "")
             model = os.environ.get("OPENROUTER_MODEL", "deepseek/deepseek-v4-pro")
 

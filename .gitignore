@@ -67,3 +67,8 @@ automations/cron/output/*.json
 # Backup files
 *.bak-*
 .vercel
+
+# Cache files (prevent accidental inclusion)
+.cache/
+*.cache
+*.pack

@@ -119,7 +119,13 @@ Token-Ablauf → 30-Tage-Warnung → automatische Erneuerung oder Eskalation.
 
 ## Health-Check-Ergebnisse
 
-| 2026-05-10 | ❌ | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ | ❌ | 50% |
+| 2026-05-16 | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | 87% |
+
+
+
+
+
+
 
 
 

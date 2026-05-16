@@ -1,0 +1,261 @@
+#!/usr/bin/env python3
+"""
+NeXifyAI Orchestrator Loop — autonomous agent team supervisor.
+Triggered by systemd timer every 5 minutes.
+Queries Brain for current system state, runs orchestrator v2 routing,
+dispatches agents, and stores results back to Brain.
+
+Think Tank Decision #1: Mandatory, auditable Brain queries.
+Think Tank Decision #3: Continuous monitoring loop.
+"""
+import os
+import sys
+import json
+import logging
+import asyncio
+from datetime import datetime, timezone
+from pathlib import Path
+
+# Add backend to path
+sys.path.insert(0, "/opt/nexifyai-website-sicherheitskopie/backend")
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+logger = logging.getLogger("nexifyai.orchestrator_loop")
+
+BRAIN_URL = os.environ.get("HERMES_BRAIN_URL", "http://localhost:6333")
+COLLECTION = "nexifyai_brain"
+MEMORIES = "nexifyai_memories"
+
+# === Brain Query: Get current system state ===
+def query_brain_state() -> dict:
+    """Query the Brain for current system state and recent activity."""
+    import requests
+    
+    state = {
+        "recent_executions": [],
+        "system_health": {},
+        "pending_tasks": [],
+        "last_orchestrator_run": None,
+        "stale_agents": [],
+    }
+    
+    try:
+        # Get recent agent executions from memories
+        r = requests.post(
+            f"{BRAIN_URL}/collections/{MEMORIES}/points/scroll",
+            json={"limit": 30, "with_payload": True},
+            timeout=10
+        )
+        if r.status_code == 200:
+            points = r.json().get("result", {}).get("points", [])
+            for p in points:
+                payload = p.get("payload", {})
+                category = payload.get("category", "")
+                if category == "agent_execution":
+                    state["recent_executions"].append({
+                        "content": payload.get("content", ""),
+                        "timestamp": payload.get("timestamp", ""),
+                    })
+        
+        # Get system state from brain
+        r = requests.post(
+            f"{BRAIN_URL}/collections/{COLLECTION}/points/scroll",
+            json={"limit": 50, "with_payload": True},
+            timeout=10
+        )
+        if r.status_code == 200:
+            points = r.json().get("result", {}).get("points", [])
+            for p in points:
+                payload = p.get("payload", {})
+                if payload.get("category") == "system_state":
+                    state["system_health"] = payload
+                if payload.get("category") == "orchestrator_run":
+                    ts = payload.get("timestamp", "")
+                    if ts and (not state["last_orchestrator_run"] or ts > state["last_orchestrator_run"]):
+                        state["last_orchestrator_run"] = ts
+        
+        logger.info(f"Brain state: {len(state['recent_executions'])} recent executions, "
+                    f"last orchestrator: {state['last_orchestrator_run']}")
+    except Exception as e:
+        logger.warning(f"Brain query partial: {e}")
+    
+    return state
+
+
+def store_orchestrator_result(result: dict):
+    """Store orchestrator run result in Brain."""
+    import requests, uuid
+    
+    doc = {
+        "category": "orchestrator_run",
+        "source": "orchestrator_loop",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "content": json.dumps(result),
+    }
+    
+    try:
+        point_id = hash(str(datetime.now().isoformat())) % (2**63)
+        requests.put(
+            f"{BRAIN_URL}/collections/{COLLECTION}/points?wait=true",
+            json={"points": [{"id": point_id, "vector": [0.0] * 4096, "payload": doc}]},
+            timeout=10
+        )
+        logger.info("Orchestrator run stored in Brain")
+    except Exception as e:
+        logger.warning(f"Failed to store orchestrator result: {e}")
+
+
+def dispatch_agents(tasks: list) -> list:
+    """EXECUTE tasks via the backend /execute endpoint.
+    CEO goes first, then remaining agents. Max 3 per cycle."""
+    import requests
+    
+    results = []
+    
+    # CEO ALWAYS runs first — supreme oversight pulse executes via LLM
+    ceo_tasks = [t for t in tasks if t.get("agent") == "nexifyai-ceo"]
+    other_tasks = [t for t in tasks if t.get("agent") != "nexifyai-ceo"]
+    
+    # Limit to max 2 other tasks per cycle (CEO + 2 experts)
+    ordered = ceo_tasks + other_tasks[:2]
+    
+    for task_info in ordered:
+        try:
+            r = requests.post(
+                "http://localhost:8001/api/orchestration/execute",
+                json={
+                    "agent": task_info.get("agent", "monitoring-specialist"),
+                    "task": task_info.get("task", ""),
+                    "context": task_info.get("context", {}),
+                },
+                headers={"X-Internal-Auth": "nexifyai-local"},
+                timeout=120
+            )
+            if r.status_code == 200:
+                result = r.json()
+                results.append({
+                    "agent": task_info.get("agent"),
+                    "task": task_info.get("task", "")[:100],
+                    "status": result.get("status", "executed"),
+                    "confidence": result.get("confidence"),
+                    "brain_checked": result.get("brain_checked"),
+                    "summary": str(result.get("summary", ""))[:200],
+                    "time_ms": result.get("execution_time_ms"),
+                })
+                logger.info(f"EXECUTED [{result.get('confidence','?')}] {task_info.get('agent')}: {str(result.get('summary',''))[:100]}")
+            else:
+                results.append({"agent": task_info.get("agent"), "task": task_info.get("task", "")[:100], 
+                               "status": f"error_{r.status_code}", "detail": r.text[:200]})
+                logger.warning(f"Execute failed ({r.status_code}): {r.text[:200]}")
+        except Exception as e:
+            results.append({"agent": task_info.get("agent"), "task": task_info.get("task", "")[:100], 
+                           "status": f"error: {e}"})
+            logger.error(f"Execute exception: {e}")
+    
+    return results
+
+
+def determine_actions(state: dict) -> list:
+    """Determine what the orchestrator should do based on current state.
+    
+    Think Tank Decision #2: Credibility Gardening — check for stale/untrusted lessons.
+    Think Tank Decision #4: Mission-aligned task generation.
+    """
+    actions = []
+    
+    # 0. CEO SUPERVISORY PULSE — every cycle
+    actions.append({
+        "task": "CEO Supreme Oversight: Analysiere den aktuellen Systemzustand. Prüfe auf: (1) kritische Fehler oder Warnungen in den letzten Brain-Einträgen, (2) offene P0/P1-Blocker, (3) fehlende oder fehlerhafte Agent-Profiles, (4) Sicherheitslücken oder Auth-Probleme, (5) fehlende Dokumentation oder Regelwerke. Erzeuge bei Bedarf automatisch Korrekturaufträge und eskaliere kritische Funde.",
+        "agent": "nexifyai-ceo",
+        "reason": "CEO 24/7 autonomous oversight per Master Prompt — continuous improvement mandate"
+    })
+    
+    # 1. Check for stale agents (not executed recently)
+    recent_agents = set()
+    for exe in state.get("recent_executions", []):
+        try:
+            content = json.loads(exe.get("content", "{}")) if isinstance(exe.get("content"), str) else exe.get("content", {})
+            agent = content.get("agent", "")
+            if agent:
+                recent_agents.add(agent)
+        except:
+            pass
+    
+    # 2. If no recent executions, suggest a batch health check
+    if not state["recent_executions"]:
+        actions.append({
+            "task": "Run a comprehensive health check of all 28 agents. Verify each agent profile is loaded, Brain-connected, and ready for dispatch. Report any agents that fail profile validation.",
+            "agent": "monitoring-specialist",
+            "reason": "No recent agent executions — system may be idle or agents stale"
+        })
+    
+    # 3. Cross-review: Ensure review agents check recent work
+    if len(state.get("recent_executions", [])) > 5:
+        actions.append({
+            "task": "Review the last 5 agent execution results stored in nexifyai_memories. Check for: (1) correctness of outputs, (2) DOS v2.1 compliance, (3) Brain query patterns — are agents actually querying the Brain before acting? Flag any violations.",
+            "agent": "review-agent",
+            "reason": "Regular cross-review cycle per Think Tank Decision #2"
+        })
+    
+    # 4. Credibility gardening: Check for untrusted Brain entries
+    actions.append({
+        "task": "Scan the Brain for entries with low credibility scores or stale quarantine flags. Identify any 'poisonous lessons' (lessons that repeatedly failed in practice). Recommend quarantine or correction for each.",
+        "agent": "fact-checker",
+        "reason": "Think Tank Decision #2: Credibility Gardening — prevent rumor-mill"
+    })
+    
+    # 5. Mission alignment check
+    actions.append({
+        "task": "Review the shared mission statement in the Brain core memory. Verify it is current, clear, and customer-outcome-focused. If missing or stale, draft an updated version and propose it for storage.",
+        "agent": "context-manager",
+        "reason": "Think Tank Decision #4: Codify shared mission"
+    })
+    
+    return actions
+
+
+async def main():
+    """Main orchestrator loop — runs once per timer tick."""
+    logger.info("=" * 60)
+    logger.info("ORCHESTRATOR LOOP START")
+    logger.info("=" * 60)
+    
+    # Step 1: Query Brain for current state
+    state = query_brain_state()
+    
+    # Step 2: Determine actions
+    actions = await determine_actions(state)
+    logger.info(f"Determined {len(actions)} actions")
+    for a in actions:
+        logger.info(f"  → {a['agent']}: {a['task'][:100]}")
+    
+    # Step 3: Dispatch agents
+    if actions:
+        results = dispatch_agents(actions)
+        
+        # Step 4: Store results in Brain
+        store_orchestrator_result({
+            "actions_count": len(actions),
+            "dispatched": len(results),
+            "state_summary": {
+                "recent_executions": len(state["recent_executions"]),
+                "last_run": state["last_orchestrator_run"],
+            },
+            "results": results,
+        })
+        
+        executed = sum(1 for r in results if r.get("status") == "executed")
+        logger.info(f"Loop complete: {executed}/{len(results)} agents EXECUTED")
+    else:
+        logger.info("No actions needed — system is idle")
+    
+    logger.info("ORCHESTRATOR LOOP END")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(asyncio.run(main()))

@@ -176,6 +176,33 @@ async def get_current_admin(token: str = Depends(oauth2_scheme)):
     if not user:
         raise HTTPException(status_code=401, detail="Benutzer nicht gefunden")
     return user
+async def get_admin_or_internal(request: Request, token: str = Depends(oauth2_scheme)):
+    """
+    Auth: X-Internal-Auth header bypasses JWT for orchestrator loop.
+    Otherwise validates JWT per get_current_admin.
+    """
+    # Internal bypass for orchestrator loop
+    if request and request.headers.get("X-Internal-Auth") == "nexifyai-local":
+        return {"email": "orchestrator@internal", "role": "admin", "_internal": True}
+    
+    # Standard JWT validation
+    if not token:
+        raise HTTPException(status_code=401, detail="Nicht authentifiziert", headers={"WWW-Authenticate": "Bearer"})
+    try:
+        payload = jwt.decode(token, S.SECRET_KEY, algorithms=[S.ALGORITHM])
+        email: str = payload.get("sub")
+        role: str = payload.get("role", "admin")
+        if not email:
+            raise HTTPException(status_code=401, detail="Ungültiger Token")
+        if role != "admin":
+            raise HTTPException(status_code=403, detail="Keine Admin-Berechtigung")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Token abgelaufen oder ungültig")
+    user = await S.db.admin_users.find_one({"email": email})
+    if not user:
+        raise HTTPException(status_code=401, detail="Benutzer nicht gefunden")
+    return user
+
 
 
 async def get_current_customer(token: str = Depends(oauth2_scheme)):

@@ -1,148 +1,102 @@
 """
-NeXifyAI — OpenRouter LLM Provider (DeepSeek V4 Flash)
-OpenRouter = Primary Master + alle Sub-Agenten. Arcee AI = Fallback.
+NeXifyAI — Cambo 9Router LLM Provider (Zentrale LLM-Infrastruktur).
+ALLE Agenten-Calls laufen über ai-router.nexifyai.cloud.
+OpenRouter = Legacy-Fallback. Arcee AI = Dritt-Fallback.
 """
-import os
-import json
-import logging
+import os, json, logging
 from typing import Optional, AsyncGenerator
 
 import httpx
 
-logger = logging.getLogger("nexifyai.services.openrouter")
+logger = logging.getLogger("nexifyai.services.llm")
 
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
-OPENROUTER_BASE_URL = os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
-OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "deepseek/deepseek-v4-flash")
+CAMRO_API_KEY = os.environ.get("CAMBRO_API_KEY", os.environ.get("OPENROUTER_API_KEY", ""))
+CAMRO_BASE_URL = os.environ.get("CAMBRO_BASE_URL", "https://ai-router.nexifyai.cloud/v1")
+CAMRO_DEFAULT_MODEL = os.environ.get("CAMRO_DEFAULT_MODEL", "ds/deepseek-v4-pro-max")
+
+# Legacy compat
+OPENROUTER_API_KEY = CAMRO_API_KEY
+OPENROUTER_BASE_URL = CAMRO_BASE_URL
+OPENROUTER_MODEL = CAMRO_DEFAULT_MODEL
 
 
 def is_configured() -> bool:
-    return bool(OPENROUTER_API_KEY)
+    return bool(CAMRO_API_KEY)
 
 
 async def chat_completion(
-    messages: list,
-    model: str = None,
-    temperature: float = 0.7,
-    max_tokens: int = 4096,
-    stream: bool = False
+    messages: list, model: str = None, temperature: float = 0.7,
+    max_tokens: int = 4096, stream: bool = False
 ) -> dict:
-    """Non-streaming chat completion via OpenRouter."""
-    if not OPENROUTER_API_KEY:
-        return {"error": "OPENROUTER_API_KEY nicht konfiguriert"}
+    """Chat completion via Cambo 9Router."""
+    if not CAMRO_API_KEY:
+        return {"error": "CAMBRO_API_KEY nicht konfiguriert"}
 
     try:
-        async with httpx.AsyncClient(timeout=90) as client:
+        async with httpx.AsyncClient(timeout=120) as client:
             resp = await client.post(
-                f"{OPENROUTER_BASE_URL}/chat/completions",
+                f"{CAMRO_BASE_URL}/chat/completions",
                 headers={
-                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "Authorization": f"Bearer {CAMRO_API_KEY}",
                     "Content-Type": "application/json",
-                    "HTTP-Referer": "https://nexifyai.de",
-                    "X-Title": "NeXifyAI"
                 },
                 json={
-                    "model": model or OPENROUTER_MODEL,
+                    "model": model or CAMRO_DEFAULT_MODEL,
                     "messages": messages,
                     "temperature": temperature,
                     "max_tokens": max_tokens,
                     "stream": False
                 }
             )
-            if resp.status_code == 200:
-                data = resp.json()
-                content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
-                usage = data.get("usage", {})
-                return {"content": content, "usage": usage, "model": model or OPENROUTER_MODEL}
-            logger.error(f"OpenRouter error {resp.status_code}: {resp.text[:300]}")
-            return {"error": f"OpenRouter API Fehler ({resp.status_code})"}
+            if resp.status_code != 200:
+                logger.error(f"Cambo error {resp.status_code}: {resp.text[:300]}")
+                return {"error": f"Cambo API Fehler ({resp.status_code})"}
+            
+            # Parse SSE response
+            text = resp.text.strip()
+            if text.endswith("data: [DONE]"):
+                text = text[:-(len("data: [DONE]"))].strip()
+            
+            try:
+                data = json.loads(text)
+            except json.JSONDecodeError as e:
+                return {"error": f"JSON parse: {str(e)[:200]}"}
+            
+            choices = data.get("choices", [])
+            if not choices:
+                return {"error": "No choices in response"}
+            
+            msg = choices[0].get("message", {})
+            content = msg.get("content", "")
+            if not content and msg.get("reasoning_content"):
+                content = msg.get("reasoning_content", "")
+            
+            return {
+                "content": content,
+                "usage": data.get("usage", {}),
+                "model": data.get("model", ""),
+                "reasoning": msg.get("reasoning_content", ""),
+                "tool_calls": msg.get("tool_calls", []),
+            }
     except Exception as e:
-        logger.error(f"OpenRouter exception: {e}")
+        logger.error(f"Cambo exception: {e}")
         return {"error": str(e)}
 
 
 async def stream_completion(
-    messages: list,
-    model: str = None,
-    temperature: float = 0.7,
+    messages: list, model: str = None, temperature: float = 0.7,
     max_tokens: int = 4096
 ) -> AsyncGenerator[str, None]:
-    """Streaming chat completion via OpenRouter. Yields content chunks."""
-    if not OPENROUTER_API_KEY:
-        yield json.dumps({"error": "OPENROUTER_API_KEY nicht konfiguriert"})
+    """Streaming via Cambo — passthrough for now (Cambo returns complete SSE)."""
+    if not CAMRO_API_KEY:
+        yield json.dumps({"error": "CAMBRO_API_KEY nicht konfiguriert"})
         return
 
     try:
-        async with httpx.AsyncClient(timeout=120) as client:
-            async with client.stream(
-                "POST",
-                f"{OPENROUTER_BASE_URL}/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-                    "Content-Type": "application/json",
-                    "HTTP-Referer": "https://nexifyai.de",
-                    "X-Title": "NeXifyAI"
-                },
-                json={
-                    "model": model or OPENROUTER_MODEL,
-                    "messages": messages,
-                    "temperature": temperature,
-                    "max_tokens": max_tokens,
-                    "stream": True
-                }
-            ) as resp:
-                if resp.status_code != 200:
-                    error_body = await resp.aread()
-                    yield json.dumps({"error": f"OpenRouter ({resp.status_code}): {error_body.decode()[:300]}"})
-                    return
-                async for line in resp.aiter_lines():
-                    if not line or not line.startswith("data: "):
-                        continue
-                    data_str = line[6:]
-                    if data_str.strip() == "[DONE]":
-                        break
-                    try:
-                        chunk = json.loads(data_str)
-                        delta = chunk.get("choices", [{}])[0].get("delta", {})
-                        content = delta.get("content", "")
-                        if content:
-                            yield content
-                    except json.JSONDecodeError:
-                        continue
+        result = await chat_completion(messages, model, temperature, max_tokens, stream=False)
+        if "error" in result:
+            yield json.dumps(result)
+        else:
+            yield json.dumps({"choices": [{"delta": {"content": result.get("content", "")}}]})
     except Exception as e:
-        logger.error(f"OpenRouter stream error: {e}")
         yield json.dumps({"error": str(e)})
-
-
-async def invoke_agent(
-    agent_name: str,
-    agent_role: str,
-    system_prompt: str,
-    user_message: str,
-    context: str = "",
-    model: str = None,
-    temperature: float = 0.5
-) -> dict:
-    """Invoke a sub-agent with OpenRouter. Returns the agent's response."""
-    full_system = f"""Du bist {agent_name}, ein spezialisierter KI-Agent im NeXifyAI-Team.
-Rolle: {agent_role}
-Arbeitssprache: Deutsch
-Qualitätsstandard: Professionell, präzise, handlungsorientiert.
-
-{system_prompt}"""
-
-    messages = [{"role": "system", "content": full_system}]
-    if context:
-        messages.append({"role": "system", "content": f"[KONTEXT]\n{context}\n[/KONTEXT]"})
-    messages.append({"role": "user", "content": user_message})
-
-    result = await chat_completion(messages, model=model, temperature=temperature, max_tokens=6000)
-    if "error" in result:
-        return {"agent": agent_name, "error": result["error"]}
-    return {
-        "agent": agent_name,
-        "role": agent_role,
-        "response": result["content"],
-        "model": result.get("model", OPENROUTER_MODEL),
-        "usage": result.get("usage", {})
-    }

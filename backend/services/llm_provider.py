@@ -507,29 +507,144 @@ class DeepSeekDirectProvider(LLMProvider):
 # FACTORY
 # ══════════════════════════════════════════
 
+# ══════════════════════════════════════════
+# CAMBO 9ROUTER — PRIMÄR (NeXifyAI Zentrale LLM-Infrastruktur)
+# ══════════════════════════════════════════
+
+class CamboProvider(LLMProvider):
+    """
+    PRIMÄRER Provider: Cambo 9Router (ai-router.nexifyai.cloud).
+    Zentrale LLM-Infrastruktur mit capability-based routing, circuit breaker,
+    und automatischen Fallback-Ketten.
+    Alle Agenten-Calls gehen über diesen Provider.
+    """
+
+    def __init__(self):
+        from services.model_router import router as model_router
+        self._router = model_router
+        self._sessions: Dict[str, list] = {}
+        self._metrics = {"calls": 0, "errors": 0, "total_latency_ms": 0}
+
+    async def chat(
+        self,
+        messages: List[LLMMessage],
+        system_prompt: str = "",
+        temperature: float = 0.7,
+        max_tokens: int = 4096,
+        model: str = None,
+    ) -> str:
+        """Chat completion via central Model Router."""
+        import time as _time
+        start = _time.time()
+        try:
+            msgs = [m.to_dict() if isinstance(m, LLMMessage) else m for m in messages]
+            result = await self._router.complete(
+                messages=msgs,
+                system_prompt=system_prompt,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                task_type="chat",
+            )
+            latency = (_time.time() - start) * 1000
+            self._metrics["calls"] += 1
+            self._metrics["total_latency_ms"] += latency
+            
+            if "error" in result:
+                self._metrics["errors"] += 1
+                logger.error(f"Cambo chat error: {result['error']}")
+                return f"[Fehler: {result['error']}]"
+            
+            content = result.get("content", "")
+            # If reasoning_content exists but content is empty, use reasoning
+            if not content and result.get("reasoning_content"):
+                content = result.get("reasoning_content", "")
+            return content
+        except Exception as e:
+            self._metrics["errors"] += 1
+            logger.error(f"Cambo chat exception: {e}")
+            return f"[Systemfehler: {e}]"
+
+    async def chat_with_history(
+        self,
+        session_id: str,
+        user_message: str,
+        system_prompt: str = "",
+        temperature: float = 0.7,
+        model: str = None,
+    ) -> str:
+        """Chat with session history (delegates to chat for now)."""
+        if session_id not in self._sessions:
+            self._sessions[session_id] = []
+        self._sessions[session_id].append(LLMMessage(role="user", content=user_message))
+        return await self.chat(self._sessions[session_id], system_prompt, temperature)
+
+    def get_provider_name(self) -> str:
+        return "Cambo 9Router (NeXifyAI)"
+
+    def clear_session(self, session_id: str):
+        if session_id in self._sessions:
+            del self._sessions[session_id]
+
+    async def health_check(self) -> dict:
+        """Cambo health check — verifies endpoint reachability."""
+        import httpx
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                r = await client.get(
+                    f"{self._router._CAMBRO_BASE_URL if hasattr(self._router, '_CAMBRO_BASE_URL') else 'https://ai-router.nexifyai.cloud/v1'}/models"
+                )
+                return {
+                    "status": "healthy" if r.status_code == 200 else "degraded",
+                    "http_status": r.status_code,
+                    "enabled": self._router.is_enabled(),
+                }
+        except Exception as e:
+            return {"status": "down", "error": str(e)}
+
+    def get_metrics(self) -> dict:
+        return {
+            **self._metrics,
+            "router_metrics": self._router.get_metrics(),
+            "circuits": self._router.get_circuit_status(),
+        }
+
+
 def create_llm_provider() -> LLMProvider:
     """
     LLM-Provider basierend auf Konfiguration erstellen.
-    Priorität: DeepSeek Direct > OpenRouter > Emergent GPT (Fallback).
+    NEU: Cambo 9Router = PRIMÄR (zentrale LLM-Infrastruktur).
+    Fallback-Kette: Cambo > OpenRouter > Emergent GPT.
     """
     provider_name = os.environ.get("LLM_PROVIDER", "auto").lower()
+    camro_key = os.environ.get("CAMBRO_API_KEY", "").strip()
     openrouter_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
     emergent_key = os.environ.get("EMERGENT_LLM_KEY", "").strip()
+
+    # CAMBO 9ROUTER — PRIMÄR (neue zentrale LLM-Infrastruktur)
+    if camro_key:
+        if provider_name not in ("openrouter_legacy", "emergent_fallback"):
+            logger.info("LLM-Provider: Cambo 9Router (PRIMÄR — zentrale NeXifyAI LLM-Infrastruktur)")
+            return CamboProvider()
+        logger.info("LLM-Provider: Cambo available but overridden by LLM_PROVIDER=%s", provider_name)
 
     if provider_name == "deepseek_direct":
         logger.info("LLM-Provider: DeepSeek Direct API (PRIMÄR — Bot Fleet)")
         return DeepSeekDirectProvider()
 
     if provider_name in ("openrouter", "deepseek") and openrouter_key:
-        logger.info("LLM-Provider: OpenRouter/DeepSeek V4 Flash (PRIMÄR — bisher)")
+        logger.info("LLM-Provider: OpenRouter/DeepSeek V4 Flash (LEGACY)")
         return OpenRouterProvider()
 
-    if provider_name == "auto" and openrouter_key:
-        logger.info("LLM-Provider: OpenRouter/DeepSeek V4 Flash (auto-detected, PRIMÄR)")
-        return OpenRouterProvider()
+    if provider_name == "auto":
+        if openrouter_key:
+            logger.info("LLM-Provider: OpenRouter/DeepSeek V4 Flash (LEGACY — Cambo key not set)")
+            return OpenRouterProvider()
+        if emergent_key:
+            logger.info("LLM-Provider: Emergent GPT (FALLBACK)")
+            return EmergentGPTProvider()
 
     if emergent_key:
-        logger.info("LLM-Provider: Emergent GPT (FALLBACK — OPENROUTER_API_KEY nicht gesetzt)")
+        logger.info("LLM-Provider: Emergent GPT (FALLBACK)")
         return EmergentGPTProvider()
 
     logger.warning("LLM-Provider: Kein API-Key konfiguriert.")

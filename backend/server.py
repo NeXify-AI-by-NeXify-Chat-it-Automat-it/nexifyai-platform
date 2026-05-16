@@ -1,5 +1,4 @@
 """
-NeXifyAI Backend v3.1 - Modular Architecture
 Thin orchestrator: lifespan, middleware, router mounting.
 All route logic lives in /routes/*.py, shared state in routes/shared.py.
 """
@@ -38,6 +37,14 @@ from services.llm_provider import create_llm_provider
 from services.supabase_db import SupabaseDB
 
 import routes.shared as shared
+from routes.orchestrator_routes import orch_router
+from routes.brain_routes import brain_router
+from agents.agent_pipeline.routes import pipeline_router
+from agents.skill_registry.routes import skill_router
+from agents.review_cycle.routes import review_router
+from agents.adversarial.routes import adversarial_router
+
+from routes.webhook_agent_routes import agent_webhook_router
 
 load_dotenv()
 
@@ -415,6 +422,21 @@ async def lifespan(app: FastAPI):
 # APP + MIDDLEWARE
 # ══════════════════════════════════════════════════════════════
 limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
+# === Autonomous Runtime Governance Bootstrap ===
+import logging as _logging
+_gov_logger = _logging.getLogger("nexifyai.governance")
+_gov_logger.info("=== Autonomous Runtime Governance Bootstrap ===")
+try:
+    from governance_bootstrap import run_bootstrap
+    _gov_report = run_bootstrap(repair=True, block_workflows=True)
+    if _gov_report.get("governance_passed", False):
+        _gov_logger.info("GOVERNANCE: PASSED in %.2fs", _gov_report.get("total_duration_s", 0))
+    else:
+        _gov_logger.warning("GOVERNANCE: BLOCKED - runtime validation failed")
+except Exception as _gov_e:
+    _gov_logger.error("GOVERNANCE: bootstrap exception: %s", str(_gov_e)[:200])
+    _gov_report = {"governance_passed": False, "error": str(_gov_e)[:200]}
+
 app = FastAPI(title="NeXifyAI API", version="3.1.0", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -485,6 +507,7 @@ from routes.newsletter_routes import router as newsletter_router
 from routes.analytics_routes import router as analytics_router
 from routes.api_v1_routes import router as api_v1_router
 from routes.nexify_ai_routes import router as nexify_ai_router
+from routes.mcp_router import mcp_router
 from routes.admin_cockpit_chat import router as admin_cockpit_chat_router
 from routes.oracle_routes import router as oracle_router
 from routes.template_routes import router as template_router
@@ -494,9 +517,23 @@ from routes.compliance_routes import router as compliance_router
 from routes.forms_routes import router as forms_router
 from routes.telemetry_routes import router as telemetry_router
 from routes.security_routes import router as security_router
+from routes.recovery_routes import router as recovery_router
+from routes.order_routes import order_router
+
+from metrics import metrics_middleware, metrics_endpoint
+from fastapi import Request
+
+
+# Metrics middleware - track all API requests
+app.middleware('http')(metrics_middleware)
 
 app.include_router(auth_router)
 app.include_router(public_router)
+app.include_router(brain_router)
+app.include_router(pipeline_router)
+app.include_router(skill_router)
+app.include_router(review_router)
+app.include_router(adversarial_router)
 app.include_router(admin_router)
 app.include_router(billing_router)
 app.include_router(portal_router)
@@ -522,3 +559,14 @@ app.include_router(forms_router)
 app.include_router(chat_hub_router)
 app.include_router(telemetry_router)
 app.include_router(security_router)
+app.include_router(recovery_router)
+app.include_router(mcp_router)
+app.include_router(order_router)
+app.include_router(agent_webhook_router)
+app.include_router(orch_router)
+
+# Metrics endpoint for Prometheus scraping
+@app.get("/metrics")
+async def metrics():
+    return metrics_endpoint()
+
