@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import OracleView from './OracleView';
+import LiveDashboard from './admin/components/LiveDashboard';
 import './Admin.css';
+import './admin/admin.css';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
 const I = ({ n }) => <span className="material-symbols-outlined">{n}</span>;
@@ -27,6 +29,20 @@ const BOOKING_STATUS = {
 
 const Admin = () => {
   useEffect(() => { document.body.classList.add('hide-wa'); return () => document.body.classList.remove('hide-wa'); }, []);
+  // Fallback: Token neu aus localStorage laden beim Mount (sicherer als useState allein)
+  useEffect(() => {
+    if (!token) {
+      const t = localStorage.getItem('nx_admin_token');
+      if (t) { setToken(t); return; }
+      try {
+        const a = JSON.parse(localStorage.getItem('nx_auth') || '{}');
+        if (a.role === 'admin' && a.token) {
+          localStorage.setItem('nx_admin_token', a.token);
+          setToken(a.token);
+        }
+      } catch {}
+    }
+  }, []);
   const [token, setToken] = useState(() => {
     // Check both storage keys for backward compatibility
     const directToken = localStorage.getItem('nx_admin_token');
@@ -652,82 +668,39 @@ const Admin = () => {
     window.location.href = '/login';
   };
 
-  /* ══════════ LOGIN SCREEN ══════════ */
-  if (!token) {
-    window.location.href = '/login';
-    return (
-      <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',background:'#080c12',color:'rgba(255,255,255,0.4)',fontSize:'0.875rem'}}>
-        Weiterleitung...
-      </div>
-    );
-  }
-
-  /* ══════════ DASHBOARD VIEW ══════════ */
+  /* ══════════ DASHBOARD VIEW (Unovis Charts) ══════════ */
   const DashboardView = () => (
     <div className="adm-dashboard" data-testid="admin-dashboard">
-      <div className="adm-stat-grid">
-        <div className="adm-stat-card"><div className="adm-stat-icon"><I n="people" /></div><div className="adm-stat-val">{stats?.leads_total || 0}</div><div className="adm-stat-label">Leads gesamt</div></div>
-        <div className="adm-stat-card hl"><div className="adm-stat-icon"><I n="trending_up" /></div><div className="adm-stat-val">{stats?.leads_new || 0}</div><div className="adm-stat-label">Neue Leads</div></div>
-        <div className="adm-stat-card"><div className="adm-stat-icon"><I n="contacts" /></div><div className="adm-stat-val">{stats?.contacts_total || 0}</div><div className="adm-stat-label">Kontakte</div></div>
-        <div className="adm-stat-card"><div className="adm-stat-icon"><I n="description" /></div><div className="adm-stat-val">{stats?.quotes_total || 0}</div><div className="adm-stat-label">Angebote</div></div>
-        <div className="adm-stat-card"><div className="adm-stat-icon"><I n="gavel" /></div><div className="adm-stat-val">{stats?.contracts_total || 0}</div><div className="adm-stat-label">Verträge</div></div>
-        <div className="adm-stat-card"><div className="adm-stat-icon"><I n="receipt_long" /></div><div className="adm-stat-val">{stats?.invoices_total || 0}</div><div className="adm-stat-label">Rechnungen</div></div>
-        <div className="adm-stat-card"><div className="adm-stat-icon"><I n="calendar_month" /></div><div className="adm-stat-val">{stats?.bookings_total || 0}</div><div className="adm-stat-label">Buchungen</div></div>
-        <div className="adm-stat-card"><div className="adm-stat-icon"><I n="forum" /></div><div className="adm-stat-val">{stats?.chat_sessions_total || 0}</div><div className="adm-stat-label">Chat-Sessions</div></div>
-      </div>
+      <LiveDashboard
+        health={systemHealth ? {
+          health_score: systemHealth.overall === 'healthy' ? 95 : systemHealth.overall === 'degraded' ? 70 : 50,
+          status: systemHealth.overall === 'healthy' ? 'OK' : 'Warning',
+          uptime: 0,
+          checks: systemHealth.checks || {},
+        } : undefined}
+        stats={{
+          open_tasks: stats?.open_tasks || 0,
+        }}
+        agents={[]}
+        incidents={[]}
+        workflows={{}}
+      />
+
       {stats?.recent_leads?.length > 0 && (
-        <div className="adm-recent">
-          <h3>Neueste Leads</h3>
-          <div className="adm-table-wrap">
-            <table className="adm-table" data-testid="dashboard-recent-table">
+        <div className="adm-dash-recent-leads" style={{ padding: '0 20px 20px' }}>
+          <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: 12 }}>Neueste Leads</h3>
+          <div className="ac-table-wrap" style={{ overflowX: 'auto' }}>
+            <table className="ac-table">
               <thead><tr><th>Name</th><th>E-Mail</th><th>Quelle</th><th>Status</th><th>Datum</th></tr></thead>
               <tbody>
                 {stats.recent_leads.slice(0, 10).map((l, i) => (
                   <tr key={i}><td>{l.vorname} {l.nachname}</td><td>{l.email}</td><td>{l.source}</td>
-                    <td><span className="adm-badge" style={{ background: STATUS_MAP[l.status]?.color + '22', color: STATUS_MAP[l.status]?.color }}>{STATUS_MAP[l.status]?.label || l.status}</span></td>
-                    <td>{fmtTime(l.created_at)}</td></tr>
+                    <td><span style={{ background: STATUS_MAP[l.status]?.color + '22', color: STATUS_MAP[l.status]?.color, padding: '2px 8px', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600 }}>{STATUS_MAP[l.status]?.label || l.status}</span></td>
+                    <td style={{ color: 'var(--ac-muted)' }}>{fmtTime(l.created_at)}</td></tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </div>
-      )}
-
-      {/* System Health Panel */}
-      {systemHealth && (
-        <div className="adm-health-panel" data-testid="admin-system-health">
-          <h3><I n="monitor_heart" /> System-Health</h3>
-          <div className="adm-health-grid">
-            <div className={`adm-health-card ${systemHealth.overall === 'healthy' ? 'ok' : 'warn'}`}>
-              <span className="adm-health-dot" /><span>System</span>
-              <strong>{systemHealth.overall === 'healthy' ? 'Operativ' : 'Warnung'}</strong>
-            </div>
-            <div className={`adm-health-card ${systemHealth.checks?.database?.status === 'ok' ? 'ok' : 'err'}`}>
-              <span className="adm-health-dot" /><span>Datenbank</span>
-              <strong>{systemHealth.checks?.database?.status === 'ok' ? 'Verbunden' : 'Fehler'}</strong>
-            </div>
-            <div className={`adm-health-card ${systemHealth.checks?.workers?.status === 'ok' ? 'ok' : 'warn'}`}>
-              <span className="adm-health-dot" /><span>Workers ({systemHealth.checks?.workers?.active || 0})</span>
-              <strong>{systemHealth.checks?.workers?.status === 'ok' ? 'Aktiv' : 'Prüfen'}</strong>
-            </div>
-            <div className={`adm-health-card ${systemHealth.checks?.llm?.status === 'ok' ? 'ok' : 'warn'}`}>
-              <span className="adm-health-dot" /><span>KI-Engine</span>
-              <strong>{systemHealth.checks?.llm?.status === 'ok' ? (systemHealth.checks?.llm?.provider || 'Aktiv') : 'Inaktiv'}</strong>
-            </div>
-            <div className={`adm-health-card ${systemHealth.checks?.scheduler?.status === 'ok' ? 'ok' : 'warn'}`}>
-              <span className="adm-health-dot" /><span>Scheduler ({systemHealth.checks?.scheduler?.jobs_count || 0} Jobs)</span>
-              <strong>{systemHealth.checks?.scheduler?.status === 'ok' ? 'Läuft' : 'Gestoppt'}</strong>
-            </div>
-            <div className={`adm-health-card ${systemHealth.checks?.memory?.status === 'ok' ? 'ok' : 'warn'}`}>
-              <span className="adm-health-dot" /><span>Memory ({systemHealth.checks?.memory?.entries || 0})</span>
-              <strong>{systemHealth.checks?.memory?.status === 'ok' ? 'Aktiv' : 'Inaktiv'}</strong>
-            </div>
-          </div>
-          {systemHealth.checks?.recent_errors_24h > 0 && (
-            <div className="adm-health-alert" data-testid="health-errors-alert">
-              <I n="warning" /> {systemHealth.checks.recent_errors_24h} Fehler in den letzten 24h
-            </div>
-          )}
         </div>
       )}
     </div>
@@ -3151,9 +3124,14 @@ const Admin = () => {
     });
   };
 
+  const escapeHtml = (text) => {
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  };
+
   const renderMarkdown = (text) => {
     if (!text) return '';
-    let html = text
+    // Erst HTML escapen (XSS-Schutz), dann Markdown parsen
+    let html = escapeHtml(text)
       .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
       .replace(/`([^`]+)`/g, '<code>$1</code>')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
@@ -4155,6 +4133,16 @@ curl ${API}/api/v1/docs`}
     { id: 'monitoring', icon: 'monitor_heart', label: 'Monitoring' },
   ];
 
+  /* AUTH GATE — after all hooks, before render */
+  if (!token) {
+    window.location.href = '/login';
+    return (
+      <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',background:'#080c12',color:'rgba(255,255,255,0.4)',fontSize:'0.875rem'}}>
+        Weiterleitung...
+      </div>
+    );
+  }
+
   return (
     <div className={`adm-layout ${sidebarOpen ? '' : 'adm-collapsed'}`} data-testid="admin-panel">
       <aside className={`adm-sidebar ${sidebarOpen ? '' : 'collapsed'}`} data-testid="admin-sidebar">
@@ -4174,7 +4162,7 @@ curl ${API}/api/v1/docs`}
       </aside>
       <main className="adm-main">
         <header className="adm-topbar">
-          <div className="adm-topbar-brand"><img src="/icon-mark.svg" alt="" width="24" height="24" /><span>NeXify<em>AI</em></span></div>
+          <div className="adm-topbar-brand"><img src="/logo-light.svg" alt="neXifyAI" height="24" /></div>
           <h1 className="adm-topbar-title">{navItems.find(n => n.id === view)?.label}</h1>
           <div className="adm-topbar-user"><I n="account_circle" /> Administration</div>
         </header>

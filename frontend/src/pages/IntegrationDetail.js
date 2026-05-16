@@ -29,8 +29,7 @@ export default function IntegrationDetail() {
           <div className="container">
             <div className="intd-nav-inner">
               <Link to={homePath} className="intd-logo-link" data-testid="intd-logo">
-                <img src="/icon-mark.svg" alt="" width="28" height="28" />
-                <span className="intd-logo-text">NeXify<span className="intd-logo-accent">AI</span></span>
+                <img src="/logo-light.svg" alt="neXifyAI" height="24" />
               </Link>
               <Link to={`${homePath}#integrationen`} className="intd-back" data-testid="intd-back">
                 <I n="arrow_back" /> {lang === 'nl' ? 'Terug naar integraties' : lang === 'en' ? 'Back to integrations' : 'Zurück zu Integrationen'}
@@ -75,8 +74,7 @@ export default function IntegrationDetail() {
         <div className="container">
           <div className="intd-nav-inner">
             <Link to={homePath} className="intd-logo-link" data-testid="intd-logo">
-              <img src="/icon-mark.svg" alt="" width="28" height="28" />
-              <span className="intd-logo-text">NeXify<span className="intd-logo-accent">AI</span></span>
+              <img src="/logo-light.svg" alt="neXifyAI" height="24" />
             </Link>
             <Link to={`${homePath}#integrationen`} className="intd-back" data-testid="intd-back">
               <I n="arrow_back" /> {l.backAll}
@@ -257,7 +255,7 @@ export default function IntegrationDetail() {
       <footer className="intd-footer">
         <div className="container">
           <div className="intd-footer-inner">
-            <span>&copy; {new Date().getFullYear()} NeXify Automate</span>
+            <span>&copy; {new Date().getFullYear()} neXify — Chat it. Automat it.</span>
             <div className="intd-footer-links">
               <Link to={`/${lang}/impressum`}>{lang === 'en' ? 'Imprint' : 'Impressum'}</Link>
               <Link to={`/${lang}/${lang === 'nl' ? 'privacybeleid' : lang === 'en' ? 'privacy' : 'datenschutz'}`}>{lang === 'en' ? 'Privacy' : lang === 'nl' ? 'Privacy' : 'Datenschutz'}</Link>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './UnifiedLogin.css';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = process.env.REACT_APP_BACKEND_URL || '';
 const I = ({ n, c }) => <span className={`material-symbols-outlined ${c || ''}`}>{n}</span>;
 
 const fadeUp = { hidden: { opacity: 0, y: 18 }, visible: (i = 0) => ({ opacity: 1, y: 0, transition: { delay: i * 0.08, duration: 0.5, ease: [0.25, 0.4, 0, 1] } }) };
@@ -53,10 +53,14 @@ const UnifiedLogin = () => {
     if (!email.trim()) { setError('Bitte E-Mail eingeben'); return; }
     setLoading(true);
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
       const res = await fetch(`${API}/api/auth/check-email`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim() }),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
       const data = await res.json();
       setRole(data.role);
       setHasPortalPassword(!!data.has_portal_password);
@@ -107,16 +111,35 @@ const UnifiedLogin = () => {
       const form = new URLSearchParams();
       form.append('username', email.trim());
       form.append('password', password);
-      const res = await fetch(`${API}/api/admin/login`, { method: 'POST', body: form });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      const res = await fetch(`${API}/api/admin/login`, { method: 'POST', body: form, signal: controller.signal });
+      clearTimeout(timeout);
       if (res.ok) {
         const data = await res.json();
-        localStorage.setItem('nx_auth', JSON.stringify({ token: data.access_token, role: 'admin', email: email.trim() }));
-        window.location.href = '/admin';
+        const token = data.access_token;
+        // Setze ALLE Admin-Storage-Keys für Kompatibilität
+        localStorage.setItem('nx_admin_token', token);
+        localStorage.setItem('nx_auth', JSON.stringify({ token, role: 'admin', email: email.trim() }));
+        // Räume alte/defekte Keys auf
+        ['nx_active_convo','nx_portal_token','nx_portal_email','nx_portal_name'].forEach(k => localStorage.removeItem(k));
+        // Verifiziere dass Token gespeichert wurde, dann navigiere
+        setTimeout(() => {
+          const check = localStorage.getItem('nx_admin_token');
+          if (check === token) {
+            window.location.assign('/admin');
+          } else {
+            // Fallback: nochmal speichern + navigieren
+            localStorage.setItem('nx_admin_token', token);
+            window.location.assign('/admin');
+          }
+        }, 100);
       } else {
-        setError('Ungültige Anmeldedaten');
+        const errData = await res.json().catch(() => ({}));
+        setError(errData.detail || 'Ungültige Anmeldedaten');
       }
-    } catch {
-      setError('Verbindungsfehler');
+    } catch (err) {
+      setError('Verbindungsfehler: ' + (err.message || ''));
     }
     setLoading(false);
   };
@@ -276,8 +299,7 @@ const UnifiedLogin = () => {
           <div className="ul-visual-grid" />
           <motion.div className="ul-visual-content" initial="hidden" animate="visible">
             <motion.div className="ul-visual-logo" variants={fadeUp} custom={0}>
-              <img src="/icon-mark.svg" alt="" width="40" height="40" />
-              <span>NeXify<span className="ul-visual-ai">AI</span></span>
+              <img src="/logo-light.svg" alt="neXifyAI" height="32" />
             </motion.div>
             <motion.p className="ul-visual-tagline" variants={fadeUp} custom={1}>
               Ihre digitale Infrastruktur.<br />Sicher. Intelligent. Skalierbar.
