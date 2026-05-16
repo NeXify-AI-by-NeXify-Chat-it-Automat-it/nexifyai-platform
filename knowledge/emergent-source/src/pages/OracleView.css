@@ -1,0 +1,167 @@
+// Imports
+import ___CSS_LOADER_API_SOURCEMAP_IMPORT___ from "../../node_modules/css-loader/dist/runtime/sourceMaps.js";
+import ___CSS_LOADER_API_IMPORT___ from "../../node_modules/css-loader/dist/runtime/api.js";
+var ___CSS_LOADER_EXPORT___ = ___CSS_LOADER_API_IMPORT___(___CSS_LOADER_API_SOURCEMAP_IMPORT___);
+// Module
+___CSS_LOADER_EXPORT___.push([module.id, `/* ═══════════════════════════════════════════════════════════
+   ORACLE COMMAND CENTER — NeXifyAI
+   Supabase Oracle System Live-Dashboard
+   ═══════════════════════════════════════════════════════════ */
+
+.ora-container{display:flex;flex-direction:column;gap:20px;padding:0;min-height:100%;color:#e2e8f0}
+
+/* ── Header ── */
+.ora-header{display:flex;align-items:center;justify-content:space-between;padding:0 0 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.ora-header-left{display:flex;align-items:center;gap:12px}
+.ora-icon{font-size:28px;color:#8b5cf6}
+.ora-title{font-size:1.125rem;font-weight:700;color:#fff;margin:0;line-height:1.3}
+.ora-subtitle{font-size:.75rem;color:#64748b;margin:0}
+
+.ora-health-pills{display:flex;gap:8px}
+.ora-pill{display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:.6875rem;font-weight:600;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);color:#94a3b8}
+.ora-pill--ok{border-color:rgba(16,185,129,.3);color:#10b981}
+.ora-pill--err{border-color:rgba(239,68,68,.3);color:#ef4444}
+.ora-pill-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+.ora-error{padding:10px 16px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#fca5a5;font-size:.8125rem}
+
+/* ── Tabs ── */
+.ora-tabs{display:flex;gap:4px;padding:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.ora-tab{display:flex;align-items:center;gap:6px;padding:8px 14px;border:none;background:transparent;color:#64748b;font-size:.8125rem;font-weight:500;cursor:pointer;border-radius:8px;transition:all .15s;white-space:nowrap;font-family:inherit}
+.ora-tab:hover{background:rgba(255,255,255,.04);color:#94a3b8}
+.ora-tab--active{background:rgba(139,92,246,.12);color:#a78bfa;font-weight:600}
+.ora-tab .material-symbols-outlined{font-size:18px}
+
+/* ── Stat Cards Grid ── */
+.ora-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.ora-stat{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:4px;transition:border-color .15s}
+.ora-stat:hover{border-color:var(--stat-color,#8b5cf6)}
+.ora-stat-icon{font-size:22px;color:var(--stat-color,#8b5cf6)}
+.ora-stat-value{font-size:1.5rem;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
+.ora-stat-label{font-size:.6875rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em}
+
+/* ── Cards ── */
+.ora-card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;padding:16px}
+.ora-card--wide{grid-column:1/-1}
+.ora-card-title{display:flex;align-items:center;gap:8px;font-size:.875rem;font-weight:700;color:#fff;margin:0 0 12px}
+.ora-card-title .material-symbols-outlined{font-size:18px;color:#8b5cf6}
+
+/* ── Status Grid (within card) ── */
+.ora-status-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px}
+.ora-status-item{display:flex;flex-direction:column;gap:2px}
+.ora-status-val{font-size:1.25rem;font-weight:700;font-variant-numeric:tabular-nums}
+.ora-status-lbl{font-size:.6875rem;color:#64748b}
+
+/* ── Queue List ── */
+.ora-queue-list{display:flex;flex-direction:column;gap:6px}
+.ora-queue-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border-radius:6px;font-size:.8125rem}
+.ora-queue-badge{padding:2px 8px;border-radius:10px;font-size:.6875rem;font-weight:600;text-transform:uppercase}
+.ora-queue-badge--pending{background:rgba(245,158,11,.12);color:#fbbf24}
+.ora-queue-badge--running{background:rgba(6,182,212,.12);color:#22d3ee}
+.ora-queue-badge--completed{background:rgba(16,185,129,.12);color:#34d399}
+.ora-queue-badge--failed{background:rgba(239,68,68,.12);color:#f87171}
+.ora-queue-badge--blocked{background:rgba(148,163,184,.12);color:#94a3b8}
+.ora-queue-type{font-family:var(--f-mono, 'JetBrains Mono', monospace);font-size:.75rem;color:#94a3b8;flex:1 1}
+.ora-queue-agent{color:#a78bfa;font-size:.75rem}
+.ora-queue-pri{font-weight:700;color:#64748b;font-size:.75rem}
+
+/* ── Section ── */
+.ora-section{display:flex;flex-direction:column;gap:16px}
+.ora-section h3{font-size:.9375rem;font-weight:700;color:#fff;margin:0}
+.ora-section-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+
+/* ── Table ── */
+.ora-table-wrap{overflow-x:auto;border-radius:8px;border:1px solid rgba(255,255,255,.05)}
+.ora-table{width:100%;border-collapse:collapse;font-size:.8125rem}
+.ora-table thead{background:rgba(255,255,255,.03)}
+.ora-table th{padding:10px 14px;text-align:left;font-weight:600;color:#94a3b8;font-size:.6875rem;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid rgba(255,255,255,.06)}
+.ora-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.03);color:#cbd5e1}
+.ora-table tbody tr:hover{background:rgba(255,255,255,.02)}
+.ora-cell-mono{font-family:var(--f-mono, 'JetBrains Mono', monospace);font-size:.75rem;color:#94a3b8}
+.ora-cell-date{font-size:.75rem;color:#64748b;white-space:nowrap}
+.ora-cell-pri{font-weight:700;color:#f59e0b}
+
+/* ── Agent Grid ── */
+.ora-agent-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.ora-agent-card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;padding:14px;transition:border-color .15s}
+.ora-agent-card:hover{border-color:rgba(139,92,246,.3)}
+.ora-agent-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.ora-agent-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ora-agent-dot--active{background:#10b981}
+.ora-agent-dot--idle{background:#f59e0b}
+.ora-agent-dot--offline{background:#ef4444}
+.ora-agent-type{font-size:.6875rem;color:#64748b;margin-left:auto}
+.ora-agent-caps{font-size:.75rem;color:#64748b;line-height:1.4}
+.ora-agent-avatar{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;flex-shrink:0}
+.ora-agent-role{display:block;font-size:.6875rem;color:#64748b}
+.ora-agent-desc{font-size:.75rem;color:#94a3b8;margin:0;line-height:1.4}
+
+/* ── Brain ── */
+.ora-search-bar{display:flex;gap:8px;align-items:center}
+.ora-search-input{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 14px;color:#e2e8f0;font-size:.8125rem;width:280px;font-family:inherit}
+.ora-search-input::placeholder{color:#475569}
+.ora-search-input:focus{outline:none;border-color:rgba(139,92,246,.4)}
+
+.ora-brain-list{display:flex;flex-direction:column;gap:10px}
+.ora-brain-card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:14px;transition:border-color .15s}
+.ora-brain-card:hover{border-color:rgba(139,92,246,.25)}
+.ora-brain-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.ora-brain-top strong{font-size:.8125rem;color:#fff}
+.ora-brain-type{font-size:.6875rem;padding:2px 8px;border-radius:10px;background:rgba(139,92,246,.1);color:#a78bfa}
+.ora-brain-content{font-size:.75rem;color:#94a3b8;margin:0;line-height:1.5;max-height:80px;overflow:hidden}
+.ora-brain-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
+.ora-tag{font-size:.625rem;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.04);color:#64748b}
+.ora-brain-date{font-size:.625rem;color:#475569;margin-left:auto}
+
+/* ── Forms ── */
+.ora-input,.ora-select,.ora-textarea{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px 14px;color:#e2e8f0;font-size:.8125rem;font-family:inherit}
+.ora-input::placeholder,.ora-textarea::placeholder{color:#475569}
+.ora-input:focus,.ora-select:focus,.ora-textarea:focus{outline:none;border-color:rgba(139,92,246,.4)}
+.ora-textarea{resize:vertical;min-height:80px}
+.ora-select{appearance:none;cursor:pointer}
+
+.ora-btn{padding:8px 20px;border:none;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;font-size:.8125rem;font-weight:600;cursor:pointer;transition:opacity .15s;font-family:inherit}
+.ora-btn:hover{opacity:.9}
+.ora-btn:disabled{opacity:.4;cursor:not-allowed}
+
+.ora-btn-sm{padding:6px 10px;border:none;border-radius:6px;background:rgba(255,255,255,.04);color:#94a3b8;cursor:pointer;display:flex;align-items:center}
+.ora-btn-sm:hover{background:rgba(255,255,255,.08)}
+.ora-btn-sm .material-symbols-outlined{font-size:18px}
+
+.ora-create-task{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ora-create-task .ora-input:first-child{flex:1 1;min-width:200px}
+.ora-create-task .ora-input:nth-child(2){flex:2 1;min-width:300px}
+.ora-create-task .ora-select{width:80px}
+
+/* ── Invoke Agent ── */
+.ora-invoke-form{display:flex;flex-direction:column;gap:10px;max-width:600px}
+.ora-invoke-result{background:rgba(255,255,255,.02);border:1px solid rgba(139,92,246,.2);border-radius:10px;padding:16px;margin-top:12px}
+.ora-invoke-result--err{border-color:rgba(239,68,68,.3)}
+.ora-invoke-meta{display:flex;gap:16px;margin-bottom:10px;font-size:.75rem;color:#64748b}
+.ora-invoke-meta strong{color:#a78bfa}
+.ora-invoke-text{font-size:.8125rem;color:#cbd5e1;line-height:1.6;white-space:pre-wrap}
+
+/* ── Empty State ── */
+.ora-empty{font-size:.8125rem;color:#475569;font-style:italic;padding:12px 0}
+
+/* ── Engine ── */
+.ora-engine-actions{display:flex;gap:10px;flex-wrap:wrap}
+.ora-btn--secondary{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+.ora-btn--secondary:hover{background:rgba(255,255,255,.08)}
+.ora-btn .material-symbols-outlined{font-size:18px}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .ora-header{flex-direction:column;align-items:flex-start;gap:10px}
+  .ora-tabs{gap:2px}
+  .ora-tab{padding:6px 10px;font-size:.75rem}
+  .ora-grid{grid-template-columns:repeat(2,1fr)}
+  .ora-create-task{flex-direction:column}
+  .ora-create-task .ora-input,.ora-create-task .ora-select{width:100%}
+  .ora-search-input{width:160px}
+  .ora-agent-grid{grid-template-columns:1fr}
+}
+`, "",{"version":3,"sources":["webpack://./src/pages/OracleView.css"],"names":[],"mappings":"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","sourcesContent":["/* ═══════════════════════════════════════════════════════════\n   ORACLE COMMAND CENTER — NeXifyAI\n   Supabase Oracle System Live-Dashboard\n   ═══════════════════════════════════════════════════════════ */\n\n.ora-container{display:flex;flex-direction:column;gap:20px;padding:0;min-height:100%;color:#e2e8f0}\n\n/* ── Header ── */\n.ora-header{display:flex;align-items:center;justify-content:space-between;padding:0 0 16px;border-bottom:1px solid rgba(255,255,255,.06)}\n.ora-header-left{display:flex;align-items:center;gap:12px}\n.ora-icon{font-size:28px;color:#8b5cf6}\n.ora-title{font-size:1.125rem;font-weight:700;color:#fff;margin:0;line-height:1.3}\n.ora-subtitle{font-size:.75rem;color:#64748b;margin:0}\n\n.ora-health-pills{display:flex;gap:8px}\n.ora-pill{display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:.6875rem;font-weight:600;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);color:#94a3b8}\n.ora-pill--ok{border-color:rgba(16,185,129,.3);color:#10b981}\n.ora-pill--err{border-color:rgba(239,68,68,.3);color:#ef4444}\n.ora-pill-dot{width:6px;height:6px;border-radius:50%;background:currentColor}\n\n.ora-error{padding:10px 16px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#fca5a5;font-size:.8125rem}\n\n/* ── Tabs ── */\n.ora-tabs{display:flex;gap:4px;padding:0;overflow-x:auto;-webkit-overflow-scrolling:touch}\n.ora-tab{display:flex;align-items:center;gap:6px;padding:8px 14px;border:none;background:transparent;color:#64748b;font-size:.8125rem;font-weight:500;cursor:pointer;border-radius:8px;transition:all .15s;white-space:nowrap;font-family:inherit}\n.ora-tab:hover{background:rgba(255,255,255,.04);color:#94a3b8}\n.ora-tab--active{background:rgba(139,92,246,.12);color:#a78bfa;font-weight:600}\n.ora-tab .material-symbols-outlined{font-size:18px}\n\n/* ── Stat Cards Grid ── */\n.ora-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}\n.ora-stat{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:4px;transition:border-color .15s}\n.ora-stat:hover{border-color:var(--stat-color,#8b5cf6)}\n.ora-stat-icon{font-size:22px;color:var(--stat-color,#8b5cf6)}\n.ora-stat-value{font-size:1.5rem;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}\n.ora-stat-label{font-size:.6875rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em}\n\n/* ── Cards ── */\n.ora-card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;padding:16px}\n.ora-card--wide{grid-column:1/-1}\n.ora-card-title{display:flex;align-items:center;gap:8px;font-size:.875rem;font-weight:700;color:#fff;margin:0 0 12px}\n.ora-card-title .material-symbols-outlined{font-size:18px;color:#8b5cf6}\n\n/* ── Status Grid (within card) ── */\n.ora-status-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px}\n.ora-status-item{display:flex;flex-direction:column;gap:2px}\n.ora-status-val{font-size:1.25rem;font-weight:700;font-variant-numeric:tabular-nums}\n.ora-status-lbl{font-size:.6875rem;color:#64748b}\n\n/* ── Queue List ── */\n.ora-queue-list{display:flex;flex-direction:column;gap:6px}\n.ora-queue-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border-radius:6px;font-size:.8125rem}\n.ora-queue-badge{padding:2px 8px;border-radius:10px;font-size:.6875rem;font-weight:600;text-transform:uppercase}\n.ora-queue-badge--pending{background:rgba(245,158,11,.12);color:#fbbf24}\n.ora-queue-badge--running{background:rgba(6,182,212,.12);color:#22d3ee}\n.ora-queue-badge--completed{background:rgba(16,185,129,.12);color:#34d399}\n.ora-queue-badge--failed{background:rgba(239,68,68,.12);color:#f87171}\n.ora-queue-badge--blocked{background:rgba(148,163,184,.12);color:#94a3b8}\n.ora-queue-type{font-family:var(--f-mono, 'JetBrains Mono', monospace);font-size:.75rem;color:#94a3b8;flex:1}\n.ora-queue-agent{color:#a78bfa;font-size:.75rem}\n.ora-queue-pri{font-weight:700;color:#64748b;font-size:.75rem}\n\n/* ── Section ── */\n.ora-section{display:flex;flex-direction:column;gap:16px}\n.ora-section h3{font-size:.9375rem;font-weight:700;color:#fff;margin:0}\n.ora-section-header{display:flex;align-items:center;justify-content:space-between;gap:12px}\n\n/* ── Table ── */\n.ora-table-wrap{overflow-x:auto;border-radius:8px;border:1px solid rgba(255,255,255,.05)}\n.ora-table{width:100%;border-collapse:collapse;font-size:.8125rem}\n.ora-table thead{background:rgba(255,255,255,.03)}\n.ora-table th{padding:10px 14px;text-align:left;font-weight:600;color:#94a3b8;font-size:.6875rem;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid rgba(255,255,255,.06)}\n.ora-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.03);color:#cbd5e1}\n.ora-table tbody tr:hover{background:rgba(255,255,255,.02)}\n.ora-cell-mono{font-family:var(--f-mono, 'JetBrains Mono', monospace);font-size:.75rem;color:#94a3b8}\n.ora-cell-date{font-size:.75rem;color:#64748b;white-space:nowrap}\n.ora-cell-pri{font-weight:700;color:#f59e0b}\n\n/* ── Agent Grid ── */\n.ora-agent-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}\n.ora-agent-card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;padding:14px;transition:border-color .15s}\n.ora-agent-card:hover{border-color:rgba(139,92,246,.3)}\n.ora-agent-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}\n.ora-agent-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}\n.ora-agent-dot--active{background:#10b981}\n.ora-agent-dot--idle{background:#f59e0b}\n.ora-agent-dot--offline{background:#ef4444}\n.ora-agent-type{font-size:.6875rem;color:#64748b;margin-left:auto}\n.ora-agent-caps{font-size:.75rem;color:#64748b;line-height:1.4}\n.ora-agent-avatar{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;flex-shrink:0}\n.ora-agent-role{display:block;font-size:.6875rem;color:#64748b}\n.ora-agent-desc{font-size:.75rem;color:#94a3b8;margin:0;line-height:1.4}\n\n/* ── Brain ── */\n.ora-search-bar{display:flex;gap:8px;align-items:center}\n.ora-search-input{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 14px;color:#e2e8f0;font-size:.8125rem;width:280px;font-family:inherit}\n.ora-search-input::placeholder{color:#475569}\n.ora-search-input:focus{outline:none;border-color:rgba(139,92,246,.4)}\n\n.ora-brain-list{display:flex;flex-direction:column;gap:10px}\n.ora-brain-card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:14px;transition:border-color .15s}\n.ora-brain-card:hover{border-color:rgba(139,92,246,.25)}\n.ora-brain-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}\n.ora-brain-top strong{font-size:.8125rem;color:#fff}\n.ora-brain-type{font-size:.6875rem;padding:2px 8px;border-radius:10px;background:rgba(139,92,246,.1);color:#a78bfa}\n.ora-brain-content{font-size:.75rem;color:#94a3b8;margin:0;line-height:1.5;max-height:80px;overflow:hidden}\n.ora-brain-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}\n.ora-tag{font-size:.625rem;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.04);color:#64748b}\n.ora-brain-date{font-size:.625rem;color:#475569;margin-left:auto}\n\n/* ── Forms ── */\n.ora-input,.ora-select,.ora-textarea{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px 14px;color:#e2e8f0;font-size:.8125rem;font-family:inherit}\n.ora-input::placeholder,.ora-textarea::placeholder{color:#475569}\n.ora-input:focus,.ora-select:focus,.ora-textarea:focus{outline:none;border-color:rgba(139,92,246,.4)}\n.ora-textarea{resize:vertical;min-height:80px}\n.ora-select{appearance:none;cursor:pointer}\n\n.ora-btn{padding:8px 20px;border:none;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;font-size:.8125rem;font-weight:600;cursor:pointer;transition:opacity .15s;font-family:inherit}\n.ora-btn:hover{opacity:.9}\n.ora-btn:disabled{opacity:.4;cursor:not-allowed}\n\n.ora-btn-sm{padding:6px 10px;border:none;border-radius:6px;background:rgba(255,255,255,.04);color:#94a3b8;cursor:pointer;display:flex;align-items:center}\n.ora-btn-sm:hover{background:rgba(255,255,255,.08)}\n.ora-btn-sm .material-symbols-outlined{font-size:18px}\n\n.ora-create-task{display:flex;gap:10px;align-items:center;flex-wrap:wrap}\n.ora-create-task .ora-input:first-child{flex:1;min-width:200px}\n.ora-create-task .ora-input:nth-child(2){flex:2;min-width:300px}\n.ora-create-task .ora-select{width:80px}\n\n/* ── Invoke Agent ── */\n.ora-invoke-form{display:flex;flex-direction:column;gap:10px;max-width:600px}\n.ora-invoke-result{background:rgba(255,255,255,.02);border:1px solid rgba(139,92,246,.2);border-radius:10px;padding:16px;margin-top:12px}\n.ora-invoke-result--err{border-color:rgba(239,68,68,.3)}\n.ora-invoke-meta{display:flex;gap:16px;margin-bottom:10px;font-size:.75rem;color:#64748b}\n.ora-invoke-meta strong{color:#a78bfa}\n.ora-invoke-text{font-size:.8125rem;color:#cbd5e1;line-height:1.6;white-space:pre-wrap}\n\n/* ── Empty State ── */\n.ora-empty{font-size:.8125rem;color:#475569;font-style:italic;padding:12px 0}\n\n/* ── Engine ── */\n.ora-engine-actions{display:flex;gap:10px;flex-wrap:wrap}\n.ora-btn--secondary{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}\n.ora-btn--secondary:hover{background:rgba(255,255,255,.08)}\n.ora-btn .material-symbols-outlined{font-size:18px}\n\n/* ── Responsive ── */\n@media(max-width:768px){\n  .ora-header{flex-direction:column;align-items:flex-start;gap:10px}\n  .ora-tabs{gap:2px}\n  .ora-tab{padding:6px 10px;font-size:.75rem}\n  .ora-grid{grid-template-columns:repeat(2,1fr)}\n  .ora-create-task{flex-direction:column}\n  .ora-create-task .ora-input,.ora-create-task .ora-select{width:100%}\n  .ora-search-input{width:160px}\n  .ora-agent-grid{grid-template-columns:1fr}\n}\n"],"sourceRoot":""}]);
+// Exports
+___CSS_LOADER_EXPORT___.locals = {};
+export default ___CSS_LOADER_EXPORT___;
