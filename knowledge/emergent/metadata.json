@@ -1,0 +1,12 @@
+{
+  "id": "5b35166d",
+  "slug": "emergent-nexifyai-site",
+  "createdAt": "2026-05-16T18:09:11+00:00",
+  "updatedAt": "2026-05-16T18:09:11+00:00",
+  "name": "emergent-nexifyai-site",
+  "description": "Gerettete NeXifyAI Webseite vom Preview-Server (Port 3000). Enthält React SPA Bundle (9.3MB), HTML, SVG Icon.",
+  "type": "mixed",
+  "primary": null,
+  "files": [],
+  "provenance": []
+}

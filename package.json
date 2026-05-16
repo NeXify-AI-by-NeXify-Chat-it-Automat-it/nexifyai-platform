@@ -1,0 +1,25 @@
+{
+  "name": "nexifyai-platform",
+  "version": "2.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "services/*",
+    "ai-runtime/**"
+  ],
+  "scripts": {
+    "build:web": "cd apps/web && npm run build",
+    "build:admin": "cd apps/admin-chat && npm run build",
+    "build:all": "npm run build:web && npm run build:admin",
+    "dev:web": "cd apps/web && npm start",
+    "dev:admin": "cd apps/admin-chat && npm run dev",
+    "dev:api": "cd services/api && uvicorn server:app --reload --port 8001",
+    "lint": "cd apps/web && npx eslint src/",
+    "test": "cd apps/web && npx react-scripts test",
+    "format": "prettier --write 'apps/*/src/**/*.{js,jsx,ts,tsx,css}'"
+  },
+  "devDependencies": {
+    "prettier": "^3.0.0"
+  }
+}

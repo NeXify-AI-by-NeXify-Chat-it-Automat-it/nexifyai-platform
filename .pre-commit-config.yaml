@@ -1,0 +1,13 @@
+repos:
+  - repo: local
+    hooks:
+      - id: no-large-files
+        name: Block files > 50MB
+        entry: python -c "import sys; [exit(1) for f in sys.argv[1:] if __import__('os').path.getsize(f) > 50000000]"
+        language: python
+        files: '.*'
+      - id: no-cache-files
+        name: Block .cache and .pack files
+        entry: python -c "import sys; [exit(1) for f in sys.argv if '.cache/' in f or f.endswith('.pack')]"
+        language: python
+        files: '.*'
