@@ -21,7 +21,7 @@ class ComplianceAgent(BaseAgent):
             "missing_files": [],
         }
         
-        repo = "/opt/nexifyai-website-sicherheitskopie"
+        repo = "/opt/nexifyai-platform"
         
         # Check legal docs directory
         legal_dir = os.path.join(repo, "docs/legal")

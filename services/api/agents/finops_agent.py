@@ -23,7 +23,7 @@ class FinOpsAgent(BaseAgent):
         }
         
         # Check if finops.yaml exists with real budget config
-        finops_path = "/opt/nexifyai-website-sicherheitskopie/packages/config/finops.yaml"
+        finops_path = "/opt/nexifyai-platform/packages/config/finops.yaml"
         if os.path.exists(finops_path):
             try:
                 import yaml

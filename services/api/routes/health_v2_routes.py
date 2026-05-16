@@ -251,7 +251,7 @@ def _collect_meta() -> dict:
         import subprocess
         r = subprocess.run(
             ["grep", "-r", "TODO", "--include=*.py", "--include=*.ts",
-             "/opt/nexifyai-website-sicherheitskopie"],
+             "/opt/nexifyai-platform"],
             capture_output=True, text=True, timeout=10
         )
         meta["todo_count"] = len([l for l in r.stdout.split("\n") if l.strip()])
@@ -260,7 +260,7 @@ def _collect_meta() -> dict:
 
     # Test file count
     try:
-        test_dir = "/opt/nexifyai-website-sicherheitskopie/backend/tests"
+        test_dir = "/opt/nexifyai-platform/services/api/tests"
         count = 0
         if os.path.exists(test_dir):
             for _, _, files in os.walk(test_dir):
@@ -271,7 +271,7 @@ def _collect_meta() -> dict:
 
     # ADR count
     try:
-        adr_dir = "/opt/nexifyai-website-sicherheitskopie/docs/adrs"
+        adr_dir = "/opt/nexifyai-platform/docs/adrs"
         if os.path.exists(adr_dir):
             meta["adr_count"] = len([f for f in os.listdir(adr_dir) if f.startswith("ADR-")])
     except Exception:

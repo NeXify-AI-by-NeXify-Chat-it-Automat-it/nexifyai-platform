@@ -122,7 +122,7 @@ class ToolExecutionLayer:
         4. On failure: attempt rollback
         5. Record audit trail
         """
-        import sys; sys.path.insert(0, '/opt/nexifyai-website-sicherheitskopie')
+        import sys; sys.path.insert(0, '/opt/nexifyai-platform')
         
         self._invocation_counter += 1
         inv = ToolInvocation(

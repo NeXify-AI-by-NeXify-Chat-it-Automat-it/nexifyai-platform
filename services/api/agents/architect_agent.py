@@ -15,7 +15,7 @@ class ArchitectAgent(BaseAgent):
     
     def observe(self) -> Dict[str, Any]:
         data = {}
-        repo_root = "/opt/nexifyai-website-sicherheitskopie"
+        repo_root = "/opt/nexifyai-platform"
         
         # Check required directories exist
         required_dirs = [

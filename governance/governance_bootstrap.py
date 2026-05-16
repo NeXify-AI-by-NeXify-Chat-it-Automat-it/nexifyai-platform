@@ -31,12 +31,12 @@ SYSTEMD_WORKER_MAP = {
 
 REQUIRED_PORTS = {"temporal-server": 7233, "redis": 6379, "qdrant": 6333}
 REQUIRED_PATHS = [
-    "/opt/nexifyai-website-sicherheitskopie/backend",
-    "/opt/nexifyai-website-sicherheitskopie/backend/venv/bin/python",
-    "/opt/nexifyai-website-sicherheitskopie/backend/temporal/activities.py",
-    "/opt/nexifyai-website-sicherheitskopie/backend/dlq.py",
-    "/opt/nexifyai-website-sicherheitskopie/backend/circuit_breaker.py",
-    "/opt/nexifyai-website-sicherheitskopie/backend/governance.py",
+    "/opt/nexifyai-platform/services/api",
+    "/opt/nexifyai-platform/services/api/venv/bin/python",
+    "/opt/nexifyai-platform/services/api/temporal/activities.py",
+    "/opt/nexifyai-platform/services/api/dlq.py",
+    "/opt/nexifyai-platform/services/api/circuit_breaker.py",
+    "/opt/nexifyai-platform/services/api/governance.py",
 ]
 
 # ====== STAGE 1: Runtime Discovery ======
@@ -215,7 +215,7 @@ def drift_detection():
         if issues:
             drift["worker_drift"][role] = issues
             drift["issues"].extend(issues)
-    gp = "/opt/nexifyai-website-sicherheitskopie/backend/governance.py"
+    gp = "/opt/nexifyai-platform/services/api/governance.py"
     if os.path.exists(gp):
         drift["governance_last_modified"] = datetime.fromtimestamp(os.path.getmtime(gp)).isoformat()
     return drift

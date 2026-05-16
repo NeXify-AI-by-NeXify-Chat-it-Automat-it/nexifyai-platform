@@ -403,7 +403,7 @@ class MCPToolRouter:
 
         token = os.getenv("GH_TOKEN", os.getenv("GITHUB_TOKEN", os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN", "")))
         owner = args.get("owner", "nexifyai-dev")
-        repo = args.get("repo", "nexifyai-website-sicherheitskopie")
+        repo = args.get("repo", "nexifyai-platform")
         base = f"https://api.github.com/repos/{owner}/{repo}"
 
         # ── Route map: (method, url_template, body_builder) ──

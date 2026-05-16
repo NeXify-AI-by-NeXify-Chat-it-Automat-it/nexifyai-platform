@@ -102,6 +102,6 @@ No exceptions granted to date.
 
 ## References
 
-- [DOS v2.1 Kap. 14 — Security](https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/blob/main/docs/DOS-v2.0.md)
+- [DOS v2.1 Kap. 14 — Security](https://github.com/nexifyai-dev/nexifyai-platform/blob/main/docs/DOS-v2.0.md)
 - [SECURITY.md](../SECURITY.md)
 - [public/security.txt](../public/security.txt)

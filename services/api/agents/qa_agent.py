@@ -18,7 +18,7 @@ class QAAgent(BaseAgent):
             "coverage_pct": 0,
         }
         
-        repo = "/opt/nexifyai-website-sicherheitskopie"
+        repo = "/opt/nexifyai-platform"
         
         # Count backend tests
         backend_tests = os.path.join(repo, "backend/tests")

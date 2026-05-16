@@ -28,7 +28,7 @@ logger = logging.getLogger("nexifyai.routes.security")
 # Try multiple possible locations for the ai-farbrik module
 AI_FARBRIK_CANDIDATES = [
     Path("/opt/ai-farbrik"),                                    # Local container
-    Path("/opt/nexifyai-website-sicherheitskopie/ai-farbrik"),  # VPS repo
+    Path("/opt/nexifyai-platform/ai-farbrik"),  # VPS repo
     Path(__file__).parent.parent.parent / "ai-farbrik",         # Relative to backend dir
 ]
 

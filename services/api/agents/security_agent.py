@@ -23,7 +23,7 @@ class SecurityAgent(BaseAgent):
         
         # Check security.txt
         import os
-        repo_root = "/opt/nexifyai-website-sicherheitskopie"
+        repo_root = "/opt/nexifyai-platform"
         security_txt = os.path.join(repo_root, "public/.well-known/security.txt")
         data["security_txt"] = os.path.exists(security_txt)
         

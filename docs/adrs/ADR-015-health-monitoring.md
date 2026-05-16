@@ -48,6 +48,6 @@ health-score.py kann deaktiviert werden. Manuelles Monitoring via `curl` und `do
 
 ## Verweise
 
-- /opt/nexifyai-website-sicherheitskopie/automations/cron/health-score.py
+- /opt/nexifyai-platform/automations/cron/health-score.py
 - Skill: health-score-real-metrics
 - DOS v2.0 Teil XXIV: System Health

@@ -26,17 +26,17 @@ def gate_6_workflow(agent_id, task):
     """GATE 6: Workflow check."""
     results = []
     # Check agent has profile
-    profile_path = f"/opt/nexifyai-website-sicherheitskopie/backend/agents/brain_agents/{agent_id}.md"
+    profile_path = f"/opt/nexifyai-platform/services/api/agents/brain_agents/{agent_id}.md"
     results.append({"check": "profile_exists", "pass": os.path.exists(profile_path)})
     # Check order-workflow system is available
-    check_path = "/opt/nexifyai-website-sicherheitskopie/docs/systems/sys-007-production-pipeline.md"
+    check_path = "/opt/nexifyai-platform/docs/systems/sys-007-production-pipeline.md"
     results.append({"check": "workflow_spec_exists", "pass": os.path.exists(check_path)})
     return results
 
 def gate_7_agent_quality(agent_id, task):
     """GATE 7: Agent quality check."""
     results = []
-    profile_path = f"/opt/nexifyai-website-sicherheitskopie/backend/agents/brain_agents/{agent_id}.md"
+    profile_path = f"/opt/nexifyai-platform/services/api/agents/brain_agents/{agent_id}.md"
     if os.path.exists(profile_path):
         size = os.path.getsize(profile_path)
         results.append({"check": "profile_size", "pass": size >= 4000, "size": size})

@@ -11,7 +11,7 @@ import os, sys, json, logging, asyncio, hashlib
 from datetime import datetime, timezone
 from pathlib import Path
 
-sys.path.insert(0, "/opt/nexifyai-website-sicherheitskopie/backend")
+sys.path.insert(0, "/opt/nexifyai-platform/services/api")
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s: %(message)s", handlers=[logging.StreamHandler(sys.stdout)])
 logger = logging.getLogger("nexifyai.ceo_loop")

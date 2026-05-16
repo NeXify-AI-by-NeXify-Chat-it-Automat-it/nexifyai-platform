@@ -46,7 +46,7 @@ class RetrievalAgent(BaseAgent):
         
         # Check if hybrid_search is importable
         try:
-            sys.path.insert(0, "/opt/nexifyai-website-sicherheitskopie")
+            sys.path.insert(0, "/opt/nexifyai-platform")
             from backend.brain.hybrid_search import hybrid_search
             data["hybrid_search_available"] = True
         except ImportError:

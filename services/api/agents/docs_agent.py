@@ -19,7 +19,7 @@ class DocsAgent(BaseAgent):
             "doc_structure": {},
         }
         
-        repo = "/opt/nexifyai-website-sicherheitskopie/docs"
+        repo = "/opt/nexifyai-platform/docs"
         if os.path.exists(repo):
             for root, dirs, files in os.walk(repo):
                 for f in files:

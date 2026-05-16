@@ -7,7 +7,7 @@
 
 ## Kontext
 
-DOS v1.1 definiert eine Monorepo-Struktur mit `/apps`, `/packages`, `/ops`, `/automations`. Das aktuelle Repository (`nexifyai-website-sicherheitskopie`) ist organisch gewachsen und folgt keiner klaren Package-Struktur. Frontend (CRA) und Backend (FastAPI) liegen im Root, es gibt keine geteilten Packages.
+DOS v1.1 definiert eine Monorepo-Struktur mit `/apps`, `/packages`, `/ops`, `/automations`. Das aktuelle Repository (`nexifyai-platform`) ist organisch gewachsen und folgt keiner klaren Package-Struktur. Frontend (CRA) und Backend (FastAPI) liegen im Root, es gibt keine geteilten Packages.
 
 ## Problem
 

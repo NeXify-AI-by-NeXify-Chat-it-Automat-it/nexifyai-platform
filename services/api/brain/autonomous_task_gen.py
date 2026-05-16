@@ -48,7 +48,7 @@ class GeneratedTask:
     rice_score: int = 0
 
 
-REPO_ROOT = "/opt/nexifyai-website-sicherheitskopie"
+REPO_ROOT = "/opt/nexifyai-platform"
 BRAIN_DB = "/opt/data/brain/brain.db"
 HEALTH_SCRIPT = f"{REPO_ROOT}/automations/cron/health-score.py"
 

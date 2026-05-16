@@ -12,7 +12,7 @@ git config --global user.email "u6288408171@gmail.com"
 
 ### Commit und Push
 ```bash
-cd /opt/nexifyai-website-sicherheitskopie
+cd /opt/nexifyai-platform
 git add -A
 git commit -m "MESSAGE"
 GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_nexifyai -o StrictHostKeyChecking=no" git push origin main
@@ -42,22 +42,22 @@ Danach funktioniert `git push` vom Container.
 
 ```bash
 # 1. Dateien auf VPS kopieren
-scp -i /opt/data/ssh_keys/hermes_vps_key DATEIEN root@72.62.152.47:/opt/nexifyai-website-sicherheitskopie/
+scp -i /opt/data/ssh_keys/hermes_vps_key DATEIEN root@72.62.152.47:/opt/nexifyai-platform/
 
 # 2. Auf VPS commiten + pushen
 ssh -i /opt/data/ssh_keys/hermes_vps_key root@72.62.152.47 \
-  "cd /opt/nexifyai-website-sicherheitskopie && git add -A && git commit -m 'MESSAGE' && git push origin main"
+  "cd /opt/nexifyai-platform && git add -A && git commit -m 'MESSAGE' && git push origin main"
 ```
 
 ## GitHub PAT Alternative
 
 Wenn ein GitHub Personal Access Token mit `repo`-Scope verfügbar ist:
 ```bash
-git remote set-url origin https://TOKEN@github.com/nexifyai-dev/nexifyai-website-sicherheitskopie.git
+git remote set-url origin https://TOKEN@github.com/nexifyai-dev/nexifyai-platform.git
 git push origin main
 ```
 
 ## Repo
-- **URL:** git@github.com:nexifyai-dev/nexifyai-website-sicherheitskopie.git
-- **VPS Pfad:** /opt/nexifyai-website-sicherheitskopie
+- **URL:** git@github.com:nexifyai-dev/nexifyai-platform.git
+- **VPS Pfad:** /opt/nexifyai-platform
 - **VPS SSH-Key:** git_nexifyai_key (authentifiziert als nexifyai-dev)

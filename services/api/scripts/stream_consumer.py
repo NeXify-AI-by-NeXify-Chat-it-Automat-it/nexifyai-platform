@@ -7,7 +7,7 @@ dispatches via backend /api/orchestration/execute.
 import os, sys, json, time, logging, asyncio, signal
 from datetime import datetime, timezone
 
-sys.path.insert(0, "/opt/nexifyai-website-sicherheitskopie/backend")
+sys.path.insert(0, "/opt/nexifyai-platform/services/api")
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [stream-consumer] %(levelname)s: %(message)s", handlers=[logging.StreamHandler(sys.stdout)])
 logger = logging.getLogger("nexifyai.stream_consumer")

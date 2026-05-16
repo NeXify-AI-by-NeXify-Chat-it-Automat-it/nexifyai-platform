@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 # Add backend to path
-sys.path.insert(0, "/opt/nexifyai-website-sicherheitskopie/backend")
+sys.path.insert(0, "/opt/nexifyai-platform/services/api")
 
 logging.basicConfig(
     level=logging.INFO,

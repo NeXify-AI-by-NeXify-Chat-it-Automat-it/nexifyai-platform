@@ -142,7 +142,7 @@ class EnterpriseHealth:
         import subprocess, sqlite3, os, json
 
         # 1. RELIABILITY — parse health-score.py output
-        health_script = "/opt/nexifyai-website-sicherheitskopie/automations/cron/health-score.py"
+        health_script = "/opt/nexifyai-platform/automations/cron/health-score.py"
         try:
             result = subprocess.run(["python3", health_script], capture_output=True, text=True, timeout=15)
             output = result.stdout + result.stderr
@@ -166,7 +166,7 @@ class EnterpriseHealth:
             "csp": "backend/middleware/security.py",
             "security_txt": "public/.well-known/security.txt",
         }
-        repo = "/opt/nexifyai-website-sicherheitskopie"
+        repo = "/opt/nexifyai-platform"
         passed = sum(1 for f in checks.values() if os.path.exists(os.path.join(repo, f)))
         security_score = (passed / len(checks)) * 100
         self.update_component("security", security_score, checks)

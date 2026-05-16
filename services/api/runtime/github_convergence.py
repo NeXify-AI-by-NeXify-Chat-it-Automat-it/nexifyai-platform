@@ -62,7 +62,7 @@ class GitHubConvergence:
     """
     
     REPO_OWNER = "nexifyai-dev"
-    REPO_NAME = "nexifyai-website-sicherheitskopie"
+    REPO_NAME = "nexifyai-platform"
     
     # Known issue → service mappings
     ISSUE_SERVICE_MAP = {

@@ -99,9 +99,9 @@ SYSTEMD_UNITS = {
 }
 
 REQUIRED_PATHS = {
-    "backend": "/opt/nexifyai-website-sicherheitskopie/backend",
-    "venv": "/opt/nexifyai-website-sicherheitskopie/backend/venv/bin/python",
-    "activities": "/opt/nexifyai-website-sicherheitskopie/backend/temporal/activities.py",
+    "backend": "/opt/nexifyai-platform/services/api",
+    "venv": "/opt/nexifyai-platform/services/api/venv/bin/python",
+    "activities": "/opt/nexifyai-platform/services/api/temporal/activities.py",
 }
 
 REQUIRED_SERVICES = {

@@ -1070,10 +1070,10 @@ async def workflow_status(admin: dict = Depends(get_admin_from_token)):
     """GitHub Workflow badge status for the dashboard."""
     return {
         "workflows": {
-            "Security Scan": {"status": "unknown", "url": "https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/security-scan.yml"},
-            "CI Quality Gates": {"status": "unknown", "url": "https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/quality-gates.yml"},
-            "Tests": {"status": "unknown", "url": "https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/tests.yml"},
-            "Vercel Deploy": {"status": "unknown", "url": "https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/deploy.yml"},
+            "Security Scan": {"status": "unknown", "url": "https://github.com/nexifyai-dev/nexifyai-platform/actions/workflows/security-scan.yml"},
+            "CI Quality Gates": {"status": "unknown", "url": "https://github.com/nexifyai-dev/nexifyai-platform/actions/workflows/quality-gates.yml"},
+            "Tests": {"status": "unknown", "url": "https://github.com/nexifyai-dev/nexifyai-platform/actions/workflows/tests.yml"},
+            "Vercel Deploy": {"status": "unknown", "url": "https://github.com/nexifyai-dev/nexifyai-platform/actions/workflows/deploy.yml"},
         },
         "timestamp": utcnow().isoformat(),
     }
@@ -1156,7 +1156,7 @@ async def last_commit(admin: dict = Depends(get_admin_from_token)):
         result = subprocess.run(
             ["git", "log", "-1", "--format=%H|%s|%an|%ai"],
             capture_output=True, text=True, timeout=10,
-            cwd="/opt/nexifyai-website-sicherheitskopie"
+            cwd="/opt/nexifyai-platform"
         )
         if result.returncode == 0:
             parts = result.stdout.strip().split("|")
@@ -1183,7 +1183,7 @@ async def build_report(admin: dict = Depends(get_admin_from_token)):
         result = subprocess.run(
             ["git", "log", "-1", "--format=%H|%s|%ai"],
             capture_output=True, text=True, timeout=10,
-            cwd="/opt/nexifyai-website-sicherheitskopie"
+            cwd="/opt/nexifyai-platform"
         )
         if result.returncode == 0:
             parts = result.stdout.strip().split("|")
@@ -1196,7 +1196,7 @@ async def build_report(admin: dict = Depends(get_admin_from_token)):
         result = subprocess.run(
             ["git", "branch", "--show-current"],
             capture_output=True, text=True, timeout=5,
-            cwd="/opt/nexifyai-website-sicherheitskopie"
+            cwd="/opt/nexifyai-platform"
         )
         report["branch"] = result.stdout.strip()
     except Exception:

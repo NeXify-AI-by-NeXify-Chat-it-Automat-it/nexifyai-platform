@@ -18,7 +18,7 @@ class RefactorAgent(BaseAgent):
             "duplicated_code_hint": False,
         }
         
-        repo = "/opt/nexifyai-website-sicherheitskopie"
+        repo = "/opt/nexifyai-platform"
         
         # Find large files (>500 lines)
         for root, _, files in os.walk(repo):

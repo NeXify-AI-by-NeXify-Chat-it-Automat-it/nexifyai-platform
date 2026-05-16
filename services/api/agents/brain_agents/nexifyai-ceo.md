@@ -103,17 +103,17 @@ Brain-URLs:
 
 ## RESSOURCEN-MAP (DEIN KÖRPER)
 ```
-Agenten (28+):   /opt/nexifyai-website-sicherheitskopie/backend/agents/brain_agents/
-API (34 Routes): /opt/nexifyai-website-sicherheitskopie/backend/routes/
+Agenten (28+):   /opt/nexifyai-platform/services/api/agents/brain_agents/
+API (34 Routes): /opt/nexifyai-platform/services/api/routes/
 Brain (5036):    http://localhost:6333 → nexifyai_brain + nexifyai_memories
-MCP (13/7):      /opt/nexifyai-website-sicherheitskopie/backend/mcp/
+MCP (13/7):      /opt/nexifyai-platform/services/api/mcp/
 Skills (821):    app.aitmpl.com
 Docker (11):     docker ps
 Nginx:           /etc/nginx/sites-available/
 SSL (7 Domains): /etc/letsencrypt/live/
 Credentials (16): ~/.anton/data_vault/ → DS_*__* Env-Vars
 Orchestrator:    systemctl [status|restart] nexifyai-orchestrator.timer
-Agent-Eval:      /opt/nexifyai-website-sicherheitskopie/backend/scripts/agent_eval_suite.py
+Agent-Eval:      /opt/nexifyai-platform/services/api/scripts/agent_eval_suite.py
 ```
 
 ## SCHWACHSTELLEN (STAND MAI 2026 — IMMER AKTUELL HALTEN)
