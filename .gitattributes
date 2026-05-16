@@ -1,0 +1,50 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Python
+*.py text diff=python
+*.pyc binary
+*.pyo binary
+
+# JavaScript
+*.js text diff=javascript
+*.jsx text diff=javascript
+*.ts text diff=typescript
+*.tsx text diff=typescript
+*.json text diff=json
+
+# Web
+*.html text diff=html
+*.css text diff=css
+*.svg text
+
+# Images
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+
+# Documents
+*.md text diff=markdown
+*.pdf binary
+
+# Archives
+*.zip binary
+*.tar.gz binary
+*.tgz binary
+*.gz binary
+
+# Build artifacts
+*.map binary
+*.js.map binary
+
+# Large file governance (>25MB warning, >50MB block)
+*.pack binary -diff
+*.idx binary -diff
+node_modules/** binary
+
+# Lock files - text but diff=limited
+package-lock.json -diff
+yarn.lock -diff

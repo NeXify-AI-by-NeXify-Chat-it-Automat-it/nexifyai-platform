@@ -75,3 +75,65 @@ automations/cron/output/*.json
 
 # Emergent site backup
 www-emergent/
+
+# Large files
+*.pack
+*.idx
+*.bitmap
+*.zip
+*.tar.gz
+*.tgz
+*.7z
+*.rar
+
+# Build output (all locations)
+build/
+dist/
+.next/
+out/
+.esbuild/
+
+# Cache
+.cache/
+*.cache
+.eslintcache
+.stylelintcache
+
+# Temp
+*.tmp
+*.swp
+*.swo
+*~
+*.orig
+*.bak
+*.backup
+
+# Secrets
+*.env
+*.env.*
+!*.env.example
+*.pem
+*.key
+credentials.json
+secrets*
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Vercel
+.vercel/
+out/
+
+# Cron
+automations/cron/output/
