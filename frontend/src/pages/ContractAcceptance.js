@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { I } from '../components/shared';
 
-const API = process.env.REACT_APP_BACKEND_URL || '';
+const API = process.env.REACT_APP_BACKEND_URL;
 
 const ContractAcceptance = () => {
   const params = new URLSearchParams(window.location.search);

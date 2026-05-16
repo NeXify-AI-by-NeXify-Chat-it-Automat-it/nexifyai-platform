@@ -72,3 +72,6 @@ automations/cron/output/*.json
 .cache/
 *.cache
 *.pack
+
+# Emergent site backup
+www-emergent/

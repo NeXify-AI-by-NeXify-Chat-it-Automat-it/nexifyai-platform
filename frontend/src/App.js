@@ -5,10 +5,9 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import { HeroScene, ProcessScene } from './components/Scene3D';
 import { useLanguage } from './i18n/LanguageContext';
 import T from './i18n/translations';
-import { initTracking } from './lib/track';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import SEOHead from './components/SEOHead';
-import { API, COMPANY, LEGAL_PATHS, I, Logo, Footer, track, fadeUp, fadeIn, stagger, scaleIn, AnimSection } from './components/shared';
+import { API, COMPANY, LEGAL_PATHS, I, Logo, track, fadeUp, fadeIn, stagger, scaleIn, AnimSection } from './components/shared';
 import Integrations from './components/sections/Integrations';
 import LiveChat from './components/sections/LiveChat';
 import SEOProductSection from './components/sections/SEOProductSection';
@@ -383,7 +382,67 @@ const Contact = ({ onChat, onBook, t, lang }) => {
   );
 };
 
+/* ═══════════ FOOTER ═══════════ */
+const Ft = ({ onCookieSettings, t, lang }) => {
+  const lp = LEGAL_PATHS[lang] || LEGAL_PATHS.de;
+  return (
+    <footer className="footer" role="contentinfo" data-testid="footer">
+      <div className="container">
+        <div className="footer-grid">
+          <div className="footer-brand">
+            <div className="footer-logo"><img src="/icon-mark.svg" alt="" width="28" height="28" /><span>NeXify<span className="brand-ai">AI</span></span></div>
+            <div className="footer-tagline">{t.footer.tagline}</div>
+            <div className="footer-legal-name">{COMPANY.legal}</div>
+            <address className="footer-contact">
+              <p><strong>NL:</strong> {COMPANY.addr.nl.s}, {COMPANY.addr.nl.c}</p>
+              <p><strong>DE:</strong> {COMPANY.addr.de.s}, {COMPANY.addr.de.c}</p>
+              <p>Tel: <a href={`tel:${COMPANY.phone.replace(/\s/g, '')}`}>{COMPANY.phone}</a></p>
+              <p>E-Mail: <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></p>
+            </address>
+          </div>
+          <nav className="footer-nav-col">
+            <h3 className="footer-nav-title">{t.footer.nav}</h3>
+            <ul className="footer-links">
+              <li><a href="#loesungen">{t.nav.leistungen}</a></li><li><a href="#use-cases">{t.nav.usecases}</a></li>
+              <li><a href="#app-dev">{t.nav.appdev}</a></li><li><a href="#integrationen">{t.nav.integrationen}</a></li>
+              <li><a href="#preise">{t.nav.tarife}</a></li><li><a href="#ki-seo">{lang === 'en' ? 'SEO' : 'KI-SEO'}</a></li><li><a href="#services">{lang === 'en' ? 'Services' : lang === 'nl' ? 'Diensten' : 'Services'}</a></li>
+              <li><a href="#trust">{lang === 'en' ? 'Trust' : lang === 'nl' ? 'Vertrouwen' : 'Vertrauen'}</a></li><li><a href="#kontakt">{t.footer.kontakt}</a></li>
+            </ul>
+          </nav>
+          <nav className="footer-nav-col">
+            <h3 className="footer-nav-title">{t.footer.legal}</h3>
+            <ul className="footer-links">
+              <li><a href={lp.impressum}>{t.footer.impressum}</a></li>
+              <li><a href={lp.datenschutz}>{t.footer.datenschutz}</a></li>
+              <li><a href={lp.agb}>{t.footer.agb}</a></li>
+              <li><a href={lp.ki}>{t.footer.ki}</a></li>
+              <li><a href={lp.widerruf}>{lang === 'nl' ? 'Herroepingsrecht' : lang === 'en' ? 'Cancellation Policy' : 'Widerrufsbelehrung'}</a></li>
+              <li><a href={lp.cookies}>{lang === 'nl' ? 'Cookiebeleid' : lang === 'en' ? 'Cookie Policy' : 'Cookie-Richtlinie'}</a></li>
+              <li><a href={lp.avv}>{lang === 'nl' ? 'Verwerkersovereenkomst' : lang === 'en' ? 'Data Processing Agreement' : 'AVV'}</a></li>
+              <li><button onClick={onCookieSettings} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>{t.footer.cookie}</button></li>
+            </ul>
+            <div className="footer-ids"><p>KvK: {COMPANY.kvk}</p><p>USt-ID: {COMPANY.vat}</p><p className="footer-iban">IBAN: NL66 REVO 3601 4304 36</p></div>
+          </nav>
+          <div>
+            <h3 className="footer-nav-title">{t.footer.kontakt}</h3>
+            <ul className="footer-links">
+              <li><a href="/termin" data-testid="footer-booking-link"><I n="calendar_month" /> {lang === 'en' ? 'Book Meeting' : lang === 'nl' ? 'Gesprek boeken' : 'Termin buchen'}</a></li>
+              <li><a href={`tel:${COMPANY.phone.replace(/\s/g, '')}`}>{COMPANY.phone}</a></li>
+              <li><a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></li>
+              <li><a href={`https://${COMPANY.web}`} target="_blank" rel="noopener noreferrer">{COMPANY.web}</a></li>
+            </ul>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <span className="footer-copy">{t.footer.copy.replace('{y}', new Date().getFullYear())}</span>
+          <div className="footer-status"><span className="status-dot on"></span>{t.footer.status}</div>
+        </div>
+      </div>
+    </footer>
+  );
+};
 
+/* ═══════════ WHATSAPP BUTTON ═══════════ */
 const WhatsAppButton = () => (
   <a href="https://wa.me/31613318856" target="_blank" rel="noopener noreferrer" className="whatsapp-btn" data-testid="whatsapp-btn" aria-label="WhatsApp">
     <svg viewBox="0 0 24 24" width="20" height="20" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -419,9 +478,6 @@ const CookieConsent = ({ show, onAccept, onReject, t, lang }) => {
 /* ═══════════ MAIN APP ═══════════ */
 function App() {
   const { lang } = useLanguage();
-  
-  // Event-Tracking initialisieren (DOS v2.0)
-  React.useEffect(() => { initTracking(); }, []);
   const t = T[lang] || T.de;
 
   const [chatOpen, setChatOpen] = useState(false);
@@ -454,8 +510,8 @@ function App() {
   const openChat = (msg = '') => { setChatQ(msg); setChatOpen(true); track('chat_open', { source: msg ? 'cta_contextual' : 'cta_generic', msg }); };
   const openBooking = () => { setBookOpen(true); };
 
-  const acceptCookies = () => { localStorage.setItem('nx_cookie_consent', 'all'); setShowCookie(false); document.body.classList.remove('cookie-visible'); };
-  const rejectCookies = () => { localStorage.setItem('nx_cookie_consent', 'essential'); setShowCookie(false); document.body.classList.remove('cookie-visible'); };
+  const acceptCookies = () => { localStorage.setItem('nx_cookie_consent', 'all'); setShowCookie(false); };
+  const rejectCookies = () => { localStorage.setItem('nx_cookie_consent', 'essential'); setShowCookie(false); };
   const openCookieSettings = () => { localStorage.removeItem('nx_cookie_consent'); setShowCookie(true); };
 
   return (
@@ -478,7 +534,7 @@ function App() {
         <FAQ t={t} />
         <Contact onChat={openChat} onBook={openBooking} t={t} lang={lang} />
       </main>
-      <Footer onCookieSettings={openCookieSettings} t={t} lang={lang} />
+      <Ft onCookieSettings={openCookieSettings} t={t} lang={lang} />
       <WhatsAppButton />
       <ChatTrigger onClick={() => openChat()} t={t} />
       <LiveChat isOpen={chatOpen} onClose={() => setChatOpen(false)} initialQ={chatQ} onBook={openBooking} t={t} lang={lang} />

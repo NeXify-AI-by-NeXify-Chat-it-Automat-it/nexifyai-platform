@@ -4,9 +4,10 @@ import { motion, useInView } from 'framer-motion';
 export const API = process.env.REACT_APP_BACKEND_URL || '';
 
 export const COMPANY = {
-  name: 'NeXifyAI by NeXify', tagline: 'Chat it. Automate it.', legal: 'neXify - Chat it. Automat it.',
+  name: 'NeXifyAI by NeXify', tagline: 'Chat it. Automate it.', legal: 'NeXify Automate',
   ceo: 'Pascal Courbois, Geschäftsführer',
-  phone: '+31 6 133 188 56', email: 'support@nexify-automate.com', web: 'nexify-automate.com', kvk: '90483944', vat: 'NL865786276B01', addr: { nl: { s: 'Graaf van Loonstraat 1E', c: '5921 JA Venlo' } }
+  addr: { de: { s: 'Wallstraße 9', c: '41334 Nettetal-Kaldenkirchen', co: 'Deutschland' }, nl: { s: 'Graaf van Loonstraat 1E', c: '5921 JA Venlo', co: 'Niederlande' } },
+  phone: '+31 6 133 188 56', email: 'support@nexify-automate.com', web: 'nexify-automate.com', kvk: '90483944', vat: 'NL865786276B01'
 };
 
 export const LEGAL_PATHS = {
@@ -24,7 +25,7 @@ export const track = async (ev, props = {}) => {
     const sid = sessionStorage.getItem('nx_s') || genSid();
     sessionStorage.setItem('nx_s', sid);
     await fetch(`${API}/api/analytics/track`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: ev, properties: { ...props, ts: new Date().toISOString() }, session_id: sid }) });
-  } catch (_) { if (process.env.NODE_ENV === 'development') console.error('Analytics track failed:', _); }
+  } catch (_) {}
 };
 
 export const I = ({ n, c = '' }) => <span className={`material-symbols-outlined ${c}`} aria-hidden="true">{n}</span>;
@@ -47,90 +48,14 @@ export function AnimSection({ children, className = '', id, ...props }) {
 export const BrandName = ({ className }) => <span className={className}>NeXify<span className="brand-ai">AI</span></span>;
 
 export const Logo = ({ size = 'md' }) => {
-  const h = size === 'sm' ? 24 : size === 'lg' ? 40 : 32;
+  const s = size === 'sm' ? 24 : size === 'lg' ? 40 : 32;
+  const fs = size === 'sm' ? '.9375rem' : size === 'lg' ? '1.375rem' : '1.125rem';
   return (
-    <img src="/logo-light.svg" alt="neXifyAI" style={{ display: 'block', height: h, width: 'auto' }} />
-  );
-};
-
-
-export const Footer = ({ onCookieSettings, t, lang }) => {
-  const lp = LEGAL_PATHS[lang] || LEGAL_PATHS.de;
-  const thisYear = new Date().getFullYear();
-  return (
-    <footer className="footer" role="contentinfo" data-testid="footer">
-      <div className="container">
-        <div className="footer-grid">
-          <div className="footer-brand">
-            <div className="footer-logo"><img src="/logo-light.svg" alt="neXifyAI" height="28" /></div>
-            <div className="footer-tagline">{t?.footer?.tagline || 'Chat it. Automate it.'}</div>
-            <div className="footer-legal-name">{COMPANY.legal}</div>
-            <div className="footer-founder-row">
-              <img src={`/pascal_courbois.png?v=20260508`} alt="Pascal Courbois" className="footer-founder-img" width="48" height="48" />
-              <div>
-                <div className="footer-founder-name">Pascal Courbois</div>
-                <div className="footer-founder-role">{lang === 'en' ? 'CEO & Founder' : lang === 'nl' ? 'CEO & Oprichter' : 'Geschäftsführer & Inhaber'}</div>
-              </div>
-            </div>
-            <address className="footer-contact">
-              <p><strong>NL:</strong> {COMPANY.addr.nl.s}, {COMPANY.addr.nl.c}</p>
-              <p>Tel: <a href={`tel:${COMPANY.phone.replace(/\s/g, '')}`}>{COMPANY.phone}</a></p>
-              <p>E-Mail: <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></p>
-            </address>
-          </div>
-          <nav className="footer-nav-col">
-            <h3 className="footer-nav-title">{t?.footer?.nav || 'Navigation'}</h3>
-            <ul className="footer-links">
-              <li><a href="#loesungen">{t?.nav?.leistungen || 'Leistungen'}</a></li>
-              <li><a href="#use-cases">{t?.nav?.usecases || 'Use Cases'}</a></li>
-              <li><a href="#app-dev">{t?.nav?.appdev || 'App-Entwicklung'}</a></li>
-              <li><a href="#integrationen">{t?.nav?.integrationen || 'Integrationen'}</a></li>
-              <li><a href="#preise">{t?.nav?.tarife || 'Tarife'}</a></li>
-              <li><a href="#ki-seo">{lang === 'en' ? 'SEO' : 'KI-SEO'}</a></li>
-              <li><a href="#services">{lang === 'en' ? 'Services' : lang === 'nl' ? 'Diensten' : 'Services'}</a></li>
-              <li><a href={`/${lang}/blog`}>Blog</a></li>
-            </ul>
-          </nav>
-          <nav className="footer-nav-col">
-            <h3 className="footer-nav-title">{t?.footer?.legal || 'Rechtliches'}</h3>
-            <ul className="footer-links">
-              <li><a href={lp.impressum}>{t?.footer?.impressum || 'Impressum'}</a></li>
-              <li><a href={lp.datenschutz}>{t?.footer?.datenschutz || 'Datenschutz'}</a></li>
-              <li><a href={lp.agb}>{t?.footer?.agb || 'AGB'}</a></li>
-              <li><a href={lp.ki}>{t?.footer?.ki || 'KI-Hinweise'}</a></li>
-              <li><a href={lp.widerruf}>{lang === 'nl' ? 'Herroepingsrecht' : lang === 'en' ? 'Cancellation Policy' : 'Widerrufsbelehrung'}</a></li>
-              <li><a href={lp.cookies}>{lang === 'nl' ? 'Cookiebeleid' : lang === 'en' ? 'Cookie Policy' : 'Cookie-Richtlinie'}</a></li>
-              <li><a href={lp.avv}>{lang === 'nl' ? 'Verwerkersovereenkomst' : lang === 'en' ? 'Data Processing Agreement' : 'AVV'}</a></li>
-            </ul>
-            <div className="footer-ids"><p>KvK: {COMPANY.kvk}</p><p>USt-ID: {COMPANY.vat}</p><p className="footer-iban">IBAN: NL66 REVO 3601 4304 36</p></div>
-          </nav>
-          <div>
-            <h3 className="footer-nav-title">{t?.footer?.kontakt || 'Kontakt'}</h3>
-            <ul className="footer-links">
-              <li><a href="/termin" data-testid="footer-booking-link"><I n="calendar_month" /> {lang === 'en' ? 'Book Meeting' : lang === 'nl' ? 'Gesprek boeken' : 'Termin buchen'}</a></li>
-              <li><a href={`tel:${COMPANY.phone.replace(/\s/g, '')}`}><I n="call" /> {COMPANY.phone}</a></li>
-              <li><a href={`mailto:${COMPANY.email}`}><I n="mail" /> {COMPANY.email}</a></li>
-              <li><a href={`https://${COMPANY.web}`} target="_blank" rel="noopener noreferrer"><I n="open_in_new" /> {COMPANY.web}</a></li>
-            </ul>
-            <h3 className="footer-nav-title footer-social-title">{lang === 'en' ? 'Social' : lang === 'nl' ? 'Social' : 'Social'}</h3>
-            <div className="footer-social">
-              <a href="https://de.pinterest.com/NeXifyAutomate/" target="_blank" rel="noopener noreferrer" aria-label="Pinterest"><I n="public" /></a>
-              <a href="https://www.instagram.com/nexify.automate/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><I n="camera_alt" /></a>
-              <a href="https://www.tiktok.com/@nexify_automate" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><I n="music_note" /></a>
-              <a href="https://x.com/nexify_automate" target="_blank" rel="noopener noreferrer" aria-label="X"><I n="close" /></a>
-              <a href="https://www.facebook.com/nexify.automate.it" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><I n="groups" /></a>
-              <a href="https://www.linkedin.com/in/nexifyai-nexify-0b068a398" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><I n="work" /></a>
-            </div>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <span className="footer-copy">{(t?.footer?.copy || '© {y} NeXifyAI').replace('{y}', thisYear)}</span>
-          <div className="footer-bottom-links">
-            <button className="footer-cookie-btn" onClick={onCookieSettings}>{t?.footer?.cookie || 'Cookie-Einstellungen'}</button>
-            <div className="footer-status"><span className="status-dot on"></span>{t?.footer?.status || 'Alle Systeme aktiv'}</div>
-          </div>
-        </div>
-      </div>
-    </footer>
+    <div style={{ display: 'flex', alignItems: 'center', gap: size === 'sm' ? 8 : 10 }}>
+      <img src="/icon-mark.svg" alt="" width={s} height={s} style={{ display: 'block' }} />
+      <span style={{ fontFamily: 'var(--f-display)', fontWeight: 800, fontSize: fs, color: '#fff', letterSpacing: '-.02em' }}>
+        NeXify<span className="brand-ai">AI</span>
+      </span>
+    </div>
   );
 };
