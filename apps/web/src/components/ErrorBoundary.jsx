@@ -1,13 +1,10 @@
 import React from 'react';
+import { getCapturedErrors } from '../observability/frontend/runtime_error_capture';
 
-/**
- * NeXifyAI Global Error Boundary
- * Verhindert White Screen of Death bei unhandled JS Errors.
- */
-class ErrorBoundary extends React.Component {
+class EnhancedErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, errorInfo: null };
   }
 
   static getDerivedStateFromError(error) {
@@ -15,61 +12,104 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('[NeXifyAI Error Boundary]', error, errorInfo);
+    this.setState({ errorInfo });
+    
+    const runtimeErrors = getCapturedErrors();
+    const isDev = process.env.NODE_ENV === 'development' || 
+                  window.location.hostname.includes('vercel.app');
+    
+    if (isDev) {
+      console.group('\u{1F534} NeXifyAI Runtime Error');
+      console.error('Error:', error);
+      console.error('Component Stack:', errorInfo.componentStack);
+      console.error('Runtime Errors:', runtimeErrors);
+      console.error('Route:', window.location.pathname);
+      console.groupEnd();
+    }
   }
 
   render() {
     if (this.state.hasError) {
-      return (
-        <div data-testid="error-boundary-fallback" style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: '#0c1117',
-          color: '#c8d1dc',
-          fontFamily: "'DM Sans', sans-serif",
-          padding: 24,
-        }}>
-          <div style={{ textAlign: 'center', maxWidth: 480 }}>
-            <div style={{
-              width: 64, height: 64, borderRadius: '50%',
-              background: 'rgba(239,68,68,0.1)', border: '2px solid rgba(239,68,68,0.3)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 24px',
-            }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 32, color: '#ef4444' }}>error</span>
-            </div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#fff', marginBottom: 12 }}>
-              Etwas ist schiefgelaufen
+      if (this.props.fallback) return this.props.fallback;
+
+      const isDev = process.env.NODE_ENV === 'development' || 
+                    window.location.hostname.includes('vercel.app');
+
+      if (!isDev) {
+        return (
+          <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            minHeight: '100vh', fontFamily: 'system-ui, sans-serif', padding: '2rem', textAlign: 'center',
+            background: '#0d1117', color: '#c9d1d9'
+          }}>
+            <h1 style={{ fontSize: '2rem', marginBottom: '1rem', color: '#f85149' }}>
+              {'\u26A1'} Etwas ist schiefgelaufen
             </h1>
-            <p style={{ fontSize: '.875rem', color: '#6b7b8d', marginBottom: 24, lineHeight: 1.6 }}>
-              Ein unerwarteter Fehler ist aufgetreten. Bitte laden Sie die Seite neu. Falls das Problem bestehen bleibt, kontaktieren Sie den Support.
+            <p style={{ marginBottom: '1.5rem', color: '#8b949e' }}>
+              Ein unerwarteter Fehler ist aufgetreten. Bitte laden Sie die Seite neu.
             </p>
-            <button
-              data-testid="error-boundary-reload"
-              onClick={() => window.location.reload()}
-              style={{
-                background: '#FE9B7B', color: '#fff', border: 'none',
-                padding: '12px 32px', borderRadius: 8, fontSize: '.875rem',
-                fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
-              }}
-              onMouseOver={e => e.currentTarget.style.background = '#FF8533'}
-              onMouseOut={e => e.currentTarget.style.background = '#FE9B7B'}
-            >
+            <button onClick={() => window.location.reload()} style={{
+              padding: '0.75rem 2rem', background: '#238636', color: '#fff', border: 'none',
+              borderRadius: '6px', cursor: 'pointer', fontSize: '1rem'
+            }}>
               Seite neu laden
             </button>
-            {process.env.NODE_ENV === 'development' && this.state.error && (
-              <pre style={{
-                marginTop: 24, padding: 16, background: 'rgba(239,68,68,0.05)',
-                border: '1px solid rgba(239,68,68,0.15)', borderRadius: 8,
-                fontSize: '.6875rem', color: '#ef4444', textAlign: 'left',
-                overflow: 'auto', maxHeight: 200,
-              }}>
-                {this.state.error.toString()}
-              </pre>
-            )}
           </div>
+        );
+      }
+
+      const runtimeErrors = getCapturedErrors();
+
+      return (
+        <div style={{
+          fontFamily: 'system-ui, sans-serif', padding: '2rem', background: '#0d1117',
+          color: '#c9d1d9', minHeight: '100vh'
+        }}>
+          <h1 style={{ color: '#f85149', borderBottom: '1px solid #30363d', paddingBottom: '0.5rem' }}>
+            {'\u{1F534}'} Runtime Error Diagnostics (Preview Mode)
+          </h1>
+
+          <h2 style={{ color: '#f0883e', marginTop: '1.5rem' }}>Error</h2>
+          <pre style={{ background: '#161b22', padding: '1rem', borderRadius: '6px', overflow: 'auto', fontSize: '0.9rem' }}>
+            {this.state.error?.message}
+          </pre>
+
+          <h2 style={{ color: '#f0883e', marginTop: '1.5rem' }}>Stack Trace</h2>
+          <pre style={{ background: '#161b22', padding: '1rem', borderRadius: '6px', overflow: 'auto', fontSize: '0.85rem', maxHeight: '400px' }}>
+            {this.state.error?.stack}
+          </pre>
+
+          {this.state.errorInfo?.componentStack && (
+            <>
+              <h2 style={{ color: '#f0883e', marginTop: '1.5rem' }}>Component Stack</h2>
+              <pre style={{ background: '#161b22', padding: '1rem', borderRadius: '6px', overflow: 'auto', fontSize: '0.85rem' }}>
+                {this.state.errorInfo.componentStack}
+              </pre>
+            </>
+          )}
+
+          <h2 style={{ color: '#f0883e', marginTop: '1.5rem' }}>Route</h2>
+          <pre style={{ background: '#161b22', padding: '0.5rem 1rem', borderRadius: '6px' }}>
+            {window.location.pathname}
+          </pre>
+
+          {runtimeErrors.length > 0 && (
+            <>
+              <h2 style={{ color: '#f0883e', marginTop: '1.5rem' }}>Captured Runtime Errors ({runtimeErrors.length})</h2>
+              {runtimeErrors.map((e, i) => (
+                <pre key={i} style={{ background: '#161b22', padding: '0.5rem 1rem', borderRadius: '6px', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
+                  <strong>[{e.type}]</strong> {e.message}{'\n'}{e.stack && e.stack.slice(0, 300)}
+                </pre>
+              ))}
+            </>
+          )}
+
+          <button onClick={() => window.location.reload()} style={{
+            marginTop: '2rem', padding: '0.75rem 2rem', background: '#238636', color: '#fff',
+            border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '1rem'
+          }}>
+            Seite neu laden
+          </button>
         </div>
       );
     }
@@ -77,4 +117,4 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-export default ErrorBoundary;
+export default EnhancedErrorBoundary;
