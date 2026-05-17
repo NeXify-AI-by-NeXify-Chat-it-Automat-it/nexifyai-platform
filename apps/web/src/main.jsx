@@ -1,9 +1,9 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { LanguageProvider } from './i18n/LanguageContext';
 import ErrorBoundary from './components/ErrorBoundary';
+import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import Admin from './pages/Admin';
@@ -15,75 +15,58 @@ import UnifiedLogin from './pages/UnifiedLogin';
 import BookingPage from './pages/BookingPage';
 import ContractAcceptance from './pages/ContractAcceptance';
 
-/* Language-aware redirect: / → /<detected lang> */
+/* Language-aware redirect */
 function LangRedirect() {
   const stored = localStorage.getItem('nx_lang');
   const lang = stored && ['de', 'nl', 'en'].includes(stored) ? stored : 'de';
   return <Navigate to={`/${lang}`} replace />;
 }
 
-/* Backward compat: /impressum → /de/impressum etc */
 function LegacyRedirect({ slug }) {
   const stored = localStorage.getItem('nx_lang');
   const lang = stored && ['de', 'nl', 'en'].includes(stored) ? stored : 'de';
   return <Navigate to={`/${lang}/${slug}`} replace />;
 }
 
+/* Wrapper to inject providers */
+function RootLayout({ children }) {
+  return (
+    <HelmetProvider>
+      <LanguageProvider>
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
+      </LanguageProvider>
+    </HelmetProvider>
+  );
+}
+
+const router = createBrowserRouter([
+  { path: '/', element: <RootLayout><LangRedirect /></RootLayout> },
+  { path: '/de', element: <RootLayout><App /></RootLayout> },
+  { path: '/nl', element: <RootLayout><App /></RootLayout> },
+  { path: '/en', element: <RootLayout><App /></RootLayout> },
+  { path: '/:lang/:page', element: <RootLayout><LegalPage /></RootLayout> },
+  { path: '/login', element: <RootLayout><UnifiedLogin /></RootLayout> },
+  { path: '/login/verify', element: <RootLayout><UnifiedLogin /></RootLayout> },
+  { path: '/termin', element: <RootLayout><BookingPage /></RootLayout> },
+  { path: '/booking', element: <RootLayout><BookingPage /></RootLayout> },
+  { path: '/admin', element: <RootLayout><Admin /></RootLayout> },
+  { path: '/integrationen/:slug', element: <RootLayout><IntegrationDetail /></RootLayout> },
+  { path: '/angebot', element: <RootLayout><QuotePortal /></RootLayout> },
+  { path: '/vertrag', element: <RootLayout><ContractAcceptance /></RootLayout> },
+  { path: '/portal', element: <RootLayout><CustomerPortal /></RootLayout> },
+  { path: '/portal/:token', element: <RootLayout><CustomerPortal /></RootLayout> },
+  { path: '/impressum', element: <RootLayout><LegacyRedirect slug="impressum" /></RootLayout> },
+  { path: '/datenschutz', element: <RootLayout><LegacyRedirect slug="datenschutz" /></RootLayout> },
+  { path: '/agb', element: <RootLayout><LegacyRedirect slug="agb" /></RootLayout> },
+  { path: '/ki-hinweise', element: <RootLayout><LegacyRedirect slug="ki-hinweise" /></RootLayout> },
+  { path: '*', element: <RootLayout><LangRedirect /></RootLayout> },
+]);
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <ErrorBoundary>
-      <HelmetProvider>
-        <BrowserRouter>
-          <LanguageProvider>
-            <Routes>
-            {/* Root redirect */}
-            <Route path="/" element={<LangRedirect />} />
-
-            {/* Language-prefixed landing page */}
-            <Route path="/de" element={<App />} />
-            <Route path="/nl" element={<App />} />
-            <Route path="/en" element={<App />} />
-
-            {/* Language-prefixed legal pages (all slug variants) */}
-            <Route path="/:lang/:page" element={<LegalPage />} />
-
-            {/* Unified Login (Admin + Customer) */}
-            <Route path="/login" element={<UnifiedLogin />} />
-            <Route path="/login/verify" element={<UnifiedLogin />} />
-
-            {/* Standalone Booking Page (Pre-Login) */}
-            <Route path="/termin" element={<BookingPage />} />
-            <Route path="/booking" element={<BookingPage />} />
-
-            {/* Admin (no language prefix) */}
-            <Route path="/admin" element={<Admin />} />
-
-            {/* Integration SEO Pages */}
-            <Route path="/integrationen/:slug" element={<IntegrationDetail />} />
-
-            {/* Customer Offer Portal */}
-            <Route path="/angebot" element={<QuotePortal />} />
-
-            {/* Contract Acceptance (Magic Link) */}
-            <Route path="/vertrag" element={<ContractAcceptance />} />
-
-            {/* Customer Portal (JWT-authenticated) */}
-            <Route path="/portal" element={<CustomerPortal />} />
-            <Route path="/portal/:token" element={<CustomerPortal />} />
-
-            {/* Backward compatibility: old routes without lang prefix */}
-            <Route path="/impressum" element={<LegacyRedirect slug="impressum" />} />
-            <Route path="/datenschutz" element={<LegacyRedirect slug="datenschutz" />} />
-            <Route path="/agb" element={<LegacyRedirect slug="agb" />} />
-            <Route path="/ki-hinweise" element={<LegacyRedirect slug="ki-hinweise" />} />
-
-            {/* Fallback */}
-            <Route path="*" element={<LangRedirect />} />
-          </Routes>
-        </LanguageProvider>
-      </BrowserRouter>
-    </HelmetProvider>
-    </ErrorBoundary>
+    <RouterProvider router={router} />
   </React.StrictMode>
 );
