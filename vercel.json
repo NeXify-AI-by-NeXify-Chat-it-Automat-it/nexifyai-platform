@@ -1,6 +1,6 @@
 {
   "rootDirectory": "apps/web",
   "installCommand": "npm install",
-  "buildCommand": "CI=false DISABLE_ESLINT_PLUGIN=true npm run build",
+  "buildCommand": "npm run build",
   "outputDirectory": "build"
 }
