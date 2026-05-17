@@ -1,3 +1,4 @@
+/* Build 2026-05-17T17:16:59.210533 */
 // P0: Runtime diagnostics — must be first import
 import './observability/frontend/runtime_error_capture';
 import React from 'react';
