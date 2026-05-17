@@ -59,7 +59,7 @@ class ErrorBoundary extends React.Component {
             >
               Seite neu laden
             </button>
-            {this.state.error && (
+            {process.env.NODE_ENV === 'development' && this.state.error && (
               <pre style={{
                 marginTop: 24, padding: 16, background: 'rgba(239,68,68,0.05)',
                 border: '1px solid rgba(239,68,68,0.15)', borderRadius: 8,

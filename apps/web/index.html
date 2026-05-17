@@ -43,37 +43,7 @@
     #root{min-height:100vh}
   </style>
 
-<script>
-// Global error catcher — shows React errors on page
-window.__NX_ERRORS = [];
-window.onerror = function(msg, src, line, col, err) {
-  window.__NX_ERRORS.push({msg: msg, src: src, line: line, col: col, err: err ? err.stack ? err.stack.slice(0,500) : err.toString() : msg});
-  document.getElementById('nx-error') && (document.getElementById('nx-error').textContent = window.__NX_ERRORS.map(e => e.err).join('\n---\n'));
-};
-window.addEventListener('unhandledrejection', function(e) {
-  var msg = e.reason ? (e.reason.stack || e.reason.toString() || e.reason) : 'Unhandled Promise rejection';
-  window.__NX_ERRORS.push({msg: msg});
-  document.getElementById('nx-error') && (document.getElementById('nx-error').textContent = window.__NX_ERRORS.map(e => e.err).join('\n---\n'));
-});
-// Hook into React error boundary via MutationObserver
-new MutationObserver(function() {
-  var el = document.querySelector('[data-testid="error-boundary-fallback"]');
-  if (el && !document.getElementById('nx-error')) {
-    var d = document.createElement('div');
-    d.id = 'nx-error';
-    d.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#1a0000;color:#ff6b6b;padding:20px;font-size:13px;font-family:monospace;z-index:99999;white-space:pre-wrap;max-height:300px;overflow:auto;border-top:2px solid #ff4444';
-    document.body.appendChild(d);
-    d.textContent = window.__NX_ERRORS.map(function(e){ return typeof e.err === 'string' ? e.err : JSON.stringify(e) }).join('\n---\n');
-  }
-}).observe(document.documentElement, {childList: true, subtree: true});
-setTimeout(function() {
-  var d = document.createElement('div');
-  d.id = 'nx-error';
-  d.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#1a0000;color:#ff6b6b;padding:20px;font-size:13px;font-family:monospace;z-index:99999;white-space:pre-wrap;max-height:300px;overflow:auto;border-top:2px solid #ff4444';
-  document.body.appendChild(d);
-  d.textContent = window.__NX_ERRORS.length ? window.__NX_ERRORS.map(function(e){ return e.err || e.msg || JSON.stringify(e) }).join('\n---\n') : 'No errors caught yet. React may be loading...';
-}, 3000);
-</script>
+
 
 </head>
 <body>
