@@ -4,9 +4,7 @@
   "private": true,
   "workspaces": [
     "apps/*",
-    "packages/*",
-    "services/*",
-    "ai-runtime/**"
+    "services/*"
   ],
   "scripts": {
     "build:web": "cd apps/web && npm run build",
