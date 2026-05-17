@@ -73,7 +73,7 @@ export const Footer = ({ onCookieSettings, t, lang }) => {
               </div>
             </div>
             <address className="footer-contact">
-              <p><strong>NL:</strong> {COMPANY.addr.nl.s}, {COMPANY.addr.nl.c}</p>
+              <p><strong>NL:</strong> {COMPANY.addr?.nl?.s ?? ''}, {COMPANY.addr?.nl?.c ?? ''}</p>
               <p>Tel: <a href={`tel:${COMPANY.phone.replace(/\s/g, '')}`}>{COMPANY.phone}</a></p>
               <p>E-Mail: <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></p>
             </address>

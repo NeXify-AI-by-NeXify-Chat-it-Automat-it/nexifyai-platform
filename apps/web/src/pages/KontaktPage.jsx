@@ -224,7 +224,7 @@ export default function KontaktPage() {
                 <div style={{ marginTop: '3rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', color: '#8892a0' }}>
                   <p><strong style={{ color: '#dee3ed' }}>Telefon:</strong> <a href="tel:+31613318856" style={{ color: '#FE9B7B' }}>+31 6 133 188 56</a></p>
                   <p><strong style={{ color: '#dee3ed' }}>E-Mail:</strong> <a href="mailto:support@nexify-automate.com" style={{ color: '#FE9B7B' }}>support@nexify-automate.com</a></p>
-                  <p><strong style={{ color: '#dee3ed' }}>Adresse:</strong> {COMPANY.addr.nl.s}, {COMPANY.addr.nl.c}</p>
+                  <p><strong style={{ color: '#dee3ed' }}>Adresse:</strong> {COMPANY.addr?.nl?.s ?? ''}, {COMPANY.addr?.nl?.c ?? ''}</p>
                   <p><strong style={{ color: '#dee3ed' }}>KvK:</strong> {COMPANY.kvk} | <strong style={{ color: '#dee3ed' }}>USt-ID:</strong> {COMPANY.vat}</p>
                 </div>
               </div>
