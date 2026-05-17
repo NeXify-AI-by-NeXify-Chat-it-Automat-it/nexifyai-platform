@@ -45,10 +45,84 @@
 
 
 
+<script>
+window.__NX_PRELOAD_ERRORS = [];
+window.__NX_PRELOAD_DONE = false;
+var origOnError = window.onerror;
+window.onerror = function(msg, src, line, col, err) {
+  window.__NX_PRELOAD_ERRORS.push({
+    msg: String(msg),
+    src: src,
+    line: line,
+    col: col,
+    stack: err && err.stack ? err.stack.slice(0, 1000) : 'no-stack',
+    ts: new Date().toISOString()
+  });
+  var el = document.getElementById('nx-preload-output');
+  if (el) {
+    el.textContent = JSON.stringify(window.__NX_PRELOAD_ERRORS, null, 2);
+    el.style.display = 'block';
+  }
+  if (origOnError) return origOnError(msg, src, line, col, err);
+  return false;
+};
+window.addEventListener('unhandledrejection', function(e) {
+  var reason = e.reason || {};
+  window.__NX_PRELOAD_ERRORS.push({
+    type: 'rejection',
+    msg: reason.message || String(reason),
+    stack: reason.stack ? reason.stack.slice(0, 1000) : 'no-stack',
+    ts: new Date().toISOString()
+  });
+  var el = document.getElementById('nx-preload-output');
+  if (el) {
+    el.textContent = JSON.stringify(window.__NX_PRELOAD_ERRORS, null, 2);
+    el.style.display = 'block';
+  }
+});
+// Also intercept setTimeout errors (React async)
+var origSetTimeout = setTimeout;
+setTimeout = function(fn, ms) {
+  return origSetTimeout(function() {
+    try { fn(); } catch(e) {
+      window.__NX_PRELOAD_ERRORS.push({
+        type: 'setTimeout',
+        msg: e.message,
+        stack: e.stack ? e.stack.slice(0, 1000) : undefined,
+        ts: new Date().toISOString()
+      });
+      var el = document.getElementById('nx-preload-output');
+      if (el) {
+        el.textContent = JSON.stringify(window.__NX_PRELOAD_ERRORS, null, 2);
+        el.style.display = 'block';
+      }
+    }
+  }, ms);
+};
+// Check after 3s if React rendered or crashed
+origSetTimeout(function() {
+  window.__NX_PRELOAD_DONE = true;
+  var root = document.getElementById('root');
+  var el = document.getElementById('nx-preload-output');
+  if (el) {
+    var info = {
+      errors: window.__NX_PRELOAD_ERRORS,
+      rootChildren: root ? root.children.length : 0,
+      rootHTML: root ? (root.innerHTML || '').slice(0, 200) : 'no-root',
+      ts: new Date().toISOString()
+    };
+    el.textContent = JSON.stringify(info, null, 2);
+    el.style.display = 'block';
+  }
+}, 3000);
+</script>
 </head>
 <body>
   <noscript>Bitte aktivieren Sie JavaScript, um diese Anwendung zu nutzen.</noscript>
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
+
+<pre id="nx-preload-output" style="display:none;position:fixed;top:0;left:0;z-index:99999;background:#0d1117;color:#f85149;padding:1rem;font-size:12px;max-height:100vh;overflow:auto;width:100%;white-space:pre-wrap;font-family:monospace;">WAITING...</pre>
+
 </body>
 </html>
