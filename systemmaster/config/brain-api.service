@@ -1,0 +1,18 @@
+[Unit]
+Description=Nexify Brain API v2 — Live Qdrant REST Adapter
+After=network.target docker.service
+Requires=network.target
+
+[Service]
+Type=simple
+ExecStart=/root/.venvs/nexify/bin/python /opt/nexifyai-platform/services/api/brain_api.py
+Restart=always
+RestartSec=10
+User=root
+Group=root
+WorkingDirectory=/opt/nexifyai-platform/services/api
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
+
