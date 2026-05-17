@@ -137,3 +137,11 @@ out/
 
 # Cron
 automations/cron/output/
+
+# Live Runtime (deployed from system)
+/runtime/systemd/
+/systemmaster/logs/
+/systemmaster/state/
+*.pyc
+__pycache__/
+

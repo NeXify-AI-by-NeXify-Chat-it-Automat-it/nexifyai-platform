@@ -1,0 +1,4 @@
+FULL_AUTONOMOUS_ENTERPRISE
+activated: 2026-05-17T13:30:00Z
+mode: runtime_status_only
+escalation: governance_required

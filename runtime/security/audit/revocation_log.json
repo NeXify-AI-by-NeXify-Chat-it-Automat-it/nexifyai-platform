@@ -1,0 +1,17 @@
+[
+  {
+    "ts": "2026-05-17T10:54:26.108352+00:00",
+    "action": "revoke",
+    "secret": "test_secret",
+    "reason": "test",
+    "operator": "verifier",
+    "layers": []
+  },
+  {
+    "ts": "2026-05-17T10:56:54.957113+00:00",
+    "secret": "test_secret",
+    "reason": "test",
+    "operator": "auto",
+    "layers": []
+  }
+]

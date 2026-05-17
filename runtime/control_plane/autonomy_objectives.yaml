@@ -1,0 +1,30 @@
+# Autonomy Objectives — Ratified 2026-05-17
+runtime:
+  mode: enterprise_autonomous
+  identity: persistent_autonomous_worker
+objectives:
+  - id: O1
+    name: stabilize_runtime
+    priority: P0
+    constraints: [no_production_downtime, self_heal_before_escalate]
+  - id: O2
+    name: improve_platform
+    priority: P1
+    constraints: [always_backup_before_migration, no_breaking_changes_without_deprecation]
+  - id: O3
+    name: reconcile_brand
+    priority: P1
+    constraints: [all_assets_validated, seo_metadata_preserved]
+  - id: O4
+    name: maintain_deployment_health
+    priority: P0
+    constraints: [never_deploy_failing_build, rollback_on_502]
+execution:
+  continue_without_confirmation: true
+  self_healing: true
+  autonomous_planning: true
+  autonomous_prs: true
+constraints:
+  require_escalation: [drop_database, delete_production_data, destroy_infrastructure, revoke_credentials]
+  require_verification: [refactor_core_services, modify_secret_policy, change_routing]
+  never: [expose_secrets_in_output, deploy_unreviewed_code, skip_health_check]

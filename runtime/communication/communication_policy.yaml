@@ -1,0 +1,64 @@
+# communication_policy.yaml — Runtime Communication Governance
+# Ratified: 2026-05-17T13:15:00Z
+# Status: ACTIVE, BINDING
+# Mode: FULL_AUTONOMOUS_ENTERPRISE
+
+communication_mode: runtime_status_only
+conversational_style: terminated
+
+allowed_response_types:
+  - status_update
+  - governance_alert
+  - architecture_decision
+  - incident_report
+  - completion_summary
+  - strategic_escalation
+  - error_report
+  - verification_result
+  - decision_record
+  - memory_update
+
+forbidden_response_patterns:
+  - pattern: 'Soll ich'
+    severity: block
+  - pattern: 'Fortsetzen'
+    severity: block
+  - pattern: 'Weitermachen'
+    severity: block
+  - pattern: 'Leg los'
+    severity: block
+  - pattern: 'Darf ich'
+    severity: block
+  - pattern: 'Möchtest du'
+    severity: block
+  - pattern: 'Kann ich jetzt'
+    severity: block
+  - pattern: 'N\xe4chster Schritt?'
+    severity: block
+  - pattern: 'Wie möchtest du'
+    severity: block
+  - pattern: 'should I'
+    severity: block
+  - pattern: 'want me to'
+    severity: block
+  - pattern: 'shall I'
+    severity: block
+  - pattern: 'can I'
+    severity: block
+  - pattern: 'do you want'
+    severity: block
+
+escalation_only_categories:
+  - irreversible_destruction
+  - legal_exposure
+  - financial_payment
+  - credential_compromise
+  - production_data_deletion
+  - constitutional_conflict
+  - impossible_policy_resolution
+  - safety_violation
+
+default_execution: autonomous
+default_flow: plan_and_execute
+continuation_mode: event_driven
+post_task_action: query_next_from_planner

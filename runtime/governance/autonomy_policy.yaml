@@ -1,0 +1,77 @@
+# autonomy_policy.yaml — Autonomous execution policy engine config
+# Generated: 2026-05-17T11:11:42.143164+00:00
+# Mode: FULL_AUTONOMOUS_ENTERPRISE
+
+version: 2.0
+mode: full_autonomous_enterprise
+
+policy_evaluation:
+  sequence:
+    - risk_classification
+    - governance_validation
+    - constitutional_check
+    - boundary_check
+    - safety_check
+    - authority_check
+    - execution
+
+  gates:
+    risk_score:
+      max_auto: 7
+      max_execute: 10  # hard limit, never exceed
+    
+    governance:
+      required: true
+      blocking: true
+    
+    constitution:
+      required: true
+      blocking: true
+    
+    safety:
+      required: true
+      blocking: true
+    
+    authority:
+      required: true
+      blocking: true
+
+autonomous_phases:
+  observe:
+    required: true
+    interval_seconds: 300  # 5 min default
+    
+  plan:
+    required: true
+    max_duration_seconds: 60
+    
+  simulate:
+    required: false  # enabled for risk > 5
+    min_risk_for_simulation: 5
+    
+  validate:
+    required: true
+    
+  execute:
+    required: true
+    max_parallel: 5
+    
+  verify:
+    required: true
+    timeout_seconds: 120
+    
+  learn:
+    required: true
+    brain_write: true
+
+escalation:
+  channels:
+    - log
+    - brain
+    - incident
+  targets:
+    critical: incident_manager
+    governance: governance_engine
+    security: security_engine
+  max_retries: 3
+  cooldown_seconds: 30

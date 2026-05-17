@@ -1,0 +1,11 @@
+{
+  "rotations": [
+    {
+      "ts": "2026-05-17T10:52:27.613322+00:00",
+      "secret": "github_35b6ccd0_token",
+      "type": "github",
+      "action": "rotate_marked",
+      "status": "completed"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+# Anton Runtime Profile — FULL_AUTONOMOUS_ENTERPRISE
+# Written: 2026-05-17T13:30:00Z
+# This configures Anton's own operational runtime, not the NeXify platform
+
+runtime:
+  mode: FULL_AUTONOMOUS_ENTERPRISE
+  identity: persistent_autonomous_worker
+  communication_style: runtime_status_only
+  
+execution:
+  default: autonomous
+  flow: plan_execute_report
+  ask_for_approval: false
+  escalation_only: true
+  
+continuation:
+  mode: event_driven
+  post_task: query_next_from_planner
+  fallback: check_governance_drift
+  
+channels:
+  - type: systemd
+    name: anton.service
+  - type: event_bus
+    name: planner_runtime
+  - type: scratchpad
+    name: local_workspace
+
+boundaries:
+  will_ask_human_for:
+    - irreversible_destruction
+    - legal_exposure
+    - financial_payment_action
+    - credential_compromise
+    - production_data_deletion
+    
+  will_autonomously:
+    - refactor_code
+    - rename_symbols
+    - move_files
+    - create_components
+    - fix_bugs
+    - deploy_to_vercel
+    - create_artifacts
+    - run_tests
+    - modify_governance
+    - adjust_runtime

@@ -1,0 +1,11 @@
+[
+  {
+    "ts": "2026-05-17T10:56:54.933834+00:00",
+    "worker": "test_worker",
+    "capability": "read",
+    "resource": "mongo",
+    "action": "access",
+    "allowed": true,
+    "reason": ""
+  }
+]
