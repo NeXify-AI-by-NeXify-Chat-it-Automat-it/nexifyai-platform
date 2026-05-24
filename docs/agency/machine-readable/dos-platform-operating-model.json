@@ -1,0 +1,30 @@
+{
+  "central_platform": "nexifyai-platform",
+  "architecture_decision": "EIN zentrales System, nicht mehrere getrennte Projekte",
+  "components": [
+    "Agenturseite",
+    "Kundenportal",
+    "Adminportal",
+    "AI-Gateway",
+    "Billing",
+    "Usage",
+    "API-Key-System",
+    "Guthabenlogik",
+    "Modellverwaltung",
+    "Docs-System",
+    "AI-Provider-Abstraktion",
+    "Token-Metering",
+    "Pricing",
+    "Support",
+    "Auth",
+    "Rollen",
+    "Infrastruktur-Dashboard"
+  ],
+  "provider_rule": "Keine lokalen LLMs. DeepSeek + Nscale intern. Kunde sieht nur NeXify.",
+  "router": {
+    "name": "9Router",
+    "critical": true,
+    "purpose": "LLM/Embedding/Provider Routing"
+  },
+  "guthaben_rule": "Vor jeder AI-Ausf\u00fchrung: Tenant/Key/Guthaben/Kosten/Usage/Marge/Limits pr\u00fcfen"
+}

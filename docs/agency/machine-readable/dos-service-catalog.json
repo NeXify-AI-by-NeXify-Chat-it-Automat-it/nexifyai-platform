@@ -1,0 +1,44 @@
+{
+  "services": [
+    {
+      "service": "Webseiten",
+      "type": "Kernleistung",
+      "description": "Unternehmenswebseiten, Landingpages, Conversion, SEO, Relaunches"
+    },
+    {
+      "service": "Plattformen",
+      "type": "Kernleistung",
+      "description": "SaaS, interne/Kunden/Multi-Tenant/Buchungs-/Verwaltungsplattformen"
+    },
+    {
+      "service": "Portale",
+      "type": "Kernleistung",
+      "description": "Kunden-/Admin-/Mitarbeiter-/Partner-/Self-Service-/Billing-Portale"
+    },
+    {
+      "service": "Apps",
+      "type": "Kernleistung",
+      "description": "Web-Apps, PWAs, interne Tools, Kunden-Apps"
+    },
+    {
+      "service": "Automatisierungen",
+      "type": "Kernleistung",
+      "description": "Gesch\u00e4ftsprozesse, Lead, Angebot, E-Mail, Workflows, CRM"
+    },
+    {
+      "service": "KI-Leistungen",
+      "type": "Kernleistung",
+      "description": "Beratung, Strategie, Agenten, Integration, Brain-Systeme"
+    },
+    {
+      "service": "NeXifyAI Modell-Plattform",
+      "type": "Eigenprodukt",
+      "description": "Modelle, API Keys, Guthaben, Usage, Billing, Docs"
+    },
+    {
+      "service": "Betrieb und Wartung",
+      "type": "Kernleistung",
+      "description": "Hosting, Monitoring, Security, CI/CD, Backups, Support"
+    }
+  ]
+}

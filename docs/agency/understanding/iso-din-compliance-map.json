@@ -1,0 +1,52 @@
+{
+  "standards": [
+    {
+      "standard": "DSGVO",
+      "status": "zu_pruefen",
+      "source": "agenturvorgabe",
+      "notes": "Auftragsverarbeitung, Betroffenenrechte"
+    },
+    {
+      "standard": "ISO 27001",
+      "status": "zu_pruefen",
+      "source": "goosehints",
+      "notes": "ISMS nicht nachgewiesen"
+    },
+    {
+      "standard": "ISO 9001",
+      "status": "zu_pruefen",
+      "source": "goosehints",
+      "notes": "QM nicht nachgewiesen"
+    },
+    {
+      "standard": "ISO 42001",
+      "status": "zu_pruefen",
+      "source": "goosehints",
+      "notes": "KI-Management nicht nachgewiesen"
+    },
+    {
+      "standard": "WCAG 2.2 AA",
+      "status": "gefordert",
+      "source": "goosehints + DOS",
+      "notes": "Default-Standard f\u00fcr UI"
+    },
+    {
+      "standard": "OWASP ASVS",
+      "status": "gefordert",
+      "source": "goosehints",
+      "notes": "Security-Validierung"
+    },
+    {
+      "standard": "EU AI Act",
+      "status": "zu_pruefen",
+      "source": "goosehints",
+      "notes": "KI-Regulierung nicht nachgewiesen"
+    },
+    {
+      "standard": "BSI-Grundschutz",
+      "status": "zu_pruefen",
+      "source": "goosehints",
+      "notes": "IT-Sicherheit nicht nachgewiesen"
+    }
+  ]
+}

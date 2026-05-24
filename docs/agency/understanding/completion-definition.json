@@ -1,0 +1,51 @@
+{
+  "categories": {
+    "technical": [
+      "Code implementiert",
+      "Typecheck",
+      "Lint",
+      "Tests",
+      "Build",
+      "Security",
+      "Performance",
+      "Rollback",
+      "CI"
+    ],
+    "content": [
+      "Copy-Compiler 8 Stufen",
+      "Zielgruppe",
+      "Funnel",
+      "Claims Scope",
+      "CTA",
+      "Verlinkung"
+    ],
+    "design": [
+      "Designsystem",
+      "Responsive",
+      "WCAG 2.1 AA",
+      "Brand",
+      "Dark Mode"
+    ],
+    "tracking": [
+      "Events",
+      "Payload",
+      "Trigger",
+      "Automation"
+    ],
+    "governance": [
+      "Doku",
+      "ADR",
+      "Release Notes",
+      "Inventar",
+      "Owner",
+      "Risiken",
+      "Lessons"
+    ],
+    "evidence": [
+      "Brain-Nachweis",
+      "Repo-Nachweis",
+      "Runtime-Nachweis",
+      "Test/Security-Nachweis"
+    ]
+  }
+}

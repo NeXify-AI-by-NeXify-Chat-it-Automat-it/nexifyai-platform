@@ -1,0 +1,74 @@
+{
+  "source": "claude-code-templates",
+  "commit": "1aeb95a87e5d34675e3675ea52ce03a3a5fbe443",
+  "skill_composition_pipeline": [
+    {
+      "step": 1,
+      "phase": "Intent / Understanding / Research",
+      "roles": [
+        "intent-analyst",
+        "requirements-analyst"
+      ]
+    },
+    {
+      "step": 2,
+      "phase": "Konzept / Anforderungen / Text / Preislogik",
+      "roles": [
+        "concept-strategist",
+        "copywriter"
+      ]
+    },
+    {
+      "step": 3,
+      "phase": "Architektur / Systemdesign",
+      "roles": [
+        "platform-architect"
+      ]
+    },
+    {
+      "step": 4,
+      "phase": "Design / UX / UI / Brand",
+      "roles": [
+        "designer",
+        "ux-reviewer"
+      ]
+    },
+    {
+      "step": 5,
+      "phase": "Fullstack / Next.js / React / Supabase",
+      "roles": [
+        "fullstack-expert"
+      ]
+    },
+    {
+      "step": 6,
+      "phase": "Cloud / Network / Vercel / Hosting / Infra",
+      "roles": [
+        "network-infra-expert"
+      ]
+    },
+    {
+      "step": 7,
+      "phase": "Security / Compliance / ISO/DIN/Agenturvorgaben",
+      "roles": [
+        "security-reviewer",
+        "compliance-reviewer"
+      ]
+    },
+    {
+      "step": 8,
+      "phase": "QA / Tests / Review / Evidence",
+      "roles": [
+        "qa-reviewer",
+        "evidence-reviewer"
+      ]
+    },
+    {
+      "step": 9,
+      "phase": "Dokumentation / Governance / Brain-Learning",
+      "roles": [
+        "documentation-governance-reviewer"
+      ]
+    }
+  ]
+}

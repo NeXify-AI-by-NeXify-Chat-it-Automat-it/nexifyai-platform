@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-05-24",
+  "artifacts": [],
+  "meta": {
+    "description": "Erfasste wiederverwendbare Artefakte aus internen Systemen und Kundenprojekten",
+    "required_fields": [
+      "id", "name", "category", "source_project", "source_path",
+      "source_status", "legal_reuse_status", "contains_customer_data",
+      "contains_secrets", "quality_status", "target_form", "target_location",
+      "dependencies", "reuse_notes", "required_cleanup", "owner", "next_action"
+    ]
+  }
+}

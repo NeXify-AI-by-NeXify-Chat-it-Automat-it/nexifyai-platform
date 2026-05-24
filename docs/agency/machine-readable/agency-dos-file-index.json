@@ -1,0 +1,638 @@
+{
+  "generated": "2026-05-24",
+  "main_standard": "docs/DOS-v2.0.md",
+  "total_files": 63,
+  "source_of_truth": "github",
+  "files": [
+    {
+      "path": "docs/agency/DOS_AGENT_GOVERNANCE.md",
+      "type": "governance",
+      "purpose": "AI/Agent governance document: DOS_AGENT_GOVERNANCE.md",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/DOS_AI_GOVERNANCE.md",
+      "type": "governance",
+      "purpose": "AI/Agent governance document: DOS_AI_GOVERNANCE.md",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/DOS_AUTOMATED_DOCUMENTATION.md",
+      "type": "governance",
+      "purpose": "Rules for automated documentation generation.",
+      "source": "created_in_repo",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/DOS_CHANGELOG.md",
+      "type": "governance",
+      "purpose": "Governance document: DOS_CHANGELOG.md",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/DOS_CLEAN_REUSE_CATALOG.md",
+      "type": "governance",
+      "purpose": "Catalog of clean-reusable artifacts and patterns.",
+      "source": "created_in_repo",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/DOS_COMPLIANCE_MATRIX.md",
+      "type": "governance",
+      "purpose": "Quality governance: DOS_COMPLIANCE_MATRIX.md",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/DOS_CUSTOMER_PROJECT_GOLDEN_PATH.md",
+      "type": "governance",
+      "purpose": "Golden path for customer project delivery.",
+      "source": "updated_in_repo",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/DOS_DEFINITION_OF_DONE.md",
+      "type": "governance",
+      "purpose": "Quality governance: DOS_DEFINITION_OF_DONE.md",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/DOS_GATES.md",
+      "type": "governance",
+      "purpose": "Quality governance: DOS_GATES.md",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/DOS_LEARNING_POLICY.md",
+      "type": "learning",
+      "purpose": "Policy for capturing and applying learning in the system.",
+      "source": "updated_in_repo",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/DOS_PLATFORM_OPERATING_MODEL.md",
+      "type": "governance",
+      "purpose": "Platform operating model and service definitions.",
+      "source": "updated_in_repo",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/DOS_REQUIREMENTS_MATRIX.md",
+      "type": "governance",
+      "purpose": "Platform governance: DOS_REQUIREMENTS_MATRIX.md",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/DOS_RESOURCE_FIRST.md",
+      "type": "governance",
+      "purpose": "Resource-first principle: reuse before build.",
+      "source": "updated_in_repo",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/DOS_REUSE_GOVERNANCE.md",
+      "type": "governance",
+      "purpose": "Governance rules for clean reuse of internal artifacts.",
+      "source": "created_in_repo",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/DOS_SERVICE_CATALOG.md",
+      "type": "governance",
+      "purpose": "Platform governance: DOS_SERVICE_CATALOG.md",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/DOS_SKILL_COMPOSITION.md",
+      "type": "governance",
+      "purpose": "Platform governance: DOS_SKILL_COMPOSITION.md",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/DOS_UPDATE_POLICY.md",
+      "type": "governance",
+      "purpose": "Policy for updating DOS documents and conflict resolution rules.",
+      "source": "updated_in_repo",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/DOS_v1.1_SOURCE.md",
+      "type": "governance",
+      "purpose": "Original DOS v1.1 source document. Historical reference only.",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "historical",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/DOS_v1.2_EXTENDED.md",
+      "type": "governance",
+      "purpose": "DOS v1.2 extension/delta document. Not main standard.",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "governance_delta",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/README.md",
+      "type": "index",
+      "purpose": "Orientation and source-of-truth linkage for docs/agency",
+      "source": "created_in_repo",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/learning/ai-systems-learning-policy.md",
+      "type": "learning",
+      "purpose": "Learning registry: ai-systems-learning-policy.md",
+      "source": "updated_in_repo",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/learning/decision-memory.json",
+      "type": "learning",
+      "purpose": "Learning registry: decision-memory.json",
+      "source": "updated_in_repo",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/learning/failed-patterns.json",
+      "type": "learning",
+      "purpose": "Learning registry: failed-patterns.json",
+      "source": "updated_in_repo",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/learning/lessons-learned.json",
+      "type": "learning",
+      "purpose": "Learning registry: lessons-learned.json",
+      "source": "updated_in_repo",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/learning/prevention-rules.json",
+      "type": "learning",
+      "purpose": "Learning registry: prevention-rules.json",
+      "source": "updated_in_repo",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/learning/resource-catalog.json",
+      "type": "learning",
+      "purpose": "Learning registry: resource-catalog.json",
+      "source": "updated_in_repo",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/learning/reusable-capabilities.json",
+      "type": "learning",
+      "purpose": "Learning registry: reusable-capabilities.json",
+      "source": "updated_in_repo",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/machine-readable/customer-project-reuse-map.json",
+      "type": "machine_readable",
+      "purpose": "Machine-readable policy: customer-project-reuse-map.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/machine-readable/documentation-automation-rules.json",
+      "type": "machine_readable",
+      "purpose": "Machine-readable policy: documentation-automation-rules.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/machine-readable/dos-compliance-map.json",
+      "type": "machine_readable",
+      "purpose": "Machine-readable policy: dos-compliance-map.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/machine-readable/dos-customer-project-golden-path.json",
+      "type": "machine_readable",
+      "purpose": "Machine-readable policy: dos-customer-project-golden-path.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/machine-readable/dos-definition-of-done.json",
+      "type": "machine_readable",
+      "purpose": "Machine-readable policy: dos-definition-of-done.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/machine-readable/dos-gates.json",
+      "type": "machine_readable",
+      "purpose": "Machine-readable policy: dos-gates.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/machine-readable/dos-learning-policy.json",
+      "type": "machine_readable",
+      "purpose": "Machine-readable policy: dos-learning-policy.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/machine-readable/dos-platform-operating-model.json",
+      "type": "machine_readable",
+      "purpose": "Machine-readable policy: dos-platform-operating-model.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/machine-readable/dos-requirements.json",
+      "type": "machine_readable",
+      "purpose": "Machine-readable policy: dos-requirements.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/machine-readable/dos-service-catalog.json",
+      "type": "machine_readable",
+      "purpose": "Machine-readable policy: dos-service-catalog.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/machine-readable/dos-skill-map.json",
+      "type": "machine_readable",
+      "purpose": "Machine-readable policy: dos-skill-map.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/machine-readable/dos-v1.1-extracted.json",
+      "type": "machine_readable",
+      "purpose": "Machine-readable policy: dos-v1.1-extracted.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/machine-readable/dos-v1.2-extended.json",
+      "type": "machine_readable",
+      "purpose": "Machine-readable policy: dos-v1.2-extended.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/machine-readable/reusable-artifacts.json",
+      "type": "machine_readable",
+      "purpose": "Machine-readable policy: reusable-artifacts.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/machine-readable/reuse-catalog.json",
+      "type": "machine_readable",
+      "purpose": "Machine-readable policy: reuse-catalog.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/admin-portal-capability-map.json",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: admin-portal-capability-map.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/agency-dos-gates.json",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: agency-dos-gates.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/agency-dos-requirements.json",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: agency-dos-requirements.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/agency-dos-source-map.json",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: agency-dos-source-map.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/agency-dos-update-policy.md",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: agency-dos-update-policy.md",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/agency-dos-v1.2-extension-map.json",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: agency-dos-v1.2-extension-map.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/agency-standards-map.json",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: agency-standards-map.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/best-practices-2026-map.json",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: best-practices-2026-map.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/business-model.json",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: business-model.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/completion-definition.json",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: completion-definition.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/customer-portal-capability-map.json",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: customer-portal-capability-map.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/customer-project-golden-path.json",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: customer-project-golden-path.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/iso-din-compliance-map.json",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: iso-din-compliance-map.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/misunderstanding-prevention.json",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: misunderstanding-prevention.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/platform-offering-map.json",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: platform-offering-map.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/requirement-derivation-rules.json",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: requirement-derivation-rules.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/service-catalog.json",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: service-catalog.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/skill-composition-rules.json",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: skill-composition-rules.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/subagent-orchestration-rules.json",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: subagent-orchestration-rules.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/understanding-policy.md",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: understanding-policy.md",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    },
+    {
+      "path": "docs/agency/understanding/website-content-model.json",
+      "type": "machine_readable",
+      "purpose": "Understanding/capability map: website-content-model.json",
+      "source": "migrated_from_goose_skill_bridge",
+      "status": "active",
+      "owner": "NeXifyAI",
+      "must_update_when": "DOS v2.0 changes, new governance decisions",
+      "related_files": []
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "phases": [
+    {
+      "step": 1,
+      "phase": "Discovery",
+      "activities": [
+        "Kunde",
+        "Ziel",
+        "Leistungsbereich",
+        "Anforderungen",
+        "Erfolgskriterien",
+        "Risiken",
+        "Budget/Preislogik",
+        "Betrieb/Wartung"
+      ]
+    },
+    {
+      "step": 2,
+      "phase": "Konzept",
+      "activities": [
+        "Zielgruppe",
+        "Nutzenversprechen",
+        "Seiten/Portal/App-Struktur",
+        "UX-Flows",
+        "Content-Konzept",
+        "Angebotsumfang",
+        "Akzeptanzkriterien"
+      ]
+    },
+    {
+      "step": 3,
+      "phase": "Architektur",
+      "activities": [
+        "Next.js/React/Supabase/Vercel pr\u00fcfen",
+        "Datenmodell",
+        "Auth",
+        "Rollen/Rechte",
+        "API",
+        "Integrationen",
+        "Hosting",
+        "Monitoring",
+        "Security"
+      ]
+    },
+    {
+      "step": 4,
+      "phase": "Design/Text",
+      "activities": [
+        "CI",
+        "UI-Komponenten",
+        "Copy",
+        "Conversion",
+        "Barrierefreiheit",
+        "SEO",
+        "Rechtliche Pflichtseiten"
+      ]
+    },
+    {
+      "step": 5,
+      "phase": "Umsetzung",
+      "activities": [
+        "Eigenes Repo",
+        "CI/CD",
+        "Env/Secrets",
+        "Deployment-Partition",
+        "Keine Core-Vermischung",
+        "Pakete/Templates wiederverwenden"
+      ]
+    },
+    {
+      "step": 6,
+      "phase": "KI-Integration",
+      "activities": [
+        "Zentrale Kundenportal-Anbindung",
+        "Guthabenpflicht",
+        "Usage Tracking",
+        "API-Key-Management",
+        "Kein Provider-Key beim Kunden"
+      ]
+    },
+    {
+      "step": 7,
+      "phase": "QA/Security",
+      "activities": [
+        "Tests",
+        "Build",
+        "Security",
+        "RLS",
+        "Datenschutz",
+        "Performance",
+        "Accessibility",
+        "Runtime Evidence"
+      ]
+    },
+    {
+      "step": 8,
+      "phase": "\u00dcbergabe/Betrieb",
+      "activities": [
+        "Dokumentation",
+        "Monitoring",
+        "Wartungsplan",
+        "Backup/Recovery",
+        "Support",
+        "\u00c4nderungsdokumentation"
+      ]
+    }
+  ]
+}

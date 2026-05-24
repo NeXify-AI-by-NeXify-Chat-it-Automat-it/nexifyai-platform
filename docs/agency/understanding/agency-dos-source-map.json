@@ -1,0 +1,86 @@
+{
+  "sources": [
+    {
+      "name": "DOS v1.1",
+      "date": "2026-02-19",
+      "file": "agency-dos/DOS_v1.1_SOURCE.md",
+      "type": "source"
+    },
+    {
+      "name": "DOS v1.2",
+      "date": "2026-05-24",
+      "file": "agency-dos/DOS_v1.2_EXTENDED.md",
+      "type": "extension"
+    },
+    {
+      "name": "DOS Changelog",
+      "file": "agency-dos/DOS_CHANGELOG.md",
+      "type": "meta"
+    },
+    {
+      "name": "DOS Gates",
+      "file": "agency-dos/DOS_GATES.md",
+      "type": "governance"
+    },
+    {
+      "name": "DOS Definition of Done",
+      "file": "agency-dos/DOS_DEFINITION_OF_DONE.md",
+      "type": "governance"
+    },
+    {
+      "name": "DOS Plattform Operating Model",
+      "file": "agency-dos/DOS_PLATFORM_OPERATING_MODEL.md",
+      "type": "architecture"
+    },
+    {
+      "name": "DOS Skill Composition",
+      "file": "agency-dos/DOS_SKILL_COMPOSITION.md",
+      "type": "skill"
+    },
+    {
+      "name": "DOS Agent Governance",
+      "file": "agency-dos/DOS_AGENT_GOVERNANCE.md",
+      "type": "governance"
+    },
+    {
+      "name": "DOS AI Governance",
+      "file": "agency-dos/DOS_AI_GOVERNANCE.md",
+      "type": "governance"
+    },
+    {
+      "name": "DOS Resource First",
+      "file": "agency-dos/DOS_RESOURCE_FIRST.md",
+      "type": "governance"
+    },
+    {
+      "name": "DOS Customer Project Golden Path",
+      "file": "agency-dos/DOS_CUSTOMER_PROJECT_GOLDEN_PATH.md",
+      "type": "process"
+    },
+    {
+      "name": "DOS Compliance Matrix",
+      "file": "agency-dos/DOS_COMPLIANCE_MATRIX.md",
+      "type": "compliance"
+    },
+    {
+      "name": "DOS Update Policy",
+      "file": "agency-dos/DOS_UPDATE_POLICY.md",
+      "type": "governance"
+    },
+    {
+      "name": "DOS Learning Policy",
+      "file": "agency-dos/DOS_LEARNING_POLICY.md",
+      "type": "governance"
+    },
+    {
+      "name": "DOS Service Catalog",
+      "file": "agency-dos/DOS_SERVICE_CATALOG.md",
+      "type": "catalog"
+    },
+    {
+      "name": "DOS Requirements Matrix",
+      "file": "agency-dos/DOS_REQUIREMENTS_MATRIX.md",
+      "type": "requirements"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "principles": [
+    "gleiche Standards wie interne Systeme",
+    "eigenes Repo/Deployment/Secrets/DB/CI",
+    "keine Core-Vermischung",
+    "KI ueber Kundenportal"
+  ],
+  "phases": [
+    "Discovery",
+    "Konzept",
+    "Architektur",
+    "Design/Text",
+    "Umsetzung",
+    "KI-Integration",
+    "QA/Security",
+    "\u00dcbergabe/Betrieb"
+  ]
+}

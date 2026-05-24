@@ -1,0 +1,58 @@
+{
+  "extensions": [
+    {
+      "id": "A",
+      "title": "AI-Governance",
+      "status": "aktiv",
+      "file": "DOS_v1.2_EXTENDED.md"
+    },
+    {
+      "id": "B",
+      "title": "Goose-/Agenten-Governance",
+      "status": "aktiv",
+      "file": "DOS_v1.2_EXTENDED.md"
+    },
+    {
+      "id": "C",
+      "title": "Skill-/Agent-/MCP-Governance",
+      "status": "aktiv",
+      "file": "DOS_v1.2_EXTENDED.md"
+    },
+    {
+      "id": "D",
+      "title": "Plattform-Governance",
+      "status": "aktiv",
+      "file": "DOS_v1.2_EXTENDED.md"
+    },
+    {
+      "id": "E",
+      "title": "Leistungsmodell",
+      "status": "aktiv",
+      "file": "DOS_v1.2_EXTENDED.md"
+    },
+    {
+      "id": "F",
+      "title": "Kundenprojekt-Golden-Path",
+      "status": "aktiv",
+      "file": "DOS_CUSTOMER_PROJECT_GOLDEN_PATH.md"
+    },
+    {
+      "id": "G",
+      "title": "Tech-Stack 2026",
+      "status": "aktiv",
+      "file": "DOS_v1.2_EXTENDED.md"
+    },
+    {
+      "id": "H",
+      "title": "Compliance-Realit\u00e4tsregel",
+      "status": "aktiv",
+      "file": "DOS_v1.2_EXTENDED.md"
+    },
+    {
+      "id": "I",
+      "title": "Automatische Aktualisierung",
+      "status": "aktiv",
+      "file": "DOS_v1.2_EXTENDED.md"
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+[
+  {
+    "id": "PREV-001",
+    "rule": "Vor jeder Arbeit Master-Skill-Registry prüfen. Keine lokalen Fake-Skills laden.",
+    "trigger": "Goose startet load_skill()",
+    "stop_condition": "Skill nicht aus claude-code-templates",
+    "validation_required": "Registry-Prüfung",
+    "applies_to": "Goose",
+    "severity": "critical",
+    "source_lesson": "LL-001"
+  },
+  {
+    "id": "PREV-002",
+    "rule": "Keine Architekturentscheidung ohne Runtime Evidence. Prozesse, Ports, Container, API-Responses prüfen.",
+    "trigger": "Architekturannahme",
+    "stop_condition": "Runtime nicht validiert",
+    "validation_required": "Runtime-Check",
+    "applies_to": "all AI systems",
+    "severity": "high",
+    "source_lesson": "LL-002"
+  },
+  {
+    "id": "PREV-003",
+    "rule": "Keine Secrets ausgeben. Nur Secret-Namen und Fundorte redaktiert dokumentieren.",
+    "trigger": "Dokumentation/Ausgabe",
+    "stop_condition": "Wert sichtbar",
+    "validation_required": "Keine environment-Variablen-Werte (ENV)",
+    "applies_to": "all AI systems",
+    "severity": "critical",
+    "source_lesson": "LL-003"
+  },
+  {
+    "id": "PREV-004",
+    "rule": "Cline/Anton/Hermes/Oracle sind readonly Legacy. Nur für History, Lessons Learned, Wissenstransfer.",
+    "trigger": "System-Referenz",
+    "stop_condition": "Neue Integration vorgeschlagen",
+    "validation_required": "Keine neuen Cline/Anton/Hermes/Oracle Systeme",
+    "applies_to": "Architektur",
+    "severity": "high",
+    "source_lesson": "LL-004"
+  },
+  {
+    "id": "PREV-005",
+    "rule": "Keine isolierten Lösungen. nexifyai-platform ist zentrales Plattformsystem.",
+    "trigger": "Neue Plattform/Portal/Service",
+    "stop_condition": "Nicht Teil von nexifyai-platform",
+    "validation_required": "Plattform-Integration prüfen",
+    "applies_to": "Architektur",
+    "severity": "high",
+    "source_lesson": "LL-005"
+  },
+  {
+    "id": "PREV-006",
+    "rule": "Resource-first vor jeder neuen Lösung. Brain, Tools, Skills, Infrastruktur, Code, Patterns prüfen.",
+    "trigger": "Neue Lösung vorgeschlagen",
+    "stop_condition": "Vorhandene Ressource nicht geprüft",
+    "validation_required": "Resource-Catalog-Prüfung",
+    "applies_to": "all AI systems",
+    "severity": "high",
+    "source_lesson": "LL-001"
+  },
+  {
+    "id": "PREV-007",
+    "rule": "Keine Fertigmeldung ohne Evidence. Brain-, Repo-, Runtime-, Test-/Security-Nachweis erforderlich.",
+    "trigger": "Task-Abschluss",
+    "stop_condition": "Evidence fehlt",
+    "validation_required": "Evidence Plan",
+    "applies_to": "all AI systems",
+    "severity": "high",
+    "source_lesson": "LL-001"
+  },
+  {
+    "id": "PREV-008",
+    "rule": "Neue Erkenntnis ohne Governance-/Learning-/Resource-/Reuse-Abgleich gilt als nicht verarbeitet. Bei jedem Task-Abschluss prüfen, ob DOS, Lessons Learned, Prevention Rules, Resource Catalog, Reuse Catalog oder Brain aktualisiert werden müssen.",
+    "trigger": "Task-Abschluss / neue Erkenntnis",
+    "stop_condition": "Abgleich nicht durchgeführt",
+    "validation_required": "Governance-/Learning-/Resource-/Reuse-Update-Prüfung",
+    "applies_to": "all AI systems",
+    "severity": "high",
+    "source_lesson": "LL-006"
+  },
+  {
+    "id": "PREV-009",
+    "rule": "Vor jeder neuen Implementierung Reuse Catalog prüfen. Keine Lösung neu bauen, wenn bereits Portal, Komponente, Service, Workflow oder Blueprint vorhanden ist.",
+    "trigger": "Neue Implementierung",
+    "stop_condition": "Reuse Catalog nicht geprüft",
+    "validation_required": "Reuse-Catalog-Abfrage (reuse-catalog.json)",
+    "applies_to": "all AI systems",
+    "severity": "high",
+    "source_lesson": "LL-006"
+  },
+  {
+    "id": "PREV-010",
+    "rule": "Kundenprojekt-Code nur als Clean Pattern nutzen. Keine Kundendaten, Secrets, Branding oder Logik ungeprüft übernehmen.",
+    "trigger": "Kundenprojekt-Code-Referenz",
+    "stop_condition": "Keine Clean-Room-Prüfung",
+    "validation_required": "Eigentum, Secrets, Daten, Lizenz, Mandantentrennung prüfen",
+    "applies_to": "Architektur / Entwicklung",
+    "severity": "high",
+    "source_lesson": "LL-006"
+  },
+  {
+    "id": "PREV-011",
+    "rule": "Einmal zentral, nicht mehrfach. Interne Lösungen werden zentral gebaut. Neue Systeme/Portale/Dashboards/Authflows/Billingflows/Komponenten nur mit ADR und Resource-first-Nachweis.",
+    "trigger": "Neues System/Portal/Interface vorgeschlagen",
+    "stop_condition": "Zentrale Lösung existiert und keine ADR",
+    "validation_required": "Resource-First-Prüfung + ADR",
+    "applies_to": "Architektur",
+    "severity": "high",
+    "source_lesson": "LL-006"
+  }
+]

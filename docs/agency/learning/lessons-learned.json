@@ -1,0 +1,91 @@
+[
+  {
+    "id": "LL-001",
+    "date": "2026-05-24",
+    "source": "Goose Skill Migration",
+    "summary": "Lokale Fake-Skills wurden geladen statt Master-Repo",
+    "root_cause": "Goose nutzte /root/.config/goose/skills/ statt claude-code-templates",
+    "affected_systems": [
+      "Goose",
+      "Skill-System"
+    ],
+    "corrected_decision": "Master-Repo ist einzige Skill-Quelle, Bridge statt Reimplementation",
+    "prevention_rule_id": "PREV-001",
+    "brain_stored": true
+  },
+  {
+    "id": "LL-002",
+    "date": "2026-05-24",
+    "source": "Architektur-Analyse",
+    "summary": "Sourcecode wurde mit Runtime verwechselt",
+    "root_cause": "Dateien/Repos als aktive Infrastruktur interpretiert",
+    "affected_systems": [
+      "Architektur-Analyse"
+    ],
+    "corrected_decision": "Runtime-Reality-Check über Prozesse, Ports, Container, API-Responses",
+    "prevention_rule_id": "PREV-002",
+    "brain_stored": true
+  },
+  {
+    "id": "LL-003",
+    "date": "2026-05-24",
+    "source": "Security Audit",
+    "summary": "Secrets in systemd Environment sichtbar",
+    "root_cause": "Systemd Environment ungefiltert ausgegeben",
+    "affected_systems": [
+      "Security",
+      "Dokumentation"
+    ],
+    "corrected_decision": "Nur Secret-Namen und Fundorte redaktiert, keine Werte",
+    "prevention_rule_id": "PREV-003",
+    "brain_stored": true
+  },
+  {
+    "id": "LL-004",
+    "date": "2026-05-24",
+    "source": "Systemvermessung",
+    "summary": "Cline als aktive Architektur missverstanden",
+    "root_cause": "Legacy nicht klar getrennt",
+    "affected_systems": [
+      "Architektur"
+    ],
+    "corrected_decision": "Cline ist readonly Legacy. Keine Cline-Zukunft.",
+    "prevention_rule_id": "PREV-004",
+    "brain_stored": true
+  },
+  {
+    "id": "LL-005",
+    "date": "2026-05-24",
+    "source": "Repo-Analyse",
+    "summary": "Plattform als Sammlung von Einzeltools betrachtet",
+    "root_cause": "Fehlendes zentrales Plattformmodell",
+    "affected_systems": [
+      "Architektur",
+      "Platform"
+    ],
+    "corrected_decision": "nexifyai-platform als zentrales Monorepo",
+    "prevention_rule_id": "PREV-005",
+    "brain_stored": true
+  },
+  {
+    "id": "LL-006",
+    "date": "2026-05-24",
+    "source": "DOS v1.2 Governance Migration",
+    "summary": "Erkenntnisse wurden in Chat notiert, aber nicht systematisch in DOS/Learning/Resource übertragen",
+    "root_cause": "Fehlende Meta-Regel für Erkenntnis-Übertragungspflicht",
+    "affected_systems": [
+      "DOS",
+      "Learning-System",
+      "Resource Catalog",
+      "Reuse Governance"
+    ],
+    "corrected_decision": "Meta-Regel eingeführt: Neue Erkenntnis ohne Governance-/Learning-/Resource-/Reuse-Abgleich gilt als nicht verarbeitet. Clean Reuse Governance eingeführt. 'Einmal zentral, nicht mehrfach' als verbindliche Regel.",
+    "prevention_rule_ids": [
+      "PREV-008",
+      "PREV-009",
+      "PREV-010",
+      "PREV-011"
+    ],
+    "brain_stored": true
+  }
+]

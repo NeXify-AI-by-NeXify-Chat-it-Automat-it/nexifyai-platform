@@ -1,0 +1,98 @@
+{
+  "services": [
+    {
+      "name": "Brain API",
+      "type": "core",
+      "location": "http://127.0.0.1:8420",
+      "capabilities": [
+        "Retrieval",
+        "Memory",
+        "Governance",
+        "Wissensmanagement"
+      ],
+      "current_usage": "aktiv"
+    },
+    {
+      "name": "Qdrant",
+      "type": "core",
+      "location": "127.0.0.1:6333",
+      "capabilities": [
+        "Vector Store",
+        "Semantic Search"
+      ],
+      "current_usage": "aktiv"
+    },
+    {
+      "name": "9Router",
+      "type": "core",
+      "location": "localhost:20128",
+      "capabilities": [
+        "LLM/Embedding Routing",
+        "Provider-Abstraktion"
+      ],
+      "current_usage": "aktiv"
+    },
+    {
+      "name": "Traefik",
+      "type": "core",
+      "capabilities": [
+        "Reverse Proxy",
+        "Routing",
+        "TLS"
+      ],
+      "current_usage": "aktiv"
+    },
+    {
+      "name": "Cloudflare/Tunnel",
+      "type": "core",
+      "capabilities": [
+        "Edge",
+        "DNS",
+        "Tunnel",
+        "DDoS"
+      ],
+      "current_usage": "aktiv"
+    },
+    {
+      "name": "Supabase",
+      "type": "core",
+      "capabilities": [
+        "Auth",
+        "DB",
+        "Storage"
+      ],
+      "current_usage": "aktiv"
+    },
+    {
+      "name": "Vercel",
+      "type": "core",
+      "capabilities": [
+        "Deployment",
+        "Preview"
+      ],
+      "current_usage": "aktiv"
+    },
+    {
+      "name": "GitHub",
+      "type": "core",
+      "capabilities": [
+        "Source Control",
+        "CI/CD",
+        "Issues"
+      ],
+      "current_usage": "aktiv"
+    },
+    {
+      "name": "claude-code-templates",
+      "type": "skill-system",
+      "location": "/opt/nexify/skills/claude-code-templates",
+      "capabilities": [
+        "3123 Skills",
+        "423 Agents",
+        "58 Hooks",
+        "86 MCPs"
+      ],
+      "current_usage": "Bridge aktiv"
+    }
+  ]
+}
