@@ -1,5 +1,6 @@
 # System 6 — Infrastructure & Network Architecture
-spec_id: SYS-006 | version: 1.0 | date: 2026-05-15 | owner: network-specialist
+spec_id: SYS-006 | version: 1.1 | date: 2026-05-23 | owner: network-specialist
+RACI: see docs/governance/raci.yaml#infrastruktur (R/A: devops)
 
 ## 1. INFRASTRUCTURE MAP
 ```
@@ -7,7 +8,8 @@ INTERNET → Cloudflare (DNS, SSL) → VPS (mail.nexifyai.cloud)
                                           │
     ┌─────────────────────────────────────┤
     │  Docker Host                         │
-    │  ├── nexifyai-qdrant (127.0.0.1:6333)  ← Brain Primary
+    │  ├── nexifyai-qdrant (0.0.0.0:6333)   ← Brain Primary (⚠️ fixed from 127.0.0.1)
+    │  ├── Qdrant-vjfp (qdrant-vjfp-qdrant-1:6333) ← Container-Fallback
     │  ├── Traefik (disabled, replaced by Nginx)
     │  ├── Nginx (80/443 → Backend)        ← SSL Termination
     │  ├── Hermes Gateway (:8642, systemd)

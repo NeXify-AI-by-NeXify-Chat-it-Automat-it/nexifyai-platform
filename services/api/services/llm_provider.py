@@ -1,4 +1,11 @@
 """
+DEPRECATED: Wird durch services/langchain_config.py ersetzt.
+            Nutze get_llm_for_task(), create_llm_with_fallbacks() oder get_primary_llm().
+            Migration: from services.langchain_config import get_llm_for_task
+            Entfernung geplant: 2026-06-21
+"""
+
+"""
 NeXifyAI — LLM Provider Abstraction Layer
 OpenRouter (DeepSeek V4 Flash) = Primary. Emergent GPT = Fallback.
 """

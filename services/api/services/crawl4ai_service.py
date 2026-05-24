@@ -8,9 +8,40 @@ import json
 import logging
 import asyncio
 from datetime import datetime, timezone
+import re
 from typing import Optional
+from urllib.parse import urlparse
 
 logger = logging.getLogger("nexifyai.services.crawl4ai")
+
+
+def is_safe_url(url: str) -> bool:
+    """Validate URL to prevent SSRF attacks."""
+    if not url:
+        return False
+    parsed = urlparse(url)
+    # Must be http or https
+    if parsed.scheme not in ("http", "https"):
+        return False
+    hostname = parsed.hostname or ""
+    # Block private/internal IPs
+    blocked_patterns = [
+        r"^localhost$",
+        r"^127\.\d+\.\d+\.\d+$",
+        r"^10\.\d+\.\d+\.\d+$",
+        r"^172\.(1[6-9]|2\d|3[01])\.\d+\.\d+$",
+        r"^192\.168\.\d+\.\d+$",
+        r"^169\.254\.\d+\.\d+$",
+        r"^::1$",
+        r"^0\.0\.0\.0$",
+    ]
+    for pattern in blocked_patterns:
+        if re.match(pattern, hostname):
+            return False
+    # Block metadata/internal hostnames
+    if any(hostname.endswith(suffix) for suffix in [".internal", ".local", "localhost"]):
+        return False
+    return True
 
 
 async def crawl_url(
@@ -24,6 +55,9 @@ async def crawl_url(
     Crawlt eine URL und liefert LLM-fertigen Content.
     extract_mode: 'markdown' | 'structured' | 'links'
     """
+    if not is_safe_url(url):
+        return {"success": False, "error": "Invalid or blocked URL (SSRF prevention)", "url": url}
+
     try:
         from crawl4ai import AsyncWebCrawler, CrawlerRunConfig, CacheMode
 
@@ -82,6 +116,8 @@ async def crawl_url(
 
 async def _fallback_http_fetch(url: str, extract_mode: str = "markdown") -> dict:
     """Lightweight HTTP-fetch fallback when Playwright/crawl4ai is unavailable."""
+    if not is_safe_url(url):
+        return {"success": False, "error": "Invalid or blocked URL (SSRF prevention)", "url": url}
     try:
         import httpx
         from bs4 import BeautifulSoup

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://tokens.design/schema.json",
+  "brand": {
+    "primary": { "value": "#6366F1", "type": "color" },
+    "secondary": { "value": "#8B5CF6", "type": "color" },
+    "accent": { "value": "#06B6D4", "type": "color" },
+    "dark": { "value": "#0F172A", "type": "color" },
+    "light": { "value": "#F8FAFC", "type": "color" }
+  },
+  "semantic": {
+    "success": { "value": "#22C55E", "type": "color" },
+    "warning": { "value": "#F59E0B", "type": "color" },
+    "error": { "value": "#EF4444", "type": "color" },
+    "info": { "value": "#3B82F6", "type": "color" }
+  },
+  "neutral": {
+    "50": { "value": "#FAFAFA", "type": "color" },
+    "100": { "value": "#F5F5F5", "type": "color" },
+    "200": { "value": "#E5E5E5", "type": "color" },
+    "700": { "value": "#404040", "type": "color" },
+    "900": { "value": "#171717", "type": "color" }
+  }
+}

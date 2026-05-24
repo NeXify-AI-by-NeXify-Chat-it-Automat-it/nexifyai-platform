@@ -1,0 +1,99 @@
+openapi: 3.0.3
+info:
+  title: NeXifyAI Admin API Proxy
+  version: 1.0.0
+  description: Proxy exposing Qdrant, MindsDB, AI Router and CRM endpoints for Admin portal.
+servers:
+  - url: http://localhost:8002
+paths:
+  /api/v1/qdrant/collections:
+    get:
+      summary: List Qdrant collections with stats
+      responses:
+        '200':
+          description: Collection list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  collections:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        points:
+                          type: integer
+                        vector_size:
+                          type: integer
+                        distance:
+                          type: string
+                  total_points:
+                    type: integer
+                  total_collections:
+                    type: integer
+  /api/v1/mindsdb/query:
+    post:
+      summary: Execute SQL query against MindsDB
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query]
+              properties:
+                query:
+                  type: string
+      responses:
+        '200':
+          description: Query result
+  /api/v1/ai/chat:
+    post:
+      summary: Chat completion via AI Router
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [messages]
+              properties:
+                model:
+                  type: string
+                  default: ds/deepseek-v4-pro
+                messages:
+                  type: array
+                max_tokens:
+                  type: integer
+                  default: 2048
+                temperature:
+                  type: number
+                  default: 0.7
+      responses:
+        '200':
+          description: Chat response
+  /api/v1/ai/models:
+    get:
+      summary: List available AI models
+      responses:
+        '200':
+          description: Model list
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/v1/crm/customers:
+    get:
+      summary: Mock CRM customer list
+      responses:
+        '200':
+          description: Customer list
+  /api/v1/health:
+    get:
+      summary: Health check for dependent services
+      responses:
+        '200':
+          description: Health status

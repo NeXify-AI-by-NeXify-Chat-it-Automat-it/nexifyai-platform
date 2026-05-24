@@ -1,4 +1,11 @@
 """
+DEPRECATED: Wird durch services/langchain_config.py ersetzt.
+            Nutze CAPABILITY_ROUTING + get_llm_for_task() direkt.
+            Migration: from services.langchain_config import get_llm_for_task
+            Entfernung geplant: 2026-06-21
+"""
+
+"""
 NeXify AI — Central Model Router Layer (Cambo 9Router).
 ALL agent model calls flow through this single entry point.
 No direct model calls anywhere else in the system.

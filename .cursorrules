@@ -1,0 +1,43 @@
+# NeXifyAI — Cursor AI Development Rules
+
+## AI Agent Guidelines
+You are working on the NeXifyAI Platform — an Enterprise AI Agent System.
+
+### Architecture
+- LangChain 0.3+ for LLM abstraction
+- LangGraph for agent orchestration (StateGraph)
+- FastAPI for API layer
+- Qdrant + HuggingFace for RAG
+- Supabase for relational data + RLS
+- LangSmith for observability
+
+### Code Standards
+- Python 3.11+ with type annotations
+- Async-first for API endpoints
+- Pydantic v2 for data validation
+- Follow LangChain/LangGraph best practices (not custom implementations)
+- Use `@tool` decorator — never custom Tool classes
+- Use `StateGraph` — never custom orchestrators
+- Use `.with_fallbacks()` — never custom fallback chains
+
+### File Organization
+- `services/` — Business logic + LangChain/LangGraph
+- `services/api/` — FastAPI server + routes
+- `services/api/services/` — AI services (langchain_config, agent_system, etc.)
+- `services/api/routes/` — API routes
+- `docs/` — ADRs, architecture, policies
+- `supabase/` — Database migrations + RLS
+- `infrastructure/` — Docker, Kubernetes, CI/CD
+
+### Prohibited Patterns
+- ❌ Custom LLM wrappers → Use langchain ChatOpenAI/ChatAnthropic
+- ❌ Custom agent orchestrators → Use langgraph StateGraph
+- ❌ Subprocess agent execution → Use in-process AgentExecutor
+- ❌ Manual JSON parsing for agent output → Use .with_structured_output()
+- ❌ Duplicate files across layers
+
+### Security
+- No hardcoded secrets → Environment variables only
+- RLS on every Supabase table
+- SSRF protection on all URL inputs
+- Input validation on all API endpoints

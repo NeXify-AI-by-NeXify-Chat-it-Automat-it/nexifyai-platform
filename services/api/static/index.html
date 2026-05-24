@@ -91,7 +91,7 @@ body {
 </div>
 <script>
 const msgs=document.getElementById('msgs'), inp=document.getElementById('inp'), btn=document.getElementById('btn');
-const API=''; let sid='s_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
+const API=''; let sid='s_'+Date.now()+'_'+crypto.randomUUID().slice(0,8);
 function t(){return new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Amsterdam'})}
 document.getElementById('wt').textContent=t();
 inp.addEventListener('input',()=>{btn.disabled=!inp.value.trim()});

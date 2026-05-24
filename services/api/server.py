@@ -36,6 +36,15 @@ from services.legal_guardian import LegalGuardian
 from services.llm_provider import create_llm_provider
 from services.supabase_db import SupabaseDB
 
+# ─── LangChain/LangGraph Integration ────────────────────────────
+from services.langchain_config import init_langchain, get_llm_for_task, create_llm_with_fallbacks
+from services.governance import init_ai_infrastructure, GovernanceCallback, get_system_health
+from services.tool_registry import get_all_tools, get_agent_tools
+from services.rag_pipeline import create_qa_chain, create_conversational_qa, get_retriever
+from services.agent_system import run_agent, stream_agent, build_supervisor_graph
+from services.oracle_workflow import run_oracle_task, get_oracle_status
+from services.planner_workflow import run_planning_cycle, run_strategic_cycle
+
 import routes.shared as shared
 from routes.orchestrator_routes import orch_router
 from routes.brain_routes import brain_router
@@ -45,6 +54,9 @@ from agents.review_cycle.routes import review_router
 from agents.adversarial.routes import adversarial_router
 
 from routes.webhook_agent_routes import agent_webhook_router
+
+# ─── LangChain/LangGraph Routes ──────────────────────────────
+from routes.langgraph_routes import router as langgraph_router
 
 load_dotenv()
 
@@ -386,6 +398,19 @@ async def lifespan(app: FastAPI):
         "qa": create_qa_agent(db, llm_provider=llm_provider),
     }
 
+    # ─── LangChain/LangGraph Layer ─────────────────────────────────────
+    logger.info("[STARTUP] Initialisiere LangChain/LangGraph Layer...")
+    try:
+        governance = init_ai_infrastructure(
+            enable_langsmith=True,
+            enable_cache=True,
+            project_name="nexifyai-production",
+        )
+        logger.info("[STARTUP] OK: LangChain/LangGraph layer initialisiert")
+    except Exception as e:
+        logger.warning(f"[STARTUP] WARNUNG: LangChain-Init fehlgeschlagen: {e}")
+        governance = None
+
     # --- Object Storage ---
     from services.storage import init_storage
     try:
@@ -410,7 +435,13 @@ async def lifespan(app: FastAPI):
     shared.init_config()
     shared.S.ADVISOR_SYSTEM_PROMPT = get_system_prompt()
 
-    logger.info("NeXifyAI Backend v3.1 started — Modular Architecture aktiv")
+    # ─── LangGraph/LangChain Shared State ───────────────────────────
+    shared.S.langgraph = {
+        "governance": governance,
+        "supervisor_graph": build_supervisor_graph() if governance else None,
+    }
+
+    logger.info("NeXifyAI Backend v3.1 started — LangChain/LangGraph integrated")
     yield
 
     # --- Shutdown ---
@@ -564,6 +595,7 @@ app.include_router(mcp_router)
 app.include_router(order_router)
 app.include_router(agent_webhook_router)
 app.include_router(orch_router)
+app.include_router(langgraph_router)
 
 # Metrics endpoint for Prometheus scraping
 @app.get("/metrics")

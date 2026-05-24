@@ -5,6 +5,7 @@
 **Dauer:** [Startzeit] – [Endzeit] (XX Minuten)
 **Autor:** [Rolle]
 **Incident-ID:** INC-YYYY-NNN
+**Referenz:** [[INDEX|Incident Index]] — Alle Incidents im Überblick
 
 ---
 

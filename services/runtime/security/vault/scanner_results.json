@@ -1,0 +1,67 @@
+{
+  "timestamp": "2026-05-17T10:52:34.139656+00:00",
+  "scanned": 17588,
+  "leaks": 51,
+  "details": [
+    {
+      "file": "/opt/nexifyai-platform/services/api/.env",
+      "line": 59,
+      "pattern": "github_pat",
+      "context": "GITHUB_TOKEN=[REDACTED]"
+    },
+    {
+      "file": "/opt/nexifyai-platform/services/api/.env",
+      "line": 60,
+      "pattern": "github_pat",
+      "context": "GITHUB_PERSONAL_ACCESS_TOKEN=[REDACTED]"
+    },
+    {
+      "file": "/opt/nexifyai-platform/services/api/.env",
+      "line": 93,
+      "pattern": "github_pat",
+      "context": "GH_TOKEN=[REDACTED]"
+    },
+    {
+      "file": "/opt/nexifyai-platform/services/api/.env",
+      "line": 52,
+      "pattern": "jwt",
+      "context": "ALT_SUPABASE_SERVICE_ROLE_KEY=[REDACTED]"
+    },
+    {
+      "file": "/opt/nexifyai-platform/services/api/.env",
+      "line": 90,
+      "pattern": "jwt",
+      "context": "SUPABASE_ANON_KEY=[REDACTED]"
+    },
+    {
+      "file": "/opt/nexifyai-platform/services/api/routes/auth_routes.py",
+      "line": 36,
+      "pattern": "jwt",
+      "context": "anon_key = vault_compat.vault_get(\"SUPABASE_ANON_KEY\", \"[REDACTED]"
+    },
+    {
+      "file": "/opt/nexifyai-platform/backend_old/.env",
+      "line": 59,
+      "pattern": "github_pat",
+      "context": "GITHUB_TOKEN=[REDACTED]"
+    },
+    {
+      "file": "/opt/nexifyai-platform/backend_old/.env",
+      "line": 60,
+      "pattern": "github_pat",
+      "context": "GITHUB_PERSONAL_ACCESS_TOKEN=[REDACTED]"
+    },
+    {
+      "file": "/opt/nexifyai-platform/backend_old/.env",
+      "line": 93,
+      "pattern": "github_pat",
+      "context": "GH_TOKEN=[REDACTED]"
+    },
+    {
+      "file": "/opt/nexifyai-platform/backend_old/.env",
+      "line": 52,
+      "pattern": "jwt",
+      "context": "ALT_SUPABASE_SERVICE_ROLE_KEY=[REDACTED]"
+    }
+  ]
+}

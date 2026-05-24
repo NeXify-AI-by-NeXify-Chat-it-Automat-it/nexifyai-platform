@@ -1,4 +1,10 @@
 """
+DEPRECATED: Wird durch services/langchain_config.py ersetzt.
+            ChatOpenAI(model="deepseek/deepseek-v4-flash", ...) via OpenRouter.
+            Entfernung geplant: 2026-06-21
+"""
+
+"""
 NeXifyAI — Cambo 9Router LLM Provider (Zentrale LLM-Infrastruktur).
 ALLE Agenten-Calls laufen über ai-router.nexifyai.cloud.
 OpenRouter = Legacy-Fallback. Arcee AI = Dritt-Fallback.

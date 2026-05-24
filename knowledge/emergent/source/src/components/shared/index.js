@@ -18,7 +18,7 @@ export const LEGAL_PATHS = {
 
 export const LOCALE_MAP = { de: 'de-DE', nl: 'nl-NL', en: 'en-GB' };
 
-export const genSid = () => `s_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+export const genSid = () => `s_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
 
 export const track = async (ev, props = {}) => {
   try {

@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 """
+DEPRECATED: Wird durch services/rag_pipeline.py ersetzt.
+            Nutze create_qa_chain(), create_conversational_qa(), get_vector_store().
+            Migration: from services.rag_pipeline import create_qa_chain
+            Entfernung geplant: 2026-06-21
+"""
+
+"""
 Nexify Brain API — Live Qdrant Adapter (Phase 1)
 =================================================
 Connect to the existing Qdrant instance and expose a REST API

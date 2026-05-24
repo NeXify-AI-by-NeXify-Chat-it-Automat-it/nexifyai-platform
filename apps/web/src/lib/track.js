@@ -19,7 +19,7 @@ function getSessionId() {
   if (!sessionId) {
     sessionId = sessionStorage.getItem('nx_session');
     if (!sessionId) {
-      sessionId = 'nx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      sessionId = 'nx_' + Date.now() + '_' + crypto.randomUUID().slice(0,9);
       sessionStorage.setItem('nx_session', sessionId);
     }
   }

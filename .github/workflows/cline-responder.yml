@@ -1,0 +1,78 @@
+name: Cline Issue Assistant
+
+on:
+  issue_comment:
+    types: [created, edited]
+
+env:
+  ACTIONS_STEP_DEBUG: false
+
+jobs:
+  respond:
+    if: contains(github.event.comment.body, '@cline')
+    runs-on: ubuntu-latest
+    environment: cline-actions
+    permissions:
+      issues: write
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Cline CLI
+        run: npm install -g @cline/cli
+
+      - name: Install jq
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq jq
+
+      - name: Configure API Provider
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          cline auth --provider openrouter --apikey "$OPENROUTER_API_KEY"
+
+      - name: Download analysis script
+        env:
+          GITORG: "${{ github.repository_owner }}"
+          GITREPO: "${{ github.event.repository.name }}"
+        run: |
+          mkdir -p git-scripts
+          curl -sL "https://raw.githubusercontent.com/${GITORG}/${GITREPO}/main/git-scripts/analyze-issue.sh" \
+            -o git-scripts/analyze-issue.sh 2>/dev/null || \
+          curl -sL "https://raw.githubusercontent.com/cline/cline/main/src/samples/cli/github-issue-rca/analyze-issue.sh" \
+            -o git-scripts/analyze-issue.sh
+          chmod +x git-scripts/analyze-issue.sh
+
+      - name: Run Cline Analysis
+        id: analysis
+        env:
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          PROMPT=$(echo "$COMMENT_BODY" | sed 's/@cline//g' | xargs)
+          if [ -z "$PROMPT" ]; then
+            PROMPT="Analyze the root cause of this issue and provide recommendations."
+          fi
+          RESULT=$(./git-scripts/analyze-issue.sh "$ISSUE_URL" "$PROMPT" 2>&1)
+          echo "result<<EOF" >> $GITHUB_OUTPUT
+          echo "$RESULT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Post Analysis as Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const result = `${{ steps.analysis.outputs.result }}`;
+            const body = `## 🤖 Cline Analysis\n\n${result}\n\n---\n*Automated by [Cline CLI](https://github.com/cline/cline)*`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
