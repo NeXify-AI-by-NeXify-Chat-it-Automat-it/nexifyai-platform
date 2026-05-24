@@ -1,17 +1,32 @@
-name: Cline Issue Assistant
+# WARNING: DEAD LEGACY — Cline Issue Assistant is no longer active.
+# @cline mentions in issues/PR comments will NOT trigger automated responses.
+# The issue_comment trigger has been REMOVED to prevent automatic Cline runs.
+# The environment: cline-actions has been REMOVED to prevent spurious GitHub Deployments.
+# Goose / DOS-Governance is the current AI standard.
+# Legacy since: 2025 | Disabled: 2026-05-24
+
+name: Cline Issue Assistant [LEGACY - DISABLED]
 
 on:
-  issue_comment:
-    types: [created, edited]
+  # issue_comment trigger intentionally REMOVED.
+  # Cline must not auto-respond to @cline mentions — caused failed GitHub Deployments
+  # via the cline-actions environment on every comment.
+  workflow_dispatch:
+    inputs:
+      issue_url:
+        description: "Issue URL to analyze (manual emergency use only)"
+        required: true
+        type: string
 
 env:
   ACTIONS_STEP_DEBUG: false
 
 jobs:
   respond:
-    if: contains(github.event.comment.body, '@cline')
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    environment: cline-actions
+    # environment: cline-actions
+    # REMOVED — caused spurious GitHub Deployments on every issue comment with @cline.
     permissions:
       issues: write
       contents: read
@@ -37,29 +52,12 @@ jobs:
         run: |
           cline auth --provider openrouter --apikey "$OPENROUTER_API_KEY"
 
-      - name: Download analysis script
-        env:
-          GITORG: "${{ github.repository_owner }}"
-          GITREPO: "${{ github.event.repository.name }}"
-        run: |
-          mkdir -p git-scripts
-          curl -sL "https://raw.githubusercontent.com/${GITORG}/${GITREPO}/main/git-scripts/analyze-issue.sh" \
-            -o git-scripts/analyze-issue.sh 2>/dev/null || \
-          curl -sL "https://raw.githubusercontent.com/cline/cline/main/src/samples/cli/github-issue-rca/analyze-issue.sh" \
-            -o git-scripts/analyze-issue.sh
-          chmod +x git-scripts/analyze-issue.sh
-
       - name: Run Cline Analysis
         id: analysis
         env:
-          ISSUE_URL: ${{ github.event.issue.html_url }}
-          COMMENT_BODY: ${{ github.event.comment.body }}
+          ISSUE_URL: ${{ inputs.issue_url }}
         run: |
-          PROMPT=$(echo "$COMMENT_BODY" | sed 's/@cline//g' | xargs)
-          if [ -z "$PROMPT" ]; then
-            PROMPT="Analyze the root cause of this issue and provide recommendations."
-          fi
-          RESULT=$(./git-scripts/analyze-issue.sh "$ISSUE_URL" "$PROMPT" 2>&1)
+          RESULT=$(./git-scripts/analyze-issue.sh "$ISSUE_URL" "Analyze root cause and provide recommendations." 2>&1 || echo "Analysis failed")
           echo "result<<EOF" >> $GITHUB_OUTPUT
           echo "$RESULT" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -69,10 +67,12 @@ jobs:
         with:
           script: |
             const result = `${{ steps.analysis.outputs.result }}`;
-            const body = `## 🤖 Cline Analysis\n\n${result}\n\n---\n*Automated by [Cline CLI](https://github.com/cline/cline)*`;
+            const issueUrl = `${{ inputs.issue_url }}`;
+            const issueNumber = parseInt(issueUrl.split('/').pop());
+            const body = `## 🤖 Cline Analysis (Legacy Manual)\n\n${result}\n\n---\n*Manual trigger only — Cline auto-responder is disabled*`;
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.issue.number,
+              issue_number: issueNumber,
               body: body
             });

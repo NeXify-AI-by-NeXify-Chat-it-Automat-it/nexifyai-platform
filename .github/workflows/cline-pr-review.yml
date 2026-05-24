@@ -1,27 +1,37 @@
-name: Cline PR Code Review
+# WARNING: DEAD LEGACY — Cline is no longer the active AI review system.
+# This workflow is retained ONLY for historical reference and manual emergency review.
+# It MUST NOT be a required check for merge.
+# The pull_request trigger has been REMOVED to prevent automatic runs on every PR.
+# The environment: cline-actions has been REMOVED to prevent spurious GitHub Deployments.
+# Goose / DOS-Governance is the current standard for AI-assisted review.
+# Legacy since: 2025 | Disabled: 2026-05-24
+
+name: Cline PR Code Review [LEGACY - DISABLED]
 
 on:
-  pull_request:
-    types: [opened, ready_for_review, synchronize]
+  # pull_request trigger intentionally REMOVED.
+  # Cline must not auto-run on PRs — caused failed GitHub Deployments
+  # via the cline-actions environment on every docs/governance PR.
+  # Use workflow_dispatch for manual emergency review ONLY.
   workflow_dispatch:
     inputs:
       pr_number:
-        description: "PR number to review"
+        description: "PR number to review (manual emergency use only)"
         required: true
         type: string
 
 concurrency:
-  group: pr-review-${{ github.event.pull_request.number || inputs.pr_number }}
+  group: pr-review-${{ inputs.pr_number }}
   cancel-in-progress: true
 
 jobs:
   cline-pr-review:
-    if: |
-      (github.event_name == 'pull_request' && github.event.pull_request.draft == false) ||
-      github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    environment: cline-actions
+    # environment: cline-actions
+    # REMOVED — root cause of failed GitHub Deployments on docs-only PRs.
+    # Restore only if OPENROUTER_API_KEY is set at env/repo level.
 
     permissions:
       contents: read
@@ -51,11 +61,7 @@ jobs:
       - name: Get PR number
         id: pr
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "number=${{ inputs.pr_number }}" >> $GITHUB_OUTPUT
-          else
-            echo "number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
-          fi
+          echo "number=${{ inputs.pr_number }}" >> $GITHUB_OUTPUT
 
       - name: Review PR with Cline
         env:
@@ -63,24 +69,4 @@ jobs:
           GITHUB_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          cline --auto-approve true 'You are a senior code reviewer for NeXifyAI. Review PR #'"${PR_NUMBER}"' thoroughly.
-
-          ## Gather Context
-          ```bash
-          gh pr view '"${PR_NUMBER}"' --json number,title,body,author,createdAt,labels,files,additions,deletions,baseRefName,headRefName
-          gh pr diff '"${PR_NUMBER}"'
-          gh pr checks '"${PR_NUMBER}"'
-          ```
-
-          ## Review Checklist
-          1. **Security**: SQL injection, XSS, secrets exposure, auth bypass
-          2. **Logic**: Edge cases, null handling, error states
-          3. **Performance**: N+1 queries, unnecessary re-renders, memory leaks
-          4. **Patterns**: Consistency with codebase conventions
-          5. **Testing**: Missing test coverage, edge case tests
-
-          ## Submit Review
-          Post a single comprehensive review comment starting with "## 🤖 Cline PR Review".
-          For inline suggestions use: gh api repos/'"${GITHUB_REPO}"'/pulls/'"${PR_NUMBER}"'/reviews -X POST -f event="COMMENT" -f body="..." -F comments='[{"path":"src/file.ts","line":10,"body":"Suggestion: ..."}]'
-
-          Be constructive, specific, and actionable. Prioritize security findings.'
+          cline --auto-approve true 'Review PR #'"${PR_NUMBER}"' for NeXifyAI. Check security, logic, performance, patterns, tests. Post result as ## 🤖 Cline PR Review comment.'

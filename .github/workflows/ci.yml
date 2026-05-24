@@ -16,3 +16,52 @@ jobs:
       - name: Security audit
         run: |
           pip install bandit && bandit -r services/api/ -x venv,tests || true
+
+  # ═══════════════════════════════════════
+  # DOCS-GOVERNANCE VALIDATION
+  # Runs ONLY on docs/agency changes.
+  # No deployment. No secrets. No runtime changes.
+  # ═══════════════════════════════════════
+  docs-governance:
+    name: Docs Governance Validation
+    runs-on: ubuntu-latest
+    if: |
+      contains(toJSON(github.event.commits.*.modified), 'docs/') ||
+      contains(toJSON(github.event.commits.*.added), 'docs/') ||
+      github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate JSON files in docs/agency
+        run: |
+          set +e
+          ERRORS=0
+          COUNT=0
+          for f in $(find docs/agency -name '*.json' 2>/dev/null); do
+            COUNT=$((COUNT+1))
+            python3 -m json.tool "$f" > /dev/null 2>&1
+            if [ $? -ne 0 ]; then
+              echo "INVALID JSON: $f"
+              ERRORS=$((ERRORS+1))
+            fi
+          done
+          echo "JSON files checked: $COUNT, errors: $ERRORS"
+          if [ $ERRORS -gt 0 ]; then exit 1; fi
+
+      - name: Secret pattern scan on docs/agency
+        run: |
+          set +e
+          FOUND=0
+          PATTERNS='API_KEY=|SECRET=|TOKEN=|PRIVATE KEY|sk-[a-zA-Z0-9]|ghp_|supabase.*service_role|bearer [a-zA-Z0-9]|password=|REVOLUT'
+          for f in $(find docs/agency -type f 2>/dev/null); do
+            MATCH=$(grep -Ei "$PATTERNS" "$f" 2>/dev/null)
+            if [ -n "$MATCH" ]; then
+              echo "POTENTIAL SECRET in $f — review required"
+              FOUND=$((FOUND+1))
+            fi
+          done
+          if [ $FOUND -gt 0 ]; then
+            echo "Secret scan found potential matches — block merge"
+            exit 1
+          fi
+          echo "Secret scan: CLEAN"
