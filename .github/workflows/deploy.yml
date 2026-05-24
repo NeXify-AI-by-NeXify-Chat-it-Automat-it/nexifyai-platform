@@ -36,7 +36,7 @@ jobs:
       - name: RE-OBSERVE — Backend Health
         run: |
           # Try multiple health endpoints
-          for ENDPOINT in /api/health /health; do
+          for ENDPOINT in https://nexify-automate.com/api/health https://db.mdlgodcvpasgplcrkiad.supabase.co/rest/v1/health; do
             STATUS=$(curl -sf -o /dev/null -w "%{http_code}" --max-time 10 "https://www.nexify-automate.com${ENDPOINT}" 2>/dev/null || echo "000")
             if [ "$STATUS" = "200" ]; then
               echo "✅ Backend reachable via ${ENDPOINT}"
@@ -50,7 +50,7 @@ jobs:
 
       - name: VERIFY — Health Score
         run: |
-          for ENDPOINT in /api/health /health; do
+          for ENDPOINT in https://nexify-automate.com/api/health https://db.mdlgodcvpasgplcrkiad.supabase.co/rest/v1/health; do
             HEALTH=$(curl -sf --max-time 10 "https://www.nexify-automate.com${ENDPOINT}" 2>/dev/null)
             if [ -n "$HEALTH" ]; then
               SCORE=$(echo "$HEALTH" | python3 -c "import sys,json; print(json.load(sys.stdin).get('score',100))" 2>/dev/null || echo "100")

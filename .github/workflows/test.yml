@@ -26,14 +26,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd backend
+          cd services/api
           if [ -f requirements.txt ]; then pip install -r requirements.txt 2>/dev/null || true; fi
           pip install pytest pytest-asyncio httpx 2>/dev/null || true
 
       - name: Run pytest
-        continue-on-error: true
+        
         run: |
-          cd backend
+          cd services/api
           python -m pytest tests/ --tb=short -x -q 2>&1
         # NON-BLOCKING: Full backend stack not available in CI.
         # But we NO LONGER swallow errors with || true — failures are VISIBLE.
@@ -59,7 +59,7 @@ jobs:
       - run: npm install
 
       - name: Run jest
-        continue-on-error: true
+        
         run: npx jest --passWithNoTests --ci --maxWorkers=2 2>&1
         # NON-BLOCKING: Jest config requires ts-node (not in CI).
         # But we NO LONGER swallow errors with || true — failures are VISIBLE.
