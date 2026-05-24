@@ -1,0 +1,18 @@
+{
+  "portal": {
+    "name": "Kundenportal",
+    "capabilities": [
+      "Login/Auth",
+      "Usage-\u00dcbersicht",
+      "API-Key-Verwaltung",
+      "Guthaben/Top-up",
+      "Billing/Rechnungen",
+      "Dokumentation",
+      "Pricing-\u00dcbersicht",
+      "Support/Tickets",
+      "KI-Nutzung f\u00fcr Projekte",
+      "Limits/Steuerung",
+      "Tenant-Verwaltung"
+    ]
+  }
+}

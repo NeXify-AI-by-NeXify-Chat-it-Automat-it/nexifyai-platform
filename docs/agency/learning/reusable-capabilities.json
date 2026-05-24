@@ -1,0 +1,101 @@
+[
+  {
+    "capability": "Semantic Search / Retrieval",
+    "provided_by": "Brain API + Qdrant",
+    "how_to_use": "brainQuery()",
+    "when_to_use": "vor jeder Aufgabe Kontext laden",
+    "required_checks": [
+      "Brain /health"
+    ],
+    "related_skills": [
+      "agent-memory-systems"
+    ],
+    "related_services": [
+      "Brain API"
+    ]
+  },
+  {
+    "capability": "Skill-Auswahl und -Kombination",
+    "provided_by": "claude-code-templates + Bridge Registry",
+    "how_to_use": "load_skill() aus Master-Pfad",
+    "when_to_use": "jeder Task",
+    "required_checks": [
+      "Registry vorhanden",
+      "Master-Pfad lesbar"
+    ],
+    "related_skills": [
+      "all"
+    ],
+    "related_services": [
+      "claude-code-templates"
+    ]
+  },
+  {
+    "capability": "Knowledge Storage",
+    "provided_by": "Brain API + Qdrant",
+    "how_to_use": "brainStore()",
+    "when_to_use": "jede relevante \u00c4nderung/Entscheidung",
+    "required_checks": [
+      "Kategorie korrekt"
+    ],
+    "related_skills": [
+      "brain-enterprise"
+    ],
+    "related_services": [
+      "Brain API"
+    ]
+  },
+  {
+    "capability": "LLM/Model Routing",
+    "provided_by": "9Router",
+    "how_to_use": "9Router API endpoint",
+    "when_to_use": "jeder AI-Zugriff",
+    "required_checks": [
+      "9Router /health"
+    ],
+    "related_skills": [],
+    "related_services": [
+      "9Router"
+    ]
+  },
+  {
+    "capability": "DOS-Gate-Pr\u00fcfung",
+    "provided_by": "GOOSE_SKILL_POLICY.md + DOS_GATES.md",
+    "how_to_use": "17 Gates vor jeder Aufgabe pr\u00fcfen",
+    "when_to_use": "vor jedem Task",
+    "required_checks": [
+      "Brain erreichbar",
+      "Registry vorhanden"
+    ],
+    "related_skills": [],
+    "related_services": [
+      "DOS"
+    ]
+  },
+  {
+    "capability": "Lessons Learned System",
+    "provided_by": "learning/lessons-learned.json",
+    "how_to_use": "lessons-learned.json lesen, relevante identifizieren",
+    "when_to_use": "jeder Task",
+    "required_checks": [
+      "Datei lesbar"
+    ],
+    "related_skills": [],
+    "related_services": [
+      "Learning-System"
+    ]
+  },
+  {
+    "capability": "Prevention Rules System",
+    "provided_by": "learning/prevention-rules.json",
+    "how_to_use": "prevention-rules.json lesen, relevante checken",
+    "when_to_use": "jeder Task",
+    "required_checks": [
+      "Datei lesbar"
+    ],
+    "related_skills": [],
+    "related_services": [
+      "Learning-System"
+    ]
+  }
+]

@@ -1,0 +1,94 @@
+{
+  "offerings": [
+    {
+      "name": "NeXifyAI Startseite",
+      "target": [
+        "B2B",
+        "B2C",
+        "Enterprise"
+      ],
+      "clusters": [
+        "Startseite",
+        "Leistungen",
+        "Modelle",
+        "Kundenportal",
+        "Adminportal",
+        "Docs"
+      ],
+      "purpose": "Gesamtsystem-Positionierung"
+    },
+    {
+      "name": "Leistungen",
+      "target": [
+        "all"
+      ],
+      "subpages": [
+        "Webseiten",
+        "Plattformen",
+        "Portale",
+        "Apps",
+        "Automatisierungen",
+        "KI",
+        "API-Plattform",
+        "Betrieb"
+      ]
+    },
+    {
+      "name": "NeXifyAI Modelle",
+      "target": [
+        "developers",
+        "enterprise"
+      ],
+      "features": [
+        "Modell\u00fcbersicht",
+        "Preise",
+        "API",
+        "Docs"
+      ]
+    },
+    {
+      "name": "Kundenportal",
+      "target": [
+        "customers"
+      ],
+      "features": [
+        "Usage",
+        "API Keys",
+        "Top-up",
+        "Billing",
+        "Docs",
+        "Support"
+      ]
+    },
+    {
+      "name": "Adminportal",
+      "target": [
+        "internal"
+      ],
+      "features": [
+        "Kunden",
+        "Guthaben",
+        "Usage",
+        "API Keys",
+        "Rechnungen",
+        "Support",
+        "Modelle",
+        "Projekte"
+      ]
+    },
+    {
+      "name": "Docs",
+      "target": [
+        "developers"
+      ],
+      "content": [
+        "API Docs",
+        "Beispiele",
+        "Auth",
+        "Billing",
+        "Limits",
+        "Errors"
+      ]
+    }
+  ]
+}

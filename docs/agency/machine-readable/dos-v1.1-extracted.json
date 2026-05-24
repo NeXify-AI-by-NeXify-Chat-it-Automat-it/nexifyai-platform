@@ -1,0 +1,146 @@
+{
+  "version": "1.1",
+  "date": "2026-02-19",
+  "sections": [
+    {
+      "id": "mantra",
+      "title": "Systemmantra",
+      "rules": [
+        "Retrieval first",
+        "Marketplace first",
+        "Open Source first",
+        "Template first",
+        "CI driven",
+        "Security validated",
+        "Verify gated",
+        "Zero Information Loss",
+        "Systemische Konsistenz"
+      ]
+    },
+    {
+      "id": "guardrails",
+      "title": "7 Guardrail-Prinzipien",
+      "rules": [
+        "Funnel-Zuordnung",
+        "Claims-Policy",
+        "No One-Off UI",
+        "Tracking First",
+        "Loop-Automation",
+        "Dokumentationspflicht",
+        "Modularität"
+      ]
+    },
+    {
+      "id": "memory",
+      "title": "Memory-Architektur",
+      "layers": [
+        "STATE",
+        "KNOWLEDGE",
+        "TODO"
+      ]
+    },
+    {
+      "id": "classification",
+      "title": "Projektklassifikation",
+      "types": [
+        "A SaaS/Plattform",
+        "B B2C Shop",
+        "C B2B Shop",
+        "D Hybrid",
+        "E Service/Consulting",
+        "F Plattform/Marketplace"
+      ]
+    },
+    {
+      "id": "target_groups",
+      "title": "Zielgruppen-Matrix",
+      "levels": 3
+    },
+    {
+      "id": "architecture",
+      "title": "Website-Architektur",
+      "clusters": [
+        "Entry/Start",
+        "Lösungen",
+        "Produkte",
+        "Zielgruppen",
+        "Preise",
+        "Ressourcen",
+        "Trust/Unternehmen",
+        "Conversion"
+      ]
+    },
+    {
+      "id": "content",
+      "title": "Copy-Compiler",
+      "stages": 8
+    },
+    {
+      "id": "design",
+      "title": "Design-System",
+      "package": "/packages/ui"
+    },
+    {
+      "id": "techstack",
+      "title": "Tech-Stack",
+      "default": [
+        "Next.js",
+        "TailwindCSS",
+        "shadcn/ui",
+        "Supabase",
+        "n8n",
+        "GitHub Actions",
+        "Vercel",
+        "PostHog/Plausible",
+        "Sentry"
+      ]
+    },
+    {
+      "id": "tracking",
+      "title": "Event-Taxonomy",
+      "package": "/packages/events"
+    },
+    {
+      "id": "cicd",
+      "title": "CI/CD",
+      "quality_gates": [
+        "Lint",
+        "Typecheck",
+        "Tests",
+        "Build",
+        "Security Scan",
+        "Secrets",
+        "Doku",
+        "Events"
+      ]
+    },
+    {
+      "id": "security",
+      "title": "Security und Compliance"
+    },
+    {
+      "id": "performance",
+      "title": "Performance-Standards"
+    },
+    {
+      "id": "kpi",
+      "title": "KPI-System"
+    },
+    {
+      "id": "release",
+      "title": "Release-Management"
+    },
+    {
+      "id": "quality_loop",
+      "title": "Qualitäts-Loop"
+    },
+    {
+      "id": "dod",
+      "title": "Definition of Done"
+    },
+    {
+      "id": "governance",
+      "title": "Erweiterungsregeln und Governance"
+    }
+  ]
+}

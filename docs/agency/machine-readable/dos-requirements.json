@@ -1,0 +1,226 @@
+[
+  {
+    "id": "REQ-001",
+    "source": "DOS v1.1/v1.2",
+    "title": "Brain-first: Ohne Brain keine Arbeit",
+    "must_should_could": "must",
+    "applies_to": "all AI systems",
+    "gate": "Brain erreichbar",
+    "evidence": "Brain /health 200",
+    "related_skills": [
+      "system-state"
+    ],
+    "reviewer_roles": [
+      "architect"
+    ],
+    "status": "active"
+  },
+  {
+    "id": "REQ-002",
+    "source": "DOS v1.2",
+    "title": "Resource-first vor jeder Lösung",
+    "must_should_could": "must",
+    "applies_to": "all AI systems",
+    "gate": "Resource-Catalog-Prüfung",
+    "evidence": "Prüfung dokumentiert",
+    "related_skills": [
+      "resource-reuse"
+    ],
+    "reviewer_roles": [
+      "resource-auditor"
+    ],
+    "status": "active"
+  },
+  {
+    "id": "REQ-003",
+    "source": "DOS v1.2",
+    "title": "Runtime Evidence Pflicht",
+    "must_should_could": "must",
+    "applies_to": "all AI systems",
+    "gate": "Runtime validiert",
+    "evidence": "Prozesse/Ports/APIs antworten",
+    "related_skills": [
+      "runtime"
+    ],
+    "reviewer_roles": [
+      "qa-reviewer"
+    ],
+    "status": "active"
+  },
+  {
+    "id": "REQ-004",
+    "source": "DOS v1.2",
+    "title": "Master-Skill-Registry nutzen",
+    "must_should_could": "must",
+    "applies_to": "Goose",
+    "gate": "Registry vorhanden",
+    "evidence": "Skill aus Master geladen",
+    "related_skills": [
+      "skill-bridge"
+    ],
+    "reviewer_roles": [
+      "architect"
+    ],
+    "status": "active"
+  },
+  {
+    "id": "REQ-005",
+    "source": "DOS v1.2",
+    "title": "Keine lokalen Fake-Skills",
+    "must_should_could": "must",
+    "applies_to": "Goose",
+    "gate": "Skills nur aus Master",
+    "evidence": "Kein /root/.config/goose/skills/",
+    "related_skills": [
+      "skill-bridge"
+    ],
+    "reviewer_roles": [
+      "security"
+    ],
+    "status": "active"
+  },
+  {
+    "id": "REQ-006",
+    "source": "DOS v1.1",
+    "title": "Funnel-Zuordnung",
+    "must_should_could": "must",
+    "applies_to": "all pages/features",
+    "gate": "Funnel-Schritt definiert",
+    "evidence": "Zuordnung dokumentiert",
+    "related_skills": [
+      "content"
+    ],
+    "reviewer_roles": [
+      "concept-strategist"
+    ],
+    "status": "active"
+  },
+  {
+    "id": "REQ-007",
+    "source": "DOS v1.1",
+    "title": "Claims-Policy",
+    "must_should_could": "must",
+    "applies_to": "all content",
+    "gate": "Scope vorhanden",
+    "evidence": "Claims geprüft",
+    "related_skills": [
+      "content"
+    ],
+    "reviewer_roles": [
+      "copywriter"
+    ],
+    "status": "active"
+  },
+  {
+    "id": "REQ-008",
+    "source": "DOS v1.1",
+    "title": "No One-Off UI",
+    "must_should_could": "must",
+    "applies_to": "UI development",
+    "gate": "Designsystem genutzt",
+    "evidence": "Keine Eigenentwicklung",
+    "related_skills": [
+      "ui"
+    ],
+    "reviewer_roles": [
+      "designer"
+    ],
+    "status": "active"
+  },
+  {
+    "id": "REQ-009",
+    "source": "DOS v1.1",
+    "title": "Tracking First",
+    "must_should_could": "must",
+    "applies_to": "user-facing features",
+    "gate": "Events definiert",
+    "evidence": "Payload validiert",
+    "related_skills": [
+      "events"
+    ],
+    "reviewer_roles": [
+      "qa-reviewer"
+    ],
+    "status": "active"
+  },
+  {
+    "id": "REQ-010",
+    "source": "DOS v1.1",
+    "title": "CI/CD Quality Gates",
+    "must_should_could": "must",
+    "applies_to": "all repos",
+    "gate": "Gates grün",
+    "evidence": "CI-Pipeline erfolgreich",
+    "related_skills": [
+      "cicd"
+    ],
+    "reviewer_roles": [
+      "qa-reviewer"
+    ],
+    "status": "active"
+  },
+  {
+    "id": "REQ-011",
+    "source": "DOS v1.2",
+    "title": "Kundenprojekt-Trennung",
+    "must_should_could": "must",
+    "applies_to": "customer projects",
+    "gate": "Eigenes Repo/Secrets/DB",
+    "evidence": "Keine Core-Vermischung",
+    "related_skills": [
+      "customer-projects"
+    ],
+    "reviewer_roles": [
+      "architect"
+    ],
+    "status": "active"
+  },
+  {
+    "id": "REQ-012",
+    "source": "DOS v1.2",
+    "title": "Keine Secrets in Ausgaben",
+    "must_should_could": "must",
+    "applies_to": "all AI systems",
+    "gate": "Secrets redaktiert",
+    "evidence": "Keine env/Environment-Werte",
+    "related_skills": [
+      "security"
+    ],
+    "reviewer_roles": [
+      "security-reviewer"
+    ],
+    "status": "active"
+  },
+  {
+    "id": "REQ-013",
+    "source": "DOS v1.1",
+    "title": "Modularität",
+    "must_should_could": "must",
+    "applies_to": "all components",
+    "gate": "Austauschbar ohne Systembruch",
+    "evidence": "Kein Lock-in",
+    "related_skills": [
+      "architecture"
+    ],
+    "reviewer_roles": [
+      "architect"
+    ],
+    "status": "active"
+  },
+  {
+    "id": "REQ-014",
+    "source": "DOS v1.2",
+    "title": "DOS-Gates vor Aufgabe",
+    "must_should_could": "must",
+    "applies_to": "Goose",
+    "gate": "17 Gates geprüft",
+    "evidence": "Gate-Prüfung dokumentiert",
+    "related_skills": [
+      "governance"
+    ],
+    "reviewer_roles": [
+      "governance-reviewer"
+    ],
+    "status": "active"
+  }
+]

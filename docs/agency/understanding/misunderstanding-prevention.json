@@ -1,0 +1,44 @@
+{
+  "known_failures": [
+    {
+      "pattern": "Lokale Skills statt Master-Repo",
+      "prevention": "Registry pr\u00fcfen, keine lokalen Skills laden"
+    },
+    {
+      "pattern": "Sourcecode mit Runtime verwechseln",
+      "prevention": "Runtime-Reality-Check \u00fcber Prozesse/Ports/APIs"
+    },
+    {
+      "pattern": "Shadow-Systeme als produktiv betrachten",
+      "prevention": "Runtime-Evidence pr\u00fcfen, Systemd != produktiv"
+    },
+    {
+      "pattern": "Cline-Kompatibilit\u00e4t statt Cline-Abl\u00f6sung",
+      "prevention": "Cline ist readonly Legacy"
+    },
+    {
+      "pattern": "Kundenprojekte im Core vermischen",
+      "prevention": "Kundenprojekt-Golden-Path"
+    },
+    {
+      "pattern": "Lokale Erledigtmeldung als Fertig akzeptieren",
+      "prevention": "Evidence Plan Pflicht"
+    },
+    {
+      "pattern": "Secrets ausgeben",
+      "prevention": "Redaktiert dokumentieren, keine Werte"
+    },
+    {
+      "pattern": "Brain nicht nutzen",
+      "prevention": "Brain-first Gate"
+    },
+    {
+      "pattern": "Isolierte L\u00f6sung bauen",
+      "prevention": "Resource-first Check"
+    },
+    {
+      "pattern": "Vorhandene Ressourcen ignorieren",
+      "prevention": "Resource Catalog pr\u00fcfen"
+    }
+  ]
+}

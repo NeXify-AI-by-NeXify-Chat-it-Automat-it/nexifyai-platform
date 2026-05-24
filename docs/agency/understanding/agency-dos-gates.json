@@ -1,0 +1,198 @@
+[
+  {
+    "gate_id": "GATE-01",
+    "name": "Brain-Kontext abrufen",
+    "applies_when": "before every task",
+    "checks": [
+      "Brain /health pr\u00fcfen",
+      "Relevanten Kontext laden"
+    ],
+    "evidence_required": "Brain-Abfrage-Log",
+    "stop_condition": "if gate fails",
+    "owner": "all AI systems"
+  },
+  {
+    "gate_id": "GATE-02",
+    "name": "Lessons Learned abrufen",
+    "applies_when": "before every task",
+    "checks": [
+      "lessons-learned.json lesen",
+      "Relevante Lessons identifizieren"
+    ],
+    "evidence_required": "Lessons-Check-Log",
+    "stop_condition": "if gate fails",
+    "owner": "all AI systems"
+  },
+  {
+    "gate_id": "GATE-03",
+    "name": "Prevention Rules pr\u00fcfen",
+    "applies_when": "before every task",
+    "checks": [
+      "prevention-rules.json lesen",
+      "Relevante Regeln identifizieren"
+    ],
+    "evidence_required": "Prevention-Check-Log",
+    "stop_condition": "if gate fails",
+    "owner": "all AI systems"
+  },
+  {
+    "gate_id": "GATE-04",
+    "name": "Resource Catalog pr\u00fcfen",
+    "applies_when": "before every task",
+    "checks": [
+      "resource-catalog.json lesen",
+      "Vorhandene Ressourcen identifizieren"
+    ],
+    "evidence_required": "Resource-Check-Log",
+    "stop_condition": "if gate fails",
+    "owner": "all AI systems"
+  },
+  {
+    "gate_id": "GATE-05",
+    "name": "Master-Skill-Registry pr\u00fcfen",
+    "applies_when": "before every task",
+    "checks": [
+      "skills.json lesen",
+      "Relevante Skills identifizieren"
+    ],
+    "evidence_required": "Skill-Registry-Log",
+    "stop_condition": "if gate fails",
+    "owner": "Goose"
+  },
+  {
+    "gate_id": "GATE-06",
+    "name": "DOS-Anwendbarkeit pr\u00fcfen",
+    "applies_when": "before every task",
+    "checks": [
+      "Projekttyp bestimmen",
+      "Relevante DOS-Regeln identifizieren"
+    ],
+    "evidence_required": "DOS-Check-Log",
+    "stop_condition": "if gate fails",
+    "owner": "all AI systems"
+  },
+  {
+    "gate_id": "GATE-07",
+    "name": "Projekttyp klassifizieren",
+    "applies_when": "before every task",
+    "checks": [
+      "Gesch\u00e4ftsmodell-Typ A-F bestimmen"
+    ],
+    "evidence_required": "Klassifikations-Log",
+    "stop_condition": "if gate fails",
+    "owner": "customer projects"
+  },
+  {
+    "gate_id": "GATE-08",
+    "name": "Funnel-Zuordnung pr\u00fcfen",
+    "applies_when": "if page/feature/automation",
+    "checks": [
+      "Funnel-Schritt zuordnen"
+    ],
+    "evidence_required": "Funnel-Log",
+    "stop_condition": "if gate fails",
+    "owner": "content/UX tasks"
+  },
+  {
+    "gate_id": "GATE-09",
+    "name": "Zielgruppen-Matrix pr\u00fcfen",
+    "applies_when": "if content/UX",
+    "checks": [
+      "Zielgruppe bestimmen",
+      "Matrix-Ebene w\u00e4hlen"
+    ],
+    "evidence_required": "Target-Group-Log",
+    "stop_condition": "if gate fails",
+    "owner": "content/UX tasks"
+  },
+  {
+    "gate_id": "GATE-10",
+    "name": "Copy-Compiler pr\u00fcfen",
+    "applies_when": "if content/UI",
+    "checks": [
+      "8 Stufen pr\u00fcfen"
+    ],
+    "evidence_required": "Copy-Log",
+    "stop_condition": "if gate fails",
+    "owner": "content tasks"
+  },
+  {
+    "gate_id": "GATE-11",
+    "name": "Designsystem pr\u00fcfen",
+    "applies_when": "if UI",
+    "checks": [
+      "Komponente existiert?",
+      "Token genutzt?"
+    ],
+    "evidence_required": "Design-Log",
+    "stop_condition": "if gate fails",
+    "owner": "UI tasks"
+  },
+  {
+    "gate_id": "GATE-12",
+    "name": "Event-/Tracking-Pflicht pr\u00fcfen",
+    "applies_when": "if user action",
+    "checks": [
+      "Events definiert?",
+      "Payload validiert?"
+    ],
+    "evidence_required": "Event-Log",
+    "stop_condition": "if gate fails",
+    "owner": "user-facing features"
+  },
+  {
+    "gate_id": "GATE-13",
+    "name": "CI/CD-Gates pr\u00fcfen",
+    "applies_when": "if code change",
+    "checks": [
+      "Lint/Typecheck/Tests/Build/Scan"
+    ],
+    "evidence_required": "CI-Log",
+    "stop_condition": "if gate fails",
+    "owner": "code changes"
+  },
+  {
+    "gate_id": "GATE-14",
+    "name": "Security-/Compliance-Gates pr\u00fcfen",
+    "applies_when": "if system change",
+    "checks": [
+      "Secrets/Auth/RLS/DSGVO"
+    ],
+    "evidence_required": "Security-Log",
+    "stop_condition": "if gate fails",
+    "owner": "system changes"
+  },
+  {
+    "gate_id": "GATE-15",
+    "name": "Performance-Gates pr\u00fcfen",
+    "applies_when": "if deployment",
+    "checks": [
+      "CWV/Bundle/Caching"
+    ],
+    "evidence_required": "Performance-Log",
+    "stop_condition": "if gate fails",
+    "owner": "deployments"
+  },
+  {
+    "gate_id": "GATE-16",
+    "name": "Definition of Done pr\u00fcfen",
+    "applies_when": "before completion",
+    "checks": [
+      "Technisch/Inhaltlich/Design/Tracking/Governance"
+    ],
+    "evidence_required": "DoD-Log",
+    "stop_condition": "if gate fails",
+    "owner": "every task"
+  },
+  {
+    "gate_id": "GATE-17",
+    "name": "Evidence Plan erstellen",
+    "applies_when": "before completion",
+    "checks": [
+      "Brain/Repo/Runtime/Test/Security"
+    ],
+    "evidence_required": "Evidence-Plan",
+    "stop_condition": "if gate fails",
+    "owner": "every task"
+  }
+]

@@ -1,0 +1,77 @@
+{
+  "clusters": [
+    {
+      "name": "Entry/Start",
+      "funnel": "Awareness",
+      "pages": [
+        "Startseite",
+        "Hero",
+        "Haupteingang"
+      ]
+    },
+    {
+      "name": "L\u00f6sungen",
+      "funnel": "Education",
+      "pages": [
+        "Use-Case-Seiten",
+        "Problem-L\u00f6sung-Pairs"
+      ]
+    },
+    {
+      "name": "Produkte",
+      "funnel": "Evaluation",
+      "pages": [
+        "Modulseiten",
+        "Feature-Details",
+        "Specs"
+      ]
+    },
+    {
+      "name": "Zielgruppen",
+      "funnel": "Personalization",
+      "pages": [
+        "B2B-Seite",
+        "Privatkundenbereich"
+      ]
+    },
+    {
+      "name": "Preise",
+      "funnel": "Evaluation",
+      "pages": [
+        "Preistabelle",
+        "Pakete",
+        "ROI-Rechner"
+      ]
+    },
+    {
+      "name": "Ressourcen",
+      "funnel": "Education",
+      "pages": [
+        "Blog",
+        "Guides",
+        "Glossar",
+        "Cases"
+      ]
+    },
+    {
+      "name": "Trust & Unternehmen",
+      "funnel": "Trust",
+      "pages": [
+        "About",
+        "Cases",
+        "Security",
+        "Reviews"
+      ]
+    },
+    {
+      "name": "Conversion",
+      "funnel": "Conversion",
+      "pages": [
+        "Demo",
+        "Kauf",
+        "Termin",
+        "Kontakt"
+      ]
+    }
+  ]
+}

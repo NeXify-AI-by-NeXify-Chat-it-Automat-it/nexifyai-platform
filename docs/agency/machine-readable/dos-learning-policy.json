@@ -1,0 +1,34 @@
+{
+  "policy": "systemweites Lernen",
+  "applies_to": [
+    "Goose",
+    "Brain API",
+    "Skill-Bridge",
+    "MCP-Systeme",
+    "alle AI-Funktionen"
+  ],
+  "principles": [
+    "Fehler-nie-zweimal",
+    "Resource-first",
+    "Brain-first",
+    "Runtime Evidence",
+    "Lessons Learned Pflicht",
+    "Prevention Rules Pflicht",
+    "Keine lokalen Fake-Skills"
+  ],
+  "memory_types": [
+    "semantic",
+    "episodic",
+    "procedural",
+    "governance",
+    "prevention"
+  ],
+  "learning_sources": [
+    "Goose-Ausgaben",
+    "failed Tasks",
+    "Architekturfehler",
+    "Security Incidents",
+    "Skill-Mapping",
+    "Runtime-Reality-Checks"
+  ]
+}

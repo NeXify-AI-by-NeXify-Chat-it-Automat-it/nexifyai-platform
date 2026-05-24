@@ -1,0 +1,184 @@
+[
+  {
+    "resource_name": "Brain API (Qdrant)",
+    "type": "core",
+    "location": "http://127.0.0.1:8420",
+    "capabilities": [
+      "Retrieval",
+      "Memory",
+      "Governance",
+      "Wissensmanagement"
+    ],
+    "current_usage": "aktiv - Migration/Governance",
+    "unused_potential": "noch nicht voll f\u00fcr alle AI-L\u00f6sungen genutzt",
+    "integration_options": [
+      "brainQuery",
+      "brainStore",
+      "brainCategories"
+    ],
+    "do_not_duplicate": true,
+    "owner": "NeXifyAI",
+    "status": "aktiv"
+  },
+  {
+    "resource_name": "9Router",
+    "type": "core",
+    "location": "http://localhost:20128",
+    "capabilities": [
+      "LLM Routing",
+      "Embedding Routing",
+      "Provider-Abstraktion",
+      "87+ Modelle"
+    ],
+    "current_usage": "aktiv",
+    "unused_potential": "ProviderNodes fehlen (nur 2/489 sichtbar)",
+    "integration_options": [
+      "Modelle",
+      "Routing",
+      "Provider-Switch"
+    ],
+    "do_not_duplicate": true,
+    "owner": "NeXifyAI",
+    "status": "aktiv"
+  },
+  {
+    "resource_name": "claude-code-templates",
+    "type": "skill-system",
+    "location": "/opt/nexify/skills/claude-code-templates",
+    "capabilities": [
+      "3123 Skills",
+      "423 Agents",
+      "58 Hooks",
+      "86 MCPs",
+      "68 Settings",
+      "341 Commands"
+    ],
+    "current_usage": "Bridge + Registry aktiv",
+    "unused_potential": "Agents als Prompt-Vorlagen, MCPs als Referenz, Commands als Checklisten",
+    "integration_options": [
+      "Bridge",
+      "Registry",
+      "load_skill aus Master-Pfad"
+    ],
+    "do_not_duplicate": true,
+    "owner": "davila7",
+    "status": "aktiv"
+  },
+  {
+    "resource_name": "Traefik",
+    "type": "core",
+    "location": "Port 443",
+    "capabilities": [
+      "Reverse Proxy",
+      "Routing",
+      "TLS",
+      "Middleware"
+    ],
+    "current_usage": "aktiv",
+    "unused_potential": "8/10 IPs falsch",
+    "integration_options": [
+      "Routing",
+      "Load Balancing"
+    ],
+    "do_not_duplicate": true,
+    "owner": "NeXifyAI",
+    "status": "aktiv"
+  },
+  {
+    "resource_name": "Cloudflare/Tunnel",
+    "type": "core",
+    "capabilities": [
+      "Edge",
+      "DNS",
+      "Tunnel",
+      "DDoS",
+      "CDN"
+    ],
+    "current_usage": "aktiv",
+    "unused_potential": "kritisch f\u00fcr Kundenprojekte",
+    "integration_options": [
+      "DNS",
+      "Tunnel",
+      "CDN"
+    ],
+    "do_not_duplicate": true,
+    "owner": "NeXifyAI",
+    "status": "aktiv"
+  },
+  {
+    "resource_name": "Supabase",
+    "type": "core",
+    "capabilities": [
+      "Auth",
+      "Postgres DB",
+      "Storage",
+      "Realtime",
+      "RLS"
+    ],
+    "current_usage": "aktiv",
+    "unused_potential": "RLS f\u00fcr Tenant-Isolation",
+    "integration_options": [
+      "Auth",
+      "DB",
+      "Storage"
+    ],
+    "do_not_duplicate": true,
+    "owner": "NeXifyAI",
+    "status": "aktiv"
+  },
+  {
+    "resource_name": "Vercel",
+    "type": "core",
+    "capabilities": [
+      "Deployment",
+      "Preview",
+      "Analytics"
+    ],
+    "current_usage": "aktiv",
+    "unused_potential": "kritisch f\u00fcr CI/CD",
+    "integration_options": [
+      "GitHub",
+      "Deployment"
+    ],
+    "do_not_duplicate": true,
+    "owner": "NeXifyAI",
+    "status": "aktiv"
+  },
+  {
+    "resource_name": "GitHub",
+    "type": "core",
+    "capabilities": [
+      "Source Control",
+      "CI/CD",
+      "Issues",
+      "Actions"
+    ],
+    "current_usage": "aktiv - Source of Truth",
+    "unused_potential": "vollst\u00e4ndige CI/CD",
+    "integration_options": [
+      "Actions",
+      "Deployments"
+    ],
+    "do_not_duplicate": true,
+    "owner": "NeXifyAI",
+    "status": "aktiv"
+  },
+  {
+    "resource_name": "n8n",
+    "type": "automation",
+    "capabilities": [
+      "Workflows",
+      "Automationen",
+      "Integrationen"
+    ],
+    "current_usage": "vorhanden",
+    "unused_potential": "DOS-Standard f\u00fcr Automationen",
+    "integration_options": [
+      "Trigger",
+      "Workflows"
+    ],
+    "do_not_duplicate": true,
+    "owner": "NeXifyAI",
+    "status": "vorhanden"
+  }
+]

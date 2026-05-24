@@ -1,0 +1,62 @@
+{
+  "models": [
+    {
+      "type": "A",
+      "name": "SaaS / Plattform",
+      "funnel": [
+        "Awareness",
+        "Education",
+        "Demo",
+        "Sales",
+        "Onboarding"
+      ],
+      "conversion": "Lead-Generierung, Demo-Request"
+    },
+    {
+      "type": "B",
+      "name": "B2C Shop",
+      "funnel": [
+        "Traffic",
+        "Produkt",
+        "Vertrauen",
+        "Kauf",
+        "Upsell"
+      ],
+      "conversion": "Direktkauf, Checkout"
+    },
+    {
+      "type": "C",
+      "name": "B2B Shop",
+      "funnel": [
+        "Research",
+        "Evaluation",
+        "Anfrage",
+        "Deal"
+      ],
+      "conversion": "Angebot, Rahmenvertrag"
+    },
+    {
+      "type": "D",
+      "name": "Hybrid",
+      "funnel": "Segmentiert je Zielgruppe",
+      "conversion": "mehrere CTAs parallel"
+    },
+    {
+      "type": "E",
+      "name": "Service / Consulting",
+      "funnel": [
+        "Awareness",
+        "Trust",
+        "Kontakt",
+        "Angebot"
+      ],
+      "conversion": "Kontaktanfrage, Termin"
+    },
+    {
+      "type": "F",
+      "name": "Plattform / Marketplace",
+      "funnel": "Anbieter und Nachfrager parallel",
+      "conversion": "Registrierung, Transaktion"
+    }
+  ]
+}

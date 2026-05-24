@@ -1,0 +1,48 @@
+{
+  "pipeline_order": [
+    {
+      "step": 1,
+      "category": "Intent / Understanding / Research"
+    },
+    {
+      "step": 2,
+      "category": "Konzept / Anforderungen / Text / Preislogik"
+    },
+    {
+      "step": 3,
+      "category": "Architektur / Systemdesign"
+    },
+    {
+      "step": 4,
+      "category": "Design / UX / UI / Brand"
+    },
+    {
+      "step": 5,
+      "category": "Fullstack / Next.js / React / Supabase"
+    },
+    {
+      "step": 6,
+      "category": "Cloud / Network / Vercel / Hosting / Infra"
+    },
+    {
+      "step": 7,
+      "category": "Security / Compliance / ISO/DIN/Agenturvorgaben"
+    },
+    {
+      "step": 8,
+      "category": "QA / Tests / Review / Evidence"
+    },
+    {
+      "step": 9,
+      "category": "Dokumentation / Governance / Brain-Learning"
+    }
+  ],
+  "rules": [
+    "Prozess-Skills zuerst",
+    "Architektur-Skills danach",
+    "Implementierungs-Skills danach",
+    "QA/Security/Infra danach",
+    "Skills kombinieren, nicht isoliert",
+    "Wenn Skill nicht im Master: nearest-match suchen"
+  ]
+}

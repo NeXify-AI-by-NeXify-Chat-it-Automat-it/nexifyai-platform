@@ -1,0 +1,50 @@
+{
+  "version": "1.2",
+  "categories": {
+    "technical": [
+      "Code implementiert",
+      "Typecheck grün",
+      "Lint grün",
+      "Tests grün oder begründet",
+      "Build grün",
+      "Keine Secrets",
+      "Security geprüft",
+      "Performance geprüft",
+      "Rollback möglich",
+      "CI integriert"
+    ],
+    "content": [
+      "Copy-Compiler 8 Stufen",
+      "Zielgruppe definiert",
+      "Funnel-Schritt definiert",
+      "Claims mit Scope",
+      "CTA klar",
+      "Interne Verlinkung",
+      "Kernbegriffe konsistent"
+    ],
+    "design": [
+      "Designsystem genutzt",
+      "Keine One-Off UI",
+      "Responsive",
+      "WCAG 2.1 AA",
+      "Brand konsistent",
+      "Dark Mode/Tokens"
+    ],
+    "tracking": [
+      "Events definiert",
+      "Payload validiert",
+      "Kritische Aktionen messbar",
+      "Trigger dokumentiert",
+      "Automation versioniert"
+    ],
+    "governance": [
+      "Doku aktualisiert",
+      "ADR bei Architekturentscheidung",
+      "Release Notes",
+      "Inventar aktualisiert",
+      "Owner geklärt",
+      "Risiken dokumentiert",
+      "Lessons Learned gespeichert"
+    ]
+  }
+}

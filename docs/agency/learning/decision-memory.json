@@ -1,0 +1,64 @@
+[
+  {
+    "decision": "claude-code-templates ist Master-Skill-Quelle",
+    "rationale": "Einzige autorisierte externe Quelle, 5589 Skills, versioniert",
+    "alternatives_rejected": [
+      "Lokale selbstgebaute Skills",
+      "Cline-Skills",
+      "Anton/Hermes-Skills"
+    ],
+    "applies_to": "Goose Skill-System",
+    "date": "2026-05-24",
+    "source": "Agenturvorgabe",
+    "validation_status": "validiert"
+  },
+  {
+    "decision": "Bridge statt Reimplementation",
+    "rationale": "Master-Repo bleibt read-only, keine Duplikate, keine Fake-Skills",
+    "alternatives_rejected": [
+      "Skills kopieren",
+      "Skills lokal nachbauen",
+      "Eigenes Skill-Format"
+    ],
+    "applies_to": "Goose Skill-System",
+    "date": "2026-05-24",
+    "source": "System-Migration",
+    "validation_status": "validiert"
+  },
+  {
+    "decision": "Brain-first: Ohne Brain keine Arbeit",
+    "rationale": "Zentrales Wissen verhindert Wiederholungsfehler, Zero Information Loss",
+    "alternatives_rejected": [
+      "Lokale Dateien als Wissensbasis",
+      "Kein zentrales Ged\u00e4chtnis"
+    ],
+    "applies_to": "alle AI-Systeme",
+    "date": "2026-05-24",
+    "source": "DOS v1.2",
+    "validation_status": "aktiv"
+  },
+  {
+    "decision": "Resource-first vor jeder neuen L\u00f6sung",
+    "rationale": "Vorhandene Ressourcen reduzieren Neubau, Duplikate, Shadow-Systeme",
+    "alternatives_rejected": [
+      "Immer neubauen",
+      "Nicht pr\u00fcfen"
+    ],
+    "applies_to": "alle AI-Systeme",
+    "date": "2026-05-24",
+    "source": "DOS v1.2",
+    "validation_status": "aktiv"
+  },
+  {
+    "decision": "Kundenprojekte getrennt von Core",
+    "rationale": "Keine Vermischung, eigene Repos/Secrets/DB/CI, klare Schnittstellen",
+    "alternatives_rejected": [
+      "Kundenprojekte im gleichen Repo",
+      "Kundenprojekte im Core-Bereich"
+    ],
+    "applies_to": "Alle Kundenprojekte",
+    "date": "2026-05-24",
+    "source": "DOS v1.2",
+    "validation_status": "aktiv"
+  }
+]

@@ -1,0 +1,37 @@
+{
+  "stack": {
+    "frontend": [
+      "Next.js App Router",
+      "React",
+      "TypeScript",
+      "TailwindCSS",
+      "shadcn/ui"
+    ],
+    "backend": [
+      "Supabase",
+      "Postgres",
+      "Next.js API Routes"
+    ],
+    "deployment": [
+      "Vercel",
+      "GitHub Actions",
+      "Cloudflare DNS"
+    ],
+    "automation": [
+      "n8n"
+    ],
+    "monitoring": [
+      "PostHog",
+      "Plausible",
+      "Sentry",
+      "Uptime"
+    ],
+    "ai": [
+      "claude-code-templates",
+      "9Router",
+      "Brain API",
+      "DeepSeek",
+      "Nscale"
+    ]
+  }
+}

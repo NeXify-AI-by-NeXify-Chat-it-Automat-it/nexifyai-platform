@@ -1,0 +1,52 @@
+{
+  "roles": [
+    {
+      "role": "Intent Analyst",
+      "task": "versteht menschliche Absicht, rekonstruiert implizite Anforderungen"
+    },
+    {
+      "role": "Requirements Analyst",
+      "task": "leitet Anforderungen aus Docs, Brain, Chat, Repo, Runtime ab"
+    },
+    {
+      "role": "Concept Strategist",
+      "task": "Leistungskonzept, Angebotslogik, Kundennutzen, Positionierung"
+    },
+    {
+      "role": "Copywriter/Texter",
+      "task": "verst\u00e4ndliche, verkaufsf\u00e4hige, markenkonforme Texte"
+    },
+    {
+      "role": "Designer/UX Reviewer",
+      "task": "Design, Layout, CI, Nutzerf\u00fchrung, Conversion, Accessibility"
+    },
+    {
+      "role": "Platform Architect",
+      "task": "Gesamtplattform, Portale, Infra, Runtime, Datenfl\u00fcsse"
+    },
+    {
+      "role": "Resource Reuse Auditor",
+      "task": "pr\u00fcft vorhandene Ressourcen, verhindert Neubau"
+    },
+    {
+      "role": "Network/Cloud Expert",
+      "task": "Netzwerk, DNS, Cloudflare, Vercel, Supabase, Ports"
+    },
+    {
+      "role": "Fullstack Expert",
+      "task": "Next.js, React, Supabase, API, Auth, Datenfluss"
+    },
+    {
+      "role": "Security/Compliance Reviewer",
+      "task": "Secrets, Auth, RLS, DSGVO, ISO/DIN, MCP-Risiken"
+    },
+    {
+      "role": "QA/Evidence Reviewer",
+      "task": "Tests, Build, Deployment, Runtime Evidence, DoD"
+    },
+    {
+      "role": "Documentation/Governance Reviewer",
+      "task": "Docs, ADRs, Inventare, Lessons, Brain"
+    }
+  ]
+}

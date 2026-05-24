@@ -1,0 +1,66 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-05-24",
+  "rules": [
+    {
+      "id": "DOC-AUTO-001",
+      "trigger": "Jede relevante Änderung",
+      "action": "Changelog aktualisieren (DOS_CHANGELOG.md)",
+      "mandatory": true
+    },
+    {
+      "id": "DOC-AUTO-002",
+      "trigger": "Jede Architekturentscheidung",
+      "action": "ADR erzeugen oder aktualisieren (docs/adrs/)",
+      "mandatory": true
+    },
+    {
+      "id": "DOC-AUTO-003",
+      "trigger": "Jede neue Ressource",
+      "action": "Resource Catalog aktualisieren (reuse-catalog.json)",
+      "mandatory": true
+    },
+    {
+      "id": "DOC-AUTO-004",
+      "trigger": "Jede wiederverwendbare Fähigkeit",
+      "action": "Reusable Capabilities aktualisieren (reusable-capabilities.json)",
+      "mandatory": true
+    },
+    {
+      "id": "DOC-AUTO-005",
+      "trigger": "Jede Serviceänderung",
+      "action": "Service Catalog aktualisieren (service-catalog.json)",
+      "mandatory": true
+    },
+    {
+      "id": "DOC-AUTO-006",
+      "trigger": "Jede Kundenprojekt-Erkenntnis",
+      "action": "Customer Project Reuse Map aktualisieren (customer-project-reuse-map.json)",
+      "mandatory": true
+    },
+    {
+      "id": "DOC-AUTO-007",
+      "trigger": "Jede neue Prevention Rule",
+      "action": "Prevention Rules + Brain speichern",
+      "mandatory": true
+    },
+    {
+      "id": "DOC-AUTO-008",
+      "trigger": "Jede neue Erkenntnis",
+      "action": "DOS + Learning + Resource + Reuse prüfen und aktualisieren",
+      "mandatory": true
+    },
+    {
+      "id": "DOC-AUTO-009",
+      "trigger": "Nicht dokumentierte Änderung",
+      "action": "Gilt als nicht abgeschlossen",
+      "mandatory": true
+    },
+    {
+      "id": "DOC-AUTO-010",
+      "trigger": "Task-Abschluss",
+      "action": "Dokumentations-Check als Pflichtschritt",
+      "mandatory": true
+    }
+  ]
+}

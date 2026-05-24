@@ -1,0 +1,54 @@
+{
+  "standards": [
+    {
+      "name": "DSGVO",
+      "status": "zu_pruefen",
+      "notes": "Datenschutz, Rechtsgrundlagen, Auftragsverarbeitung"
+    },
+    {
+      "name": "ISO 27001",
+      "status": "zu_pruefen",
+      "notes": "Informationssicherheit, ISMS"
+    },
+    {
+      "name": "ISO 9001",
+      "status": "zu_pruefen",
+      "notes": "Qualitätsmanagement"
+    },
+    {
+      "name": "ISO 42001",
+      "status": "zu_pruefen",
+      "notes": "KI-Management"
+    },
+    {
+      "name": "BSI-Grundschutz",
+      "status": "zu_pruefen",
+      "notes": "IT-Sicherheit"
+    },
+    {
+      "name": "WCAG 2.2 AA",
+      "status": "gefordert",
+      "notes": "Barrierefreiheit - Default-Standard"
+    },
+    {
+      "name": "OWASP ASVS",
+      "status": "zu_pruefen",
+      "notes": "Anwendungssicherheit"
+    },
+    {
+      "name": "SOC2",
+      "status": "zu_pruefen",
+      "notes": "Sicherheit, Vertraulichkeit"
+    },
+    {
+      "name": "EU AI Act",
+      "status": "zu_pruefen",
+      "notes": "KI-Regulierung"
+    },
+    {
+      "name": "ISO 27701",
+      "status": "zu_pruefen",
+      "notes": "Datenschutz-Management"
+    }
+  ]
+}

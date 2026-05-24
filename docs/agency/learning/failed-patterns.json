@@ -1,0 +1,51 @@
+[
+  {
+    "pattern": "Lokale selbstgebaute Skills als Autorit\u00e4t nutzen",
+    "why_failed": "Fake-Inhalt, kein Master-Bezug, fehlende Qualit\u00e4t",
+    "where_seen": "Goose-Skill-Migration",
+    "replacement_pattern": "Master-Skill-Registry + Bridge",
+    "prevention_rule": "PREV-001"
+  },
+  {
+    "pattern": "Sourcecode-Ordner als aktive Runtime interpretieren",
+    "why_failed": "Systemd active != produktiv, Dateien != Prozesse",
+    "where_seen": "Architektur-Analyse",
+    "replacement_pattern": "Runtime-Reality-Check",
+    "prevention_rule": "PREV-002"
+  },
+  {
+    "pattern": "Secrets ungefiltert dokumentieren",
+    "why_failed": "Security Incident, Keys kompromittiert",
+    "where_seen": "Security Audit",
+    "replacement_pattern": "Nur redaktiert dokumentieren",
+    "prevention_rule": "PREV-003"
+  },
+  {
+    "pattern": "Legacy-Systeme als produktiv betrachten",
+    "why_failed": "Cline/Anton/Hermes haben keine aktiven Prozesse",
+    "where_seen": "Systemvermessung",
+    "replacement_pattern": "Runtime-Evidence pr\u00fcfen",
+    "prevention_rule": "PREV-004"
+  },
+  {
+    "pattern": "Isolierte Einzell\u00f6sungen statt Plattform",
+    "why_failed": "Shadow-Systeme, Duplikate, Wartungsaufwand",
+    "where_seen": "Repo-Analyse",
+    "replacement_pattern": "nexifyai-platform als zentrales System",
+    "prevention_rule": "PREV-005"
+  },
+  {
+    "pattern": "Neubau trotz vorhandener Ressourcen",
+    "why_failed": "Doppelarbeit, Inkompatibilit\u00e4t",
+    "where_seen": "mehrere Tasks",
+    "replacement_pattern": "Resource-first Check",
+    "prevention_rule": "PREV-006"
+  },
+  {
+    "pattern": "Fertigmeldung ohne Nachweis",
+    "why_failed": "Nicht verifizierbar, falsche Annahmen",
+    "where_seen": "mehrere Tasks",
+    "replacement_pattern": "Evidence Plan Pflicht",
+    "prevention_rule": "PREV-007"
+  }
+]

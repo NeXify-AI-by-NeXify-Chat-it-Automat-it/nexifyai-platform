@@ -1,0 +1,27 @@
+{
+  "source": "DOS v1.1 + v1.2",
+  "standards": [
+    "Systemmantra",
+    "7 Guardrails",
+    "Memory-Architektur",
+    "Projektklassifikation",
+    "Zielgruppen-Matrix",
+    "Website-Blueprint",
+    "Copy-Compiler",
+    "Design-System",
+    "Tech-Stack",
+    "Event-Taxonomy",
+    "CI/CD",
+    "Security",
+    "Performance",
+    "KPI",
+    "Release",
+    "Qualit\u00e4ts-Loop",
+    "Definition of Done",
+    "AI-Governance",
+    "Goose-Governance",
+    "Skill-Composition",
+    "Resource-first",
+    "Kundenprojekt-Golden-Path"
+  ]
+}

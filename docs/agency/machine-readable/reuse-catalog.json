@@ -1,0 +1,172 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-05-24",
+  "catalog": {
+    "portals": {
+      "description": "Portal-Systeme (Kunden-, Admin-, Agentur-)",
+      "items": [],
+      "central_target": "apps/portals/"
+    },
+    "admin-portals": {
+      "description": "Interne Admin-Oberflächen",
+      "items": [],
+      "central_target": "apps/admin/"
+    },
+    "customer-portals": {
+      "description": "Externe Kundenportale",
+      "items": [],
+      "central_target": "apps/customer-portal/"
+    },
+    "dashboards": {
+      "description": "Dashboard-Komponenten (Analytics, Usage, Monitoring)",
+      "items": [],
+      "central_target": "packages/ui/dashboards/"
+    },
+    "auth-flows": {
+      "description": "Authentifizierungs-Flows",
+      "items": [],
+      "central_target": "services/auth/"
+    },
+    "role-permission-models": {
+      "description": "Rollen- und Berechtigungsmodelle",
+      "items": [],
+      "central_target": "packages/auth/"
+    },
+    "billing-flows": {
+      "description": "Billing- und Zahlungs-Flows",
+      "items": [],
+      "central_target": "services/billing/"
+    },
+    "usage-metering": {
+      "description": "Usage-Tracking und Metering",
+      "items": [],
+      "central_target": "services/usage/"
+    },
+    "top-up-flows": {
+      "description": "Guthaben-Auflade-Flows",
+      "items": [],
+      "central_target": "services/billing/topup/"
+    },
+    "invoice-generation": {
+      "description": "Rechnungserstellung",
+      "items": [],
+      "central_target": "services/billing/invoice/"
+    },
+    "ai-chat-widgets": {
+      "description": "KI-Chat-Widgets",
+      "items": [],
+      "central_target": "packages/ui/chat/"
+    },
+    "ai-advisors": {
+      "description": "KI-Berater-Patterns",
+      "items": [],
+      "central_target": "services/ai-advisor/"
+    },
+    "offer-generators": {
+      "description": "Angebotsgeneratoren",
+      "items": [],
+      "central_target": "services/offer/"
+    },
+    "lead-analysis": {
+      "description": "Lead-Analyse-Services",
+      "items": [],
+      "central_target": "services/lead/"
+    },
+    "contact-forms": {
+      "description": "Kontaktformular-Komponenten",
+      "items": [],
+      "central_target": "packages/ui/forms/"
+    },
+    "onboarding-flows": {
+      "description": "Onboarding-Workflows",
+      "items": [],
+      "central_target": "services/onboarding/"
+    },
+    "docs-sites": {
+      "description": "Dokumentations-Sites",
+      "items": [],
+      "central_target": "apps/docs/"
+    },
+    "pricing-sections": {
+      "description": "Pricing-Tabellen und Calculator",
+      "items": [],
+      "central_target": "packages/ui/pricing/"
+    },
+    "landingpage-sections": {
+      "description": "Landingpage-Bausteine",
+      "items": [],
+      "central_target": "packages/ui/landing/"
+    },
+    "website-components": {
+      "description": "Basis-Webkomponenten",
+      "items": [],
+      "central_target": "packages/ui/components/"
+    },
+    "design-system-components": {
+      "description": "Designsystem-Komponenten",
+      "items": [],
+      "central_target": "packages/ui/"
+    },
+    "api-clients": {
+      "description": "API-Clients und SDKs",
+      "items": [],
+      "central_target": "packages/sdk/"
+    },
+    "provider-adapters": {
+      "description": "Provider-Adapter (LLM, SMS, E-Mail)",
+      "items": [],
+      "central_target": "packages/providers/"
+    },
+    "n8n-workflows": {
+      "description": "n8n-Workflows",
+      "items": [],
+      "central_target": "ops/n8n-workflows/"
+    },
+    "github-actions": {
+      "description": "GitHub Actions Workflows",
+      "items": [],
+      "central_target": ".github/workflows/"
+    },
+    "deployment-scripts": {
+      "description": "Deployment-Skripte",
+      "items": [],
+      "central_target": "scripts/deploy/"
+    },
+    "monitoring-configs": {
+      "description": "Monitoring-Konfigurationen",
+      "items": [],
+      "central_target": "ops/monitoring/"
+    },
+    "security-checks": {
+      "description": "Security-Check-Workflows",
+      "items": [],
+      "central_target": "ops/security/"
+    },
+    "supabase-schemas": {
+      "description": "Supabase-Datenbankschemas",
+      "items": [],
+      "central_target": "supabase/"
+    },
+    "rls-policies": {
+      "description": "Row-Level-Security-Policies",
+      "items": [],
+      "central_target": "supabase/rls/"
+    },
+    "email-templates": {
+      "description": "E-Mail-Vorlagen",
+      "items": [],
+      "central_target": "packages/email/"
+    },
+    "support-flows": {
+      "description": "Support-Workflows",
+      "items": [],
+      "central_target": "services/support/"
+    }
+  },
+  "meta_rules": [
+    "Jeder Eintrag erfordert: id, name, category, source_project, source_path, source_status, legal_reuse_status, contains_customer_data, contains_secrets, quality_status, target_form, target_location, dependencies, reuse_notes, required_cleanup, owner, next_action",
+    "Keine Kundendaten oder Secrets im Catalog speichern",
+    "Vor jeder neuen Implementierung Reuse Catalog prüfen",
+    "Fund aus Customer-Projekt als 'pattern_only' oder 'needs_review' markieren bis Freigabe"
+  ]
+}

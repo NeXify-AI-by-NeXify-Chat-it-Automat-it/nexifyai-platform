@@ -1,0 +1,69 @@
+{
+  "version": "1.2",
+  "date": "2026-05-24",
+  "extensions": [
+    {
+      "id": "A",
+      "title": "AI-Governance",
+      "rules": [
+        "Brain-first",
+        "Ein Brain",
+        "Semantisches Gedächtnis",
+        "Episodisches Gedächtnis",
+        "Prozedurales Gedächtnis",
+        "Lessons Learned Pflicht",
+        "Prevention Rules Pflicht",
+        "Fehler-nie-zweimal",
+        "Resource-first",
+        "Runtime Evidence",
+        "Sourcecode != Runtime",
+        "Keine Fertigmeldung ohne Nachweis"
+      ]
+    },
+    {
+      "id": "B",
+      "title": "Goose-/Agenten-Governance",
+      "rules": [
+        "Goose Primärintelligenz",
+        "Cline = Dead Legacy",
+        "Anton = Legacy",
+        "Hermes = Legacy",
+        "Oracle = Legacy",
+        "Keine lokalen Fake-Skills",
+        "claude-code-templates Master",
+        "Subagenten-Pflicht",
+        "Intent Reconstruction",
+        "Human Expectations Model",
+        "Completion Definition mit Evidence"
+      ]
+    },
+    {
+      "id": "C",
+      "title": "Skill-/Agent-/MCP-Governance"
+    },
+    {
+      "id": "D",
+      "title": "Plattform-Governance"
+    },
+    {
+      "id": "E",
+      "title": "Leistungsmodell"
+    },
+    {
+      "id": "F",
+      "title": "Kundenprojekt-Golden-Path"
+    },
+    {
+      "id": "G",
+      "title": "Tech-Stack 2026"
+    },
+    {
+      "id": "H",
+      "title": "Compliance-Realitätsregel"
+    },
+    {
+      "id": "I",
+      "title": "Automatische Aktualisierung"
+    }
+  ]
+}

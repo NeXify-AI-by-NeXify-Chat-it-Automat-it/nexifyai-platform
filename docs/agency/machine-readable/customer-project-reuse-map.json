@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-05-24",
+  "customer_projects": [],
+  "meta": {
+    "description": "Map zwischen Kundenprojekten und wiederverwendbaren Artefakten/Patterns",
+    "required_fields": [
+      "customer_id", "project_name", "repo_url", "artifacts_identified",
+      "patterns_extracted", "reuse_status", "notes"
+    ]
+  }
+}

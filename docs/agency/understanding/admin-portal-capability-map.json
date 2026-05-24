@@ -1,0 +1,16 @@
+{
+  "portal": {
+    "name": "Adminportal",
+    "capabilities": [
+      "Kundenverwaltung",
+      "Guthaben-Verwaltung",
+      "Usage-\u00dcbersicht (alle Kunden)",
+      "API-Key-Verwaltung",
+      "Rechnungsmanagement",
+      "Support/Ticket-System",
+      "Modellverwaltung",
+      "Projektstatus",
+      "Lead-/Angebotsprozesse"
+    ]
+  }
+}
