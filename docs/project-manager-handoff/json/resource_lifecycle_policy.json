@@ -1,0 +1,20 @@
+{
+  "allowed_statuses": [
+    "active_managed",
+    "planned",
+    "migrated",
+    "quarantined",
+    "removed_with_evidence",
+    "blocked"
+  ],
+  "required_fields": [
+    "path",
+    "purpose",
+    "owner",
+    "source_of_truth",
+    "runtime_relevance",
+    "status",
+    "next_action"
+  ],
+  "rule": "No generated resource may remain unclassified or half-built."
+}
