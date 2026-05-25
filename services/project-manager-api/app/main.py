@@ -4,6 +4,7 @@ import json
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, Request, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.auth import verify_token
 from app.config import REGISTRY_DIR
@@ -27,14 +28,16 @@ async def worker_poll_loop():
         try:
             if not DRY_RUN:
                 pending = list_tasks(status=TaskStatus.queued.value, limit=5)
-                for t in pending:
+                for t_model in pending:
+                    t = t_model.model_dump()
                     task = get(t["task_id"])
                     if task and task.status == TaskStatus.queued:
                         logger.info("Auto-dispatch task %s", task.task_id)
                         await run_task(task)
             else:
                 pending = list_tasks(status=TaskStatus.queued.value, limit=5)
-                for t in pending:
+                for t_model in pending:
+                    t = t_model.model_dump()
                     logger.info("Dry-run: would dispatch task %s (goal=%s)", t["task_id"], t.get("goal","")[:80])
         except Exception as e:
             logger.error("Worker poll error: %s", e)
@@ -49,6 +52,7 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down")
 
 app = FastAPI(title="NeXify Project Manager", version=VERSION, lifespan=lifespan)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 @app.get("/health", response_model=HealthResponse)
 async def health():

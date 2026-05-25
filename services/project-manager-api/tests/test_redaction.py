@@ -6,9 +6,9 @@ from app.redaction import redact_string, redact_dict
 GITHUB_TOKEN = "ghp_" + "a" * 36
 GITHUB_PAT = "github_pat_" + "a" * 40
 BEARER_TOKEN = "ya29." + "a" * 30
-SK_TOKEN = "sk-" + "a" * 25
+SK_TOKEN = "sk-" + "a" * 25  # must be >= 20 chars for pattern
 PASSWORD_SECRET = "password=supersecret123"
-AUTH_HEADER = "Authorization: Bearer xoxb-1234567890-abc"
+AUTH_HEADER = "Authorization: Bearer xoxb-1234567890-abcdefghijk"
 
 
 class TestRedactKnownPatterns:

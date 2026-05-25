@@ -33,10 +33,10 @@ class TestEvidenceContract:
         original = evidence.EVIDENCE_DIR
         evidence.EVIDENCE_DIR = tmp_path
         try:
-            path = save_evidence("test-task-002", "Bearer sk-secret123", "")
+            path = save_evidence("test-task-002", "Bearer sk-abcdefghijklmnopqrstuvwxyz1234567890", "")
             for f in Path(path).iterdir():
                 content = f.read_text()
-                assert "sk-secret123" not in content
+                assert "sk-abcdefghijklmnopqrstuvwxyz1234567890" not in content
         finally:
             evidence.EVIDENCE_DIR = original
 

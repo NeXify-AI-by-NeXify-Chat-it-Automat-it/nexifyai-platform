@@ -1,4 +1,6 @@
 """SQLite-based task registry."""
+import logging
+logger = logging.getLogger("pm.registry")
 import json
 import sqlite3
 from datetime import datetime, timezone
