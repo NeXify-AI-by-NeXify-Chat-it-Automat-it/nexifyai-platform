@@ -145,6 +145,9 @@ automations/cron/output/
 *.pyc
 __pycache__/
 
+# Agent log output (status reports, diagnostics)
+logs/
+
 # Security scanner results (contain leaked/inactive tokens, never commit)
 scanner_results.json
 gitleaks*.json
