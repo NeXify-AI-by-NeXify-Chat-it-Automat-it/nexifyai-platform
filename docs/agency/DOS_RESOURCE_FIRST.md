@@ -63,3 +63,28 @@ Erweitere DOS bei:
 - Skills: claude-code-templates, Bridge, Registry
 - Tools: Goose-Tools, MCPs, GitHub Actions
 - System: Portale, Services, APIs, Workflows
+
+## Browser Evidence Runner (Geplantes Tool)
+
+**Kandidat:** Microsoft Webwright (MIT License, Python/Playwright, ~1.5k LoC Core)
+
+**Use Cases:**
+- Agenturseite: Kontaktformular-, CTA-, UI-Smoke-Tests mit Screenshot-Evidence
+- Kundenprojekte: Livegang-Checks, Pflichtenheft-Flows, Formularstrecken, Login-Tests
+- Evidence: Automatisierte Abnahme-Evidence mit Playwright-Reports
+
+**Integration:**
+- Als Goose-Skill oder Tool-MCP unter Project Manager Control Plane
+- Brain speichert Test-Results
+- GitHub PRs erhalten Test-Evidence
+- OpenRouter/9Router als privat betreibbarer Model-Backend (keine externen API-Keys nötig)
+
+**Security:**
+- Nur Testaccounts/kurzlebige Tokens
+- Domain-Allowlist, Rate Limits
+- Keine echten Kunden-/Admin-Secrets im Browser-Agent
+- Keine Passwörter in Prompts
+- Keine produktiven Schreibaktionen ohne Freigabe
+
+**Status:** planned (keine produktive Installation, nur evaluiert)
+**Entscheidung:** Am 2026-05-25 als OSS-Kandidat in den Resource Catalog aufgenommen
