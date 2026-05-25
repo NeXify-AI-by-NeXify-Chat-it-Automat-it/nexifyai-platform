@@ -1,8 +1,8 @@
 # Existing Artifacts Decision Log
 
-**Version:** 1.0  
-**Stand:** 2026-05-25  
-**Status:** active_managed  
+**Version:** 1.0
+**Stand:** 2026-05-25
+**Status:** active_managed
 
 ---
 

@@ -289,16 +289,16 @@ Approval: [Link]
 
 ## Questions
 
-**Q**: Was wenn ich unsicher bin?  
+**Q**: Was wenn ich unsicher bin?
 **A**: Immer `planned` oder `blocked`, nie unklassifiziert
 
-**Q**: Was wenn Owner fehlt?  
+**Q**: Was wenn Owner fehlt?
 **A**: Sofort `blocked` + Issue erstellen
 
-**Q**: Was wenn Deadline verpasst?  
+**Q**: Was wenn Deadline verpasst?
 **A**: Status reviewen, extend oder remove
 
-**Q**: Was wenn Dependencies unklar?  
+**Q**: Was wenn Dependencies unklar?
 **A**: Investigation Task erstellen, nicht ignorieren
 
 ## Compliance Check

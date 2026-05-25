@@ -1,8 +1,8 @@
 # Cleanup and Resource Lifecycle Policy
 
-**Version:** 1.0  
-**Stand:** 2026-05-25  
-**Status:** active_managed  
+**Version:** 1.0
+**Stand:** 2026-05-25
+**Status:** active_managed
 **Owner:** Project Manager
 
 ---
