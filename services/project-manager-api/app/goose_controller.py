@@ -44,16 +44,27 @@ REGELN:
 """
 
 async def run_task(task: TaskRecord) -> dict:
-    # Step 1: Skill registry check
-    skill_ok, skill_err, skill_evidence = await select_and_validate(
-        task.task_id, task.goal, task.mode.value
-    )
+    # Step 1: Skill registry check (wrapped in try/except — old tasks may have incompatible data)
+    try:
+        skill_ok, skill_err, skill_evidence = await select_and_validate(
+            task.task_id, task.goal, task.mode.value
+        )
+    except Exception as e:
+        logger.error("Skill registry crash for task %s: %s", task.task_id, e)
+        update_status(task.task_id, TaskStatus.failed, error=f"Skill registry: {e}")
+        return {"status": "failed", "error": f"Skill registry: {e}"}
+
     if not skill_ok:
         update_status(task.task_id, TaskStatus.blocked_skill_registry, error=skill_err)
         return {"status": "blocked_skill_registry", "error": skill_err}
 
     # Step 2: Brain health
-    brain_ok = await brain_health()
+    try:
+        brain_ok = await brain_health()
+    except Exception as e:
+        logger.error("Brain health crash for task %s: %s", task.task_id, e)
+        brain_ok = False
+
     if not brain_ok and not DRY_RUN:
         update_status(task.task_id, TaskStatus.blocked, error="Brain health check failed")
         return {"status": "blocked", "error": "Brain not reachable"}

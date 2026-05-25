@@ -26,19 +26,14 @@ async def worker_poll_loop():
     logger.info("Worker poll loop started (dry_run=%s, worker_enabled=%s)", DRY_RUN, not DRY_RUN)
     while True:
         try:
-            if not DRY_RUN:
-                pending = list_tasks(status=TaskStatus.queued.value, limit=5)
-                for t_model in pending:
-                    t = t_model.model_dump()
-                    task = get(t["task_id"])
-                    if task and task.status == TaskStatus.queued:
-                        logger.info("Auto-dispatch task %s", task.task_id)
-                        await run_task(task)
-            else:
-                pending = list_tasks(status=TaskStatus.queued.value, limit=5)
-                for t_model in pending:
-                    t = t_model.model_dump()
-                    logger.info("Dry-run: would dispatch task %s (goal=%s)", t["task_id"], t.get("goal","")[:80])
+            pending = list_tasks(status=TaskStatus.queued.value, limit=5)
+            for task_rec in pending:
+                task = get(task_rec.task_id)
+                if not task or task.status != TaskStatus.queued:
+                    continue
+                update_status(task.task_id, TaskStatus.running)
+                logger.info("Auto-dispatch task %s (goal=%s)", task.task_id, (task_rec.goal or "")[:60])
+                await run_task(task)
         except Exception as e:
             logger.error("Worker poll error: %s", e)
         await asyncio.sleep(30)
