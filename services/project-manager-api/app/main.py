@@ -1,4 +1,5 @@
 """NeXify Project Manager Control Plane - FastAPI application."""
+import asyncio
 import json
 import logging
 from contextlib import asynccontextmanager
@@ -19,10 +20,32 @@ from app import VERSION
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 logger = logging.getLogger("pm.api")
 
+async def worker_poll_loop():
+    """Background worker: polls queued tasks every 30s and auto-dispatches."""
+    logger.info("Worker poll loop started (dry_run=%s, worker_enabled=%s)", DRY_RUN, not DRY_RUN)
+    while True:
+        try:
+            if not DRY_RUN:
+                pending = list_tasks(status=TaskStatus.queued.value, limit=5)
+                for t in pending:
+                    task = get(t["task_id"])
+                    if task and task.status == TaskStatus.queued:
+                        logger.info("Auto-dispatch task %s", task.task_id)
+                        await run_task(task)
+            else:
+                pending = list_tasks(status=TaskStatus.queued.value, limit=5)
+                for t in pending:
+                    logger.info("Dry-run: would dispatch task %s (goal=%s)", t["task_id"], t.get("goal","")[:80])
+        except Exception as e:
+            logger.error("Worker poll error: %s", e)
+        await asyncio.sleep(30)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Project Manager Control Plane v%s starting (dry_run=%s)", VERSION, DRY_RUN)
+    task = asyncio.create_task(worker_poll_loop())
     yield
+    task.cancel()
     logger.info("Shutting down")
 
 app = FastAPI(title="NeXify Project Manager", version=VERSION, lifespan=lifespan)
