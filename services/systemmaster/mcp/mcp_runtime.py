@@ -1,6 +1,6 @@
 #!/venv/bin/python3
 """mcp_runtime.py — MCP Capability Gateway. 25+ echte Capabilities."""
-import json, logging, os, subprocess, threading, time, urllib.request
+import sys, json, logging, os, subprocess, threading, time, urllib.request
 sys.path.insert(0, "/systemmaster/eventbus")
 from eventbus_daemon import get_bus
 
