@@ -46,8 +46,8 @@ jobs:
           # was already a full URL => invalid URL like https://www.nexify-automate.comhttps://...
           # Supabase REST endpoint removed — requires API key auth, not a public health endpoint.
           for URL in \
-            "https://nexify-automate.com/api/health" \
-            "https://www.nexify-automate.com/api/health"; do
+            "https://api.nexifyai.cloud/api/health" \
+            "https://nexifyai.cloud/api/health"; do
             STATUS=$(curl -sf -o /dev/null -w "%{http_code}" --max-time 10 "$URL" 2>/dev/null || echo "000")
             if [ "$STATUS" = "200" ]; then
               echo "Backend reachable via ${URL}"
@@ -61,8 +61,8 @@ jobs:
       - name: VERIFY - Health Score
         run: |
           for URL in \
-            "https://nexify-automate.com/api/health" \
-            "https://www.nexify-automate.com/api/health"; do
+            "https://api.nexifyai.cloud/api/health" \
+            "https://nexifyai.cloud/api/health"; do
             HEALTH=$(curl -sf --max-time 10 "$URL" 2>/dev/null)
             if [ -n "$HEALTH" ]; then
               SCORE=$(echo "$HEALTH" | python3 -c "import sys,json; print(json.load(sys.stdin).get('score',100))" 2>/dev/null || echo "100")
@@ -78,7 +78,7 @@ jobs:
 
       - name: VERIFY - Frontend Reachability
         run: |
-          STATUS=$(curl -sf -o /dev/null -w "%{http_code}" --max-time 15 "https://www.nexify-automate.com" 2>/dev/null || echo "000")
+          STATUS=$(curl -sf -o /dev/null -w "%{http_code}" --max-time 15 "https://nexifyai.cloud" 2>/dev/null || echo "000")
           echo "Frontend status: HTTP $STATUS"
           if [ "$STATUS" != "200" ] && [ "$STATUS" != "301" ] && [ "$STATUS" != "302" ]; then
             echo "Frontend not reachable after deploy"
