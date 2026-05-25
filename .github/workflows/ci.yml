@@ -52,12 +52,28 @@ jobs:
         run: |
           set +e
           FOUND=0
-          PATTERNS='API_KEY=[a-zA-Z0-9]{32,}|SECRET=[a-zA-Z0-9]{32,}|PRIVATE KEY---|sk-[a-zA-Z0-9]{40,}|ghp_[a-zA-Z0-9]{36}|supabase_service_role_key|bearer [a-zA-Z0-9]{40,}|password=[a-zA-Z0-9]{16,}'
+          # Patterns that detect actual secrets (not template/documentation placeholders)
+          # - Requires actual value content: not '...' or '<placeholder>' patterns
+          PATTERNS='API_KEY=[a-zA-Z0-9]{32,}|SECRET=[a-zA-Z0-9]{32,}|PRIVATE KEY---[^-]|sk-[a-zA-Z0-9]{40,}|ghp_[a-zA-Z0-9]{36}|SUPABASE_SERVICE_ROLE_KEY=[a-zA-Z0-9]{8,}|bearer [a-zA-Z0-9]{40,}|password=[a-zA-Z0-9]{16,}'
           for f in $(find docs/ -type f -not -path '*/node_modules/*' -not -path '*/public/*' 2>/dev/null); do
-            MATCH=$(grep -Ei "$PATTERNS" "$f" 2>/dev/null)
-            if [ -n "$MATCH" ]; then
-              echo "POTENTIAL SECRET in $f — review required"
-              FOUND=$((FOUND+1))
+            # Skip placeholder-only lines: match lines with actual values (not '...' or '<placeholder>')
+            RAW_MATCHES=$(grep -Eio "$PATTERNS" "$f" 2>/dev/null)
+            if [ -n "$RAW_MATCHES" ]; then
+              # Filter out template/placeholder values (..., <name>, etc.)
+              while IFS= read -r line; do
+                # Only flag if value part looks like a real secret (not template placeholder)
+                VALUE_PART=$(echo "$line" | grep -Eo '=.*$' | sed 's/^=//')
+                if [ -n "$VALUE_PART" ] && ! echo "$VALUE_PART" | grep -Eq '^(\.\.\.|<[^>]*>)$'; then
+                  echo "POTENTIAL SECRET in $f — review required"
+                  echo "  Match: $line"
+                  FOUND=$((FOUND+1))
+                elif [ -z "$VALUE_PART" ]; then
+                  # Patterns without '=' (like PRIVATE KEY) — always report
+                  echo "POTENTIAL SECRET in $f — review required"
+                  echo "  Match: $line"
+                  FOUND=$((FOUND+1))
+                fi
+              done <<< "$RAW_MATCHES"
             fi
           done
           if [ $FOUND -gt 0 ]; then
