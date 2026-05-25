@@ -4,52 +4,52 @@
 
   <!-- HOMEPAGE (DE) -->
   <url>
-    <loc>https://www.nexify-automate.com/de</loc>
-    <lastmod>2026-05-08</lastmod>
+    <loc>https://nexifyai.cloud/de</loc>
+    <lastmod>2026-05-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="de" href="https://www.nexify-automate.com/de" />
-    <xhtml:link rel="alternate" hreflang="nl" href="https://www.nexify-automate.com/nl" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.nexify-automate.com/en" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.nexify-automate.com/en" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://nexifyai.cloud/de" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://nexifyai.cloud/nl" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nexifyai.cloud/en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nexifyai.cloud/en" />
   </url>
   <url>
-    <loc>https://www.nexify-automate.com/nl</loc>
-    <lastmod>2026-05-08</lastmod>
+    <loc>https://nexifyai.cloud/nl</loc>
+    <lastmod>2026-05-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.nexify-automate.com/en</loc>
-    <lastmod>2026-05-08</lastmod>
+    <loc>https://nexifyai.cloud/en</loc>
+    <lastmod>2026-05-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <!-- SUBPAGES -->
-  <url><loc>https://www.nexify-automate.com/de/leistungen</loc><lastmod>2026-05-08</lastmod><changefreq>monthly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://www.nexify-automate.com/de/preise</loc><lastmod>2026-05-08</lastmod><changefreq>monthly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://www.nexify-automate.com/de/kontakt</loc><lastmod>2026-05-08</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://www.nexify-automate.com/de/blog</loc><lastmod>2026-05-08</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://nexifyai.cloud/de/leistungen</loc><lastmod>2026-05-25</lastmod><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://nexifyai.cloud/de/preise</loc><lastmod>2026-05-25</lastmod><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://nexifyai.cloud/de/kontakt</loc><lastmod>2026-05-25</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nexifyai.cloud/de/blog</loc><lastmod>2026-05-25</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
 
   <!-- BLOG ARTICLES DE -->
-  <url><loc>https://www.nexify-automate.com/de/blog/ki-agenten-mittelstand-2026</loc><lastmod>2026-05-08</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://www.nexify-automate.com/de/blog/crm-ki-integration-leitfaden</loc><lastmod>2026-05-08</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://www.nexify-automate.com/de/blog/dsgvo-konforme-ki-assistenten</loc><lastmod>2026-05-08</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://www.nexify-automate.com/de/blog/ki-tarife-vergleich-starter-growth</loc><lastmod>2026-05-08</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nexifyai.cloud/de/blog/ki-agenten-mittelstand-2026</loc><lastmod>2026-05-25</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nexifyai.cloud/de/blog/crm-ki-integration-leitfaden</loc><lastmod>2026-05-25</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nexifyai.cloud/de/blog/dsgvo-konforme-ki-assistenten</loc><lastmod>2026-05-25</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nexifyai.cloud/de/blog/ki-tarife-vergleich-starter-growth</loc><lastmod>2026-05-25</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
 
   <!-- BLOG ARTICLES NL -->
-  <url><loc>https://www.nexify-automate.com/nl/blog/ki-agenten-middenbedrijf-2026</loc><lastmod>2026-05-08</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://www.nexify-automate.com/nl/blog/avg-conforme-ai-assistenten</loc><lastmod>2026-05-08</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://nexifyai.cloud/nl/blog/ki-agenten-middenbedrijf-2026</loc><lastmod>2026-05-25</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://nexifyai.cloud/nl/blog/avg-conforme-ai-assistenten</loc><lastmod>2026-05-25</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
 
   <!-- BLOG ARTICLES EN -->
-  <url><loc>https://www.nexify-automate.com/en/blog/ai-agents-sme-2026</loc><lastmod>2026-05-08</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://www.nexify-automate.com/en/blog/gdpr-compliant-ai-assistants</loc><lastmod>2026-05-08</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://nexifyai.cloud/en/blog/ai-agents-sme-2026</loc><lastmod>2026-05-25</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://nexifyai.cloud/en/blog/gdpr-compliant-ai-assistants</loc><lastmod>2026-05-25</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
 
   <!-- LEGAL PAGES DE -->
-  <url><loc>https://www.nexify-automate.com/de/impressum</loc><lastmod>2026-05-07</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
-  <url><loc>https://www.nexify-automate.com/de/datenschutz</loc><lastmod>2026-05-07</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
-  <url><loc>https://www.nexify-automate.com/de/agb</loc><lastmod>2026-05-07</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
-  <url><loc>https://www.nexify-automate.com/de/ki-hinweise</loc><lastmod>2026-05-07</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://nexifyai.cloud/de/impressum</loc><lastmod>2026-05-25</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://nexifyai.cloud/de/datenschutz</loc><lastmod>2026-05-25</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://nexifyai.cloud/de/agb</loc><lastmod>2026-05-25</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://nexifyai.cloud/de/ki-hinweise</loc><lastmod>2026-05-25</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
 
 </urlset>
