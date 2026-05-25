@@ -49,6 +49,16 @@ def get_relevant_skills(task_goal: str, task_mode: str, reg: dict) -> list[dict]
     categories = skills_data.get("categories", [])
     goal_lower = task_goal.lower()
     relevant = []
+
+    # Normalize: categories can be list[str] or list[dict]
+    normalized = []
+    for cat in categories:
+        if isinstance(cat, str):
+            normalized.append({"name": cat, "skill_count": 0})
+        elif isinstance(cat, dict):
+            normalized.append(cat)
+    categories = normalized
+
     for cat in categories:
         score = 0
         name = cat.get("name", "").lower()
@@ -57,7 +67,7 @@ def get_relevant_skills(task_goal: str, task_mode: str, reg: dict) -> list[dict]
         if task_mode in name:
             score += 2
         if score > 0:
-            relevant.append({"category": cat["name"], "skills": cat["skill_count"], "relevance": score})
+            relevant.append({"category": cat["name"], "skills": cat.get("skill_count", 0), "relevance": score})
     if not relevant:
         relevant.append({"category": "all", "skills": total, "relevance": 1, "note": "no direct keyword match, all skills available"})
     relevant.sort(key=lambda x: x["relevance"], reverse=True)
