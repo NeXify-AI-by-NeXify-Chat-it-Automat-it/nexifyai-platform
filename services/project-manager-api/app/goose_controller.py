@@ -2,6 +2,8 @@
 import asyncio
 import json
 import logging
+import os
+import shutil
 from pathlib import Path
 from app.config import EVIDENCE_DIR, DATA_DIR
 from app.schemas import TaskRecord, TaskStatus
@@ -16,7 +18,12 @@ import os
 logger = logging.getLogger("pm.goose")
 
 DRY_RUN = os.environ.get("DRY_RUN_MODE", "true").lower() == "true"
-GOOSE_BIN = os.environ.get("GOOSE_BIN", "goose")
+# Fallback chain: env var → /root/.local/bin/goose → PATH goose
+_goose_path = os.environ.get("GOOSE_BIN") or "/root/.local/bin/goose"
+if not os.path.isfile(_goose_path):
+    import shutil
+    _goose_path = shutil.which("goose") or "goose"
+GOOSE_BIN = _goose_path
 WORKER_TIMEOUT = int(os.environ.get("WORKER_TIMEOUT", "600"))
 
 GOOSE_TEMPLATE = """
