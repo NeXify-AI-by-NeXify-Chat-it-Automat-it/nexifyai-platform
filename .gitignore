@@ -145,3 +145,8 @@ automations/cron/output/
 *.pyc
 __pycache__/
 
+# Security scanner results (contain leaked/inactive tokens, never commit)
+scanner_results.json
+gitleaks*.json
+trivy*.json
+
