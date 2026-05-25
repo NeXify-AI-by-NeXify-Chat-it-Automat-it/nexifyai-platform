@@ -16,29 +16,20 @@ jobs:
     steps:
       - name: Check Website
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://www.nexify-automate.com)
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://nexifyai.cloud)
           if [ "$STATUS" != "200" ]; then
             echo "❌ Website returned HTTP $STATUS"
             exit 1
           fi
           echo "✅ Website OK (HTTP $STATUS)"
 
-      - name: Check API Health
+      - name: Check Backend Health
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://www.nexify-automate.com/api/health 2>/dev/null || echo "000")
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://api.nexifyai.cloud/api/health 2>/dev/null || echo "000")
           if [ "$STATUS" = "200" ]; then
-            echo "✅ API Health OK"
+            echo "✅ Backend API Health OK"
           else
-            echo "⚠️  API Health returned $STATUS (backend may be starting)"
-          fi
-
-      - name: Check Admin
-        run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://www.nexify-automate.com/admin)
-          if [ "$STATUS" = "200" ]; then
-            echo "✅ Admin OK"
-          else
-            echo "⚠️  Admin returned $STATUS"
+            echo "⚠️  Backend Health returned $STATUS (backend may be starting)"
           fi
 
       - name: Notify on Failure

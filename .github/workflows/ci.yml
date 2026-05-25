@@ -10,9 +10,9 @@ jobs:
         with: { python-version: '3.11' }
       - uses: actions/setup-node@v6
         with: { node-version: '20' }
-      - name: Lint
+      - name: Build check
         run: |
-          cd apps/web && npm ci && npx react-scripts build --max-warnings=0 || true
+          cd apps/web && npm ci && npx vite build --logLevel error
       - name: Security audit
         run: |
           pip install bandit && bandit -r services/api/ -x venv,tests || true

@@ -41,10 +41,6 @@ jobs:
 
       - name: RE-OBSERVE - Backend Health
         run: |
-          # FIX: Use complete URLs directly.
-          # Previous bug: curl "https://www.nexify-automate.com${D}{ENDPOINT}" where ENDPOINT
-          # was already a full URL => invalid URL like https://www.nexify-automate.comhttps://...
-          # Supabase REST endpoint removed — requires API key auth, not a public health endpoint.
           for URL in \
             "https://api.nexifyai.cloud/api/health" \
             "https://nexifyai.cloud/api/health"; do
