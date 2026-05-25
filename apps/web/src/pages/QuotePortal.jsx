@@ -182,7 +182,7 @@ export default function QuotePortal() {
           </form>
 
           <p style={{fontSize:'.75rem',color:'#4a5568',textAlign:'center',marginTop:16}}>
-            Nach der Aktivierung können Sie sich jederzeit unter <strong style={{color:'#8a9bb0'}}>nexify-automate.com/login</strong> mit Ihrer E-Mail und diesem Passwort anmelden.
+            Nach der Aktivierung können Sie sich jederzeit unter <strong style={{color:'#8a9bb0'}}>nexifyai.cloud/login</strong> mit Ihrer E-Mail und diesem Passwort anmelden.
           </p>
         </div>
       </div>
@@ -238,7 +238,7 @@ export default function QuotePortal() {
 
         {setupDone && (
           <div style={{padding:'12px 16px',borderRadius:8,background:'rgba(16,185,129,0.08)',border:'1px solid rgba(16,185,129,0.2)',marginBottom:20,fontSize:'.8125rem',color:'#10b981'}}>
-            ✓ Ihr Kundenportal-Konto wurde aktiviert. Sie können sich ab jetzt jederzeit unter <strong>nexify-automate.com/login</strong> einloggen.
+            ✓ Ihr Kundenportal-Konto wurde aktiviert. Sie können sich ab jetzt jederzeit unter <strong>nexifyai.cloud/login</strong> einloggen.
           </div>
         )}
 

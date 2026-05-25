@@ -1,7 +1,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
-const BASE_URL = 'https://www.nexify-automate.com';
+const BASE_URL = 'https://nexifyai.cloud';
 
 const META = {
   de: {
@@ -97,7 +97,7 @@ export default function SEOHead({ lang = 'de', page = 'home' }) {
     address: { '@type': 'PostalAddress', streetAddress: L10N_ADDR.nl.streetAddress, addressLocality: L10N_ADDR.nl.addressLocality, postalCode: L10N_ADDR.nl.postalCode, addressCountry: L10N_ADDR.nl.addressCountry },
     contactPoint: [
       { '@type': 'ContactPoint', telephone: '+31-6-133-188-56', contactType: 'sales', availableLanguage: ['German', 'Dutch', 'English'] },
-      { '@type': 'ContactPoint', email: 'support@nexify-automate.com', contactType: 'support', availableLanguage: ['German', 'Dutch', 'English'] }
+      { '@type': 'ContactPoint', email: 'support@nexifyai.cloud', contactType: 'support', availableLanguage: ['German', 'Dutch', 'English'] }
     ],
     sameAs: [
       'https://wa.me/31613318856'
@@ -112,7 +112,7 @@ export default function SEOHead({ lang = 'de', page = 'home' }) {
     name: 'neXify - Chat it. Automat it.',
     url: BASE_URL,
     telephone: '+31-6-133-188-56',
-    email: 'support@nexify-automate.com',
+    email: 'support@nexifyai.cloud',
     address: { '@type': 'PostalAddress', streetAddress: L10N_ADDR.nl.streetAddress, addressLocality: L10N_ADDR.nl.addressLocality, postalCode: L10N_ADDR.nl.postalCode, addressCountry: L10N_ADDR.nl.addressCountry },
     areaServed: ['DE', 'AT', 'CH', 'NL', 'BE', 'EU'],
     priceRange: '€€€',

@@ -8,13 +8,13 @@ import '../App.css';
 
 const META = {
   de: { title: 'Kontakt — KI-Beratung für Unternehmen | NeXifyAI',
-    description: 'Kontaktieren Sie NeXifyAI für KI-Beratung im DACH-Mittelstand. Telefon: +31 6 133 188 56, E-Mail: support@nexify-automate.com. Kostenloses Erstgespräch vereinbaren.',
+    description: 'Kontaktieren Sie NeXifyAI für KI-Beratung im DACH-Mittelstand. Telefon: +31 6 133 188 56, E-Mail: support@nexifyai.cloud. Kostenloses Erstgespräch vereinbaren.',
     keywords: 'KI-Beratung Kontakt, KI-Agentur Kontakt, NeXifyAI Kontakt, KI-Beratung Telefon, DACH KI Agentur Venlo' },
   nl: { title: 'Contact — AI-Advies voor Bedrijven | NeXifyAI',
-    description: 'Neem contact op met NeXifyAI voor AI-advies. Telefoon: +31 6 133 188 56, E-mail: support@nexify-automate.com. Gratis eerste gesprek.',
+    description: 'Neem contact op met NeXifyAI voor AI-advies. Telefoon: +31 6 133 188 56, E-mail: support@nexifyai.cloud. Gratis eerste gesprek.',
     keywords: 'AI-advies contact, AI-agentuurscontact, NeXifyAI contact' },
   en: { title: 'Contact — AI Consulting for Business | NeXifyAI',
-    description: 'Contact NeXifyAI for AI consulting. Phone: +31 6 133 188 56, Email: support@nexify-automate.com. Free initial consultation.',
+    description: 'Contact NeXifyAI for AI consulting. Phone: +31 6 133 188 56, Email: support@nexifyai.cloud. Free initial consultation.',
     keywords: 'AI consulting contact, AI agency contact, NeXifyAI contact' }
 };
 
@@ -186,7 +186,7 @@ export default function KontaktPage() {
             '@type': 'Organization',
             name: 'NeXifyAI by NeXify',
             telephone: '+31 6 133 188 56',
-            email: 'support@nexify-automate.com',
+            email: 'support@nexifyai.cloud',
             address: { '@type': 'PostalAddress', streetAddress: 'Graaf van Loonstraat 1E', addressLocality: 'Venlo', postalCode: '5921 JA', addressCountry: 'NL' }
           }
         })}</script>
@@ -223,7 +223,7 @@ export default function KontaktPage() {
                 </div>
                 <div style={{ marginTop: '3rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', color: '#8892a0' }}>
                   <p><strong style={{ color: '#dee3ed' }}>Telefon:</strong> <a href="tel:+31613318856" style={{ color: '#FE9B7B' }}>+31 6 133 188 56</a></p>
-                  <p><strong style={{ color: '#dee3ed' }}>E-Mail:</strong> <a href="mailto:support@nexify-automate.com" style={{ color: '#FE9B7B' }}>support@nexify-automate.com</a></p>
+                  <p><strong style={{ color: '#dee3ed' }}>E-Mail:</strong> <a href="mailto:support@nexifyai.cloud" style={{ color: '#FE9B7B' }}>support@nexifyai.cloud</a></p>
                   <p><strong style={{ color: '#dee3ed' }}>Adresse:</strong> {COMPANY.addr?.nl?.s ?? ''}, {COMPANY.addr?.nl?.c ?? ''}</p>
                   <p><strong style={{ color: '#dee3ed' }}>KvK:</strong> {COMPANY.kvk} | <strong style={{ color: '#dee3ed' }}>USt-ID:</strong> {COMPANY.vat}</p>
                 </div>

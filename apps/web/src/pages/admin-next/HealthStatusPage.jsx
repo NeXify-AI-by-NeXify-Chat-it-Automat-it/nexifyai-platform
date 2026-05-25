@@ -133,7 +133,7 @@ const HealthStatusPage = () => {
 
         {/* Footer */}
         <div style={{ marginTop: 24, textAlign: 'center', fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>
-          <a href="/" style={{ color: '#FE9B7B', textDecoration: 'none' }}>www.nexify-automate.com</a>
+          <a href="/" style={{ color: '#FE9B7B', textDecoration: 'none' }}>nexifyai.cloud</a>
           <span style={{ margin: '0 8px' }}>·</span>
           <a href="/impressum" style={{ color: 'rgba(255,255,255,0.3)', textDecoration: 'none' }}>Impressum</a>
           <span style={{ margin: '0 8px' }}>·</span>

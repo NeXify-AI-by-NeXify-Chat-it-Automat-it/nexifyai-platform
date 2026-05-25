@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async';
 
 const CO = {
   legal: 'neXify — Chat it. Automat it.',
-  email: 'buchhaltung@nexify-automate.com'
+  email: 'buchhaltung@nexifyai.cloud'
 };
 
 const CONTENT = {
@@ -12,21 +12,21 @@ const CONTENT = {
     h1: 'Diese Website ist vorübergehend deaktiviert',
     msg: 'Diese Website ist derzeit vorübergehend deaktiviert.',
     action: 'Bei Fragen wenden Sie sich bitte an:',
-    email: 'support@nexify-automate.com'
+    email: 'support@nexifyai.cloud'
   },
   nl: {
     title: 'Website tijdelijk gedeactiveerd — NeXifyAI',
     h1: 'Deze website is tijdelijk gedeactiveerd',
     msg: 'Deze website is momenteel tijdelijk gedeactiveerd.',
     action: 'Neem bij vragen contact op met:',
-    email: 'support@nexify-automate.com'
+    email: 'support@nexifyai.cloud'
   },
   en: {
     title: 'Website Temporarily Deactivated — NeXifyAI',
     h1: 'This website is temporarily deactivated',
     msg: 'This website is currently temporarily deactivated.',
     action: 'For questions, please contact:',
-    email: 'support@nexify-automate.com'
+    email: 'support@nexifyai.cloud'
   }
 };
 

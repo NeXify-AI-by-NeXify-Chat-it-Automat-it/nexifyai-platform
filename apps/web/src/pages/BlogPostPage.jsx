@@ -8,7 +8,7 @@ import { COMPANY, LEGAL_PATHS, Logo, I, Footer } from '../components/shared';
 import { getPost, getMeta } from '../data/blog';
 import '../App.css';
 
-const BASE_URL = 'https://www.nexify-automate.com';
+const BASE_URL = 'https://nexifyai.cloud';
 
 export default function BlogPostPage() {
   const { lang, slug } = useParams();

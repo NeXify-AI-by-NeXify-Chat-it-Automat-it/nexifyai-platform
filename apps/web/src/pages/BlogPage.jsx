@@ -36,7 +36,7 @@ export default function BlogPage() {
       '@type': 'BlogPosting',
       headline: p.meta.title,
       description: p.meta.description,
-      url: `https://www.nexify-automate.com/${lang}/blog/${p.slug}`,
+      url: `https://nexifyai.cloud/${lang}/blog/${p.slug}`,
       datePublished: p.published,
       author: { '@type': 'Organization', name: 'NeXifyAI' }
     }))

@@ -49,13 +49,13 @@ export default function BookingPage() {
         <title>{tx.title} | NeXifyAI</title>
         <meta name="description" content={tx.subtitle} />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href={`https://www.nexify-automate.com/${lang}/termin`} />
+        <link rel="canonical" href={`https://nexifyai.cloud/${lang}/termin`} />
         <script type="application/ld+json">{JSON.stringify({
           '@context': 'https://schema.org',
           '@type': 'BreadcrumbList',
           itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'Home', item: `https://www.nexify-automate.com/${lang}` },
-            { '@type': 'ListItem', position: 2, name: tx.title, item: `https://www.nexify-automate.com/${lang}/termin` }
+            { '@type': 'ListItem', position: 1, name: 'Home', item: `https://nexifyai.cloud/${lang}` },
+            { '@type': 'ListItem', position: 2, name: tx.title, item: `https://nexifyai.cloud/${lang}/termin` }
           ]
         })}</script>
       </Helmet>

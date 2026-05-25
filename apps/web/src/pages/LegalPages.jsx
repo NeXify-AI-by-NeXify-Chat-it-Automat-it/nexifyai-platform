@@ -8,8 +8,8 @@ import { Logo } from '../components/shared';
 const CO = {
   legal: 'neXify - Chat it. Automat it.', ceo: 'Pascal Courbois, Geschäftsführer (Directeur)',
   nl: 'Graaf van Loonstraat 1E, 5921 JA Venlo, Niederlande',
-  phone: '+31 6 133 188 56', email: 'support@nexify-automate.com',
-  web: 'nexify-automate.com', kvk: '90483944', vat: 'NL865786276B01'
+  phone: '+31 6 133 188 56', email: 'support@nexifyai.cloud',
+  web: 'nexifyai.cloud', kvk: '90483944', vat: 'NL865786276B01'
 };
 
 const BACK = { de: 'Zurück zur Startseite', nl: 'Terug naar de startpagina', en: 'Back to homepage' };
@@ -51,7 +51,7 @@ const ImpressumContent = {
         5921 JA Venlo<br/>
         Niederlande</p>
         <p><strong>Kontakt:</strong><br/>
-        E-Mail: <a href="mailto:support@nexify-automate.com">support@nexify-automate.com</a><br/>
+        E-Mail: <a href="mailto:support@nexifyai.cloud">support@nexifyai.cloud</a><br/>
         Telefon: <a href="tel:+31613318856">+31 6 133 188 56</a></p>
         <p><strong>Handelsregister:</strong><br/>
         Kamer van Koophandel (KvK): 90483944</p>
@@ -76,7 +76,7 @@ const ImpressumContent = {
         5921 JA Venlo<br/>
         Nederland</p>
         <p><strong>Contact:</strong><br/>
-        E-mail: <a href="mailto:support@nexify-automate.com">support@nexify-automate.com</a><br/>
+        E-mail: <a href="mailto:support@nexifyai.cloud">support@nexifyai.cloud</a><br/>
         Telefoon: <a href="tel:+31613318856">+31 6 133 188 56</a></p>
         <p><strong>Handelsregister:</strong><br/>
         Kamer van Koophandel (KvK): 90483944</p>
@@ -101,7 +101,7 @@ const ImpressumContent = {
         5921 JA Venlo<br/>
         Netherlands</p>
         <p><strong>Contact:</strong><br/>
-        Email: <a href="mailto:support@nexify-automate.com">support@nexify-automate.com</a><br/>
+        Email: <a href="mailto:support@nexifyai.cloud">support@nexifyai.cloud</a><br/>
         Phone: <a href="tel:+31613318856">+31 6 133 188 56</a></p>
         <p><strong>Commercial Register:</strong><br/>
         Chamber of Commerce (KvK): 90483944</p>
