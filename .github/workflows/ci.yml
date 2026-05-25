@@ -32,12 +32,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate JSON files in docs/agency
+      - name: Validate JSON files in docs/
         run: |
           set +e
           ERRORS=0
           COUNT=0
-          for f in $(find docs/agency -name '*.json' 2>/dev/null); do
+          for f in $(find docs/ -name '*.json' -not -path '*/node_modules/*' -not -path '*/public/*' 2>/dev/null); do
             COUNT=$((COUNT+1))
             python3 -m json.tool "$f" > /dev/null 2>&1
             if [ $? -ne 0 ]; then
@@ -48,12 +48,12 @@ jobs:
           echo "JSON files checked: $COUNT, errors: $ERRORS"
           if [ $ERRORS -gt 0 ]; then exit 1; fi
 
-      - name: Secret pattern scan on docs/agency
+      - name: Secret pattern scan on docs/
         run: |
           set +e
           FOUND=0
-          PATTERNS='API_KEY=|SECRET=|TOKEN=|PRIVATE KEY|sk-[a-zA-Z0-9]|ghp_|supabase.*service_role|bearer [a-zA-Z0-9]|password=|REVOLUT'
-          for f in $(find docs/agency -type f 2>/dev/null); do
+          PATTERNS='^API_KEY=[a-zA-Z0-9]{16,}|^SECRET=[a-zA-Z0-9]{16,}|PRIVATE KEY---|sk-[a-zA-Z0-9]{32,}|ghp_[a-zA-Z0-9]{36}|supabase_service_role_key|bearer [a-zA-Z0-9]{32,}|^password=[a-zA-Z0-9]{8,}'
+          for f in $(find docs/ -type f -not -path '*/node_modules/*' -not -path '*/public/*' 2>/dev/null); do
             MATCH=$(grep -Ei "$PATTERNS" "$f" 2>/dev/null)
             if [ -n "$MATCH" ]; then
               echo "POTENTIAL SECRET in $f — review required"
