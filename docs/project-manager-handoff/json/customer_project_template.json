@@ -1,0 +1,17 @@
+{
+  "project_name": "",
+  "customer": "",
+  "repo": "",
+  "local_path": "",
+  "domain": "",
+  "deployment_target": "",
+  "requirements_available": false,
+  "customer_requirements_available": false,
+  "status": "unknown",
+  "priority": "P2",
+  "blockers": [],
+  "open_tasks": [],
+  "security_risks": [],
+  "acceptance_criteria": [],
+  "next_action": "read_only_audit"
+}
