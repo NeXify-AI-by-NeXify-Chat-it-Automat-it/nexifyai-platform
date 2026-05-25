@@ -17,6 +17,9 @@ import IntegrationDetail from './pages/IntegrationDetail';
 import UnifiedLogin from './pages/UnifiedLogin';
 import BookingPage from './pages/BookingPage';
 import ContractAcceptance from './pages/ContractAcceptance';
+import LeistungenPage from './pages/LeistungenPage';
+import PreisePage from './pages/PreisePage';
+import KontaktPage from './pages/KontaktPage';
 
 /* Language-aware redirect */
 function LangRedirect() {
@@ -49,6 +52,14 @@ const router = createBrowserRouter([
   { path: '/de', element: <RootLayout><App /></RootLayout> },
   { path: '/nl', element: <RootLayout><App /></RootLayout> },
   { path: '/en', element: <RootLayout><App /></RootLayout> },
+  { path: '/:lang/kontakt', element: <RootLayout><KontaktPage /></RootLayout> },
+  { path: '/:lang/contact', element: <RootLayout><KontaktPage /></RootLayout> },
+  { path: '/:lang/leistungen', element: <RootLayout><LeistungenPage /></RootLayout> },
+  { path: '/:lang/services', element: <RootLayout><LeistungenPage /></RootLayout> },
+  { path: '/:lang/preise', element: <RootLayout><PreisePage /></RootLayout> },
+  { path: '/:lang/pricing', element: <RootLayout><PreisePage /></RootLayout> },
+  { path: '/:lang/portfolio', element: <RootLayout><LeistungenPage /></RootLayout> },
+  { path: '/:lang/tarife', element: <RootLayout><PreisePage /></RootLayout> },
   { path: '/:lang/:page', element: <RootLayout><LegalPage /></RootLayout> },
   { path: '/login', element: <RootLayout><UnifiedLogin /></RootLayout> },
   { path: '/login/verify', element: <RootLayout><UnifiedLogin /></RootLayout> },
@@ -60,6 +71,14 @@ const router = createBrowserRouter([
   { path: '/vertrag', element: <RootLayout><ContractAcceptance /></RootLayout> },
   { path: '/portal', element: <RootLayout><CustomerPortal /></RootLayout> },
   { path: '/portal/:token', element: <RootLayout><CustomerPortal /></RootLayout> },
+  { path: '/portfolio', element: <RootLayout><LeistungenPage /></RootLayout> },
+  { path: '/tarife', element: <RootLayout><PreisePage /></RootLayout> },
+  { path: '/kontakt', element: <RootLayout><KontaktPage /></RootLayout> },
+  { path: '/leistungen', element: <RootLayout><LeistungenPage /></RootLayout> },
+  { path: '/preise', element: <RootLayout><PreisePage /></RootLayout> },
+  { path: '/services', element: <RootLayout><LeistungenPage /></RootLayout> },
+  { path: '/pricing', element: <RootLayout><PreisePage /></RootLayout> },
+  { path: '/contact', element: <RootLayout><KontaktPage /></RootLayout> },
   { path: '/impressum', element: <RootLayout><LegacyRedirect slug="impressum" /></RootLayout> },
   { path: '/datenschutz', element: <RootLayout><LegacyRedirect slug="datenschutz" /></RootLayout> },
   { path: '/agb', element: <RootLayout><LegacyRedirect slug="agb" /></RootLayout> },
