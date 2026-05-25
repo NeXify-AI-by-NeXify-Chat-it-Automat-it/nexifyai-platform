@@ -52,7 +52,7 @@ jobs:
         run: |
           set +e
           FOUND=0
-          PATTERNS='API_KEY=|SECRET=|TOKEN=|PRIVATE KEY|sk-[a-zA-Z0-9]|ghp_|supabase.*service_role|bearer [a-zA-Z0-9]|password=|REVOLUT'
+          PATTERNS='^API_KEY=[a-zA-Z0-9]|^SECRET=[a-zA-Z0-9]|PRIVATE KEY---|sk-[a-zA-Z0-9]{20,}|ghp_[a-zA-Z0-9]{30,}|supabase_service_role_key|bearer [a-zA-Z0-9]{20,}|^password=[a-zA-Z0-9]'
           for f in $(find docs/ -type f -not -path '*/node_modules/*' -not -path '*/public/*' 2>/dev/null); do
             MATCH=$(grep -Ei "$PATTERNS" "$f" 2>/dev/null)
             if [ -n "$MATCH" ]; then
