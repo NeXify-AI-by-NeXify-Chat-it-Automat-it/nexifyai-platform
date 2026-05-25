@@ -1,0 +1,26 @@
+{
+  "task_id": "",
+  "status": "",
+  "branch": "",
+  "commit": "",
+  "pull_request": "",
+  "files_changed": [],
+  "tests": {
+    "run": false,
+    "result": "not_run",
+    "details": []
+  },
+  "ci": {
+    "checked": false,
+    "result": "not_checked"
+  },
+  "security": {
+    "checked": false,
+    "findings": []
+  },
+  "brain_updates": [],
+  "runtime_evidence": [],
+  "risks": [],
+  "blockers": [],
+  "next_step": ""
+}

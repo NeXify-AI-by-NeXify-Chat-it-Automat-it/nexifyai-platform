@@ -1,0 +1,22 @@
+{
+  "risks": [
+    {
+      "id": "shadow_runtime",
+      "title": "Runtime does not match source of truth",
+      "severity": "high",
+      "mitigation": "Require runtime evidence and repo mapping before changes."
+    },
+    {
+      "id": "unclassified_artifact",
+      "title": "Generated artifact left without lifecycle status",
+      "severity": "high",
+      "mitigation": "Classify every artifact as active_managed, planned, migrated, quarantined, removed_with_evidence, or blocked."
+    },
+    {
+      "id": "premature_platform_build",
+      "title": "Building later production line before business stabilization",
+      "severity": "medium",
+      "mitigation": "Keep business-first priority until agency site and customer live launches are stable."
+    }
+  ]
+}

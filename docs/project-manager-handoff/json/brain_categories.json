@@ -1,0 +1,20 @@
+{
+  "required_before_task": [
+    "nexifyai-business-first-priority",
+    "nexifyai-customer-project-delivery",
+    "nexifyai-dos-governance",
+    "nexifyai-runtime-reality",
+    "ai-governance-learning",
+    "prevention-rules",
+    "resource-catalog",
+    "github-security-governance",
+    "nexifyai-clean-reuse-governance"
+  ],
+  "store_after_task": [
+    "project-manager-task-history",
+    "lessons-learned",
+    "prevention-rules",
+    "resource-catalog",
+    "decision-memory"
+  ]
+}
