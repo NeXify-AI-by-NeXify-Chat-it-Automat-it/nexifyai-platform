@@ -1,0 +1,27 @@
+{
+  "version": "1.0",
+  "priority": "business_first",
+  "source_of_truth": "GitHub repository nexifyai-platform",
+  "rules": [
+    {
+      "id": "brain_required",
+      "rule": "No task may start without Brain context.",
+      "severity": "critical"
+    },
+    {
+      "id": "evidence_required",
+      "rule": "No task is complete without evidence.",
+      "severity": "critical"
+    },
+    {
+      "id": "no_unclassified_artifacts",
+      "rule": "Every created artifact must be classified as active_managed, planned, migrated, quarantined, removed_with_evidence, or blocked.",
+      "severity": "critical"
+    },
+    {
+      "id": "business_first",
+      "rule": "Agency site, lead flow, customer projects, live launches, Security and CI come before the later production line.",
+      "severity": "high"
+    }
+  ]
+}
