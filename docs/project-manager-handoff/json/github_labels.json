@@ -1,0 +1,19 @@
+{
+  "labels": [
+    "governance",
+    "documentation",
+    "resource-first",
+    "clean-reuse",
+    "security",
+    "ci",
+    "deployment",
+    "needs-triage",
+    "blocked",
+    "good first issue",
+    "help wanted",
+    "customer-project",
+    "core-platform",
+    "legacy",
+    "shadow-system"
+  ]
+}
