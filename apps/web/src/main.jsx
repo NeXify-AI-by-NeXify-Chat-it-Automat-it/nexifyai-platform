@@ -90,6 +90,11 @@ const router = createBrowserRouter([
   { path: '/services', element: <RootLayout><LeistungenPage /></RootLayout> },
   { path: '/pricing', element: <RootLayout><PreisePage /></RootLayout> },
   { path: '/contact', element: <RootLayout><KontaktPage /></RootLayout> },
+  /* Agentur alternative access paths (see sitemap.xml) */
+  { path: '/agentur', element: <RootLayout><App /></RootLayout> },
+  { path: '/agentur/leistungen', element: <RootLayout><LeistungenPage /></RootLayout> },
+  { path: '/agentur/preise', element: <RootLayout><PreisePage /></RootLayout> },
+  { path: '/agentur/kontakt', element: <RootLayout><KontaktPage /></RootLayout> },
   { path: '/impressum', element: <RootLayout><LegacyRedirect slug="impressum" /></RootLayout> },
   { path: '/datenschutz', element: <RootLayout><LegacyRedirect slug="datenschutz" /></RootLayout> },
   { path: '/agb', element: <RootLayout><LegacyRedirect slug="agb" /></RootLayout> },
