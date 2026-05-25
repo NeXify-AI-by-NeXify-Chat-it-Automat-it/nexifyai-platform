@@ -20,3 +20,23 @@ Kundenprojekt-Code wird nicht kopiert. Er darf als Pattern dienen, wenn keine Ku
 ## Ziel
 
 Lösungen werden einmal zentral sauber gebaut, dokumentiert und wiederverwendet.
+
+## Aktuelle OSS-Evaluierung
+
+### Microsoft Webwright (2026-05-25)
+
+| Attribut | Wert |
+|----------|------|
+| Lizenz | MIT |
+| Sprache/Runtime | Python >=3.10, Playwright/Chromium |
+| Code-Größe | ~1.5k LoC Core, ~3.7k gesamt |
+| CLI | `webwright` (via `pip install webwright`) |
+| Modell-Backends | OpenAI, Anthropic, **OpenRouter** (→ 9Router-kompatibel) |
+| Goose-Integration | Skill-Plugin existiert für Claude Code/Codex → analog für Goose |
+| Status | `planned` — evaluiert, nicht produktiv installiert |
+
+**Geeignet für:** Browser-Evidence-Runner für Agenturseite, Kundenprojekt-Livegang-Checks, Formular-/CTA-/Login-Smoke-Tests, visuelle Evidence.
+
+**Nicht geeignet für:** Brain-Ersatz, Goose-Ersatz, GitHub-API-Ersatz, Project-Manager-Control-Plane-Ersatz, autonomous Scraping ohne Kontrolle, productive Schreibaktionen.
+
+**Nächster Schritt:** Integration als optionales Goose-Tool oder Tool-MCP, wenn Bedarf konkret wird.
