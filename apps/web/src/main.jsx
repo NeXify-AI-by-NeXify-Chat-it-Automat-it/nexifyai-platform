@@ -20,6 +20,8 @@ import ContractAcceptance from './pages/ContractAcceptance';
 import LeistungenPage from './pages/LeistungenPage';
 import PreisePage from './pages/PreisePage';
 import KontaktPage from './pages/KontaktPage';
+import BlogPage from './pages/BlogPage';
+import BlogPostPage from './pages/BlogPostPage';
 
 /* Language-aware redirect */
 function LangRedirect() {
@@ -60,7 +62,11 @@ const router = createBrowserRouter([
   { path: '/:lang/pricing', element: <RootLayout><PreisePage /></RootLayout> },
   { path: '/:lang/portfolio', element: <RootLayout><LeistungenPage /></RootLayout> },
   { path: '/:lang/tarife', element: <RootLayout><PreisePage /></RootLayout> },
+  { path: '/:lang/blog', element: <RootLayout><BlogPage /></RootLayout> },
+  { path: '/:lang/blog/:slug', element: <RootLayout><BlogPostPage /></RootLayout> },
   { path: '/:lang/:page', element: <RootLayout><LegalPage /></RootLayout> },
+  { path: '/blog', element: <RootLayout><BlogPage /></RootLayout> },
+  { path: '/blog/:slug', element: <RootLayout><BlogPostPage /></RootLayout> },
   { path: '/login', element: <RootLayout><UnifiedLogin /></RootLayout> },
   { path: '/login/verify', element: <RootLayout><UnifiedLogin /></RootLayout> },
   { path: '/termin', element: <RootLayout><BookingPage /></RootLayout> },
