@@ -89,13 +89,16 @@ async def run_task(task: TaskRecord) -> dict:
     try:
         proc = await asyncio.wait_for(
             asyncio.create_subprocess_exec(
-                GOOSE_BIN, "run", prompt,
+                GOOSE_BIN, "run", "-i", "-",
+                stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 cwd=str(DATA_DIR),
             ), timeout=10.0
         )
-        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=WORKER_TIMEOUT)
+        stdout, stderr = await asyncio.wait_for(
+            proc.communicate(input=prompt.encode("utf-8")), timeout=WORKER_TIMEOUT
+        )
         output = redact_string(stdout.decode("utf-8", errors="replace"))
         err_output = redact_string(stderr.decode("utf-8", errors="replace"))
 
