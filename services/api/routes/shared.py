@@ -8,8 +8,17 @@ import logging
 import hashlib
 import re
 import json
+import os as _os
 from datetime import datetime, timezone, timedelta
-from typing import Optional, List
+from typing import Optional, List, Any
+
+# ── PID-Tracking für Uvicorn Workers Fork-Schutz ──
+# AsyncIOMotorClient wird in lifespan() erstellt (Parent-Prozess).
+# Bei uvicorn --workers 4 werden die Verbindungen nach Fork stale.
+# Wir speichern PID + Client im dict und reconnecten bei PID-Wechsel.
+from motor.motor_asyncio import AsyncIOMotorClient
+_MONGO_CLIENTS: dict[int, Any] = {}
+_MONGO_PID: int = 0
 
 from fastapi import HTTPException, Depends, Request
 from fastapi.responses import JSONResponse
@@ -68,9 +77,37 @@ def error_response(status: int, code: str, message: str, details: list = None, r
 # Route files import S and access S.db, S.memory_svc, etc.
 # server.py populates S.xxx during lifespan.
 # ══════════════════════════════════════════════════════════════
+def _get_mongo_url() -> str:
+    url = _os.environ.get("MONGO_URL", "")
+    if not url:
+        url = "mongodb://localhost:27017"
+    return url
+
+
+def _get_db_name() -> str:
+    return _os.environ.get("DB_NAME", "nexifyai")
+
+
+def _get_db() -> Any:
+    """PID-bewusster MongoDB-Client fuer Uvicorn Workers Fork-Schutz."""
+    global _MONGO_CLIENTS
+    pid = _os.getpid()
+    if pid in _MONGO_CLIENTS:
+        return _MONGO_CLIENTS[pid]
+    url = _get_mongo_url()
+    db_name = _get_db_name()
+    client = AsyncIOMotorClient(url)
+    db = client[db_name]
+    _MONGO_CLIENTS[pid] = db
+    logging.getLogger("nexifyai").info(
+        f"[SHARED] PID {pid}: Neuer MongoClient fuer DB '{db_name}' erstellt"
+    )
+    return db
+
+
 class _AppState:
-    """Runtime state container. Attributes set after import propagate to all importers."""
-    db = None
+    """Runtime state container mit PID-bewusstem MongoDB-Client."""
+    _db = None
     worker_mgr = None
     comms_svc = None
     billing_svc = None
@@ -83,6 +120,24 @@ class _AppState:
     oracle_engine = None
     rate_limit_storage = {}
     supabase = None
+
+    @property
+    def db(self):
+        """PID-bewusster DB-Client. Bei PID-Wechsel (uvicorn --workers) automatischer Reconnect.
+        
+        server.py setzt S.db = db in lifespan() — das landet in _db und wird
+        nur im Parent-Prozess genutzt. Alle Worker-Prozesse erhalten via _get_db()
+        einen frischen, PID-spezifischen AsyncIOMotorClient.
+        """
+        pid = _os.getpid()
+        if pid in _MONGO_CLIENTS:
+            return _MONGO_CLIENTS[pid]
+        return _get_db()
+
+    @db.setter
+    def db(self, value):
+        self._db = value
+
 
 S = _AppState()
 
