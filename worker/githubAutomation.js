@@ -68,64 +68,59 @@ function isSafeForAutoMerge(pullRequest, labels) {
 }
 
 // ─── Enable Auto-Merge via GitHub API ────────────────────────────────────────
-// Uses the native GitHub auto-merge feature so it waits for all required checks.
+// Uses GitHub's native auto-merge feature which waits for all required CI checks.
+// REST API docs: PUT /repos/{owner}/{repo}/pulls/{pull_number}/auto-merge
 
 async function enableAutoMerge(owner, repo, pullNumber, mergeMethod) {
+  console.log(`Enabling auto-merge for PR #${pullNumber} (method: ${mergeMethod})`);
+
+  // Step 1: Post a comment indicating auto-merge was triggered
+  await octokit.rest.issues.createComment({
+    owner,
+    repo,
+    issue_number: pullNumber,
+    body: [
+      `🤖 **Auto-Merge aktiviert**`,
+      ``,
+      `Diese PR wurde als sicher eingestuft.`,
+      `Methode: \`${mergeMethod}\``,
+      ``,
+      `Auto-Merge wird automatisch ausgeführt, sobald alle CI-Checks bestanden sind.`,
+    ].join('\n'),
+  });
+
+  // Step 2: Enable native GitHub auto-merge (waits for all required checks)
+  // Uses the PUT /repos/{owner}/{repo}/pulls/{pull_number}/auto-merge REST endpoint
+  // This is the canonical way to enable auto-merge via REST API v3
   try {
-    // GitHub's native auto-merge via GraphQL API (most reliable)
-    // Alternatively use REST API: POST /repos/{owner}/{repo}/pulls/{pull_number}/merge
-    // But native auto-merge (waiting for checks) is preferred.
-    
-    // Use gh CLI approach via exec (most reliable in GitHub Actions)
-    console.log(`Enabling auto-merge for PR #${pullNumber} (method: ${mergeMethod})`);
-    
-    // We'll use a REST API approach that's equivalent to "Enable auto-merge"
-    // GitHub API: PUT /repos/{owner}/{repo}/pulls/{pull_number}/auto-merge/attempt
-    // This enables native auto-merge which waits for CI before merging
-    
+    await octokit.request("PUT /repos/{owner}/{repo}/pulls/{pull_number}/auto-merge", {
+      owner,
+      repo,
+      pull_number: pullNumber,
+      merge_method: mergeMethod,
+    });
+    console.log(`✅ Auto-merge enabled for PR #${pullNumber}`);
+    return { success: true };
+  } catch (error) {
+    // If the native auto-merge endpoint isn't available (older GitHub Enterprise),
+    // log the error and inform via comment — do NOT attempt immediate merge
+    console.error(`Auto-merge API failed for PR #${pullNumber}:`, error.message);
+
+    // Post a comment explaining the situation instead of an unreliable fallback
     await octokit.rest.issues.createComment({
       owner,
       repo,
       issue_number: pullNumber,
-      body: `🤖 **Auto-Merge aktiviert**\n\nDiese PR wurde als sicher eingestuft.\nMethode: \`${mergeMethod}\`\n\nAuto-Merge wird automatisch ausgeführt, sobald alle CI-Checks bestanden sind.`,
-    });
+      body: [
+        `⚠️ **Auto-Merge konnte nicht aktiviert werden**`,
+        ``,
+        `Grund: ${error.message}`,
+        ``,
+        `Bitte manuell mergen, sobald alle CI-Checks bestanden sind.`,
+      ].join('\n'),
+    }).catch(() => {}); // non-fatal if comment fails
 
-    // Enable auto-merge via the REST API
-    // This uses the "enable auto-merge" feature which waits for branch protection
-    // and CI checks before actually merging
-    await octokit.rest.pulls.update({
-      owner,
-      repo,
-      pull_number: pullNumber,
-      // GitHub native auto-merge settings (via update PR)
-      auto_merge: true,
-      merge_method: mergeMethod,
-    });
-
-    console.log(`✅ Auto-merge enabled for PR #${pullNumber}`);
-    return { success: true };
-  } catch (error) {
-    // Fallback: if auto_merge field isn't supported in this version,
-    // try the newer API endpoint
-    try {
-      console.log(`Trying alternative auto-merge API for PR #${pullNumber}...`);
-      
-      // Alternative: use the merge queue API
-      // This creates a merge queue entry that auto-merges when checks pass
-      const result = await octokit.request("PUT /repos/{owner}/{repo}/pulls/{pull_number}/merge", {
-        owner,
-        repo,
-        pull_number: pullNumber,
-        merge_method: mergeMethod,
-        commit_title: `Auto-merge PR #${pullNumber}`,
-        sha: pullNumber.toString(), // Will be validated by GitHub
-      });
-      console.log(`✅ Auto-merge result for PR #${pullNumber}: ${result.data?.merged ? "merged" : "queued"}`);
-      return { success: true, data: result.data };
-    } catch (fallbackError) {
-      console.error(`Auto-merge failed for PR #${pullNumber}:`, fallbackError.message);
-      return { success: false, error: fallbackError.message };
-    }
+    return { success: false, error: error.message };
   }
 }
 
