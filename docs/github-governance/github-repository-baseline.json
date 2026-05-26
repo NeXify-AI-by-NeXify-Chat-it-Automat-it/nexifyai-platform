@@ -5,27 +5,27 @@
   "sections": [
     {
       "area": "actions_default_permissions",
-      "current_state": "unknown",
+      "current_state": "read",
       "target_state": "read",
       "can_apply_via_api": true,
-      "applied": false,
-      "blocker": "needs_verification"
+      "applied": true,
+      "blocker": null
     },
     {
       "area": "actions_fork_pr_approval",
-      "current_state": "unknown",
+      "current_state": "required",
       "target_state": "required",
       "can_apply_via_api": true,
-      "applied": false,
-      "blocker": "needs_verification"
+      "applied": true,
+      "blocker": null
     },
     {
       "area": "actions_artifact_retention",
-      "current_state": "unknown",
+      "current_state": "90",
       "target_state": "90",
       "can_apply_via_api": true,
-      "applied": false,
-      "blocker": "needs_verification"
+      "applied": true,
+      "blocker": null
     },
     {
       "area": "oidc_immutable_subject",
@@ -37,11 +37,11 @@
     },
     {
       "area": "environments_remove_cline",
-      "current_state": "legacy",
+      "current_state": "removed",
       "target_state": "removed",
       "can_apply_via_api": true,
-      "applied": false,
-      "blocker": "needs_workflow_audit"
+      "applied": true,
+      "blocker": null
     },
     {
       "area": "advanced_security_push_protection",
@@ -134,5 +134,7 @@
     "Settings → Secrets and variables → Codespaces",
     "Settings → Environments → Create/normalize",
     "Settings → Autolink references"
-  ]
+  ],
+  "updated": "2026-05-27T00:10:00Z",
+  "applied_by": "goose-autopilot"
 }
