@@ -4,15 +4,19 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "frontend/package*.json"
-      - "backend/requirements*.txt"
-      - "backend/pyproject.toml"
+      - "apps/web/package*.json"
+      - "package.json"
+      - "package-lock.json"
+      - "services/api/requirements*.txt"
+      - "services/api/pyproject.toml"
   push:
     branches: [main]
     paths:
-      - "frontend/package*.json"
-      - "backend/requirements*.txt"
-      - "backend/pyproject.toml"
+      - "apps/web/package*.json"
+      - "package.json"
+      - "package-lock.json"
+      - "services/api/requirements*.txt"
+      - "services/api/pyproject.toml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,28 +28,25 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: frontend
+        working-directory: apps/web
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: package-lock.json
       - run: npm ci
-      - name: Audit (HIGH/CRITICAL — non-blocking, react-scripts legacy)
+      - name: Audit (HIGH/CRITICAL — non-blocking, workspace cleanup)
         continue-on-error: true
         run: npm audit --audit-level=high || true
-        # NON-BLOCKING: 14 HIGH vulns in react-scripts transitive deps (Issue #39).
-        # Cannot fix without major dependency upgrades (React 19, Vite migration planned).
-        # Switch to blocking once Dependabot PRs are merged and deps stabilized.
 
   pip-safety:
     name: Python Safety Check
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: backend
+        working-directory: services/api
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6

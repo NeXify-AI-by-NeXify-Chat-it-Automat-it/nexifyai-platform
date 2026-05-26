@@ -5,16 +5,16 @@ on:
     branches: [main]
     paths:
       - "Dockerfile*"
-      - "docker/**"
-      - "backend/**"
-      - "infra/**"
+      - "infrastructure/docker/**"
+      - "services/api/**"
+      - "infrastructure/**"
   push:
     branches: [main]
     paths:
       - "Dockerfile*"
-      - "docker/**"
-      - "backend/**"
-      - "infra/**"
+      - "infrastructure/docker/**"
+      - "services/api/**"
+      - "infrastructure/**"
   schedule:
     - cron: "0 7 * * *"
 

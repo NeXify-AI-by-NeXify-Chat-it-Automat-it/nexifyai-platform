@@ -7,7 +7,7 @@ on:
   push:
     paths:
       - 'ops/policies/openapi.json'
-      - 'backend/routes/**.py'
+      - 'services/api/**/*.py'
       - '.github/workflows/openapi-lint.yml'
       - '.github/scripts/validate_openapi.py'
 
