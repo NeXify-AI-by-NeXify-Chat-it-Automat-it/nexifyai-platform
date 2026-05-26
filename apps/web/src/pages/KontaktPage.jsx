@@ -3,7 +3,10 @@ import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../i18n/LanguageContext';
 import T from '../i18n/translations';
 import SEOHead from '../components/SEOHead';
-import { COMPANY, LEGAL_PATHS, Logo, I, Footer } from '../components/shared';
+import LanguageSwitcher from '../components/LanguageSwitcher';
+import LiveChat from '../components/sections/LiveChat';
+import Booking from '../components/sections/BookingModal';
+import { COMPANY, LEGAL_PATHS, Logo, I, Footer, track } from '../components/shared';
 import '../App.css';
 
 const META = {
@@ -18,12 +21,12 @@ const META = {
     keywords: 'AI consulting contact, AI agency contact, NeXifyAI contact' }
 };
 
-function ContactForm({ lang, t }) {
+function ContactForm({ lang, t, onChat }) {
   const f = t.contact.form;
   const v = t.contact.validation;
   const [form, setForm] = useState({ vorname: '', nachname: '', email: '', telefon: '', unternehmen: '', nachricht: '', consent: false, '_hp': '' });
   const [errors, setErrors] = useState({});
-  const [status, setStatus] = useState('idle'); // idle | sending | success | error
+  const [status, setStatus] = useState('idle');
 
   const validate = () => {
     const e = {};
@@ -81,9 +84,14 @@ function ContactForm({ lang, t }) {
         <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>✅</div>
         <h2 style={{ marginBottom: '0.75rem', color: '#FE9B7B' }}>{lang === 'en' ? 'Message sent!' : lang === 'nl' ? 'Bericht verzonden!' : 'Nachricht gesendet!'}</h2>
         <p style={{ color: '#8892a0' }}>{f.success}</p>
-        <button className="btn btn-ghost" style={{ marginTop: '1.5rem' }} onClick={() => setStatus('idle')}>
-          {lang === 'en' ? 'Send another message' : lang === 'nl' ? 'Nog een bericht sturen' : 'Weitere Nachricht senden'}
-        </button>
+        <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+          <button className="btn btn-ghost" onClick={() => setStatus('idle')}>
+            {lang === 'en' ? 'Send another message' : lang === 'nl' ? 'Nog een bericht sturen' : 'Weitere Nachricht senden'}
+          </button>
+          <button className="btn btn-primary" onClick={() => onChat('')}>
+            {lang === 'en' ? 'Start Consultation' : lang === 'nl' ? 'Advies starten' : 'Beratung starten'}
+          </button>
+        </div>
       </div>
     );
   }
@@ -93,7 +101,6 @@ function ContactForm({ lang, t }) {
       <h2 style={{ marginBottom: '0.5rem', fontSize: '1.3rem' }}>{heading}</h2>
       <p style={{ color: '#8892a0', marginBottom: '1.25rem', fontSize: '0.875rem' }}>{responseTime}</p>
 
-      {/* Honeypot — invisible to humans */}
       <div style={{ position: 'absolute', opacity: 0, height: 0, overflow: 'hidden' }}>
         <input type="text" name="_hp" tabIndex={-1} autoComplete="off" value={form._hp} onChange={e => handleChange('_hp', e.target.value)} />
       </div>
@@ -166,7 +173,13 @@ export default function KontaktPage() {
   const t = T[lang] || T.de;
   const m = META[lang] || META.de;
   const lp = LEGAL_PATHS[lang] || LEGAL_PATHS.de;
-  const thisYear = new Date().getFullYear();
+
+  const [chatOpen, setChatOpen] = useState(false);
+  const [bookOpen, setBookOpen] = useState(false);
+  const [chatQ, setChatQ] = useState('');
+
+  const openChat = (msg = '') => { setChatQ(msg); setChatOpen(true); track('chat_open', { source: 'kontakt_cta', msg }); };
+  const openBooking = () => { setBookOpen(true); };
 
   return (
     <div className="app">
@@ -195,10 +208,16 @@ export default function KontaktPage() {
       <nav className="nav scrolled" role="navigation">
         <div className="container nav-inner">
           <a href={`/${lang}`} className="nav-logo"><Logo /></a>
+          <div className="nav-links" role="menubar">
+            <a href={`/${lang}/leistungen`} className="nav-link" role="menuitem">{t.nav.leistungen}</a>
+            <a href={`/${lang}/preise`} className="nav-link" role="menuitem">{t.nav.tarife}</a>
+            <a href={`/${lang}/kontakt`} className="nav-link" role="menuitem">{lang === 'en' ? 'Contact' : lang === 'nl' ? 'Contact' : 'Kontakt'}</a>
+          </div>
           <div className="nav-actions">
-            <a href={`/${lang}`} className="btn btn-ghost">
-              {lang === 'en' ? 'Back to Home' : lang === 'nl' ? 'Terug naar home' : 'Zurück zur Startseite'}
-            </a>
+            <LanguageSwitcher />
+            <button className="btn btn-primary nav-cta" onClick={() => { openChat(); track('cta_click', { loc: 'nav_kontakt' }); }}>
+              {lang === 'en' ? 'Start Consultation' : lang === 'nl' ? 'Advies starten' : 'Beratung starten'}
+            </button>
           </div>
         </div>
       </nav>
@@ -217,19 +236,22 @@ export default function KontaktPage() {
                   ))}
                 </div>
                 <div className="contact-cta-group" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                  <a href="/termin" className="btn btn-primary btn-lg btn-glow">
-                    {lang === 'en' ? 'Book Consultation' : lang === 'nl' ? 'Advies starten' : 'Beratung starten'} <I n="forum" />
-                  </a>
+                  <button className="btn btn-primary btn-lg btn-glow" onClick={() => { openChat(); track('cta_click', { loc: 'kontakt_cta' }); }}>
+                    {lang === 'en' ? 'Start Consultation' : lang === 'nl' ? 'Advies starten' : 'Beratung starten'} <I n="forum" />
+                  </button>
+                  <button className="btn btn-secondary btn-lg" onClick={() => { openBooking(); track('cta_click', { loc: 'kontakt_booking' }); }}>
+                    <I n="calendar_month" /> {lang === 'en' ? 'Book Meeting' : lang === 'nl' ? 'Gesprek boeken' : 'Termin buchen'}
+                  </button>
                 </div>
                 <div style={{ marginTop: '3rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', color: '#8892a0' }}>
-                  <p><strong style={{ color: '#dee3ed' }}>Telefon:</strong> <a href="tel:+31613318856" style={{ color: '#FE9B7B' }}>+31 6 133 188 56</a></p>
+                  <p><strong style={{ color: '#dee3ed' }}>{lang === 'en' ? 'Phone' : lang === 'nl' ? 'Telefoon' : 'Telefon'}:</strong> <a href="tel:+31613318856" style={{ color: '#FE9B7B' }}>+31 6 133 188 56</a></p>
                   <p><strong style={{ color: '#dee3ed' }}>E-Mail:</strong> <a href="mailto:support@nexifyai.cloud" style={{ color: '#FE9B7B' }}>support@nexifyai.cloud</a></p>
-                  <p><strong style={{ color: '#dee3ed' }}>Adresse:</strong> {COMPANY.addr?.nl?.s ?? ''}, {COMPANY.addr?.nl?.c ?? ''}</p>
+                  <p><strong style={{ color: '#dee3ed' }}>{lang === 'en' ? 'Address' : lang === 'nl' ? 'Adres' : 'Adresse'}:</strong> {COMPANY.addr?.nl?.s ?? ''}, {COMPANY.addr?.nl?.c ?? ''}</p>
                   <p><strong style={{ color: '#dee3ed' }}>KvK:</strong> {COMPANY.kvk} | <strong style={{ color: '#dee3ed' }}>USt-ID:</strong> {COMPANY.vat}</p>
                 </div>
               </div>
               <div className="contact-form-box" style={{ width: '100%', maxWidth: 500 }}>
-                <ContactForm lang={lang} t={t} />
+                <ContactForm lang={lang} t={t} onChat={openChat} />
               </div>
             </div>
           </div>
@@ -237,6 +259,8 @@ export default function KontaktPage() {
       </main>
 
       <Footer onCookieSettings={() => {}} t={t} lang={lang} />
+      <LiveChat isOpen={chatOpen} onClose={() => setChatOpen(false)} initialQ={chatQ} onBook={openBooking} t={t} lang={lang} />
+      <Booking isOpen={bookOpen} onClose={() => setBookOpen(false)} t={t} lang={lang} />
     </div>
   );
 }

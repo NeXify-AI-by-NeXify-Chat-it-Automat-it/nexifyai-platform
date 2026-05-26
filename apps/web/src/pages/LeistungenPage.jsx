@@ -1,21 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../i18n/LanguageContext';
 import T from '../i18n/translations';
 import SEOHead from '../components/SEOHead';
-import { COMPANY, LEGAL_PATHS, Logo, I, Footer } from '../components/shared';
+import LanguageSwitcher from '../components/LanguageSwitcher';
+import LiveChat from '../components/sections/LiveChat';
+import Booking from '../components/sections/BookingModal';
+import { COMPANY, LEGAL_PATHS, Logo, I, Footer, track } from '../components/shared';
 import '../App.css';
 
 const META = {
-  de: { title: 'KI-Agenten & Automatisierung — Leistungen | NeXifyAI',
-    description: 'Von KI-Assistenz bis Enterprise Solutions: 6 Kernleistungen für Ihren DACH-Mittelstand. Chatbots, CRM-Integration, Prozessautomation, RAG-Wissenssysteme. DSGVO-konform.',
-    keywords: 'KI-Agenten Leistungen, KI-Beratung, Prozessautomation, CRM-Integration, RAG-Wissenssysteme, Dokumentenautomation, Enterprise KI' },
-  nl: { title: 'AI-Agenten & Automatisering — Diensten | NeXifyAI',
-    description: 'Van AI-assistentie tot Enterprise-oplossingen: 6 kerndiensten. Chatbots, CRM-integratie, procesautomatisering, RAG-kennissystemen. AVG-conform.',
-    keywords: 'AI-agenten diensten, AI-advies, procesautomatisering, CRM-integratie, RAG-kennissystemen' },
-  en: { title: 'AI Agents & Automation — Services | NeXifyAI',
-    description: 'From AI assistance to Enterprise Solutions: 6 core services. Chatbots, CRM integration, process automation, RAG knowledge systems. GDPR-compliant.',
-    keywords: 'AI agents services, AI consulting, process automation, CRM integration, RAG knowledge systems' }
+  de: { title: 'KI-Agenten, Webentwicklung & Automatisierung — Leistungen | NeXifyAI',
+    description: 'Von KI-Assistenz über Webentwicklung bis Enterprise Solutions: 10 Kernleistungen für Ihren DACH-Mittelstand. Chatbots, CRM-Integration, Prozessautomation, RAG-Wissenssysteme. DSGVO-konform.',
+    keywords: 'KI-Agenten Leistungen, KI-Beratung, Prozessautomation, CRM-Integration, RAG-Wissenssysteme, Webentwicklung, Plattformen, Portale, Managed Services' },
+  nl: { title: 'AI-Agenten, Webontwikkeling & Automatisering — Diensten | NeXifyAI',
+    description: 'Van AI-assistentie tot webontwikkeling en Enterprise-oplossingen: 10 kerndiensten. Chatbots, CRM-integratie, procesautomatisering, RAG-kennissystemen. AVG-conform.',
+    keywords: 'AI-agenten diensten, AI-advies, procesautomatisering, CRM-integratie, RAG-kennissystemen, webontwikkeling, platformen, portalen' },
+  en: { title: 'AI Agents, Web Development & Automation — Services | NeXifyAI',
+    description: 'From AI assistance to web development and Enterprise Solutions: 10 core services. Chatbots, CRM integration, process automation, RAG knowledge systems. GDPR-compliant.',
+    keywords: 'AI agents services, AI consulting, process automation, CRM integration, RAG knowledge systems, web development, platforms, portals' }
 };
 
 export default function LeistungenPage() {
@@ -23,7 +26,13 @@ export default function LeistungenPage() {
   const t = T[lang] || T.de;
   const m = META[lang] || META.de;
   const lp = LEGAL_PATHS[lang] || LEGAL_PATHS.de;
-  const thisYear = new Date().getFullYear();
+
+  const [chatOpen, setChatOpen] = useState(false);
+  const [bookOpen, setBookOpen] = useState(false);
+  const [chatQ, setChatQ] = useState('');
+
+  const openChat = (msg = '') => { setChatQ(msg); setChatOpen(true); track('chat_open', { source: 'leistungen_cta', msg }); };
+  const openBooking = () => { setBookOpen(true); };
 
   return (
     <div className="app">
@@ -47,10 +56,16 @@ export default function LeistungenPage() {
       <nav className="nav scrolled" role="navigation">
         <div className="container nav-inner">
           <a href={`/${lang}`} className="nav-logo"><Logo /></a>
+          <div className="nav-links" role="menubar">
+            <a href={`/${lang}/leistungen`} className="nav-link" role="menuitem">{t.nav.leistungen}</a>
+            <a href={`/${lang}/preise`} className="nav-link" role="menuitem">{t.nav.tarife}</a>
+            <a href={`/${lang}/kontakt`} className="nav-link" role="menuitem">{lang === 'en' ? 'Contact' : lang === 'nl' ? 'Contact' : 'Kontakt'}</a>
+          </div>
           <div className="nav-actions">
-            <a href={`/${lang}`} className="btn btn-ghost">
-              {lang === 'en' ? 'Back to Home' : lang === 'nl' ? 'Terug naar home' : 'Zurück zur Startseite'}
-            </a>
+            <LanguageSwitcher />
+            <button className="btn btn-primary nav-cta" onClick={() => { openChat(); track('cta_click', { loc: 'nav_leistungen' }); }}>
+              {lang === 'en' ? 'Start Consultation' : lang === 'nl' ? 'Advies starten' : 'Beratung starten'}
+            </button>
           </div>
         </div>
       </nav>
@@ -86,14 +101,16 @@ export default function LeistungenPage() {
                lang === 'nl' ? 'Boek een gratis adviesgesprek en laat ons uw wensen analyseren.' :
                'Vereinbaren Sie ein kostenloses Beratungsgespräch und lassen Sie uns Ihre Anforderungen analysieren.'}
             </p>
-            <a href="/termin" className="btn btn-primary btn-lg btn-glow">
+            <button className="btn btn-primary btn-lg btn-glow" onClick={() => { openBooking(); track('cta_click', { loc: 'leistungen_cta' }); }}>
               {lang === 'en' ? 'Book consultation' : lang === 'nl' ? 'Adviesgesprek boeken' : 'Beratung buchen'}
-            </a>
+            </button>
           </div>
         </section>
       </main>
 
       <Footer onCookieSettings={() => {}} t={t} lang={lang} />
+      <LiveChat isOpen={chatOpen} onClose={() => setChatOpen(false)} initialQ={chatQ} onBook={openBooking} t={t} lang={lang} />
+      <Booking isOpen={bookOpen} onClose={() => setBookOpen(false)} t={t} lang={lang} />
     </div>
   );
 }

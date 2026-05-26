@@ -26,7 +26,11 @@ de: {
       { icon:'hub', title:'Integrationen & API', desc:'Nahtlose Anbindung an 400+ bestehende Systeme — CRM, ERP, Cloud-Dienste und proprietäre Schnittstellen.' },
       { icon:'school', title:'Wissenssysteme (RAG)', desc:'Intelligente Wissensdatenbanken mit Retrieval-Augmented Generation für präzise, kontextbewusste Antworten.' },
       { icon:'description', title:'Dokumentenautomation', desc:'Automatisierte Verarbeitung, Analyse und Generierung von Geschäftsdokumenten mit KI-Verständnis.' },
-      { icon:'shield', title:'Enterprise Solutions', desc:'Skalierbare KI-Infrastruktur mit Enterprise-Grade Security, Compliance und dediziertem Support.' }
+      { icon:'shield', title:'Enterprise Solutions', desc:'Skalierbare KI-Infrastruktur mit Enterprise-Grade Security, Compliance und dediziertem Support.' },
+      { icon:'web', title:'Webseiten & Landing Pages', desc:'Moderne, performante Webseiten und Landing Pages mit React, Vite und KI-Integration — DSGVO-konform, responsiv und suchmaschinenoptimiert.' },
+      { icon:'dns', title:'Plattformen & Marktplätze', desc:'Skalierbare Digitalplattformen und Multi-Vendor-Marktplätze mit Cloud-nativer Architektur, API-First-Design und automatisierten Workflows.' },
+      { icon:'portal', title:'Kundenportale & Extranets', desc:'Sichere Kundenportale und Extranets mit Single-Sign-On, Rollenmanagement, Dokumentenaustausch und Self-Service-Funktionen.' },
+      { icon:'settings_heart', title:'Betrieb & Managed Services', desc:'Rundum-Sorglos-Betrieb Ihrer digitalen Lösungen: Monitoring, Wartung, Upgrades, Security-Patches und 24/7-Support.' }
     ]
   },
   usecases: {
@@ -99,17 +103,18 @@ de: {
   },
   pricing: {
     label:'INVESTMENT', title:'Transparente Preisgestaltung',
-    subtitle:'Zwei leistungsstarke Tarife — 24 Monate Laufzeit, 30 % Aktivierungsanzahlung. Klar, ehrlich, B2B-stark.',
+    subtitle:'Drei leistungsstarke Tarife — 24 Monate Laufzeit, 30 % Aktivierungsanzahlung. Individuelle Enterprise-Lösung auf Anfrage.',
     plans: [
       { name:'Starter AI Agenten AG', price:'499', period:'EUR / Monat (netto)', features:['2 KI-Agenten','Shared Cloud Infrastructure','E-Mail-Support (48h)','Basis-Integrationen (REST API)','Standard-Monitoring','Monatliches Reporting','24 Monate Laufzeit','30 % Aktivierungsanzahlung: 3.592,80 EUR'], cta:'Angebot anfordern' },
-      { name:'Growth AI Agenten AG', price:'1.299', period:'EUR / Monat (netto)', badge:'EMPFOHLEN', features:['10 KI-Agenten','Private Cloud Infrastructure','Priority Support (24h)','CRM/ERP-Kit (SAP, HubSpot, Salesforce)','Advanced Monitoring & Analytics','Wöchentliches Reporting','Dedizierter Onboarding-Manager','24 Monate Laufzeit','30 % Aktivierungsanzahlung: 9.352,80 EUR'], cta:'Angebot anfordern', hl:true }
+      { name:'Growth AI Agenten AG', price:'1.299', period:'EUR / Monat (netto)', badge:'EMPFOHLEN', features:['10 KI-Agenten','Private Cloud Infrastructure','Priority Support (24h)','CRM/ERP-Kit (SAP, HubSpot, Salesforce)','Advanced Monitoring & Analytics','Wöchentliches Reporting','Dedizierter Onboarding-Manager','24 Monate Laufzeit','30 % Aktivierungsanzahlung: 9.352,80 EUR'], cta:'Angebot anfordern', hl:true },
+      { name:'Enterprise AI Agenten AG', price:'39.900', period:'EUR / Jahr (netto)', badge:'FÜR GROSSUNTERNEHMEN', features:['Unlimited KI-Agenten','Dedicated Cloud Infrastructure','24/7 Premium Support (1h Reaktionszeit)','Vollständige ERP/CRM-Integration (SAP, Oracle, Salesforce)','Enterprise Monitoring & Analytics','Dedizierter KI-Architekt','Individuelle SLA-Vereinbarung','ISO 27001 / DSGVO-Konformität','On-Premises Deployment Option'], cta:'Individuell anfragen' }
     ]
   },
   faq: {
     label:'FAQ', title:'Häufig gestellte Fragen',
     subtitle:'Transparente Antworten auf die wichtigsten Fragen zu Tarifen, Zahlung und Vertrag.',
     items: [
-      { q:'Welche Tarife gibt es?', a:'Wir bieten zwei aktive Kern-Tarife an: Starter AI Agenten AG (499 EUR/Monat) mit 2 KI-Agenten und Growth AI Agenten AG (1.299 EUR/Monat) mit 10 KI-Agenten. Beide mit 24 Monaten Laufzeit.' },
+      { q:'Welche Tarife gibt es?', a:'Wir bieten drei Kern-Tarife an: Starter AI Agenten AG (499 EUR/Monat) mit 2 KI-Agenten, Growth AI Agenten AG (1.299 EUR/Monat) mit 10 KI-Agenten und Enterprise AI Agenten AG (39.900 EUR/Jahr) mit unbegrenzten Agenten, dedizierter Infrastruktur und Premium-Support. Starter und Growth mit 24 Monaten Laufzeit, Enterprise mit flexiblen Laufzeiten.' },
       { q:'Was bedeutet 24 Monate Laufzeit?', a:'Der Vertrag läuft über 24 Monate ab Beauftragung. Dies ermöglicht nachhaltige Implementierung, Optimierung und kontinuierliche Weiterentwicklung Ihrer KI-Agenten.' },
       { q:'Wie funktioniert die 30-%-Aktivierungsanzahlung?', a:'Bei Beauftragung wird eine Aktivierungsanzahlung von 30 % des Gesamtvertragswerts fällig. Diese deckt Projektstart, Priorisierung, Setup, Kapazitätsreservierung und Implementierungsfreigabe ab. Die Anzahlung ist Teil des Gesamtvertragswerts — keine zusätzliche Gebühr.' },
       { q:'Was ist im Starter enthalten?', a:'2 KI-Agenten, Shared Cloud Infrastructure, E-Mail-Support (48h), Basis-Integrationen (REST API), Standard-Monitoring, monatliches Reporting. Gesamtvertragswert: 11.976 EUR (netto).' },
@@ -118,7 +123,9 @@ de: {
       { q:'Wie erfolgt die Zahlung?', a:'Per sicherem Revolut Checkout (Karte, Banküberweisung, Apple/Google Pay) oder klassische Banküberweisung. IBAN: NL66 REVO 3601 4304 36, BIC: REVONL22.' },
       { q:'Wie funktioniert die Angebotsannahme?', a:'Sie erhalten Ihr Angebot per E-Mail mit sicherem Zugangslink. Dort können Sie das Angebot annehmen, ablehnen oder eine Änderung anfragen. Bei Annahme wird sofort die Anzahlungsrechnung erstellt.' },
       { q:'Wie sicher sind die KI-Agenten?', a:'Unsere Agenten laufen in isolierten Umgebungen mit Ende-zu-Ende-Verschlüsselung. Wir sind DSGVO-konform, erfüllen den EU AI Act und hosten ausschließlich auf EU-Servern in Frankfurt und Amsterdam.' },
-      { q:'Wie werden Daten DSGVO-konform verarbeitet?', a:'Alle Daten in EU-Rechenzentren. Zeitlich begrenzte Zugriffslinks statt Passwörter. Vollständige Audit-Logs. Verschlüsselte Speicherung und Übertragung.' }
+      { q:'Wie werden Daten DSGVO-konform verarbeitet?', a:'Alle Daten in EU-Rechenzentren. Zeitlich begrenzte Zugriffslinks statt Passwörter. Vollständige Audit-Logs. Verschlüsselte Speicherung und Übertragung.' },
+      { q:'Gibt es einen Enterprise-Tarif?', a:'Ja, unser Enterprise AI Agenten AG Tarif (39.900 EUR/Jahr netto) richtet sich an Großunternehmen mit hohen Anforderungen. Er umfasst unbegrenzte KI-Agenten, dedizierte Cloud-Infrastruktur, 24/7 Premium-Support mit 1h Reaktionszeit, vollständige ERP/CRM-Integration (SAP, Oracle, Salesforce) und einen dedizierten KI-Architekten. Auf Wunsch auch On-Premises-Deployment.' },
+      { q:'Kann ich auch eine maßgeschneiderte Lösung erhalten?', a:'Ja, wenn keiner unserer Standard-Tarife zu Ihren Anforderungen passt, erstellen wir ein individuelles Angebot. Kontaktieren Sie uns einfach über das Kontaktformular oder den Chat — wir analysieren Ihre Bedürfnisse und unterbreiten Ihnen ein maßgeschneidertes Konzept.' }
     ]
   },
   contact: {
@@ -182,7 +189,11 @@ nl: {
       { icon:'hub', title:'Integraties & API', desc:'Naadloze koppeling met 400+ bestaande systemen — CRM, ERP, clouddiensten en maatwerk-interfaces.' },
       { icon:'school', title:'Kennissystemen (RAG)', desc:'Intelligente kennisbanken met Retrieval-Augmented Generation voor nauwkeurige, contextbewuste antwoorden.' },
       { icon:'description', title:'Documentautomatisering', desc:'Geautomatiseerde verwerking, analyse en generatie van bedrijfsdocumenten met AI-begrip.' },
-      { icon:'shield', title:'Enterprise Solutions', desc:'Schaalbare AI-infrastructuur met enterprise-grade beveiliging, compliance en dedicated support.' }
+      { icon:'shield', title:'Enterprise Solutions', desc:'Schaalbare AI-infrastructuur met enterprise-grade beveiliging, compliance en dedicated support.' },
+      { icon:'web', title:'Websites & Landingspaginas', desc:'Moderne, hoogwaardige websites en landingspaginas met React, Vite en AI-integratie — AVG-conform, responsief en zoekmachine-geoptimaliseerd.' },
+      { icon:'dns', title:'Platforms & Marktplaatsen', desc:'Schaalbare digitale platformen en multi-vendor marktplaatsen met cloud-native architectuur, API-first design en geautomatiseerde workflows.' },
+      { icon:'portal', title:'Klantportalen & Extranetten', desc:'Veilige klantportalen en extranetten met single-sign-on, rollenbeheer, documentuitwisseling en selfservice-functies.' },
+      { icon:'settings_heart', title:'Beheer & Managed Services', desc:'Zorgeloze exploitatie van uw digitale oplossingen: monitoring, onderhoud, upgrades, security-patches en 24/7-support.' }
     ]
   },
   usecases: {
@@ -255,22 +266,25 @@ nl: {
   },
   pricing: {
     label:'INVESTERING', title:'Transparante prijzen',
-    subtitle:'Twee krachtige tarieven — 24 maanden looptijd, 30 % activeringsaanbetaling. Helder, eerlijk, B2B-sterk.',
+    subtitle:'Drie krachtige tarieven — 24 maanden looptijd, 30 % activeringsaanbetaling. Individuele Enterprise-oplossing op aanvraag.',
     plans: [
       { name:'Starter AI Agenten AG', price:'499', period:'EUR / maand (netto)', features:['2 AI-agenten','Shared Cloud Infrastructure','E-mail support (48u)','Basis-integraties (REST API)','Standaard monitoring','Maandelijkse rapportage','24 maanden looptijd','30 % activeringsaanbetaling: 3.592,80 EUR'], cta:'Offerte aanvragen' },
-      { name:'Growth AI Agenten AG', price:'1.299', period:'EUR / maand (netto)', badge:'AANBEVOLEN', features:['10 AI-agenten','Private Cloud Infrastructure','Priority support (24u)','CRM/ERP-kit (SAP, HubSpot, Salesforce)','Advanced monitoring & analytics','Wekelijkse rapportage','Dedicated onboarding manager','24 maanden looptijd','30 % activeringsaanbetaling: 9.352,80 EUR'], cta:'Offerte aanvragen', hl:true }
+      { name:'Growth AI Agenten AG', price:'1.299', period:'EUR / maand (netto)', badge:'AANBEVOLEN', features:['10 AI-agenten','Private Cloud Infrastructure','Priority support (24u)','CRM/ERP-kit (SAP, HubSpot, Salesforce)','Advanced monitoring & analytics','Wekelijkse rapportage','Dedicated onboarding manager','24 maanden looptijd','30 % activeringsaanbetaling: 9.352,80 EUR'], cta:'Offerte aanvragen', hl:true },
+      { name:'Enterprise AI Agenten AG', price:'39.900', period:'EUR / jaar (netto)', badge:'VOOR GROTE BEDRIJVEN', features:['Onbeperkt AI-agenten','Dedicated Cloud Infrastructure','24/7 Premium Support (1u reactietijd)','Volledige ERP/CRM-integratie (SAP, Oracle, Salesforce)','Enterprise monitoring & analytics','Dedicated AI-architect','Individuele SLA-afspraak','ISO 27001 / AVG-conform','On-Premises Deployment Optie'], cta:'Individueel aanvragen' }
     ]
   },
   faq: {
     label:'FAQ', title:'Veelgestelde vragen',
     subtitle:'Transparante antwoorden op de belangrijkste vragen over tarieven, betaling en contract.',
     items: [
-      { q:'Welke tarieven zijn er?', a:'Wij bieden twee actieve kerntarieven: Starter AI Agenten AG (499 EUR/maand) met 2 AI-agenten en Growth AI Agenten AG (1.299 EUR/maand) met 10 AI-agenten. Beide met 24 maanden looptijd.' },
+      { q:'Welke tarieven zijn er?', a:'Wij bieden drie kerntarieven aan: Starter AI Agenten AG (499 EUR/maand) met 2 AI-agenten, Growth AI Agenten AG (1.299 EUR/maand) met 10 AI-agenten en Enterprise AI Agenten AG (39.900 EUR/jaar) met onbeperkte agenten, dedicated infrastructuur en premium support. Starter en Growth met 24 maanden looptijd, Enterprise met flexibele looptijden.' },
       { q:'Wat betekent 24 maanden looptijd?', a:'Het contract loopt 24 maanden vanaf opdracht. Dit maakt duurzame implementatie, optimalisatie en doorontwikkeling van uw AI-agenten mogelijk.' },
       { q:'Hoe werkt de 30 % activeringsaanbetaling?', a:'Bij opdracht is een aanbetaling van 30 % van de totale contractwaarde verschuldigd. Deze dekt projectstart, prioritering, setup en capaciteitsreservering. De aanbetaling is onderdeel van de contractwaarde — geen extra kosten.' },
       { q:'Hoe wordt er betaald?', a:'Via veilige Revolut Checkout of klassieke bankoverschrijving. IBAN: NL66 REVO 3601 4304 36, BIC: REVONL22.' },
       { q:'Hoe werkt de offerte-aanvaarding?', a:'U ontvangt uw offerte per e-mail met een veilige toegangslink. Daar kunt u de offerte aanvaarden, afwijzen of een wijziging aanvragen.' },
-      { q:'Hoe veilig zijn de AI-agenten?', a:'Onze agenten draaien in geisoleerde omgevingen met end-to-end encryptie. AVG-conform, EU AI Act compliant, hosting uitsluitend op EU-servers.' }
+      { q:'Hoe veilig zijn de AI-agenten?', a:'Onze agenten draaien in geisoleerde omgevingen met end-to-end encryptie. AVG-conform, EU AI Act compliant, hosting uitsluitend op EU-servers.' },
+      { q:'Is er een Enterprise-tarief?', a:'Ja, ons Enterprise AI Agenten AG tarief (39.900 EUR/jaar netto) is bedoeld voor grote bedrijven met hoge eisen. Het omvat onbeperkte AI-agenten, dedicated cloud-infrastructuur, 24/7 premium support met 1u reactietijd, volledige ERP/CRM-integratie (SAP, Oracle, Salesforce) en een dedicated AI-architect. Optioneel ook on-premises deployment.' },
+      { q:'Kan ik ook een maatwerkoplossing krijgen?', a:'Ja, als geen van onze standaard tarieven bij uw wensen past, maken we een individuele offerte. Neem contact met ons op via het contactformulier of de chat.' }
     ]
   },
   contact: {
@@ -334,7 +348,11 @@ en: {
       { icon:'hub', title:'Integrations & API', desc:'Seamless connection to 400+ existing systems — CRM, ERP, cloud services, and proprietary interfaces.' },
       { icon:'school', title:'Knowledge Systems (RAG)', desc:'Intelligent knowledge bases with Retrieval-Augmented Generation for precise, context-aware answers.' },
       { icon:'description', title:'Document Automation', desc:'Automated processing, analysis, and generation of business documents with AI comprehension.' },
-      { icon:'shield', title:'Enterprise Solutions', desc:'Scalable AI infrastructure with enterprise-grade security, compliance, and dedicated support.' }
+      { icon:'shield', title:'Enterprise Solutions', desc:'Scalable AI infrastructure with enterprise-grade security, compliance, and dedicated support.' },
+      { icon:'web', title:'Websites & Landing Pages', desc:'Modern, high-performance websites and landing pages with React, Vite and AI integration — GDPR-compliant, responsive, and search-optimized.' },
+      { icon:'dns', title:'Platforms & Marketplaces', desc:'Scalable digital platforms and multi-vendor marketplaces with cloud-native architecture, API-first design, and automated workflows.' },
+      { icon:'portal', title:'Customer Portals & Extranets', desc:'Secure customer portals and extranets with single-sign-on, role management, document exchange, and self-service capabilities.' },
+      { icon:'settings_heart', title:'Operations & Managed Services', desc:'Worry-free operation of your digital solutions: monitoring, maintenance, upgrades, security patches, and 24/7 support.' }
     ]
   },
   usecases: {
@@ -407,22 +425,25 @@ en: {
   },
   pricing: {
     label:'INVESTMENT', title:'Transparent pricing',
-    subtitle:'Two powerful plans — 24-month term, 30 % activation deposit. Clear, honest, B2B-ready.',
+    subtitle:'Three powerful plans — 24-month term, 30 % activation deposit. Custom Enterprise solution on request.',
     plans: [
       { name:'Starter AI Agenten AG', price:'499', period:'EUR / month (net)', features:['2 AI agents','Shared Cloud Infrastructure','Email support (48h)','Basic integrations (REST API)','Standard monitoring','Monthly reporting','24-month contract','30 % activation deposit: EUR 3,592.80'], cta:'Request a Quote' },
-      { name:'Growth AI Agenten AG', price:'1,299', period:'EUR / month (net)', badge:'RECOMMENDED', features:['10 AI agents','Private Cloud Infrastructure','Priority support (24h)','CRM/ERP kit (SAP, HubSpot, Salesforce)','Advanced monitoring & analytics','Weekly reporting','Dedicated onboarding manager','24-month contract','30 % activation deposit: EUR 9,352.80'], cta:'Request a Quote', hl:true }
+      { name:'Growth AI Agenten AG', price:'1,299', period:'EUR / month (net)', badge:'RECOMMENDED', features:['10 AI agents','Private Cloud Infrastructure','Priority support (24h)','CRM/ERP kit (SAP, HubSpot, Salesforce)','Advanced monitoring & analytics','Weekly reporting','Dedicated onboarding manager','24-month contract','30 % activation deposit: EUR 9,352.80'], cta:'Request a Quote', hl:true },
+      { name:'Enterprise AI Agenten AG', price:'39,900', period:'EUR / year (net)', badge:'FOR ENTERPRISE', features:['Unlimited AI agents','Dedicated Cloud Infrastructure','24/7 Premium Support (1h response)','Full ERP/CRM integration (SAP, Oracle, Salesforce)','Enterprise monitoring & analytics','Dedicated AI architect','Custom SLA agreement','ISO 27001 / GDPR compliant','On-Premises Deployment Option'], cta:'Request Custom Quote' }
     ]
   },
   faq: {
     label:'FAQ', title:'Frequently asked questions',
     subtitle:'Transparent answers about plans, payments, and contracts.',
     items: [
-      { q:'What plans are available?', a:'We offer two core plans: Starter AI Agenten AG (EUR 499/month) with 2 AI agents, and Growth AI Agenten AG (EUR 1,299/month) with 10 AI agents. Both with 24-month terms.' },
+      { q:'What plans are available?', a:'We offer three core plans: Starter AI Agenten AG (EUR 499/month) with 2 AI agents, Growth AI Agenten AG (EUR 1,299/month) with 10 AI agents, and Enterprise AI Agenten AG (EUR 39,900/year) with unlimited agents, dedicated infrastructure, and premium support. Starter and Growth with 24-month terms, Enterprise with flexible terms.' },
       { q:'What does the 24-month term mean?', a:'The contract runs for 24 months from commission. This enables sustainable implementation, optimization, and continuous development of your AI agents.' },
       { q:'How does the 30 % activation deposit work?', a:'Upon commissioning, an activation deposit of 30 % of the total contract value is due. This covers project start, prioritization, setup, and capacity reservation. The deposit is part of the total contract value — no additional fees.' },
       { q:'How do I pay?', a:'Via secure Revolut Checkout or traditional bank transfer. IBAN: NL66 REVO 3601 4304 36, BIC: REVONL22.' },
       { q:'How does quote acceptance work?', a:'You receive your quote via email with a secure access link. There you can accept, decline, or request a revision.' },
-      { q:'How secure are the AI agents?', a:'Our agents run in isolated environments with end-to-end encryption. GDPR-compliant, EU AI Act compliant, hosted exclusively on EU servers.' }
+      { q:'How secure are the AI agents?', a:'Our agents run in isolated environments with end-to-end encryption. GDPR-compliant, EU AI Act compliant, hosted exclusively on EU servers.' },
+      { q:'Is there an Enterprise plan?', a:'Yes, our Enterprise AI Agenten AG plan (EUR 39,900/year net) is designed for large enterprises with high requirements. It includes unlimited AI agents, dedicated cloud infrastructure, 24/7 premium support with 1h response time, full ERP/CRM integration (SAP, Oracle, Salesforce), and a dedicated AI architect. On-premises deployment available on request.' },
+      { q:'Can I get a custom solution?', a:'Yes, if none of our standard plans fit your requirements, we create a custom quote. Contact us via the contact form or chat — we analyze your needs and present a tailored concept.' }
     ]
   },
   contact: {
