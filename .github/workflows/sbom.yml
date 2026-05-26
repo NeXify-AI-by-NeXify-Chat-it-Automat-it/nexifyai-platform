@@ -22,26 +22,25 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install Trivy
-        run: |
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
-            | sh -s -- -b /usr/local/bin v0.58.0
-
       - name: Generate CycloneDX SBOM
-        run: |
-          trivy filesystem \
-            --format cyclonedx \
-            --output sbom-cyclonedx.json \
-            --no-progress \
-            .
+        uses: docker://ghcr.io/aquasecurity/trivy:0.58.0
+        with:
+          args: >-
+            filesystem
+            --format cyclonedx
+            --output /github/workspace/sbom-cyclonedx.json
+            --no-progress
+            /github/workspace
 
       - name: Generate SPDX SBOM
-        run: |
-          trivy filesystem \
-            --format spdx-json \
-            --output sbom-spdx.json \
-            --no-progress \
-            .
+        uses: docker://ghcr.io/aquasecurity/trivy:0.58.0
+        with:
+          args: >-
+            filesystem
+            --format spdx-json
+            --output /github/workspace/sbom-spdx.json
+            --no-progress
+            /github/workspace
 
       - name: Upload CycloneDX SBOM
         uses: actions/upload-artifact@v7
