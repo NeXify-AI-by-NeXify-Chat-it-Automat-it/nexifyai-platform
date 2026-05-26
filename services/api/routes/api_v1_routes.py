@@ -22,8 +22,14 @@ router = APIRouter(prefix="/api/v1", tags=["External API v1"])
 # ══════════════════════════════════════════════════════════════
 # API KEY HELPERS
 # ══════════════════════════════════════════════════════════════
+# Domain separation salt prevents cross-system hash reuse.
+# SHA3-256 is the NIST standard future-proof hash.
+_API_KEY_SALT = "nexify-api-key-v1"
+
+
 def _hash_key(raw_key: str) -> str:
-    return hashlib.sha256(raw_key.encode()).hexdigest()
+    salted = _API_KEY_SALT + raw_key
+    return hashlib.sha3_256(salted.encode()).hexdigest()
 
 
 def generate_api_key() -> tuple:
