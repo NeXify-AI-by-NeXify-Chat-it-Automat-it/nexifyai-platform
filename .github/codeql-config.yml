@@ -1,0 +1,32 @@
+# CodeQL Configuration
+# Steuert Pfadausschlüsse für Code Scanning
+# Alerts in excluded paths werden nicht erzeugt
+
+name: "NeXifyAI CodeQL Configuration"
+
+paths-ignore:
+  # Test-Dateien enthalten keine echten Secrets/Produktivcode
+  - "**/tests/**"
+  - "**/test_*.py"
+  - "**/test_*.js"
+
+  # Archive-Bereich: historisch, nicht produktiv
+  - "_archive/**"
+
+  # Externer/Referenz-Code
+  - "knowledge/emergent/**"
+
+  # Build-Artefakte und Dependencies
+  - "**/node_modules/**"
+  - "**/__pycache__/**"
+  - "**/*.min.js"
+  - "**/dist/**"
+  - "**/build/**"
+
+  # Konfigurationsdateien (kein produktiver Code)
+  - "**/*.config.js"
+  - "**/*.config.ts"
+  - "**/vite.config.*"
+
+queries:
+  - uses: security-and-quality
