@@ -100,18 +100,21 @@ jobs:
               ? `### 🔒 Security Scan\n\n${concerns.map(c => `- ${c}`).join('\n')}`
               : '✅ No security concerns detected.';
 
-            const body = `## 🤖 AI Code Review
-
-### 📋 Summary
-**Changed files:** ${changed_files.length} files
-**Additions:** ${additions} | **Deletions:** ${deletions}
-
-### Changed Files
-${changed_files.map(f => `- \`${f}\``).join('\n')}
-
-${foundLabels}
-
-> ⚠️ Automated review — human approval still required per Policy #12.`;
+            const nl = '\\n';
+            const body = [
+              '## 🤖 AI Code Review',
+              '',
+              '### 📋 Summary',
+              `**Changed files:** ${changed_files.length} files`,
+              `**Additions:** ${additions} | **Deletions:** ${deletions}`,
+              '',
+              '### Changed Files',
+              changed_files.map(f => `- \\\`${f}\\\``).join(nl),
+              '',
+              foundLabels,
+              '',
+              '> ⚠️ Automated review — human approval still required per Policy #12.',
+            ].join(nl);
 
             await github.rest.pulls.createReview({
               owner: context.repo.owner,

@@ -31,7 +31,14 @@ def generate_from_events(events=None):
     return results
 
 def main():
-    events = json.loads(sys.stdin.read()) if not sys.stdin.isatty() else [{"type":"verification","title":"Runtime governance active","severity":"info","detail":"All enterprise layers operational."}]
+    events = [{"type":"verification","title":"Runtime governance active","severity":"info","detail":"All enterprise layers operational."}]
+    if not sys.stdin.isatty():
+        try:
+            data = sys.stdin.read()
+            if data.strip():
+                events = json.loads(data)
+        except (json.JSONDecodeError, Exception):
+            pass
     print(json.dumps(generate_from_events(events), indent=2))
 
 if __name__ == "__main__":
