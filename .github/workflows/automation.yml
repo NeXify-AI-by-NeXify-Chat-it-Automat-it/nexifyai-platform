@@ -1,0 +1,23 @@
+name: GitHub Automation
+on:
+  issues:
+    types: [opened, labeled, reopened, dismissed]
+  pull_request:
+    types: [opened, reopened, reopened, synchronize, ready_for_review]
+jobs:
+  handle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: |
+          npm install octokit
+      - name: Run automation script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node worker/githubAutomation.js
