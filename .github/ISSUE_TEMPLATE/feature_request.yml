@@ -1,0 +1,42 @@
+name: Feature Request
+description: Neue Funktion oder Erweiterung vorschlagen
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / Ausgangssituation
+      description: Welches Problem wird gelöst?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Lösungsidee
+      description: Wie könnte die Lösung aussehen?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativen
+      description: Welche Alternativen wurden erwogen?
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priorität
+      options:
+        - P0 Critical
+        - P1 High
+        - P2 Medium
+        - P3 Low
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: Dokumentation
+        - label: Code / Runtime
+        - label: CI / Workflow
+        - label: Security
+        - label: Kundenrepo

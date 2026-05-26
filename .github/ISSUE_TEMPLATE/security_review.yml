@@ -1,0 +1,46 @@
+name: Security Review
+description: Sicherheitsfund melden oder Review anfordern
+labels: ["security"]
+body:
+  - type: textarea
+    id: finding
+    attributes:
+      label: Fund / Anforderung
+      description: Was wurde gefunden oder benötigt?
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Schweregrad
+      options:
+        - Critical
+        - High
+        - Medium
+        - Low
+  - type: dropdown
+    id: type
+    attributes:
+      label: Typ
+      options:
+        - Dependabot Alert
+        - Code Scanning Alert
+        - Secret Scanning Alert
+        - Dependency Review
+        - Security Policy
+        - Anderes
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Logs, Screenshots oder Referenzen
+  - type: checkboxes
+    id: actions
+    attributes:
+      label: Notwendige Maßnahmen
+      options:
+        - label: Token/Secret rotieren
+        - label: Dependency aktualisieren
+        - label: Code fixen
+        - label: Policy aktualisieren
+        - label: Keine (false positive)
