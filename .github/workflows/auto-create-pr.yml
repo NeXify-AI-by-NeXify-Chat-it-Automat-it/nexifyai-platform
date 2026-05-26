@@ -1,0 +1,45 @@
+# Auto-create PR on push to fix/*, feat/*, chore/* branches
+name: Auto Create PR
+
+on:
+  push:
+    branches:
+      - 'fix/**'
+      - 'feat/**'
+      - 'chore/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check existing PR
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          EXISTING=$(gh pr list --head "$BRANCH" --state open --json number --jq 'length')
+          echo "existing=$EXISTING" >> $GITHUB_OUTPUT
+
+      - name: Create PR
+        if: steps.check.outputs.existing == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          TITLE=$(git log -1 --format=%s "$BRANCH")
+          BODY=$(git log -1 --format=%B "$BRANCH" | tail -n +3 | head -20 || echo "Automated PR")
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "$TITLE" \
+            --body "$BODY" \
+            --label "auto-merge"
