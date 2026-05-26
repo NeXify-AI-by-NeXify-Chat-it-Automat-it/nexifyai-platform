@@ -22,7 +22,7 @@ async function handleIssue(payload) {
   }
 
   if (labels.length > 0) {
-    await octokit.issues.addLabels({
+    await octokit.rest.issues.addLabels({
       owner,
       repo,
       issue_number: number,
@@ -38,7 +38,7 @@ async function handlePullRequest(payload) {
   const owner = payload.repository.owner.login;
   const repo = payload.repository.name;
 
-  await octokit.issues.addLabels({
+  await octokit.rest.issues.addLabels({
     owner,
     repo,
     issue_number: number,
