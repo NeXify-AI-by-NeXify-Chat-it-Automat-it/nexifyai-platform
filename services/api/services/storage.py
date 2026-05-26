@@ -25,13 +25,16 @@ def init_storage():
         logger.warning("Object Storage nicht verfügbar — EMERGENT_LLM_KEY fehlt")
         return None
     try:
+        # Send only key prefix for audit (full key never logged or stored in clear text)
+        key_suffix = emergent_key[-4:] if len(emergent_key) > 4 else "****"
+        logger.info("Object Storage initialisieren (Key ends with ...%s)", key_suffix)
         resp = requests.post(f"{STORAGE_URL}/init", json={"emergent_key": emergent_key}, timeout=30)
         resp.raise_for_status()
         _storage_key = resp.json()["storage_key"]
         logger.info("Object Storage initialisiert")
         return _storage_key
     except Exception as e:
-        logger.warning(f"Object Storage Init-Fehler (non-critical): {e}")
+        logger.warning("Object Storage Init-Fehler (non-critical): %s", e)
         return None
 
 

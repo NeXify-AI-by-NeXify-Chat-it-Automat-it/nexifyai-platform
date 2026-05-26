@@ -290,12 +290,16 @@ class SupabaseDB:
     async def connect(self, dsn=None):
         """Initialize connection pool."""
         if not dsn:
-            dsn = os.environ.get(
-                'ALT_SUPABASE_POSTGRESQL',
-                'postgresql://postgres:f6a3d6778ca8a12038ff71a8fab8d174@127.0.0.1:5435/postgres?sslmode=disable'
-            )
+            dsn = os.environ.get('ALT_SUPABASE_POSTGRESQL', '')
+            if not dsn:
+                raise RuntimeError(
+                    "ALT_SUPABASE_POSTGRESQL environment variable not set. "
+                    "Cannot connect to database without a connection string."
+                )
         self._conn = await asyncpg.connect(dsn)
-        print(f'SupabaseDB connected: {dsn[:50]}...')
+        # Redact credentials in log output — never print DSN containing passwords
+        safe_dsn = dsn.split('@')[-1] if '@' in dsn else dsn[:20]
+        print(f'SupabaseDB connected: ...@{safe_dsn}')
     
     async def close(self):
         if self._conn:

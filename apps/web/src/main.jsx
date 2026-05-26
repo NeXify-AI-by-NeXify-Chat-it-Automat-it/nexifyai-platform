@@ -1,27 +1,31 @@
-/* Build 2026-05-17T17:16:59.210533 */
+/* Build 2026-05-26T20:27:00 */
 // P0: Runtime diagnostics — must be first import
 import './observability/frontend/runtime_error_capture';
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { LanguageProvider } from './i18n/LanguageContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+
+// Eager: lightweight pages (homepage, services, pricing, contact)
 import App from './App';
-import Admin from './pages/Admin';
-import LegalPage from './pages/LegalPages';
-import QuotePortal from './pages/QuotePortal';
-import CustomerPortal from './pages/CustomerPortal';
-import IntegrationDetail from './pages/IntegrationDetail';
-import UnifiedLogin from './pages/UnifiedLogin';
-import BookingPage from './pages/BookingPage';
-import ContractAcceptance from './pages/ContractAcceptance';
 import LeistungenPage from './pages/LeistungenPage';
 import PreisePage from './pages/PreisePage';
 import KontaktPage from './pages/KontaktPage';
-import BlogPage from './pages/BlogPage';
-import BlogPostPage from './pages/BlogPostPage';
+import UnifiedLogin from './pages/UnifiedLogin';
+import BookingPage from './pages/BookingPage';
+
+// Lazy: heavy pages (admin, portal, blog, legal, integrations)
+const Admin = lazy(() => import('./pages/Admin'));
+const LegalPage = lazy(() => import('./pages/LegalPages'));
+const QuotePortal = lazy(() => import('./pages/QuotePortal'));
+const CustomerPortal = lazy(() => import('./pages/CustomerPortal'));
+const IntegrationDetail = lazy(() => import('./pages/IntegrationDetail'));
+const ContractAcceptance = lazy(() => import('./pages/ContractAcceptance'));
+const BlogPage = lazy(() => import('./pages/BlogPage'));
+const BlogPostPage = lazy(() => import('./pages/BlogPostPage'));
 
 /* Language-aware redirect */
 function LangRedirect() {
@@ -36,13 +40,28 @@ function LegacyRedirect({ slug }) {
   return <Navigate to={`/${lang}/${slug}`} replace />;
 }
 
+/* Suspense fallback for lazy-loaded routes */
+function LazyFallback() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', background: '#0d1117' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ width: 48, height: 48, border: '3px solid rgba(255,155,122,0.2)', borderTopColor: '#ff9b7a', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        <p style={{ color: '#8f9095', marginTop: 16, fontSize: 14 }}>Laden…</p>
+      </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+}
+
 /* Wrapper to inject providers */
 function RootLayout({ children }) {
   return (
     <HelmetProvider>
       <LanguageProvider>
         <ErrorBoundary>
-          {children}
+          <Suspense fallback={<LazyFallback />}>
+            {children}
+          </Suspense>
         </ErrorBoundary>
       </LanguageProvider>
     </HelmetProvider>

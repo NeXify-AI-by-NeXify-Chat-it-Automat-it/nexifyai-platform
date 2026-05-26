@@ -405,6 +405,6 @@ async def check_smtp_health() -> dict:
         await smtp.connect()
         await smtp.login(SMTP_USER, SMTP_PASSWORD)
         await smtp.quit()
-        return {"status": "ok", "host": SMTP_HOST, "port": SMTP_PORT, "user": SMTP_USER}
+        return {"status": "ok", "host": SMTP_HOST, "port": SMTP_PORT, "user": SMTP_USER[:4] + '***'}
     except Exception as e:
         return {"status": "error", "host": SMTP_HOST, "error": str(e)}
