@@ -15,11 +15,23 @@ on:
       - '**.yml'
       - '**.yaml'
       - '**.json'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ai-review.yml'
 
 jobs:
+  # Push on workflow file = config change, no review needed
+  config-check:
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm workflow config change
+        run: echo "Workflow config updated on main — no PR to review. OK."
+
+  # PR review (runs for pull_request_target events only)
   review:
-    # Nur bei non-docs PRs (Docs-only sind autonom)
-    if: ${{ !startsWith(github.head_ref, 'docs/') }}
+    if: ${{ github.event_name == 'pull_request_target' && !startsWith(github.head_ref, 'docs/') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
