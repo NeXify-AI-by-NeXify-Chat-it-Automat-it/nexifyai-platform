@@ -1,0 +1,10 @@
+[Unit]
+Description=9Router Health Check Timer (every 5 min)
+
+[Timer]
+OnCalendar=*:0/5
+Unit=nexify-9router-health.service
+Persistent=false
+
+[Install]
+WantedBy=timers.target
