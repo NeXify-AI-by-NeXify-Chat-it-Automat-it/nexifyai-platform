@@ -30,11 +30,15 @@ body:
         - Security Policy
         - Ruleset
         - Anderes
+    validations:
+      required: true
   - type: textarea
     id: evidence
     attributes:
       label: Evidence
       description: Logs, Screenshots oder Referenzen
+    validations:
+      required: true
   - type: checkboxes
     id: actions
     attributes:
