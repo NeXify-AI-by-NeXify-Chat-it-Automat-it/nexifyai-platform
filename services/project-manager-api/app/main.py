@@ -101,6 +101,34 @@ async def get_task(task_id: str):
 async def list_all_tasks(status: str | None = None, limit: int = 50):
     return [t.model_dump() for t in list_tasks(status=status, limit=limit)]
 
+
+@app.get("/tasks/next")
+async def next_queued_task():
+    """Worker polling endpoint: returns next queued task or null."""
+    pending = list_tasks(status=TaskStatus.queued.value, limit=1)
+    if not pending:
+        return {"task": None, "queue_empty": True}
+    t = get(pending[0].task_id)
+    if not t:
+        return {"task": None, "queue_empty": True}
+    return {"task": t.model_dump(), "queue_empty": False}
+
+
+@app.get("/tasks/{task_id}/evidence")
+async def get_task_evidence(task_id: str):
+    """Return stored evidence for a completed/failed task."""
+    from app.config import EVIDENCE_DIR
+    from pathlib import Path
+    task = get(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    if not task.evidence_path:
+        return {"task_id": task_id, "evidence": None}
+    path = Path(EVIDENCE_DIR) / task.evidence_path
+    if path.exists():
+        return {"task_id": task_id, "evidence": path.read_text()}
+    return {"task_id": task_id, "evidence": None, "path_missing": str(path)}
+
 @app.post("/tasks/{task_id}/run")
 async def run_task_endpoint(task_id: str, _token: str = Depends(verify_token)):
     task = get(task_id)

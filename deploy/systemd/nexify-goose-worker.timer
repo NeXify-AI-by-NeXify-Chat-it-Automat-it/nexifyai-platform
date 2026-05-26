@@ -1,0 +1,10 @@
+[Unit]
+Description=Timer for NeXify Goose Worker Polling (every 30s)
+
+[Timer]
+OnCalendar=*:*:0/30
+Unit=nexify-goose-worker.service
+Persistent=false
+
+[Install]
+WantedBy=timers.target
