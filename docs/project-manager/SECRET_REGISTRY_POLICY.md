@@ -18,6 +18,8 @@
 | `COPILOT_MCP_GITHUB_PAT` | Agents | GitHub UI | pascal | jährlich | GitHub Agent |
 | `CLOUDFLARE_API_TOKEN` | Account | env file | pascal | jährlich | Cloudflare API |
 | `DEEPSEEK_API_KEY` | Local | goose-cli.env | pascal | jährlich | 9Router/Goose |
+| `NEXIFYAI_GITHUB_USER` | GitHub | `.env.complete` | pascal | — | GitHub CLI/Goose |
+| `NEXIFYAI_GITHUB_PASSWORD` | GitHub | `.env.complete` | pascal | nach Incident | GitHub CLI (sudo/gh auth) |
 
 ## Verbote
 
