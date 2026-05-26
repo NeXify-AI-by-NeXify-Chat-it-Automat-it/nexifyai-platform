@@ -1,0 +1,67 @@
+{
+  "version": "1.0",
+  "created": "2026-05-26",
+  "default_mode": "read_only_first",
+  "status": "proposal_only",
+  "mcp_servers": {
+    "github_builtin": {
+      "type": "remote",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "auth": "oauth",
+      "status": "proposed",
+      "read_only": true,
+      "blocked_tools": [
+        "createIssue", "updateIssue", "closeIssue",
+        "createPullRequest", "mergePullRequest", "updatePullRequest",
+        "createRepository", "deleteRepository",
+        "createWorkflowRun", "cancelWorkflowRun",
+        "createBranch", "deleteBranch",
+        "pushFiles", "createCommit"
+      ]
+    },
+    "github_local": {
+      "type": "docker",
+      "image": "ghcr.io/github/github-mcp-server",
+      "status": "blocked",
+      "blocker": "COPILOT_MCP_GITHUB_PAT secret not set",
+      "read_only": true,
+      "required_secret": "COPILOT_MCP_GITHUB_PAT"
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@playwright/mcp@latest", "--headless", "--sandbox", "--isolated"],
+      "status": "blocked",
+      "blocker": "No approved use case defined",
+      "read_only": true,
+      "forbidden_flags": ["--no-sandbox", "--secrets"]
+    }
+  },
+  "forbidden": [
+    "tools_star_for_write_servers",
+    "broad_pat",
+    "login_secrets_in_browser",
+    "cloudflare_dns_write_without_approval",
+    "vercel_deploy_write_without_policy",
+    "supabase_write_without_policy",
+    "blind_service_restart_without_issue",
+    "direct_push_to_main"
+  ],
+  "required_evidence": [
+    "docs_checked",
+    "mcp_config_validated",
+    "agents_secret_names_documented",
+    "tool_allowlist_documented",
+    "rollback_documented",
+    "security_policy_approved"
+  ],
+  "secrets_plan": {
+    "COPILOT_MCP_GITHUB_PAT": {
+      "type": "secret",
+      "scope": "fine_grained_repo_specific",
+      "permissions": ["issues:read", "pull_requests:read", "contents:read", "metadata:read"],
+      "status": "missing",
+      "blocker": "Issue #46"
+    }
+  }
+}
