@@ -2,6 +2,13 @@
 
 _Welches Problem löst dieser PR? Welche Policy/Decision wird umgesetzt?_
 
+## Kontext
+
+- Policy-Bezug: #11, #12, #13, #14
+- Brain-Status: abgefragt
+- Projektleiter-Kontext: geprüft
+- Repo-Klassifizierung: bestätigt
+
 ## Scope
 
 - [ ] Dokumentation only
@@ -14,11 +21,36 @@ _Welches Problem löst dieser PR? Welche Policy/Decision wird umgesetzt?_
 
 _Welche Tests, Builds, Lints oder Checks wurden durchgeführt und bestanden?_
 
-## Risiken
+- [ ] CI grün
+- [ ] Tests bestanden
+- [ ] Lint bestanden
+- [ ] Security-Checks bestanden
+- [ ] Keine relevanten Checks erforderlich (Docs-only)
 
-- [ ] Keine Runtime-Änderung
+## Merge-Gates (Policy #12)
+
+- [ ] Gültiges Repo bestätigt
+- [ ] Branch korrekt
+- [ ] PR-Body vollständig
+- [ ] Diff geprüft
+- [ ] Keine Secrets im Diff
+- [ ] Keine verbotenen Kundenrepo-Änderungen
+- [ ] CI/Checks grün oder nicht erforderlich
+- [ ] Scope dokumentiert
+- [ ] Risiken dokumentiert
+- [ ] Brain aktualisiert
+- [ ] Projektleiter-Kontext berücksichtigt
+- [ ] Keine widersprüchlichen Vorgaben offen
+
+## Security
+
 - [ ] Keine Secrets
-- [ ] Keine Breaking Changes
+- [ ] Keine neuen Abhängigkeiten
+- [ ] Keine Runtime-Änderung
+
+## Deployment
+
+- [ ] Kein Deployment erforderlich (Docs-only)
 - [ ] Rückbau möglich
 
 ## Offene Punkte
