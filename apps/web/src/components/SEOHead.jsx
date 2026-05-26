@@ -83,7 +83,8 @@ export default function SEOHead({ lang = 'de', page = 'home' }) {
   const langTag = LANG_MAP[lang] || 'en-GB';
   const pagePaths = {
     home: '', leistungen: '/leistungen', preise: '/preise',
-    kontakt: '/kontakt', blog: '/blog', booking: '/termin'
+    kontakt: '/kontakt', blog: '/blog', booking: '/termin',
+    legal: ''
   };
   const canonical = `${BASE_URL}/${lang}${pagePaths[page] || ''}`;
   const breadcrumb = BREADCRUMBS[page] ? BREADCRUMBS[page](lang) : BREADCRUMBS.home(lang);
