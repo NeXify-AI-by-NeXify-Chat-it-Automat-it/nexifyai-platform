@@ -90,6 +90,18 @@ async def create_task(task_in: TaskInput, _token: str = Depends(verify_token)):
     logger.info("Task %s created status=%s", task.task_id, task.status.value)
     return {"task_id": task.task_id, "status": task.status.value}
 
+@app.get("/tasks/next")
+async def next_queued_task():
+    """Worker polling endpoint: returns next queued task or null."""
+    pending = list_tasks(status="queued", limit=1)
+    if not pending:
+        return {"task": None, "queue_empty": True}
+    t = get(pending[0].task_id)
+    if not t:
+        return {"task": None, "queue_empty": True}
+    return {"task": t.model_dump(), "queue_empty": False}
+
+
 @app.get("/tasks/{task_id}")
 async def get_task(task_id: str):
     task = get(task_id)
@@ -100,18 +112,6 @@ async def get_task(task_id: str):
 @app.get("/tasks")
 async def list_all_tasks(status: str | None = None, limit: int = 50):
     return [t.model_dump() for t in list_tasks(status=status, limit=limit)]
-
-
-@app.get("/tasks/next")
-async def next_queued_task():
-    """Worker polling endpoint: returns next queued task or null."""
-    pending = list_tasks(status=TaskStatus.queued.value, limit=1)
-    if not pending:
-        return {"task": None, "queue_empty": True}
-    t = get(pending[0].task_id)
-    if not t:
-        return {"task": None, "queue_empty": True}
-    return {"task": t.model_dump(), "queue_empty": False}
 
 
 @app.get("/tasks/{task_id}/evidence")
