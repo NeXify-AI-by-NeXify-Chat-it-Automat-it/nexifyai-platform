@@ -65,6 +65,11 @@ const router = createBrowserRouter([
   { path: '/:lang/blog', element: <RootLayout><BlogPage /></RootLayout> },
   { path: '/:lang/blog/:slug', element: <RootLayout><BlogPostPage /></RootLayout> },
   { path: '/:lang/:page', element: <RootLayout><LegalPage /></RootLayout> },
+  /* /agentur/ routes — agentur prefix */
+  { path: '/agentur', element: <RootLayout><App /></RootLayout> },
+  { path: '/agentur/leistungen', element: <RootLayout><LeistungenPage /></RootLayout> },
+  { path: '/agentur/preise', element: <RootLayout><PreisePage /></RootLayout> },
+  { path: '/agentur/kontakt', element: <RootLayout><KontaktPage /></RootLayout> },
   { path: '/blog', element: <RootLayout><BlogPage /></RootLayout> },
   { path: '/blog/:slug', element: <RootLayout><BlogPostPage /></RootLayout> },
   { path: '/login', element: <RootLayout><UnifiedLogin /></RootLayout> },
