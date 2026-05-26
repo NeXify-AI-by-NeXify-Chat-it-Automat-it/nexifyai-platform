@@ -30,6 +30,8 @@ body:
         - P1 High
         - P2 Medium
         - P3 Low
+    validations:
+      required: true
   - type: checkboxes
     id: scope
     attributes:
@@ -40,3 +42,5 @@ body:
         - label: CI / Workflow
         - label: Security
         - label: Kundenrepo
+    validations:
+      required: true

@@ -13,7 +13,9 @@ body:
     id: context
     attributes:
       label: Kontext / Policy-Bezug
-      description: Welche Policy (#11–#14) oder Entscheidung ist relevant?
+      description: Welche Policy (#11–#16) oder Entscheidung ist relevant?
+    validations:
+      required: true
   - type: dropdown
     id: type
     attributes:
@@ -25,15 +27,19 @@ body:
         - Audit
         - Reparatur
         - Security
+        - Code-Fix
+        - Deployment
     validations:
       required: true
   - type: checkboxes
     id: gates
     attributes:
-      label: Gates vor Abschluss
+      label: Gates vor Abschluss (alle Pflicht)
       options:
         - label: Brain-Kontext geprüft
         - label: Projektleiter-Kontext geprüft
         - label: Repo klassifiziert
         - label: Evidence dokumentiert
         - label: PR erstellt / gemerged
+    validations:
+      required: true

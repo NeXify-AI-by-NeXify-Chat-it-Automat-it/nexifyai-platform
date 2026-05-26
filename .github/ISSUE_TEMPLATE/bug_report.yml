@@ -14,11 +14,15 @@ body:
     attributes:
       label: Schritte zur Reproduktion
       description: Wie kann der Fehler nachgestellt werden?
+    validations:
+      required: true
   - type: textarea
     id: expected
     attributes:
       label: Erwartetes Verhalten
       description: Was sollte stattdessen passieren?
+    validations:
+      required: true
   - type: dropdown
     id: severity
     attributes:
@@ -28,6 +32,8 @@ body:
         - High
         - Medium
         - Low
+    validations:
+      required: true
   - type: checkboxes
     id: evidence
     attributes:
