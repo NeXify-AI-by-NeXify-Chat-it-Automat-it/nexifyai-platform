@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Vault Compatibility Layer -- drop-in replacement for os.environ for DS_ secrets."""
 """Phase 1: vault read with audit. Phase 2: TTL/scope. Phase 3: block direct."""
-import os, json
+import os, json, logging
 from datetime import datetime, timezone
+
+logger = logging.getLogger("nexifyai.security.vault_compat")
 
 class VaultCompat:
     """Thread-safe vault access with audit logging."""
@@ -77,6 +79,5 @@ if __name__ == "__main__":
     v = get_vault("test")
     for k in ["MONGO_URL", "RESEND_API_KEY", "ADMIN_EMAIL", "NONEXISTENT"]:
         val = v.get(k)
-        found = "[FOUND]" if val else "[MISSING]"
-        vlen = len(val) if val else 0
-        print(f"  {k}: {found} (len={vlen})")
+        # Log existence metadata only — never log secret values
+        logger.info("Vault check: %s present=%s", k, "yes" if val else "no")

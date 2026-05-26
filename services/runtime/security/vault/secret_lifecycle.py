@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Secret Lifecycle — manages creation to revocation flow."""
-import json, os
+import json, os, logging
 from datetime import datetime, timezone
+
+logger = logging.getLogger("nexifyai.security.secret_lifecycle")
 
 def scan_env():
     secrets = {}
@@ -28,4 +30,5 @@ def check_health():
 
 if __name__ == "__main__":
     report = {"timestamp": datetime.now(timezone.utc).isoformat(), "groups": len(scan_env()), "health_issues": check_health(), "status": "degraded" if check_health() else "healthy"}
-    print(json.dumps(report, indent=2))
+    logger.info("Secret lifecycle health: %d groups, %d issues, status=%s",
+                report["groups"], len(report["health_issues"]), report["status"])

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Revocation Engine -- immediate credential revocation across all layers."""
-import os, json, sys
+import os, json, sys, logging
 from datetime import datetime, timezone
+
+logger = logging.getLogger("nexifyai.security.revocation")
 
 class RevocationEngine:
     def __init__(self):
@@ -63,4 +65,4 @@ class RevocationEngine:
 if __name__ == "__main__":
     eng = RevocationEngine()
     result = eng.revoke_credential("test_secret", "test", "verifier")
-    print(json.dumps(result, indent=2))
+    logger.info("Revocation test result: %s", json.dumps(result))

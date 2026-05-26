@@ -1,0 +1,138 @@
+{
+  "repository": "NeXify-AI-by-NeXify-Chat-it-Automat-it/nexifyai-platform",
+  "baseline_version": "1.0",
+  "created": "2026-05-26T12:32:00Z",
+  "sections": [
+    {
+      "area": "actions_default_permissions",
+      "current_state": "unknown",
+      "target_state": "read",
+      "can_apply_via_api": true,
+      "applied": false,
+      "blocker": "needs_verification"
+    },
+    {
+      "area": "actions_fork_pr_approval",
+      "current_state": "unknown",
+      "target_state": "required",
+      "can_apply_via_api": true,
+      "applied": false,
+      "blocker": "needs_verification"
+    },
+    {
+      "area": "actions_artifact_retention",
+      "current_state": "unknown",
+      "target_state": "90",
+      "can_apply_via_api": true,
+      "applied": false,
+      "blocker": "needs_verification"
+    },
+    {
+      "area": "oidc_immutable_subject",
+      "current_state": "unknown",
+      "target_state": "enabled",
+      "can_apply_via_api": true,
+      "applied": false,
+      "blocker": "needs_trust_policy_check"
+    },
+    {
+      "area": "environments_remove_cline",
+      "current_state": "legacy",
+      "target_state": "removed",
+      "can_apply_via_api": true,
+      "applied": false,
+      "blocker": "needs_workflow_audit"
+    },
+    {
+      "area": "advanced_security_push_protection",
+      "current_state": "unknown",
+      "target_state": "enabled",
+      "can_apply_via_api": true,
+      "applied": false,
+      "blocker": "needs_verification"
+    },
+    {
+      "area": "advanced_security_alert_dismissal",
+      "current_state": "unknown",
+      "target_state": "prevented",
+      "can_apply_via_api": true,
+      "applied": false,
+      "blocker": "needs_verification"
+    },
+    {
+      "area": "advanced_security_secret_scanning",
+      "current_state": "on",
+      "target_state": "on_with_push_protection",
+      "can_apply_via_api": true,
+      "applied": false,
+      "blocker": "needs_verification"
+    },
+    {
+      "area": "copilot_cloud_agent",
+      "current_state": "no_license",
+      "target_state": "read_only_proposal",
+      "can_apply_via_api": false,
+      "applied": false,
+      "blocker": "copilot_pro_license_required"
+    },
+    {
+      "area": "mcp_config",
+      "current_state": "empty",
+      "target_state": "read_only_config",
+      "can_apply_via_api": false,
+      "applied": false,
+      "blocker": "copilot_license_and_secrets"
+    },
+    {
+      "area": "custom_properties",
+      "current_state": "not_configured",
+      "target_state": "defined",
+      "can_apply_via_api": false,
+      "applied": false,
+      "blocker": "org_level_ui"
+    },
+    {
+      "area": "autolinks",
+      "current_state": "not_configured",
+      "target_state": "defined_when_stable",
+      "can_apply_via_api": true,
+      "applied": false,
+      "blocker": "unstable_url_patterns"
+    },
+    {
+      "area": "secrets_actions",
+      "current_state": "empty",
+      "target_state": "registry_documented",
+      "can_apply_via_api": false,
+      "applied": false,
+      "blocker": "no_secret_values_available"
+    },
+    {
+      "area": "secrets_agents",
+      "current_state": "empty",
+      "target_state": "registry_documented",
+      "can_apply_via_api": false,
+      "applied": false,
+      "blocker": "no_copilot_license"
+    },
+    {
+      "area": "environments_structure",
+      "current_state": "5_legacy_names",
+      "target_state": "6_standardized",
+      "can_apply_via_api": true,
+      "applied": false,
+      "blocker": "needs_planning"
+    }
+  ],
+  "api_applied": [],
+  "manual_ui": [
+    "Settings → Custom properties (org-level)",
+    "Settings → Copilot Cloud Agent → MCP",
+    "Settings → Secrets and variables → Actions",
+    "Settings → Secrets and variables → Agents",
+    "Settings → Secrets and variables → Dependabot",
+    "Settings → Secrets and variables → Codespaces",
+    "Settings → Environments → Create/normalize",
+    "Settings → Autolink references"
+  ]
+}

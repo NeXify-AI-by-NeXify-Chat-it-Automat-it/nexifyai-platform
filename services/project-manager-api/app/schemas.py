@@ -66,6 +66,7 @@ class TaskRecord(BaseModel):
     result: dict[str, Any] | None = None
     evidence_path: str = ""
     error: str = ""
+    external_event_id: str = ""
     skill_evidence: list[dict] = []
     warning_findings: list[dict] = []
 

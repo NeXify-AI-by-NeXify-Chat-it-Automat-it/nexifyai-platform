@@ -1,0 +1,100 @@
+{
+  "version": "1.0",
+  "created": "2026-05-26",
+  "rules": [
+    {
+      "id": "EXTERNAL_RESOURCE_CHAIN",
+      "type": "mandatory",
+      "description": "Jede externe Funktion braucht vollständige Cloudflare/Origin/Health-Kette",
+      "checks": [
+        "Subdomain existiert",
+        "DNS zeigt auf Cloudflare Tunnel",
+        "Tunnel Ingress Rule konfiguriert",
+        "Origin Service läuft",
+        "Interner Healthcheck OK",
+        "Externer Healthcheck OK",
+        "Auth/HMAC aktiv",
+        "Monitoring aktiv",
+        "Evidence dokumentiert"
+      ],
+      "failure_action": "Feature gilt nicht als fertig",
+      "violation_label": "missing-external-chain"
+    },
+    {
+      "id": "NO_CODE_ONLY_COMPLETION",
+      "type": "mandatory",
+      "description": "Keine Implementierung gilt als fertig wenn nur Code existiert",
+      "checks": [
+        "GitHub: Issue/PR existiert",
+        "Runtime: Service läuft",
+        "Cloudflare: Tunnel/Ingress konfiguriert",
+        "Auth: HMAC/Token aktiv",
+        "Health: Intern + extern grün",
+        "Brain: Update geschrieben",
+        "Project #3: Item aktualisiert"
+      ],
+      "failure_action": "Claim als 'erledigt' zurückweisen",
+      "violation_label": "code-only-completion"
+    },
+    {
+      "id": "CENTRAL_SECRET_REGISTRY",
+      "type": "mandatory",
+      "description": "Alle Secrets zentral verwalten",
+      "checks": [
+        "Secret-Name in Registry dokumentiert",
+        "Storage-Ort bekannt (systemd/GitHub UI/env)",
+        "Owner benannt",
+        "Rotation-Policy existiert",
+        "Consumer dokumentiert"
+      ],
+      "failure_action": "Blocker setzen, nicht 'Key nicht gefunden' akzeptieren",
+      "violation_label": "missing-secret-registration"
+    },
+    {
+      "id": "WORKER_MUST_HAVE_TASK",
+      "type": "mandatory",
+      "description": "Jede Änderung braucht Task-ID in PM API",
+      "checks": [
+        "Task existiert in PM API",
+        "Task ist nicht completed ohne Evidence",
+        "Worker hat Task verarbeitet",
+        "Evidence existiert",
+        "Brain wurde aktualisiert"
+      ],
+      "failure_action": "Änderung als unautorisiert markieren",
+      "violation_label": "missing-task-id"
+    },
+    {
+      "id": "CLOUDFLARE_CHANGE_WITH_ROLLBACK",
+      "type": "mandatory",
+      "description": "Cloudflare-Änderungen nur mit dokumentiertem Rollback",
+      "checks": [
+        "Aktuelle Config vor Änderung gesichert",
+        "Impact bewertet",
+        "Rollback-Befehl dokumentiert",
+        "Healthcheck vorher/nachher dokumentiert"
+      ],
+      "failure_action": "Keine Änderung ohne Issue",
+      "violation_label": "cloudflare-change-without-rollback"
+    }
+  ],
+  "forbidden": [
+    "tools_star_for_write_servers",
+    "broad_pat",
+    "login_secrets_in_browser",
+    "blind_service_restart_without_issue",
+    "direct_push_to_main",
+    "code_only_completion",
+    "missing_external_chain_claim"
+  ],
+  "required_evidence": [
+    "interner_healthcheck",
+    "externer_healthcheck",
+    "cloudflare_ingress_verified",
+    "github_hook_delivery_tested",
+    "pm_api_task_processed",
+    "brain_update_written",
+    "project_3_item_updated",
+    "secret_registry_entry_exists"
+  ]
+}
