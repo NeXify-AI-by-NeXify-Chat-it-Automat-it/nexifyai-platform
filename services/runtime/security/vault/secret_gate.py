@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Secret Health Gate — blocks runtime start if secret state is invalid."""
-import os, sys, json
+import os, sys, json, logging
 from datetime import datetime, timezone
+
+logger = logging.getLogger("nexifyai.security.secret_gate")
 
 def check_secret_health():
     """Check vault health and required secret availability."""
@@ -37,12 +39,15 @@ def check_secret_health():
 
 def main():
     report = check_secret_health()
-    print(json.dumps(report, indent=2))
+    # Report metadata only — no secret values are exposed
+    safe_report = {k: v for k, v in report.items() if k not in ("env_credentials",)}
+    logger.info("Secret health check: %s", json.dumps(safe_report))
     if report["status"] == "healthy":
-        print("\nSECRET HEALTH: PASS - Runtime may start")
+        logger.info("SECRET HEALTH: PASS - Runtime may start")
         return 0
     else:
-        msg = "\nSECURITY GATE BLOCKED: secret state is " + report["status"]
+        msg = "SECURITY GATE BLOCKED: secret state is " + report["status"]
+        logger.error(msg)
         print(msg, file=sys.stderr)
         return 1
 

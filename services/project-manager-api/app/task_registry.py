@@ -44,6 +44,17 @@ def insert(task: TaskRecord) -> None:
             (task.task_id, task.status.value, task.created_at, task.updated_at, task.model_dump_json()),
         )
 
+def get_by_external_event(external_event_id: str) -> TaskRecord | None:
+    """Find a task by its external event ID (e.g., GitHub delivery ID)."""
+    with _conn() as c:
+        rows = c.execute(
+            "SELECT payload FROM tasks WHERE json_extract(payload, '$.external_event_id')=? ORDER BY created_at DESC LIMIT 1",
+            (external_event_id,),
+        ).fetchall()
+        if not rows:
+            return None
+        return TaskRecord.model_validate_json(rows[0]["payload"])
+
 def update_status(task_id: str, status: TaskStatus, result: dict | None = None, evidence_path: str = "", error: str = "") -> None:
     with _conn() as c:
         row = c.execute("SELECT payload FROM tasks WHERE task_id=?", (task_id,)).fetchone()

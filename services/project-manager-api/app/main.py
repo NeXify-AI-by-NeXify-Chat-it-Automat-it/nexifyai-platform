@@ -16,6 +16,7 @@ from app.brain_client import check_health as brain_health, store as brain_store
 from app.skill_registry import load_registry, validate_registry
 from app.project_tracker import load_tracker, validate_tracker
 from app.github_client import verify_signature, store_event
+from app.task_generator import generate_task
 from app import VERSION
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
@@ -153,7 +154,22 @@ async def github_webhook(request: Request):
     body = await request.body()
     signature = request.headers.get("X-Hub-Signature-256", "")
     event_type = request.headers.get("X-GitHub-Event", "unknown")
+    delivery_id = request.headers.get("X-GitHub-Delivery")
     verify_signature(body, signature)
     payload = json.loads(body)
     path = store_event(event_type, payload)
-    return {"stored": path, "event": event_type}
+    # Generate PM task from event
+    task_result = generate_task(event_type, payload, delivery_id=delivery_id)
+    logger.info("Webhook %s/%s — task_created=%s task_id=%s reason=%s",
+                event_type, payload.get("action", "?"),
+                task_result.get("task_created"), task_result.get("task_id"),
+                task_result.get("reason", "ok"))
+    return {
+        "stored": path,
+        "event": event_type,
+        "delivery_id": delivery_id,
+        "task_created": task_result.get("task_created", False),
+        "task_id": task_result.get("task_id"),
+        "reason": task_result.get("reason", "ok"),
+        "ok": task_result.get("ok", True),
+    }

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Lease-Based Credential Manager — credentials with TTL, scoped access, auto-revoke."""
-import os, json, time, uuid
+import os, json, time, uuid, logging
 from datetime import datetime, timezone, timedelta
+
+logger = logging.getLogger("nexifyai.security.lease")
 
 class CredentialLease:
     """A single credential lease with TTL."""
@@ -126,7 +128,7 @@ if __name__ == "__main__":
     lease = lm.issue_lease("MONGODB", ttl_seconds=60, worker_id="test-worker")
     if lease:
         val = lm.access_secret(lease.id)
-        print(f"Lease {lease.id[:8]}... valid={lease.is_valid()} val_len={len(val) if val else 0}")
+        logger.info("Lease %s... valid=%s val_len=%d", lease.id[:8], lease.is_valid(), len(val) if val else 0)
         lm.revoke_lease(lease.id)
-        print(f"After revoke: valid={lease.is_valid()}")
-    print(json.dumps(lm.status(), indent=2))
+        logger.info("After revoke: valid=%s", lease.is_valid())
+    logger.info("Status: %s", json.dumps(lm.status()))
