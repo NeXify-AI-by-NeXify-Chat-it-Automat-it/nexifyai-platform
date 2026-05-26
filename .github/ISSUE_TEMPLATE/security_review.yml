@@ -28,6 +28,7 @@ body:
         - Secret Scanning Alert
         - Dependency Review
         - Security Policy
+        - Ruleset
         - Anderes
   - type: textarea
     id: evidence
@@ -43,4 +44,5 @@ body:
         - label: Dependency aktualisieren
         - label: Code fixen
         - label: Policy aktualisieren
+        - label: Ruleset anpassen
         - label: Keine (false positive)

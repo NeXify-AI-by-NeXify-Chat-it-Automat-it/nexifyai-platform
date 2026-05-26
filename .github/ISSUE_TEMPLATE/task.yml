@@ -1,5 +1,5 @@
 name: Task / Policy
-description: Agenten-Aufgabe, Policy-Änderung oder Governance
+description: Agenten-Aufgabe, Policy-Änderung oder Governance-Auftrag
 labels: ["governance"]
 body:
   - type: textarea
@@ -13,7 +13,7 @@ body:
     id: context
     attributes:
       label: Kontext / Policy-Bezug
-      description: Welche Policy (#11, #12, #13) oder Entscheidung ist relevant?
+      description: Welche Policy (#11–#14) oder Entscheidung ist relevant?
   - type: dropdown
     id: type
     attributes:
@@ -24,6 +24,7 @@ body:
         - Dokumentation
         - Audit
         - Reparatur
+        - Security
     validations:
       required: true
   - type: checkboxes
