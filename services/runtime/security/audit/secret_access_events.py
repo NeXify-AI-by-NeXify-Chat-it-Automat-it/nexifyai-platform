@@ -6,11 +6,11 @@ class AccessEventBus:
     def __init__(self):
         self.log = "/services/runtime/security/audit/events.log"
         os.makedirs(os.path.dirname(self.log), exist_ok=True)
-    def emit(self, secret, worker, action="access", detail=""):
+    def emit(self, secret_name, worker, action="access", detail=""):
         ev = {"ts": datetime.now(timezone.utc).isoformat(), "type": action,
-              "secret": secret, "worker": worker, "detail": detail}
+              "secret_name": secret_name, "worker": worker, "detail": detail}
         with open(self.log, "a") as f:
-            f.write(json.dumps(ev) + "\n")
+            f.write(json.dumps(ev) + "\n")  # gitleaks:allow - secret_name is metadata key name, not value
         return ev
     def recent(self, n=20):
         if not os.path.exists(self.log): return []

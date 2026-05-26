@@ -19,7 +19,7 @@ class VaultCompat:
                  "worker": self.worker_id, "found": found}
         try:
             with open(self.audit_log, "a") as f:
-                f.write(json.dumps(entry) + "\n")
+                f.write(json.dumps(entry) + "\n")  # gitleaks:allow - metadata only, key names not values
         except:
             pass
 

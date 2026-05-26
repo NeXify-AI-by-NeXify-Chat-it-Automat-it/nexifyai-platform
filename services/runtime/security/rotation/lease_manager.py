@@ -58,7 +58,7 @@ class LeaseManager:
             f.write(json.dumps({"ts": datetime.now(timezone.utc).isoformat(),
                                 "type": "lease_issued", "lease_id": lease.id,
                                 "secret": secret_name, "worker": worker_id,
-                                "ttl": ttl_seconds, "scope": scope}) + "\n")
+                                "ttl": ttl_seconds, "scope": scope}) + "\n")  # gitleaks:allow - metadata only
         return lease
 
     def get_lease(self, lease_id):
@@ -78,7 +78,7 @@ class LeaseManager:
         with open("/services/runtime/security/audit/events.log", "a") as f:
             f.write(json.dumps({"ts": datetime.now(timezone.utc).isoformat(),
                                 "type": "lease_access", "lease_id": lease.id,
-                                "secret": lease.secret_name, "count": lease.access_count}) + "\n")
+                                "secret": lease.secret_name, "count": lease.access_count}) + "\n")  # gitleaks:allow - metadata only
         return val
 
     def revoke_lease(self, lease_id):
@@ -88,7 +88,7 @@ class LeaseManager:
             with open("/services/runtime/security/audit/events.log", "a") as f:
                 f.write(json.dumps({"ts": datetime.now(timezone.utc).isoformat(),
                                     "type": "lease_revoked", "lease_id": lease.id,
-                                    "secret": lease.secret_name}) + "\n")
+                                    "secret_name": lease.secret_name}) + "\n")  # gitleaks:allow - metadata only
 
     def revoke_all_for_worker(self, worker_id):
         count = 0

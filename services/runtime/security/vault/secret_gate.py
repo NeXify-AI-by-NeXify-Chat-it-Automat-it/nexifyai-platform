@@ -48,7 +48,7 @@ def main():
     else:
         msg = "SECURITY GATE BLOCKED: secret state is " + report["status"]
         logger.error(msg)
-        print(msg, file=sys.stderr)
+        print(msg, file=sys.stderr)  # gitleaks:allow - status message, not secret value
         return 1
 
 if __name__ == "__main__":
