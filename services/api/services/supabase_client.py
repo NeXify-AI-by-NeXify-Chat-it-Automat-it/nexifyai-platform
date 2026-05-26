@@ -20,7 +20,9 @@ async def get_pool() -> asyncpg.Pool:
         if not dsn:
             raise RuntimeError("ALT_SUPABASE_POSTGRESQL nicht konfiguriert")
         _pool = await asyncpg.create_pool(dsn, min_size=2, max_size=10, command_timeout=30)
-        logger.info("Supabase PostgreSQL Pool erstellt")
+        # Redact credentials: only log host part of DSN
+        safe_dsn_part = dsn.split('@')[-1] if '@' in dsn else dsn[:15]
+        logger.info("Supabase PostgreSQL Pool erstellt (host: ...@%s)", safe_dsn_part)
     return _pool
 
 
