@@ -82,6 +82,16 @@ class WorkerCallback(BaseModel):
     blockers: list[str] = []
     risks: list[str] = []
 
+class AutoMergeEvaluation(BaseModel):
+    """Schema for auto-merge evaluations sent from GitHub Actions worker."""
+    task_id: str
+    pull_request: int
+    status: str  # auto_merge_eligible | not_eligible | merged | failed
+    reason: str = ""
+    action: str = ""
+    author: str = ""
+    timestamp: str = ""
+
 class HealthResponse(BaseModel):
     api: str = "ok"
     brain: str = "unknown"

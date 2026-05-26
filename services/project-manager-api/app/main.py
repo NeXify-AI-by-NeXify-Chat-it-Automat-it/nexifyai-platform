@@ -17,6 +17,7 @@ from app.skill_registry import load_registry, validate_registry
 from app.project_tracker import load_tracker, validate_tracker
 from app.github_client import verify_signature, store_event
 from app.task_generator import generate_task
+from app.schemas import AutoMergeEvaluation
 from app import VERSION
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
@@ -148,6 +149,39 @@ async def worker_callback(cb: WorkerCallback, _token: str = Depends(verify_token
         raise HTTPException(status_code=404, detail="Task not found")
     update_status(cb.task_id, cb.status, result=cb.model_dump())
     return {"task_id": cb.task_id, "status": cb.status.value}
+
+@app.post("/worker/auto-merge-evaluation")
+async def auto_merge_evaluation(eval_in: AutoMergeEvaluation, _token: str = Depends(verify_token)):
+    """Receives auto-merge evaluation from GitHub Actions worker.
+    
+    This endpoint tracks which PRs were evaluated for auto-merge,
+    the decision made, and whether the merge was successful.
+    """
+    logger.info(
+        "Auto-merge eval: PR #%d | status=%s | reason=%s | author=%s | action=%s",
+        eval_in.pull_request, eval_in.status, eval_in.reason,
+        eval_in.author, eval_in.action,
+    )
+    
+    # Store the auto-merge event in the brain for audit trail
+    if brain_health():
+        try:
+            await brain_store(
+                category="governance",
+                title=f"Auto-merge evaluation: PR #{eval_in.pull_request}",
+                content=eval_in.model_dump_json(),
+                source="github-worker",
+                tags=f"auto-merge,pr-{eval_in.pull_request},{eval_in.status}",
+            )
+        except Exception as e:
+            logger.warning("Brain store failed for auto-merge eval: %s", e)
+    
+    return {
+        "ok": True,
+        "pull_request": eval_in.pull_request,
+        "status": eval_in.status,
+        "stored": True,
+    }
 
 @app.post("/webhooks/github")
 async def github_webhook(request: Request):
