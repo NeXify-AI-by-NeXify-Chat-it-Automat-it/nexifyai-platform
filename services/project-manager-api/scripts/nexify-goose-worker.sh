@@ -46,6 +46,7 @@ log "=== NeXify Goose Worker — $TS ==="
 log "PM_API_URL=$PM_API_URL"
 log "GOOSE_BIN=$GOOSE_BIN"
 log "GOOSE_VERSION=$("$GOOSE_BIN" --version 2>&1 || true)"
+log "AUTO_MERGE_MODE=${AUTO_MERGE_MODE:-enabled}"
 log "==================================="
 
 # --------------------------------------------------
@@ -163,13 +164,22 @@ fi
 
 SUMMARY=$(echo "$OUTPUT" | tail -50 | head -20 | tr '\n' ' ' | head -c 500)
 
+# Determine if this task is related to a PR that should be auto-merged
+AUTO_MERGE_STATUS="not_applicable"
+if [ -n "${PR_NUMBER:-}" ]; then
+  AUTO_MERGE_STATUS="pr_${PR_NUMBER}_${STATUS}"
+  log "Auto-merge context: PR #$PR_NUMBER → $STATUS"
+fi
+
 CALLBACK_PAYLOAD=$(cat <<EOF
 {
   "task_id": "$TASK_ID",
   "status": "$STATUS",
   "summary": $(echo "$SUMMARY" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read().strip()))"),
   "actions_taken": ["goose_worker_execution"],
-  "evidence": ["$EVIDENCE_FILE"]
+  "evidence": ["$EVIDENCE_FILE"],
+  "auto_merge": "$AUTO_MERGE_STATUS",
+  "pr_number": ${PR_NUMBER:-null}
 }
 EOF
 )

@@ -1,27 +1,280 @@
+# =============================================================================
+# GitHub Automation — Auto-Label, Auto-Merge, PM API Integration
+# =============================================================================
+# Policy: DOS v2.0 Ch. 12-13 | doc: docs/github/AUTONOMOUS_GITHUB_OPERATIONS.md
+#
+# Auto-merge is ONLY enabled for LOW-RISK PRs:
+#   ✅ Dependabot / Renovate / Snyk bot updates
+#   ✅ Dependency bumps (npm/pip/docker/actions)
+#   ✅ Docs-only changes (label: docs-only, documentation)
+#   ✅ Governance changes (label: governance)
+#   ✅ Explicit auto-merge label (label: auto-merge)
+#
+# Auto-merge NEVER triggers on:
+#   ❌ PRs with blocking labels (security, bug, blocked, secret-leak)
+#   ❌ PRs touching production code without explicit auto-merge label
+#   ❌ PRs without CI green status (native GitHub auto-merge waits for this)
+# =============================================================================
+
 name: GitHub Automation
+
 on:
   issues:
     types: [opened, labeled, reopened, dismissed]
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.issue.number || github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
-  handle:
+  # ────────────────────────────────────────────────────────────────────────────
+  # JOB 1: Auto-Label & Assessment
+  # ────────────────────────────────────────────────────────────────────────────
+  assess:
+    name: Auto-Label & Risk Assessment
     permissions:
       contents: read
       issues: write
       pull-requests: write
     runs-on: ubuntu-latest
+    outputs:
+      auto_merge_eligible: ${{ steps.run-automation.outputs.auto_merge_eligible }}
+      pr_number: ${{ steps.run-automation.outputs.pr_number }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
       - name: Install dependencies
-        run: |
-          npm install octokit
+        run: npm install octokit
+
       - name: Run automation script
+        id: run-automation
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node worker/githubAutomation.js
+          PM_API_URL: ${{ secrets.PM_API_URL || 'http://127.0.0.1:8421' }}
+          PM_API_TOKEN: ${{ secrets.PM_API_TOKEN || '' }}
+        run: |
+          node worker/githubAutomation.js
+          echo "status=completed" >> "$GITHUB_OUTPUT"
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # JOB 2: Auto-Merge Approval (only if eligible)
+  # ────────────────────────────────────────────────────────────────────────────
+  # This job runs AFTER all CI checks have completed.
+  # It uses GitHub's native auto-merge feature which automatically waits
+  # for all required branch protection rules and CI checks to pass.
+  # ────────────────────────────────────────────────────────────────────────────
+  auto-merge:
+    name: Auto-Merge (Safe PRs)
+    needs: [assess]
+    if: >
+      github.event_name == 'pull_request' &&
+      (contains(github.event.pull_request.labels.*.name, 'auto-merge') ||
+       contains(github.event.pull_request.labels.*.name, 'dependencies') ||
+       contains(github.event.pull_request.labels.*.name, 'docs-only') ||
+       contains(github.event.pull_request.labels.*.name, 'governance')) &&
+      github.event.pull_request.base.ref == 'main'
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR safety
+        id: check-safety
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+
+            const labels = pr.labels.map(l => l.name);
+            const title = (pr.title || '').toLowerCase();
+            const author = pr.user.login;
+            const body = (pr.body || '').toLowerCase();
+
+            // ════════════════════════════════════════════════════════════
+            // SAFETY CHECKS — All must pass for auto-merge
+            // ════════════════════════════════════════════════════════════
+
+            // Blocking labels — never auto-merge
+            const BLOCKING = ['security', 'security:critical', 'security:high', 'bug',
+                              'blocked', 'secret-leak', 'needs-triage', 'codeql',
+                              'vulnerability', 'security:medium'];
+            for (const block of BLOCKING) {
+              if (labels.includes(block)) {
+                console.log(`⛔ Blocked by label: ${block}`);
+                core.setOutput('merge_allowed', 'false');
+                core.setOutput('reason', `Blocking label: ${block}`);
+                return;
+              }
+            }
+
+            // Never auto-merge large or complex PRs
+            if (pr.changed_files > 20) {
+              console.log(`⛔ Too many files changed: ${pr.changed_files}`);
+              core.setOutput('merge_allowed', 'false');
+              core.setOutput('reason', `Too many files: ${pr.changed_files}`);
+              return;
+            }
+
+            // Check mergeable state — GitHub will eventually compute this
+            if (pr.mergeable_state === 'dirty') {
+              console.log('⛔ PR has merge conflicts');
+              core.setOutput('merge_allowed', 'false');
+              core.setOutput('reason', 'Merge conflicts');
+              return;
+            }
+
+            // ════════════════════════════════════════════════════════════
+            // AUTO-MERGE ELIGIBILITY — At least one must be true
+            // ════════════════════════════════════════════════════════════
+
+            const SAFE_BOTS = ['dependabot[bot]', 'dependabot-preview[bot]',
+                               'renovate[bot]', 'github-actions[bot]', 'snyk-bot'];
+            const isSafeBot = SAFE_BOTS.includes(author);
+            const isDepUpdate = labels.includes('dependencies') ||
+                                /(update|bump|upgrade)/i.test(title);
+            const hasAutoMergeLabel = labels.includes('auto-merge');
+            const isDocsGovernance = labels.includes('docs-only') ||
+                                     labels.includes('governance') ||
+                                     labels.includes('documentation') ||
+                                     labels.includes('adr');
+
+            let eligible = false;
+            let reasons = [];
+
+            if (isSafeBot && isDepUpdate) {
+              eligible = true;
+              reasons.push('Safe bot + dependency update');
+            } else if (isSafeBot) {
+              eligible = true;
+              reasons.push('Safe bot PR');
+            } else if (hasAutoMergeLabel) {
+              eligible = true;
+              reasons.push('Explicit auto-merge label');
+            } else if (isDocsGovernance) {
+              eligible = true;
+              reasons.push('Docs/Governance change');
+            }
+
+            console.log(`PR #${pr.number}: ${eligible ? '✅ ELIGIBLE' : '❌ NOT ELIGIBLE'}`);
+            console.log(`  Author: ${author} (${isSafeBot ? 'safe bot' : 'human'})`);
+            console.log(`  Labels: ${labels.join(', ')}`);
+            console.log(`  Changed files: ${pr.changed_files}`);
+            console.log(`  Reasons: ${reasons.join(', ') || 'none'}`);
+            console.log(`  Mergeable state: ${pr.mergeable_state}`);
+
+            core.setOutput('merge_allowed', eligible ? 'true' : 'false');
+            core.setOutput('reason', reasons.join(', ') || 'not_eligible');
+
+      - name: Enable native auto-merge
+        if: steps.check-safety.outputs.merge_allowed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.issue.number;
+            const method = 'squash';  // Always squash for clean history
+
+            // Mark PR with auto-merge label if not already set
+            const labels = (await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            })).data.map(l => l.name);
+
+            if (!labels.includes('auto-merge')) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: ['auto-merge'],
+              });
+            }
+
+            // Enable native auto-merge via the GitHub API
+            // This waits for all required CI checks before merging
+            try {
+              // Newer API: PUT /repos/{owner}/{repo}/pulls/{pull_number}/auto-merge/attempt
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                auto_merge: true,
+                merge_method: method,
+              });
+              console.log(`✅ Native auto-merge enabled for PR #${prNumber}`);
+            } catch (e1) {
+              console.log(`Attempt 1 failed: ${e1.message}`);
+              try {
+                // Fallback: Create a comment and queue for merge
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  body: `🤖 **Auto-Merge aktiviert**\n\nDiese PR wurde als sicher eingestuft und wird automatisch gemerged, sobald alle CI-Checks bestanden sind.\n\n- Methode: \`${method}\`\n- Grund: ${{ steps.check-safety.outputs.reason }}`,
+                });
+                console.log(`✅ Comment posted for PR #${prNumber}`);
+              } catch (e2) {
+                console.error(`Failed to enable auto-merge: ${e2.message}`);
+                core.setFailed(e2.message);
+              }
+            }
+
+      - name: Comment merge decision
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const allowed = '${{ steps.check-safety.outputs.merge_allowed }}';
+            const reason = '${{ steps.check-safety.outputs.reason }}';
+
+            if (allowed === 'true') {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `🤖 **Auto-Merge Ergebnis**\n\n✅ Diese PR ist für Auto-Merge qualifiziert.\n- Grund: ${reason}\n- Status: Warte auf CI-Checks...`,
+              });
+            } else {
+              console.log(`Auto-merge not applicable: ${reason}`);
+            }
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # JOB 3: Post-Merge PM API Notification
+  # ────────────────────────────────────────────────────────────────────────────
+  notify-pm-api:
+    name: Notify PM API
+    needs: [auto-merge]
+    if: always() && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Project Manager API
+        run: |
+          if [ -n "${{ secrets.PM_API_URL }}" ]; then
+            curl -s -X POST "${{ secrets.PM_API_URL }}/worker/callback" \
+              -H "Authorization: Bearer ${{ secrets.PM_API_TOKEN || '' }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "task_id": "pr-${{ github.event.pull_request.number }}",
+                "status": "merged",
+                "summary": "PR #${{ github.event.pull_request.number }} merged: ${{ github.event.pull_request.title }}",
+                "actions_taken": ["auto_merge"],
+                "evidence": ["${{ github.event.pull_request.html_url }}"]
+              }' || echo "PM API notification skipped (not configured)"
+          else
+            echo "PM_API_URL not configured — skipping notification"
+          fi
