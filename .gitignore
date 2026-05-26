@@ -153,3 +153,6 @@ scanner_results.json
 gitleaks*.json
 trivy*.json
 
+# Add app-level package-lock to prevent accidental commits
+apps/web/package-lock.json
+apps/web/node_modules
