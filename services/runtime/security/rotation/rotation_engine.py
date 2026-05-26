@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Rotation Engine — actively rotates credentials on schedule."""
 """Phase 1: Track + notify. Phase 2: API-based auto-rotate (GitHub, Vercel, etc)."""
-import os, json, sys
+import os, json, sys, logging
 from datetime import datetime, timezone, timedelta
+
+logger = logging.getLogger("nexifyai.security.rotation")
 
 ROTATION_SCHEDULE = {
     "github": 30, "vercel": 60, "deepseek": 90,
@@ -99,13 +101,13 @@ class RotationEngine:
 
 if __name__ == "__main__":
     eng = RotationEngine()
-    print("=== Due for rotation ===")
+    logger.info("=== Due for rotation ===")
     due = eng.check_due()
-    print(f"  {len(due)} secrets due")
+    logger.info("%d secrets due", len(due))
     for d in due[:5]:
-        print(f"    {d["name"]}: {d["days_overdue"]} days overdue")
-    print("\n=== Running rotation ===")
+        logger.info("  %s: %d days overdue", d["name"], d["days_overdue"])
+    logger.info("=== Running rotation ===")
     result = eng.rotate_all_due()
-    print(f"  Checked: {result["checked"]}, Rotated: {result["rotated"]}")
-    print("\n=== Summary ===")
-    print(json.dumps(eng.summary(), indent=2))
+    logger.info("Checked: %d, Rotated: %d", result["checked"], result["rotated"])
+    logger.info("=== Summary ===")
+    logger.info(json.dumps(eng.summary(), indent=2))
