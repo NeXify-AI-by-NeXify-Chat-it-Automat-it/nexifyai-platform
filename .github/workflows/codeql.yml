@@ -4,14 +4,14 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "frontend/**"
-      - "backend/**"
-      - "public/**"
+      - "apps/web/**"
+      - "services/api/**"
+      - "infrastructure/**"
   push:
     branches: [main]
     paths:
-      - "frontend/**"
-      - "backend/**"
+      - "apps/web/**"
+      - "services/api/**"
   schedule:
     - cron: "0 7 * * 1"
 

@@ -1,0 +1,42 @@
+#!/bin/bash
+# NeXifyAI Secret Sanitizer — Pre-Commit Hook
+# Verhindert, dass Secrets in Git-History landen
+
+PATTERNS=(
+  "AKIA[0-9A-Z]{16}"  # AWS Access Key
+  "ghp_[a-zA-Z0-9]{36}"  # GitHub PAT
+  "gho_[a-zA-Z0-9]{36}"  # GitHub OAuth
+  "ghu_[a-zA-Z0-9]{36}"  # GitHub User Token
+  "sk-[a-zA-Z0-9]{32,}"  # OpenAI API Key
+  "xox[baprs]-[0-9a-zA-Z-]{24,}"  # Slack Token
+  "-----BEGIN (RSA |EC )?PRIVATE KEY-----"  # Private Keys
+  "SG\.[a-zA-Z0-9._-]{22,}"  # SendGrid Key
+  "pk_[a-zA-Z0-9]{24,}"  # Stripe Publishable
+  "sk_[a-zA-Z0-9]{24,}"  # Stripe Secret
+  # "\\.env[0-9]*" removed — caused false positives in .gitignore/.env.example
+  # .env file detection is handled separately below via file name checks
+)
+
+# Check staged files for secrets
+for FILE in $(git diff --cached --name-only); do
+  if [ -f "$FILE" ]; then
+    for PATTERN in "${PATTERNS[@]}"; do
+      if grep -qE "$PATTERN" "$FILE" 2>/dev/null; then
+        echo "❌ SECURITY: Potenzielles Secret in $FILE gefunden!"
+        echo "   Pattern: $PATTERN"
+        echo "   Commit abgelehnt. Entferne das Secret und versuche erneut."
+        exit 1
+      fi
+    done
+  fi
+done
+
+# Check for .env files being committed (allow .env.example as template)
+git diff --cached --name-only | grep -E '(^|/)\.env' | while IFS= read -r file; do
+  if [ "$file" != ".env.example" ] && ! echo "$file" | grep -q '\.env\.example$'; then
+    echo "❌ SECURITY: .env-Datei '$file' darf nicht committed werden (nur .env.example erlaubt)!"
+    exit 1
+  fi
+done
+
+exit 0

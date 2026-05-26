@@ -17,6 +17,9 @@
     "test": "cd apps/web && npx react-scripts test",
     "format": "prettier --write 'apps/*/src/**/*.{js,jsx,ts,tsx,css}'"
   },
+  "overrides": {
+    "qs": ">=6.15.1"
+  },
   "devDependencies": {
     "prettier": "^3.0.0"
   }

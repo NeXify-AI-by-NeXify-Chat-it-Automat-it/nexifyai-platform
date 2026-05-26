@@ -81,7 +81,12 @@ const L10N_ADDR = {
 export default function SEOHead({ lang = 'de', page = 'home' }) {
   const m = META[lang] || META.en;
   const langTag = LANG_MAP[lang] || 'en-GB';
-  const canonical = `${BASE_URL}/${lang}`;
+  const pagePaths = {
+    home: '', leistungen: '/leistungen', preise: '/preise',
+    kontakt: '/kontakt', blog: '/blog', booking: '/termin',
+    legal: ''
+  };
+  const canonical = `${BASE_URL}/${lang}${pagePaths[page] || ''}`;
   const breadcrumb = BREADCRUMBS[page] ? BREADCRUMBS[page](lang) : BREADCRUMBS.home(lang);
   const faqs = FAQ_DATA[lang] || FAQ_DATA.de;
 

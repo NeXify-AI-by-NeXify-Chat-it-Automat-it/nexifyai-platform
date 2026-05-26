@@ -2,7 +2,7 @@
 # NeXifyAI Pre-Push Hook — Prinzip F
 # Fuehrt npm run build vor jedem Push aus.
 # Blockiert Push bei Build-Fehler.
-# Install: ln -s /opt/nexifyai-website-sicherheitskopie/.githooks/pre-push .git/hooks/
+# Install: ln -s ../../.githooks/pre-push .git/hooks/
 
 set -e
 
@@ -10,19 +10,21 @@ echo "════════════════════════�
 echo " Pre-Push Hook: npm run build (Prinzip F)"
 echo "═══════════════════════════════════════"
 
-# Nur ausführen wenn frontend/ im aktuellen Commit geändert wurde
-FRONTEND_CHANGED=$(git diff-tree --no-commit-id -r HEAD --name-only 2>/dev/null | grep "^frontend/" || true)
+REPO_ROOT=$(git rev-parse --show-toplevel)
 
-if [ -z "$FRONTEND_CHANGED" ]; then
-    echo "✓ Keine Frontend-Änderungen — Build übersprungen."
+# Nur ausführen wenn apps/web/ im aktuellen Commit geändert wurde
+APPS_WEB_CHANGED=$(git diff-tree --no-commit-id -r HEAD --name-only 2>/dev/null | grep "^apps/web/" || true)
+
+if [ -z "$APPS_WEB_CHANGED" ]; then
+    echo "✓ Keine Frontend-Änderungen in apps/web/ — Build übersprungen."
     exit 0
 fi
 
 echo "→ Frontend-Änderungen erkannt:"
-echo "$FRONTEND_CHANGED" | head -5
+echo "$APPS_WEB_CHANGED" | head -5
 echo "→ Starte Build..."
 
-cd "$(git rev-parse --show-toplevel)/frontend"
+cd "$REPO_ROOT/apps/web"
 
 if npm run build 2>&1 | tail -5; then
     BUILD_EXIT=$?
