@@ -1,0 +1,38 @@
+name: Task / Policy
+description: Agenten-Aufgabe, Policy-Änderung oder Governance
+labels: ["governance"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Ziel
+      description: Was soll erreicht werden?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Kontext / Policy-Bezug
+      description: Welche Policy (#11, #12, #13) oder Entscheidung ist relevant?
+  - type: dropdown
+    id: type
+    attributes:
+      label: Typ
+      options:
+        - Policy
+        - Konfiguration
+        - Dokumentation
+        - Audit
+        - Reparatur
+    validations:
+      required: true
+  - type: checkboxes
+    id: gates
+    attributes:
+      label: Gates vor Abschluss
+      options:
+        - label: Brain-Kontext geprüft
+        - label: Projektleiter-Kontext geprüft
+        - label: Repo klassifiziert
+        - label: Evidence dokumentiert
+        - label: PR erstellt / gemerged
