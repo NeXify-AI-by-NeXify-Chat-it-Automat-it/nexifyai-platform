@@ -18,7 +18,7 @@ const SAFE_LABELS = new Set(["auto-merge", "dependencies", "docs-only", "governa
 const BLOCKING_LABELS = new Set(["security", "bug", "blocked", "needs-review", "needs-triage", "secret-leak"]);
 const SAFE_BOTS = new Set(["dependabot[bot]", "dependabot-preview[bot]", "renovate[bot]", "github-actions[bot]", "snyk-bot"]);
 
-function isSafeForAutoMerge(pullRequest, labels) {
+async function isSafeForAutoMerge(pullRequest, labels) {
   const author = pullRequest.user.login;
   const title = (pullRequest.title || "").toLowerCase();
   const body = (pullRequest.body || "").toLowerCase();
@@ -214,7 +214,7 @@ async function handlePullRequest(payload) {
   });
 
   // Step 3: Check auto-merge eligibility
-  const assessment = isSafeForAutoMerge(pull_request, currentLabels);
+  const assessment = await isSafeForAutoMerge(pull_request, currentLabels);
 
   // Step 4: Send evaluation to PM API for tracking
   try {
