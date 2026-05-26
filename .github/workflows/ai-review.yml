@@ -97,5 +97,5 @@ jobs:
               repo: context.repo.repo,
               pull_number: context.issue.number,
               body: body,
-              event: 'COMMENT'
+              event: concerns.length === 0 ? 'APPROVE' : 'COMMENT'
             });
