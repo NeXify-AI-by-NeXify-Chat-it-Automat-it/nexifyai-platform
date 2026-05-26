@@ -1,12 +1,111 @@
 {
-  "version": "1.0",
-  "last_updated": "2026-05-24",
-  "customer_projects": [],
+  "version": "1.1",
+  "last_updated": "2026-05-26",
+  "customer_projects": [
+    {
+      "customer_id": "client_opencarbox",
+      "project_name": "OpenCarBox 2026 — Fahrzeugverwaltung / Autobox",
+      "repo_url": "git@gitlab.com:NeXify-Automate/opencarbox-2026.git",
+      "repo_backup": "git@github.com:nexifyai-dev/opencarbox-2026-sicherheitskopie.git",
+      "local_path": "/opt/archive/legacy-projects/nexifyai-opencarbox",
+      "client_local_path": "/opt/clients/opencarbox",
+      "customer_local_path": "/opt/data/customers/opencarbox",
+      "domain": null,
+      "deployment": "Vercel (opencarbox-2026-sicherheitskopie.vercel.app, READY) + PM2 local (port 8030, Express)",
+      "stack": "Express.js + React Frontend + Backend",
+      "ci": "GitLab CI/CD (.gitlab-ci.yml) + GitHub backup",
+      "health": "legacy: online (PM2), Vercel: READY",
+      "requirements_available": false,
+      "customer_requirements_available": false,
+      "status": "maintenance",
+      "priority": "P2",
+      "blockers": [
+        "⚠️ Repo auf GitLab (nicht GitHub) — kein zentrales GitHub Management",
+        "❌ Kein GitHub Actions CI (nur GitLab CI)",
+        "❌ Kundenanforderungen nicht dokumentiert"
+      ],
+      "open_tasks": [
+        "Repo nach GitHub migrieren oder GitLab CI in Governance aufnehmen",
+        "Requirements-Dokumentation erstellen",
+        "Deployment-Dokumentation aktualisieren"
+      ],
+      "security_risks": [
+        "Legacy Express 4.18.2 (keine bekannten aktiven CVE, aber nicht latest)",
+        "Kein GitHub Secret Scanning aktiv (Repo auf GitLab)"
+      ],
+      "acceptance_criteria": [],
+      "next_action": "read_only_audit",
+      "artifacts_identified": [
+        "Express-Static Konfiguration",
+        "LLM Code Review System",
+        "CI/CD Pipeline (GitLab)"
+      ],
+      "patterns_extracted": [
+        "Express + React SPA Stack",
+        "PM2 Prozess-Management",
+        "LLM-gestützter Code Review"
+      ],
+      "reuse_status": "not_reused",
+      "notes": "Legacy-Projekt. Haupt-Repo auf GitLab, GitHub nur als Sicherheitskopie. Vercel-Deployment READY. Brain hat client_opencarbox Collection in Qdrant."
+    },
+    {
+      "customer_id": "client_studienkolleg-aachen",
+      "project_name": "Studienkolleg Aachen — Affilinet Portal / Bildungsplattform",
+      "repo_url": "https://github.com/nexifyai-dev/affilinet-portal-aachen-final.git",
+      "repo_backup": null,
+      "local_path": "/opt/affilinet-portal",
+      "client_local_path": "/opt/clients/studienkolleg-aachen",
+      "customer_local_path": "/opt/data/customers/studienkolleg-aachen",
+      "domain": null,
+      "deployment": null,
+      "stack": "LLM AI System + Portal (JavaScript/Node.js, pre-commit, GitHub Actions)",
+      "ci": "GitHub Actions (.github/workflows vorhanden)",
+      "health": "unknown — Deployment nicht geprüft",
+      "requirements_available": true,
+      "customer_requirements_available": false,
+      "status": "audit_needed",
+      "priority": "P1",
+      "blockers": [
+        "❌ Kundenanforderungen nicht dokumentiert",
+        "❌ Keine Deployment-Informationen",
+        "❌ Health/Deployment-Status ungeprüft"
+      ],
+      "open_tasks": [
+        "Deployment prüfen (Vercel/Render/anderer Target)",
+        "Requirements-Dokumentation aus repo docs extrahieren",
+        "Live-Test durchführen"
+      ],
+      "security_risks": [
+        "Repo auf nexifyai-dev (privat) — kein org-Repo",
+        "Keine Secret-Scanning-Informationen"
+      ],
+      "acceptance_criteria": [],
+      "next_action": "live_check",
+      "artifacts_identified": [
+        "Umfassende Projektdokumentation (00-08 Index, Quellenregister, Verifikationsmatrix)",
+        "LLM Code Review System",
+        "GitHub Actions Workflows",
+        "Pre-commit Konfiguration",
+        "Neon Integration"
+      ],
+      "patterns_extracted": [
+        "LLM-gestützter Code Review",
+        "GitHub Actions CI/CD",
+        "Portal-Architektur mit Dokumentations-Framework"
+      ],
+      "reuse_status": "not_reused",
+      "notes": "Repo identifiziert: nexifyai-dev/affilinet-portal-aachen-final. Hat comprehensive docs. Studienkolleg Aachen hat vermutlich zwei Sub-Projekte: Affilinet Portal + Bildungsplattform. Brain Qdrant: client_studienkolleg-aachen Collection."
+    }
+  ],
   "meta": {
-    "description": "Map zwischen Kundenprojekten und wiederverwendbaren Artefakten/Patterns",
+    "description": "Map zwischen Kundenprojekten und wiederverwendbaren Artefakten/Patterns (Stand: 2026-05-26)",
     "required_fields": [
       "customer_id", "project_name", "repo_url", "artifacts_identified",
       "patterns_extracted", "reuse_status", "notes"
+    ],
+    "known_projects_pending_investigation": [
+      "affilinet-portal (/opt/affilinet-portal/.git — potentielles Kundenprojekt)",
+      "Weitere Projekte aus /opt/archive/legacy-projects/ prüfen"
     ]
   }
 }
