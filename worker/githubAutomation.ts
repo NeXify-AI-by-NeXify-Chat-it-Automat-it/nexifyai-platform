@@ -11,7 +11,7 @@ export async function handleIssue(context: { issue: any; payload: any }) {
   const repo = payload.repository.name;
 
   if (title.includes("bug")) {
-    await octokit.issues.addLabels({
+    await octokit.rest.issues.addLabels({
       owner,
       repo,
       issue_number: number,
@@ -28,7 +28,7 @@ export async function handlePullRequest(context: { payload: any }) {
   const repo = payload.repository.name;
 
   // Add needs-review label to all new PRs
-  await octokit.issues.addLabels({
+  await octokit.rest.issues.addLabels({
     owner,
     repo,
     issue_number: number,
