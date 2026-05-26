@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeXifyAI — System Health</title>
+<style>
+  :root {
+    --bg: #0f1923; --surface: rgba(19,26,34,0.85);
+    --text: #e2e8f0; --muted: #94a3b8;
+    --accent: #FE9B7B; --success: #22c55e;
+    --warning: #f59e0b; --danger: #ef4444;
+    --border: rgba(255,255,255,0.08);
+  }
+  * { margin:0; padding:0; box-sizing:border-box }
+  body { 
+    font-family: system-ui, -apple-system, sans-serif; 
+    background: var(--bg); color: var(--text);
+    padding: 2rem; min-height: 100vh;
+  }
+  .container { max-width: 800px; margin: 0 auto }
+  h1 { font-size: 1.5rem; margin-bottom: 0.5rem }
+  .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem }
+  .score-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  .big-score { font-size: 5rem; font-weight: 800; line-height: 1 }
+  .status-badge {
+    display: inline-block; padding: 0.25rem 1rem;
+    border-radius: 99px; font-weight: 600; font-size: 0.9rem;
+    margin-top: 0.75rem;
+  }
+  .status-excellent { background: rgba(34,197,94,0.15); color: var(--success) }
+  .status-good { background: rgba(34,197,94,0.1); color: var(--success) }
+  .status-fair { background: rgba(245,158,11,0.1); color: var(--warning) }
+  .status-degraded { background: rgba(239,68,68,0.1); color: var(--danger) }
+  .status-critical { background: rgba(239,68,68,0.2); color: var(--danger) }
+  .components {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem; margin-top: 1.5rem;
+  }
+  .component {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.25rem;
+  }
+  .component-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  .component-name { font-weight: 600; text-transform: capitalize }
+  .component-weight { color: var(--muted); font-size: 0.75rem }
+  .bar-bg {
+    height: 6px; background: rgba(255,255,255,0.1);
+    border-radius: 3px; margin-top: 0.5rem; overflow: hidden;
+  }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s }
+  .bar-high { background: var(--success) }
+  .bar-mid { background: var(--warning) }
+  .bar-low { background: var(--danger) }
+  .timestamp { text-align: center; color: var(--muted); font-size: 0.75rem; margin-top: 2rem }
+  .refresh { text-align: center; margin-top: 0.5rem; font-size: 0.8rem; color: var(--accent) }
+  .badge-grid {
+    display: flex; flex-wrap: wrap; gap: 0.75rem;
+    justify-content: center; align-items: center;
+  }
+  .badge-grid img { height: 20px; flex-shrink: 0 }
+  .badge-grid a { opacity: 0.85; transition: opacity 0.2s }
+  .badge-grid a:hover { opacity: 1 }
+  @media (max-width: 600px) {
+    body { padding: 1rem }
+    .big-score { font-size: 3.5rem }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🩺 NeXifyAI System Health</h1>
+  <div class="subtitle">DOS v2.0 — Health Score Dashboard · 5-Min-Auto-Refresh</div>
+
+  <div class="score-card" id="score-card">
+    <div class="big-score" id="score-value">--</div>
+    <div class="status-badge" id="status-badge">Lade...</div>
+  </div>
+
+  <div class="components" id="components"></div>
+
+  <div class="badges-section" id="badges">
+    <div class="subtitle" style="margin-top:1.5rem;margin-bottom:1rem">📊 Workflow Status</div>
+    <div class="badge-grid">
+      <a href="https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/security-scan.yml" target="_blank" rel="noopener">
+        <img src="https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/security-scan.yml/badge.svg?branch=main&event=push" alt="Security Scan" loading="lazy">
+      </a>
+      <a href="https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/ci.yml" target="_blank" rel="noopener">
+        <img src="https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/ci.yml/badge.svg?branch=main&event=push" alt="CI Quality Gates" loading="lazy">
+      </a>
+      <a href="https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/test.yml" target="_blank" rel="noopener">
+        <img src="https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/test.yml/badge.svg?branch=main&event=push" alt="Tests" loading="lazy">
+      </a>
+      <a href="https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/deploy.yml" target="_blank" rel="noopener">
+        <img src="https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/deploy.yml/badge.svg?branch=main&event=push" alt="Vercel Deploy" loading="lazy">
+      </a>
+    </div>
+  </div>
+
+  <div class="timestamp" id="timestamp"></div>
+  <div class="refresh">Auto-Refresh alle 5 Min</div>
+</div>
+
+<script>
+const API = 'https://nexifyai.nexifyai.cloud';
+
+function getBarClass(score) {
+  if (score >= 80) return 'bar-high';
+  if (score >= 50) return 'bar-mid';
+  return 'bar-low';
+}
+
+async function fetchHealth() {
+  try {
+    const resp = await fetch(`${API}/api/admin/audit/health?score=true`);
+    if (!resp.ok) throw new Error('API not reachable');
+    return await resp.json();
+  } catch(e) {
+    // Fallback: health-score.py Output
+    return null;
+  }
+}
+
+async function updateDashboard() {
+  const data = await fetchHealth();
+  const now = new Date().toLocaleString('de-DE');
+
+  if (data && data.health_score) {
+    const score = data.health_score.score || data.health_score;
+    const status = data.health_score.status || 'unknown';
+    
+    document.getElementById('score-value').textContent = Math.round(score) + '%';
+    
+    const badge = document.getElementById('status-badge');
+    badge.textContent = status.toUpperCase();
+    badge.className = 'status-badge status-' + status;
+    
+    // Score-Farbe
+    const scoreEl = document.getElementById('score-value');
+    if (score >= 80) scoreEl.style.color = 'var(--success)';
+    else if (score >= 60) scoreEl.style.color = 'var(--warning)';
+    else scoreEl.style.color = 'var(--danger)';
+    
+    // Komponenten
+    if (data.health_score.components) {
+      const comps = data.health_score.components;
+      const weights = data.health_score.weights || {};
+      const html = Object.entries(comps).map(([name, value]) => {
+        const weight = weights[name] ? Math.round(weights[name]*100) + '%' : '';
+        return `
+          <div class="component">
+            <div class="component-header">
+              <span class="component-name">${name.replace(/_/g, ' ')}</span>
+              <span class="component-weight">${weight}</span>
+            </div>
+            <div style="font-size:1.5rem;font-weight:700">${value}%</div>
+            <div class="bar-bg"><div class="bar-fill ${getBarClass(value)}" style="width:${value}%"></div></div>
+          </div>`;
+      }).join('');
+      document.getElementById('components').innerHTML = html;
+    }
+    
+    document.getElementById('timestamp').textContent = `Letzte Aktualisierung: ${now}`;
+    document.querySelector('.subtitle').textContent = 
+      `DOS v2.0 · Score: ${Math.round(score)}% · ${status}`;
+  } else {
+    document.getElementById('score-value').textContent = 'N/A';
+    document.getElementById('status-badge').textContent = 'Keine Daten';
+    document.getElementById('timestamp').textContent = `Versuch: ${now} — Backend nicht erreichbar?`;
+  }
+}
+
+updateDashboard();
+setInterval(updateDashboard, 5 * 60 * 1000);
+</script>
+</body>
+</html>

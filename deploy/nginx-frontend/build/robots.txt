@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+# Managed by NeXifyAI Continuous Engineering Agent
