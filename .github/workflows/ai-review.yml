@@ -16,6 +16,7 @@ on:
       - '**.yaml'
       - '**.json'
   push:
+    branches: ['**']
 
 jobs:
   # Push on workflow file = config change, no review needed
