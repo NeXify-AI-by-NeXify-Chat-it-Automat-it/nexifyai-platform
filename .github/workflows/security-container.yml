@@ -8,6 +8,7 @@ on:
       - "infrastructure/docker/**"
       - "services/api/**"
       - "infrastructure/**"
+      - ".github/workflows/security*.yml"
   push:
     branches: [main]
     paths:
@@ -15,6 +16,7 @@ on:
       - "infrastructure/docker/**"
       - "services/api/**"
       - "infrastructure/**"
+      - ".github/workflows/security*.yml"
   schedule:
     - cron: "0 7 * * *"
 
@@ -33,14 +35,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Trivy Scan (HIGH/CRITICAL — BLOCKING)
-        uses: aquasecurity/trivy-action@v0.29.0
+        uses: docker://ghcr.io/aquasecurity/trivy:0.58.0
         with:
-          scan-type: fs
-          scan-ref: .
-          severity: HIGH,CRITICAL
-          format: table
-          exit-code: 1
-          # BLOCKING: HIGH/CRITICAL CVEs block merge
+          args: >-
+            filesystem
+            --severity HIGH,CRITICAL
+            --exit-code 1
+            --no-progress
+            /github/workspace
 
   trivy-sarif:
     name: Trivy SARIF Upload
@@ -49,12 +51,15 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Trivy Scan (SARIF)
-        uses: aquasecurity/trivy-action@v0.29.0
+        uses: docker://ghcr.io/aquasecurity/trivy:0.58.0
         with:
-          scan-type: fs
-          scan-ref: .
-          format: sarif
-          output: trivy-results.sarif
+          args: >-
+            filesystem
+            --severity HIGH,CRITICAL,MEDIUM
+            --format sarif
+            --output /github/workspace/trivy-results.sarif
+            --no-progress
+            /github/workspace
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@v4
         with:
