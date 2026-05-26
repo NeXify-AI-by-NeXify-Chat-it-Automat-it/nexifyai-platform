@@ -1,0 +1,44 @@
+# Stale Issue/PR Management
+# Policy #5: Veraltete Issues/PRs automatisch markieren
+name: Manage Stale Issues & PRs
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"  # Jeden Montag 06:00 UTC
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+          # Issues
+          stale-issue-message: |
+            Dieses Issue wurde automatisch als **inaktiv** markiert, da es 60 Tage keine Aktivität gab.
+
+            - Bleibt das Issue relevant? → Kommentar mit Update hinterlassen
+            - Ist es erledigt? → Schließen
+            - In 14 Tagen ohne Aktivität wird es geschlossen.
+
+            Danke für eure Beiträge! 🙏
+          stale-issue-label: "stale"
+          days-before-stale: 60
+          days-before-close: 14
+          exempt-issue-labels: "pinned,security,priority-p0,priority-p1,in-progress,governance"
+
+          # PRs
+          stale-pr-message: |
+            Dieser PR wurde automatisch als **inaktiv** markiert, da es 30 Tage keine Aktivität gab.
+
+            - Wird noch daran gearbeitet? → Kommentar oder neuen Commit
+            - In 14 Tagen ohne Aktivität wird er geschlossen.
+          stale-pr-label: "stale"
+          days-before-pr-stale: 30
+          days-before-pr-close: 14
+          exempt-pr-labels: "pinned,security,dependency,governance,in-progress"
