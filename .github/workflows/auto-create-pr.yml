@@ -20,26 +20,36 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check existing PR
-        id: check
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          BRANCH="${{ github.ref_name }}"
-          EXISTING=$(gh pr list --head "$BRANCH" --state open --json number --jq 'length')
-          echo "existing=$EXISTING" >> $GITHUB_OUTPUT
-
-      - name: Create PR
-        if: steps.check.outputs.existing == '0'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          BRANCH="${{ github.ref_name }}"
-          TITLE=$(git log -1 --format=%s "$BRANCH")
-          BODY=$(git log -1 --format=%B "$BRANCH" | tail -n +3 | head -20 || echo "Automated PR")
-          gh pr create \
-            --base main \
-            --head "$BRANCH" \
-            --title "$TITLE" \
-            --body "$BODY" \
-            --label "auto-merge"
+      - name: Check and create PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${context.ref.replace('refs/heads/', '')}`,
+              state: 'open'
+            });
+            if (prs.length > 0) {
+              console.log(`PR already exists: #${prs[0].number}`);
+              return;
+            }
+            const commitMessage = context.payload.head_commit?.message || 'Automated changes';
+            const title = commitMessage.split('\n')[0];
+            const body = commitMessage.split('\n').slice(1).join('\n').trim() || 'Automated PR';
+            const { data: pr } = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              head: context.ref.replace('refs/heads/', ''),
+              base: 'main',
+              body: body
+            });
+            console.log(`Created PR #${pr.number}: ${pr.title}`);
+            // Add auto-merge label
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: ['auto-merge']
+            });
