@@ -1,6 +1,15 @@
 # CI Validation
 name: CI
-on: [push, pull_request]
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -15,7 +24,7 @@ jobs:
           cd apps/web && npm ci && npx vite build --logLevel error
       - name: Security audit
         run: |
-          pip install bandit && bandit -r services/api/ -x venv,tests || true
+          pip install bandit && bandit -r services/api/ -x venv,tests 2>&1 || echo "Bandit issues found (non-blocking for now)"
 
   # ═══════════════════════════════════════
   # DOCS-GOVERNANCE VALIDATION
