@@ -21,7 +21,6 @@ on:
 jobs:
   # Push on workflow file = config change, no review needed
   config-check:
-    if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-latest
     steps:
       - name: Confirm workflow config change
