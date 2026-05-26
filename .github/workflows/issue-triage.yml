@@ -1,0 +1,67 @@
+# Issue Triage Automation
+# Policy #5: Jedes Issue bekommt Labels, Priorität und Bereich
+name: Issue Triage
+
+on:
+  issues:
+    types: [opened, reopened]
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - name: Auto-label by content
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = context.payload.issue.title;
+            const body = context.payload.issue.body || '';
+            const combined = (title + ' ' + body).toLowerCase();
+
+            // Priority detection
+            let labels = [];
+            if (/crash|blocked|nicht erreichbar|down|critical|ssrf|security/i.test(combined)) {
+              labels.push('priority-p0');
+            }
+            if (/bug|fehler|error|fail|broken/i.test(combined)) {
+              labels.push('bug');
+              if (!labels.includes('priority-p0')) labels.push('priority-p1');
+            }
+            if (/feature|neues|anforderung|wunsch|idea/i.test(combined)) {
+              labels.push('feature');
+              if (!labels.includes('priority-p0') && !labels.includes('priority-p1')) labels.push('priority-p2');
+            }
+            if (/security|ssrf|xss|injection|secret|vulnerability/i.test(combined)) {
+              labels.push('security', 'code-scanning');
+              if (!labels.includes('priority-p0')) labels.push('priority-p0');
+            }
+            if (/dokumentation|docs?|readme|wiki/i.test(combined)) {
+              labels.push('documentation');
+              labels.push('priority-p3');
+            }
+            if (/frage|question|wie|help/i.test(combined)) {
+              labels.push('question');
+            }
+
+            // Area detection
+            if (/frontend|ui|css|react|vue/i.test(combined)) labels.push('area: frontend');
+            if (/backend|api|service|datenbank|database/i.test(combined)) labels.push('area: backend');
+            if (/deploy|ci|cd|workflow|action/i.test(combined)) labels.push('area: devops');
+            if (/security|auth|token|key|secret/i.test(combined)) labels.push('area: security');
+
+            // Governance issues always get the governance label
+            if (/policy|governance|rule|richtlinie/i.test(combined)) {
+              labels.push('governance');
+            }
+
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: [...new Set(labels)]  // deduplicate
+              });
+            }

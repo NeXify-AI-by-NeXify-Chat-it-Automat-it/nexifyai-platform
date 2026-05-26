@@ -1,0 +1,51 @@
+# Auto-Rebase on /rebase command
+# Policy #12: PRs können per Kommentar rebased werden
+name: Auto Rebase
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  rebase:
+    # Nur für PRs, die /rebase Kommando enthalten, und nicht auf main
+    if: >
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '/rebase') &&
+      github.event.issue.pull_request.base.ref != 'main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Rebase PR
+        run: |
+          PR_NUMBER=${{ github.event.issue.number }}
+          gh pr checkout $PR_NUMBER
+          git fetch origin main
+          git rebase origin/main
+          git push --force-with-lease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment result
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '✅ **Rebase erfolgreich!** Branch wurde auf den aktuellen `main`-Stand rebased.'
+            })

@@ -1,0 +1,28 @@
+# NeXify AI — CODEOWNERS
+# Jede Änderung benötigt mindestens einen verantwortlichen Owner.
+#
+# Policy #12: Governance PRs brauchen immer Code-Review.
+# Policy #14: Security-Änderungen brauchen Security-Review.
+# Non-existent teams are ignored by GitHub; falls back to org.
+
+# Global ownership — alle Änderungen
+* @NeXify-AI-by-NeXify-Chat-it-Automat-it/nexify-ai-team
+
+# Security-sensitive Bereiche
+/services/api/services/ @NeXify-AI-by-NeXify-Chat-it-Automat-it/nexify-ai-team
+/.github/ @NeXify-AI-by-NeXify-Chat-it-Automat-it/nexify-ai-team
+/.github/workflows/ @NeXify-AI-by-NeXify-Chat-it-Automat-it/nexify-ai-team
+
+# Policy-Dokumentation
+/docs/project-manager-handoff/docs/15* @NeXify-AI-by-NeXify-Chat-it-Automat-it/nexify-ai-team
+/docs/project-manager-handoff/docs/16* @NeXify-AI-by-NeXify-Chat-it-Automat-it/nexify-ai-team
+/docs/project-manager-handoff/docs/14* @NeXify-AI-by-NeXify-Chat-it-Automat-it/nexify-ai-team
+
+# CI/CD
+/.github/workflows/deploy* @NeXify-AI-by-NeXify-Chat-it-Automat-it/nexify-ai-team
+/Dockerfile* @NeXify-AI-by-NeXify-Chat-it-Automat-it/nexify-ai-team
+/docker-compose* @NeXify-AI-by-NeXify-Chat-it-Automat-it/nexify-ai-team
+
+# Documentation
+/docs/ @NeXify-AI-by-NeXify-Chat-it-Automat-it/nexify-ai-team
+*.md @NeXify-AI-by-NeXify-Chat-it-Automat-it/nexify-ai-team
