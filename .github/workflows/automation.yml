@@ -204,33 +204,38 @@ jobs:
               });
             }
 
-            // Enable native auto-merge via the GitHub API
+            // Enable native auto-merge via the canonical GitHub REST API
+            // PUT /repos/{owner}/{repo}/pulls/{pull_number}/auto-merge
             // This waits for all required CI checks before merging
+            // NOTE: There is NO distinct octokit method for this — use octokit.request directly
             try {
-              // Newer API: PUT /repos/{owner}/{repo}/pulls/{pull_number}/auto-merge/attempt
-              await github.rest.pulls.update({
+              await github.request("PUT /repos/{owner}/{repo}/pulls/{pull_number}/auto-merge", {
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 pull_number: prNumber,
-                auto_merge: true,
                 merge_method: method,
               });
               console.log(`✅ Native auto-merge enabled for PR #${prNumber}`);
-            } catch (e1) {
-              console.log(`Attempt 1 failed: ${e1.message}`);
-              try {
-                // Fallback: Create a comment and queue for merge
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: prNumber,
-                  body: `🤖 **Auto-Merge aktiviert**\n\nDiese PR wurde als sicher eingestuft und wird automatisch gemerged, sobald alle CI-Checks bestanden sind.\n\n- Methode: \`${method}\`\n- Grund: ${{ steps.check-safety.outputs.reason }}`,
-                });
-                console.log(`✅ Comment posted for PR #${prNumber}`);
-              } catch (e2) {
-                console.error(`Failed to enable auto-merge: ${e2.message}`);
-                core.setFailed(e2.message);
-              }
+            } catch (error) {
+              // If auto-merge API is not available (older GitHub Enterprise, insufficient permissions),
+              // post a comment explaining and move on — never attempt immediate merge
+              console.log(`Auto-merge API unavailable: ${error.message}`);
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: [
+                  `⚠️ **Auto-Merge Status**`,
+                  ``,
+                  `Native Auto-Merge konnte nicht aktiviert werden.`,
+                  ``,
+                  `Grund: ${error.message}`,
+                  ``,
+                  `Bitte manuell mergen, sobald alle CI-Checks bestanden sind.`,
+                ].join('\n'),
+              }).catch(() => {});
+              // Don't setFailed here — auto-merge is a nice-to-have, not a blocker
+              console.log('Auto-merge disabled for this PR — manual merge required');
             }
 
       - name: Comment merge decision
