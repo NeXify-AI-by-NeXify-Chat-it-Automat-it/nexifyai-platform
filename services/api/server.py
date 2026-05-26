@@ -550,6 +550,7 @@ from routes.telemetry_routes import router as telemetry_router
 from routes.security_routes import router as security_router
 from routes.recovery_routes import router as recovery_router
 from routes.order_routes import order_router
+from routes.cockpit_bridge_routes import router as cockpit_bridge_router
 
 from metrics import metrics_middleware, metrics_endpoint
 from fastapi import Request
@@ -596,6 +597,7 @@ app.include_router(order_router)
 app.include_router(agent_webhook_router)
 app.include_router(orch_router)
 app.include_router(langgraph_router)
+app.include_router(cockpit_bridge_router)
 
 # Metrics endpoint for Prometheus scraping
 @app.get("/metrics")
