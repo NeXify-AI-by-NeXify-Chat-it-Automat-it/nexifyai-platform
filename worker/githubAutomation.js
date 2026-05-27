@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // worker/githubAutomation.js — GitHub Actions automation handler
-// Version: 2.0 — added auto-merge, risk classification, PM API integration
+// Version: 2.1 — FIX: auto-merge uses GraphQL (not REST), REST endpoint doesn't exist
 // Runs via: node worker/githubAutomation.js (from .github/workflows/automation.yml)
 const { Octokit } = require("octokit");
 const fs = require("fs");
@@ -18,13 +18,52 @@ const SAFE_LABELS = new Set(["auto-merge", "dependencies", "docs-only", "governa
 const BLOCKING_LABELS = new Set(["security", "bug", "blocked", "needs-review", "needs-triage", "secret-leak"]);
 const SAFE_BOTS = new Set(["dependabot[bot]", "dependabot-preview[bot]", "renovate[bot]", "github-actions[bot]", "snyk-bot"]);
 
-function isSafeForAutoMerge(pullRequest, labels) {
+async function isSafeForAutoMerge(pullRequest, labels) {
   const author = pullRequest.user.login;
   const title = (pullRequest.title || "").toLowerCase();
   const body = (pullRequest.body || "").toLowerCase();
 
-  // Rule 1: Never auto-merge if blocking labels present
   const labelNames = labels.map((l) => (typeof l === "string" ? l : l.name));
+
+  // ─── Positive eligibility FIRST ─────────────────────────────────────────
+  // Check safe conditions BEFORE blocking labels to avoid self-block:
+  // Automation adds needs-review to new PRs, then checks eligibility and
+  // finds needs-review → returns false. Chicken-egg self-block.
+  const hasAutoMergeLabel = labelNames.includes("auto-merge");
+  const hasDependenciesLabel = labelNames.includes("dependencies");
+  const isBotPR = SAFE_BOTS.has(author);
+  const isDependencyUpdate = /(?:update|bump|upgrade|dependabot|renovate)/i.test(title) &&
+    /(?:dependenc|action|npm|pip|package|docker)/i.test(title + " " + body);
+  const isDocsGovernance = labelNames.includes("docs-only") || labelNames.includes("governance");
+  const isLowRiskChange = labelNames.includes("documentation") || labelNames.includes("adr");
+  const isCIConfigChange = labelNames.includes("ci");
+
+  let safeReason = null;
+  if (isBotPR || isDependencyUpdate || hasDependenciesLabel) {
+    safeReason = "bot_or_dependency";
+  } else if (hasAutoMergeLabel) {
+    safeReason = "auto_merge_label";
+  } else if (isDocsGovernance || isLowRiskChange) {
+    safeReason = "docs_governance";
+  } else if (isCIConfigChange) {
+    safeReason = "ci_only";
+  }
+
+  if (safeReason) {
+    // If positively eligible, only block on CRITICAL labels (security, bug, blocked, secret-leak)
+    // NOT needs-review/needs-triage (automation adds those itself)
+    const criticalBlockers = ["security", "bug", "blocked", "secret-leak"];
+    for (const label of labelNames) {
+      if (criticalBlockers.includes(label)) {
+        console.log(`  → Blocked by critical label: "${label}"`);
+        return { safe: false, reason: `Critical label: ${label}` };
+      }
+    }
+    console.log(`  → Safe: ${safeReason} (author=${author})`);
+    return { safe: true, reason: safeReason, method: "squash" };
+  }
+
+  // ─── No positive match — check ALL blocking labels ──────────────────────
   for (const label of labelNames) {
     if (BLOCKING_LABELS.has(label)) {
       console.log(`  → Blocked by label: "${label}"`);
@@ -32,44 +71,26 @@ function isSafeForAutoMerge(pullRequest, labels) {
     }
   }
 
-  // Rule 2: Never auto-merge PRs touching production code without explicit 'auto-merge' label
-  const hasAutoMergeLabel = labelNames.includes("auto-merge");
-  const hasDependenciesLabel = labelNames.includes("dependencies");
-
-  // Rule 3: Check if from a known safe bot (dependabot, renovate, etc.)
-  const isBotPR = SAFE_BOTS.has(author);
-  // Check for dependency updates in title
-  const isDependencyUpdate = /(?:update|bump|upgrade|dependabot|renovate)/i.test(title) &&
-    /(?:dependenc|action|npm|pip|package|docker)/i.test(title + " " + body);
-
-  // Rule 4: Docs-only or governance changes
-  const isDocsGovernance = labelNames.includes("docs-only") || labelNames.includes("governance");
-  // Check if PR has only doc changes by looking at files changed label
-  const isLowRiskChange = labelNames.includes("documentation") || labelNames.includes("adr");
-
-  // Decision logic
-  if (isBotPR || isDependencyUpdate || hasDependenciesLabel) {
-    console.log(`  → Safe: bot PR (${author}) or dependency update`);
-    return { safe: true, reason: "bot_or_dependency", method: "squash" };
-  }
-
-  if (hasAutoMergeLabel) {
-    console.log(`  → Safe: explicit auto-merge label`);
-    return { safe: true, reason: "auto_merge_label", method: "squash" };
-  }
-
-  if (isDocsGovernance || isLowRiskChange) {
-    console.log(`  → Safe: docs/governance change`);
-    return { safe: true, reason: "docs_governance", method: "squash" };
-  }
-
   console.log(`  → Not eligible for auto-merge (author=${author})`);
   return { safe: false, reason: "not_eligible" };
 }
 
-// ─── Enable Auto-Merge via GitHub API ────────────────────────────────────────
-// Uses GitHub's native auto-merge feature which waits for all required CI checks.
-// REST API docs: PUT /repos/{owner}/{repo}/pulls/{pull_number}/auto-merge
+// ─── Enable Auto-Merge via GitHub GraphQL API ───────────────────────────────
+// GitHub has NO REST endpoint for native auto-merge (waits for CI).
+// Must use GraphQL mutation: enablePullRequestAutoMerge.
+// Docs: https://docs.github.com/en/graphql/reference/mutations#enablepullrequestautomerge
+
+async function getPullRequestNodeId(owner, repo, pullNumber) {
+  const query = `
+    query($owner: String!, $repo: String!, $number: Int!) {
+      repository(owner: $owner, name: $repo) {
+        pullRequest(number: $number) { id }
+      }
+    }
+  `;
+  const result = await octokit.graphql(query, { owner, repo, number: pullNumber });
+  return result.repository.pullRequest.id;
+}
 
 async function enableAutoMerge(owner, repo, pullNumber, mergeMethod) {
   console.log(`Enabling auto-merge for PR #${pullNumber} (method: ${mergeMethod})`);
@@ -89,24 +110,28 @@ async function enableAutoMerge(owner, repo, pullNumber, mergeMethod) {
     ].join('\n'),
   });
 
-  // Step 2: Enable native GitHub auto-merge (waits for all required checks)
-  // Uses the PUT /repos/{owner}/{repo}/pulls/{pull_number}/auto-merge REST endpoint
-  // This is the canonical way to enable auto-merge via REST API v3
+  // Step 2: Enable native GitHub auto-merge via GraphQL (waits for CI)
   try {
-    await octokit.request("PUT /repos/{owner}/{repo}/pulls/{pull_number}/auto-merge", {
-      owner,
-      repo,
-      pull_number: pullNumber,
-      merge_method: mergeMethod,
+    const pullRequestId = await getPullRequestNodeId(owner, repo, pullNumber);
+    const mutation = `
+      mutation($prId: ID!, $method: PullRequestMergeMethod!) {
+        enablePullRequestAutoMerge(input: {
+          pullRequestId: $prId,
+          mergeMethod: $method
+        }) {
+          pullRequest { autoMergeRequest { enabledAt } }
+        }
+      }
+    `;
+    await octokit.graphql(mutation, {
+      prId: pullRequestId,
+      method: mergeMethod.toUpperCase(),
     });
     console.log(`✅ Auto-merge enabled for PR #${pullNumber}`);
     return { success: true };
   } catch (error) {
-    // If the native auto-merge endpoint isn't available (older GitHub Enterprise),
-    // log the error and inform via comment — do NOT attempt immediate merge
     console.error(`Auto-merge API failed for PR #${pullNumber}:`, error.message);
 
-    // Post a comment explaining the situation instead of an unreliable fallback
     await octokit.rest.issues.createComment({
       owner,
       repo,
@@ -118,7 +143,7 @@ async function enableAutoMerge(owner, repo, pullNumber, mergeMethod) {
         ``,
         `Bitte manuell mergen, sobald alle CI-Checks bestanden sind.`,
       ].join('\n'),
-    }).catch(() => {}); // non-fatal if comment fails
+    }).catch(() => {});
 
     return { success: false, error: error.message };
   }
@@ -195,26 +220,16 @@ async function handlePullRequest(payload) {
 
   console.log(`PR #${number}: action=${action} author=${pull_request.user.login}`);
 
-  // Step 1: Always add needs-review label to new PRs
-  if (isNewPr) {
-    await octokit.rest.issues.addLabels({
-      owner,
-      repo,
-      issue_number: number,
-      labels: ["needs-review"],
-    });
-    console.log(`PR #${number}: added label [needs-review]`);
-  }
-
-  // Step 2: Get current labels
+  // Step 1: Get current labels BEFORE any changes
   const { data: currentLabels } = await octokit.rest.issues.listLabelsOnIssue({
     owner,
     repo,
     issue_number: number,
   });
 
+
   // Step 3: Check auto-merge eligibility
-  const assessment = isSafeForAutoMerge(pull_request, currentLabels);
+  const assessment = await isSafeForAutoMerge(pull_request, currentLabels);
 
   // Step 4: Send evaluation to PM API for tracking
   try {

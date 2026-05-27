@@ -7,12 +7,12 @@ log = logging.getLogger("org-hb")
 
 # Use systemctl is-active for lightweight checks instead of subprocess chains
 SERVICE_CHECKS = {
-    "anton": "anton.service",
-    "planner": "anton-planner-runtime.service",
-    "event_bus": "nexify-event-bus.service",
-    "mcp": "nexify-mcp-daemon.service",
-    "cognitive": "nexify-cognitive-runtime.service",
-    "chat": "nexify-chat.service",
+    "anton": "nexify-systemmaster.service",
+    "planner": "nexify-planner.service",
+    "event_bus": "nexify-eventbus.service",
+    "mcp": "nexify-mcp-runtime.service",
+    "cognitive": "nexify-governance.service",
+    "chat": "nexify-bridge.service",
 }
 
 # Direct process/port checks for non-systemd components
