@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // worker/githubAutomation.js — GitHub Actions automation handler
-// Version: 2.0 — added auto-merge, risk classification, PM API integration
+// Version: 2.1 — FIX: auto-merge uses GraphQL (not REST), REST endpoint doesn't exist
 // Runs via: node worker/githubAutomation.js (from .github/workflows/automation.yml)
 const { Octokit } = require("octokit");
 const fs = require("fs");
@@ -67,9 +67,22 @@ function isSafeForAutoMerge(pullRequest, labels) {
   return { safe: false, reason: "not_eligible" };
 }
 
-// ─── Enable Auto-Merge via GitHub API ────────────────────────────────────────
-// Uses GitHub's native auto-merge feature which waits for all required CI checks.
-// REST API docs: PUT /repos/{owner}/{repo}/pulls/{pull_number}/auto-merge
+// ─── Enable Auto-Merge via GitHub GraphQL API ───────────────────────────────
+// GitHub has NO REST endpoint for native auto-merge (waits for CI).
+// Must use GraphQL mutation: enablePullRequestAutoMerge.
+// Docs: https://docs.github.com/en/graphql/reference/mutations#enablepullrequestautomerge
+
+async function getPullRequestNodeId(owner, repo, pullNumber) {
+  const query = `
+    query($owner: String!, $repo: String!, $number: Int!) {
+      repository(owner: $owner, name: $repo) {
+        pullRequest(number: $number) { id }
+      }
+    }
+  `;
+  const result = await octokit.graphql(query, { owner, repo, number: pullNumber });
+  return result.repository.pullRequest.id;
+}
 
 async function enableAutoMerge(owner, repo, pullNumber, mergeMethod) {
   console.log(`Enabling auto-merge for PR #${pullNumber} (method: ${mergeMethod})`);
@@ -89,24 +102,28 @@ async function enableAutoMerge(owner, repo, pullNumber, mergeMethod) {
     ].join('\n'),
   });
 
-  // Step 2: Enable native GitHub auto-merge (waits for all required checks)
-  // Uses the PUT /repos/{owner}/{repo}/pulls/{pull_number}/auto-merge REST endpoint
-  // This is the canonical way to enable auto-merge via REST API v3
+  // Step 2: Enable native GitHub auto-merge via GraphQL (waits for CI)
   try {
-    await octokit.request("PUT /repos/{owner}/{repo}/pulls/{pull_number}/auto-merge", {
-      owner,
-      repo,
-      pull_number: pullNumber,
-      merge_method: mergeMethod,
+    const pullRequestId = await getPullRequestNodeId(owner, repo, pullNumber);
+    const mutation = `
+      mutation($prId: ID!, $method: PullRequestMergeMethod!) {
+        enablePullRequestAutoMerge(input: {
+          pullRequestId: $prId,
+          mergeMethod: $method
+        }) {
+          pullRequest { autoMergeRequest { enabledAt } }
+        }
+      }
+    `;
+    await octokit.graphql(mutation, {
+      prId: pullRequestId,
+      method: mergeMethod.toUpperCase(),
     });
     console.log(`✅ Auto-merge enabled for PR #${pullNumber}`);
     return { success: true };
   } catch (error) {
-    // If the native auto-merge endpoint isn't available (older GitHub Enterprise),
-    // log the error and inform via comment — do NOT attempt immediate merge
     console.error(`Auto-merge API failed for PR #${pullNumber}:`, error.message);
 
-    // Post a comment explaining the situation instead of an unreliable fallback
     await octokit.rest.issues.createComment({
       owner,
       repo,
@@ -118,7 +135,7 @@ async function enableAutoMerge(owner, repo, pullNumber, mergeMethod) {
         ``,
         `Bitte manuell mergen, sobald alle CI-Checks bestanden sind.`,
       ].join('\n'),
-    }).catch(() => {}); // non-fatal if comment fails
+    }).catch(() => {});
 
     return { success: false, error: error.message };
   }
