@@ -123,7 +123,8 @@ jobs:
               '> ⚠️ Automated review — human approval still required per Policy #12.'
             ].join('\n');
 
-            const reviewEvent = concerns.length === 0 ? 'APPROVE' : 'COMMENT';
+            // GITHUB_TOKEN cannot APPROVE (GitHub restriction). Use COMMENT + auto-merge label instead.
+            const reviewEvent = 'COMMENT';
             await github.rest.pulls.createReview({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -132,10 +133,11 @@ jobs:
               event: reviewEvent
             });
 
-            // On approve: add auto-merge label so automation workflow
+            // On clean review (no security concerns): add auto-merge label so automation workflow
             // enables native GitHub auto-merge. Skips docs-only PRs
             // (they don't need CI/pipeline) and large PRs.
-            if (reviewEvent === 'APPROVE' && changed_files.length <= 20) {
+            // Uses COMMENT not APPROVE — GITHUB_TOKEN cannot approve PRs per GitHub policy.
+            if (concerns.length === 0 && changed_files.length <= 20) {
               const { data: pr } = await github.rest.pulls.get({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
