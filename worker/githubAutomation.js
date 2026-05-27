@@ -114,10 +114,10 @@ async function enableAutoMerge(owner, repo, pullNumber, mergeMethod) {
   try {
     const pullRequestId = await getPullRequestNodeId(owner, repo, pullNumber);
     const mutation = `
-      mutation($prId: ID!, $mergeMethod: PullRequestMergeMethod!) {
+      mutation($prId: ID!, $method: PullRequestMergeMethod!) {
         enablePullRequestAutoMerge(input: {
           pullRequestId: $prId,
-          mergeMethod: $mergeMethod
+          mergeMethod: $method
         }) {
           pullRequest { autoMergeRequest { enabledAt } }
         }
@@ -125,7 +125,7 @@ async function enableAutoMerge(owner, repo, pullNumber, mergeMethod) {
     `;
     await octokit.graphql(mutation, {
       prId: pullRequestId,
-      mergeMethod: mergeMethod.toUpperCase(),
+      method: mergeMethod.toUpperCase(),
     });
     console.log(`✅ Auto-merge enabled for PR #${pullNumber}`);
     return { success: true };
