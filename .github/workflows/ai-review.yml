@@ -77,15 +77,23 @@ jobs:
 
             let concerns = [];
             if (diff.length > 0 && diff.length < 50000) {
+              const addedLines = diff.split('\n').filter(l => l.startsWith('+'))
+                .map(l => l.replace(/^\+/, '').trim())
+                .filter(l => l.length > 0 && !l.startsWith('#') && !l.startsWith('//') && !l.startsWith('*') && !l.startsWith('/*') && !l.startsWith('<'));
+
               const securityPatterns = [
-                { pattern: /api[_-]?key|secret|password|token|credential/i, label: 'Credentials' },
+                { pattern: /(?:api|auth|secret|password|token|credential)[_\-\.]?(?:key|secret|token)?\s*[:=]\s*['"`]/, label: 'Credentials (hardcoded)' },
                 { pattern: /exec\(|eval\(|subprocess/i, label: 'Code Execution' },
                 { pattern: /http:\/\/(?!localhost)/i, label: 'Insecure HTTP' },
-                { pattern: /(SELECT|INSERT|UPDATE|DELETE).*FROM/i, label: 'SQL Query' },
+                { pattern: /(?:SELECT|INSERT|UPDATE|DELETE)\s+.+\s+FROM/i, label: 'SQL Query' },
+                { pattern: /process\.env\./i, label: 'Environment Variables' },
               ];
               for (const { pattern, label } of securityPatterns) {
-                if (pattern.test(diff)) {
-                  concerns.push(label);
+                for (const line of addedLines) {
+                  if (pattern.test(line)) {
+                    concerns.push(label);
+                    break;
+                  }
                 }
               }
             } else if (diff.length >= 50000) {
