@@ -226,7 +226,7 @@ def execute_order(order: dict, token: str = "") -> dict:
     headers = {"X-Internal-Auth": "nexifyai-local"}
     
     try:
-        r = httpx.post(f"{BACKEND_URL}/api/orchestration/execute", json={
+        r = httpx.post(f"{BACKEND_URL}/api/orchestration/execute-team", json={
             "agent": order["agent"],
             "task": order["task"],
             "context": {"priority": order["priority"], "order_id": order["order_id"]}

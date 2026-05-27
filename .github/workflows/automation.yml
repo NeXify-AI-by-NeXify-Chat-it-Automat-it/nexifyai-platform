@@ -180,13 +180,13 @@ jobs:
             core.setOutput('merge_allowed', eligible ? 'true' : 'false');
             core.setOutput('reason', reasons.join(', ') || 'not_eligible');
 
-      - name: Enable native auto-merge
+      - name: Enable native auto-merge (GraphQL)
         if: steps.check-safety.outputs.merge_allowed == 'true'
         uses: actions/github-script@v7
         with:
           script: |
             const prNumber = context.issue.number;
-            const method = 'squash';  // Always squash for clean history
+            const method = 'SQUASH';  // Always squash for clean history
 
             // Mark PR with auto-merge label if not already set
             const labels = (await github.rest.issues.listLabelsOnIssue({
@@ -204,22 +204,43 @@ jobs:
               });
             }
 
-            // Enable native auto-merge via the canonical GitHub REST API
-            // PUT /repos/{owner}/{repo}/pulls/{pull_number}/auto-merge
-            // This waits for all required CI checks before merging
-            // NOTE: There is NO distinct octokit method for this — use octokit.request directly
+            // GitHub has NO REST endpoint for native auto-merge.
+            // Must use GraphQL: enablePullRequestAutoMerge.
+            // Docs: https://docs.github.com/en/graphql/reference/mutations#enablepullrequestautomerge
             try {
-              await github.request("PUT /repos/{owner}/{repo}/pulls/{pull_number}/auto-merge", {
+              // Step 1: Get PR global node ID via GraphQL
+              const query = `
+                query($owner: String!, $repo: String!, $number: Int!) {
+                  repository(owner: $owner, name: $repo) {
+                    pullRequest(number: $number) { id }
+                  }
+                }
+              `;
+              const qResult = await github.graphql(query, {
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                pull_number: prNumber,
-                merge_method: method,
+                number: prNumber,
               });
-              console.log(`✅ Native auto-merge enabled for PR #${prNumber}`);
+              const pullRequestId = qResult.repository.pullRequest.id;
+
+              // Step 2: Enable auto-merge via GraphQL mutation
+              const mutation = `
+                mutation($prId: ID!, $mergeMethod: PullRequestMergeMethod!) {
+                  enablePullRequestAutoMerge(input: {
+                    pullRequestId: $prId,
+                    mergeMethod: $mergeMethod
+                  }) {
+                    pullRequest { autoMergeRequest { enabledAt } }
+                  }
+                }
+              `;
+              await github.graphql(mutation, {
+                prId: pullRequestId,
+                mergeMethod: method,
+              });
+              console.log(`✅ Native auto-merge enabled for PR #${prNumber} via GraphQL`);
             } catch (error) {
-              // If auto-merge API is not available (older GitHub Enterprise, insufficient permissions),
-              // post a comment explaining and move on — never attempt immediate merge
-              console.log(`Auto-merge API unavailable: ${error.message}`);
+              console.log(`Auto-merge API failed: ${error.message}`);
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -234,7 +255,6 @@ jobs:
                   `Bitte manuell mergen, sobald alle CI-Checks bestanden sind.`,
                 ].join('\n'),
               }).catch(() => {});
-              // Don't setFailed here — auto-merge is a nice-to-have, not a blocker
               console.log('Auto-merge disabled for this PR — manual merge required');
             }
 
