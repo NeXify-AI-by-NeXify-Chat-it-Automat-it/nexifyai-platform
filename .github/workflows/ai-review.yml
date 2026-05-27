@@ -103,7 +103,7 @@ jobs:
             const deletions = parseInt('${{ steps.diff.outputs.deletions || 0 }}') || 0;
 
             const foundLabels = concerns.length > 0
-              ? `### 🔒 Security Scan\n\n${concerns.map(c => `- ${c}`).join('\n')}`
+              ? '### 🔒 Security Scan\n\n- ' + concerns.join('\n- ')
               : '✅ No security concerns detected.';
 
             const body = [
