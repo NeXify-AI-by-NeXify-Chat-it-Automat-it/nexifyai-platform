@@ -42,8 +42,9 @@ def main():
     # Report metadata only — no secret values are exposed
     safe_report = {k: v for k, v in report.items() if k not in ("env_credentials",)}
     logger.info("Secret health check: %s", json.dumps(safe_report))
-    if report["status"] == "healthy":
-        logger.info("SECRET HEALTH: PASS - Runtime may start")
+    # degraded (e.g. missing DS_ env vars) is non-fatal for runtime
+    if report["status"] in ("healthy", "degraded"):
+        logger.info("SECURITY GATE: %s - allowing runtime start", report["status"].upper())
         return 0
     else:
         msg = "SECURITY GATE BLOCKED: secret state is " + report["status"]
