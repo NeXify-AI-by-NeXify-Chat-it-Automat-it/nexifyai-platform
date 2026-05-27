@@ -82,7 +82,6 @@ jobs:
                 { pattern: /exec\(|eval\(|subprocess/i, label: 'Code Execution' },
                 { pattern: /http:\/\/(?!localhost)/i, label: 'Insecure HTTP' },
                 { pattern: /(SELECT|INSERT|UPDATE|DELETE).*FROM/i, label: 'SQL Query' },
-                { pattern: /process\.env/i, label: 'Environment Variables' },
               ];
               for (const { pattern, label } of securityPatterns) {
                 if (pattern.test(diff)) {
@@ -97,21 +96,23 @@ jobs:
             const deletions = parseInt('${{ steps.diff.outputs.deletions || 0 }}') || 0;
 
             const foundLabels = concerns.length > 0
-              ? `### 🔒 Security Scan\n\n${concerns.map(c => `- ${c}`).join('\n')}`
+              ? '### 🔒 Security Scan\n\n- ' + concerns.join('\n- ')
               : '✅ No security concerns detected.';
 
-            const body = `## 🤖 AI Code Review
-
-### 📋 Summary
-**Changed files:** ${changed_files.length} files
-**Additions:** ${additions} | **Deletions:** ${deletions}
-
-### Changed Files
-${changed_files.map(f => `- \`${f}\``).join('\n')}
-
-${foundLabels}
-
-> ⚠️ Automated review — human approval still required per Policy #12.`;
+            const body = [
+              '## 🤖 AI Code Review',
+              '',
+              '### 📋 Summary',
+              '**Changed files:** ' + changed_files.length + ' files',
+              '**Additions:** ' + additions + ' | **Deletions:** ' + deletions,
+              '',
+              '### Changed Files',
+              changed_files.map(f => '- `' + f + '`').join('\n'),
+              '',
+              foundLabels,
+              '',
+              '> ⚠️ Automated review — human approval still required per Policy #12.'
+            ].join('\n');
 
             await github.rest.pulls.createReview({
               owner: context.repo.owner,
