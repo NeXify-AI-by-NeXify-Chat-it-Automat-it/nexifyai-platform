@@ -18,7 +18,7 @@ const SAFE_LABELS = new Set(["auto-merge", "dependencies", "docs-only", "governa
 const BLOCKING_LABELS = new Set(["security", "bug", "blocked", "needs-review", "needs-triage", "secret-leak"]);
 const SAFE_BOTS = new Set(["dependabot[bot]", "dependabot-preview[bot]", "renovate[bot]", "github-actions[bot]", "snyk-bot"]);
 
-function isSafeForAutoMerge(pullRequest, labels) {
+async function isSafeForAutoMerge(pullRequest, labels) {
   const author = pullRequest.user.login;
   const title = (pullRequest.title || "").toLowerCase();
   const body = (pullRequest.body || "").toLowerCase();
@@ -210,52 +210,9 @@ async function handlePullRequest(payload) {
     issue_number: number,
   });
 
-  // Step 2: Auto-detect CI config changes from title
-  const isCIConfig = /ci:|workflow|checkout|ci\//i.test(pull_request.title);
-  const hasCiLabel = currentLabels.some(l => (l.name || l) === 'ci');
 
-  // Step 3: Check auto-merge eligibility BEFORE adding needs-review
-  // (needs-review is blocking label — must check first to avoid self-block)
-  let effectiveLabels = currentLabels;
-  if (isCIConfig && !hasCiLabel) {
-    // Add ci label now to make assessment work
-    await octokit.rest.issues.addLabels({
-      owner,
-      repo,
-      issue_number: number,
-      labels: ["ci"],
-    }).catch(() => {});
-    console.log(`PR #${number}: added label [ci] (CI config change detected)`);
-    effectiveLabels = [...currentLabels.map(l => l.name || l), 'ci'];
-  }
-  const assessment = isSafeForAutoMerge(pull_request, effectiveLabels);
-
-  // Step 4: Add needs-review only for new PRs that are NOT eligible
-  if (isNewPr && !assessment.safe) {
-    await octokit.rest.issues.addLabels({
-      owner,
-      repo,
-      issue_number: number,
-      labels: ["needs-review"],
-    }).catch(() => {});
-    console.log(`PR #${number}: added label [needs-review] (not auto-merge eligible)`);
-  }
-
-  // Step 5: Remove blocking labels from safe PRs
-  if (assessment.safe) {
-    for (const label of currentLabels) {
-      const name = label.name || label;
-      if (BLOCKING_LABELS.has(name)) {
-        await octokit.rest.issues.removeLabel({
-          owner,
-          repo,
-          issue_number: number,
-          name,
-        }).catch(() => {});
-        console.log(`PR #${number}: removed blocking label [${name}] (now auto-merge eligible)`);
-      }
-    }
-  }
+  // Step 3: Check auto-merge eligibility
+  const assessment = await isSafeForAutoMerge(pull_request, currentLabels);
 
   // Step 4: Send evaluation to PM API for tracking
   try {

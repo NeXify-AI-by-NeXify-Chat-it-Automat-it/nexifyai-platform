@@ -123,10 +123,31 @@ jobs:
               '> ⚠️ Automated review — human approval still required per Policy #12.'
             ].join('\n');
 
+            const reviewEvent = concerns.length === 0 ? 'APPROVE' : 'COMMENT';
             await github.rest.pulls.createReview({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number,
               body: body,
-              event: concerns.length === 0 ? 'APPROVE' : 'COMMENT'
+              event: reviewEvent
             });
+
+            // On approve: add auto-merge label so automation workflow
+            // enables native GitHub auto-merge. Skips docs-only PRs
+            // (they don't need CI/pipeline) and large PRs.
+            if (reviewEvent === 'APPROVE' && changed_files.length <= 20) {
+              const { data: pr } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+              });
+              const labels = pr.labels.map(l => l.name);
+              if (!labels.includes('auto-merge')) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  labels: ['auto-merge'],
+                });
+              }
+            }
