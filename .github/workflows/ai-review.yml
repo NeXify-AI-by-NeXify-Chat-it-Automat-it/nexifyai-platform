@@ -87,6 +87,7 @@ jobs:
                 { pattern: /exec\(|eval\(|subprocess/i, label: 'Code Execution' },
                 { pattern: /http:\/\/(?!localhost)/i, label: 'Insecure HTTP' },
                 { pattern: /(?:SELECT|INSERT|UPDATE|DELETE)\s+.+\s+FROM/i, label: 'SQL Query' },
+                { pattern: /process\.env\./i, label: 'Environment Variables' },
               ];
               for (const { pattern, label } of securityPatterns) {
                 for (const line of addedLines) {
