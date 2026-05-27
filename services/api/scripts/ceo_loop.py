@@ -88,10 +88,16 @@ def scan_system_health() -> dict:
     except:
         report["checks"]["qdrant"] = {"status": "down"}
     
-    # 3. MCP Router
+    # 3. MCP Router — 200=ok, 401=auth (functioning but needs login), else=down
     try:
-        r = httpx.get(f"{BACKEND_URL}/mcp/health", timeout=8)
-        report["checks"]["mcp"] = {"status": "ok", "tools": r.json().get("tools_registered", 0)}
+        r = httpx.get(f"{BACKEND_URL}/api/admin/mcp/status", timeout=8)
+        if r.status_code == 200:
+            data = r.json()
+            report["checks"]["mcp"] = {"status": "ok", "tools": len(data.get("servers", data if isinstance(data, list) else []))}
+        elif r.status_code == 401:
+            report["checks"]["mcp"] = {"status": "ok", "tools": -1, "note": "auth_required"}
+        else:
+            report["checks"]["mcp"] = {"status": "down", "code": r.status_code}
     except:
         report["checks"]["mcp"] = {"status": "down"}
     
