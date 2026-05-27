@@ -16,8 +16,6 @@ on:
       - '**.yaml'
       - '**.json'
   push:
-    paths:
-      - '.github/workflows/ai-review.yml'
 
 jobs:
   # Push on workflow file = config change, no review needed
