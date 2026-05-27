@@ -33,37 +33,31 @@ jobs:
     name: Trivy Filesystem Scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - name: Install Trivy
-        run: |
-          wget -q https://github.com/aquasecurity/trivy/releases/download/v0.70.0/trivy_0.70.0_Linux-64bit.deb
-          sudo dpkg -i trivy_0.70.0_Linux-64bit.deb
+      - uses: actions/checkout@v4
       - name: Trivy Scan (HIGH/CRITICAL — BLOCKING)
-        run: |
-          trivy filesystem \
-            --severity HIGH,CRITICAL \
-            --exit-code 1 \
-            --no-progress \
-            .
+        uses: aquasecurity/trivy-action@v0.29.0
+        with:
+          scan-type: filesystem
+          scan-ref: /github/workspace
+          severity: HIGH,CRITICAL
+          exit-code: 1
+          format: table
+          output: ''
 
   trivy-sarif:
     name: Trivy SARIF Upload
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event_name == 'schedule'
     steps:
-      - uses: actions/checkout@v6
-      - name: Install Trivy
-        run: |
-          wget -q https://github.com/aquasecurity/trivy/releases/download/v0.70.0/trivy_0.70.0_Linux-64bit.deb
-          sudo dpkg -i trivy_0.70.0_Linux-64bit.deb
+      - uses: actions/checkout@v4
       - name: Trivy Scan (SARIF)
-        run: |
-          trivy filesystem \
-            --severity HIGH,CRITICAL,MEDIUM \
-            --format sarif \
-            --output trivy-results.sarif \
-            --no-progress \
-            .
+        uses: aquasecurity/trivy-action@v0.29.0
+        with:
+          scan-type: filesystem
+          scan-ref: /github/workspace
+          severity: HIGH,CRITICAL,MEDIUM
+          format: sarif
+          output: trivy-results.sarif
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@v4
         with:
