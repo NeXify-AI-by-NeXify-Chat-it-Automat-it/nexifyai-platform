@@ -194,6 +194,18 @@ def generate_task(event_type: str, payload: dict, delivery_id: str | None = None
         if conclusion == "success":
             return {"ok": True, "task_created": False, "reason": "workflow_success_no_task_needed"}
 
+    # check_suite.completed → only task on failure (success/neutral/skipped = noise)
+    if event_type == "check_suite" and action == "completed":
+        conclusion = (payload.get("check_suite", {}).get("conclusion") or "").lower()
+        if conclusion in ("success", "neutral", "skipped", "cancelled"):
+            return {"ok": True, "task_created": False, "reason": f"check_suite_{conclusion}_no_task_needed"}
+
+    # check_run.completed → only task on failure (success/neutral/skipped = noise)
+    if event_type == "check_run" and action == "completed":
+        conclusion = (payload.get("check_run", {}).get("conclusion") or "").lower()
+        if conclusion in ("success", "neutral", "skipped", "cancelled"):
+            return {"ok": True, "task_created": False, "reason": f"check_run_{conclusion}_no_task_needed"}
+
     # code_scanning_alert fixed/dismissed → no task (already resolved)
     if event_type == "code_scanning_alert" and action in ("fixed", "dismissed"):
         return {"ok": True, "task_created": False, "reason": f"alert_already_{action}"}
