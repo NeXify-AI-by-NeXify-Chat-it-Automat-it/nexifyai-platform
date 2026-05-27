@@ -156,3 +156,7 @@ trivy*.json
 # Add app-level package-lock to prevent accidental commits
 apps/web/package-lock.json
 apps/web/node_modules
+
+# Runtime state snapshots - belong in /opt/nexify/goose-runtime/
+nexify-goose-loop.md
+*.goose-loop.md
