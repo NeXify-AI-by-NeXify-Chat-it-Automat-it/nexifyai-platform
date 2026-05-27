@@ -14,10 +14,12 @@ Falls FastAPI nicht verfügbar: Shell-Skript autopilot_status.sh nutzen
 import subprocess
 import json
 import os
+import logging
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 
+logger = logging.getLogger("nexifyai.autopilot_endpoint")
 router = APIRouter(prefix="/api/autopilot", tags=["autopilot"])
 
 SSH_KEY = "/opt/data/ssh_keys/hermes_vps_key"
@@ -134,10 +136,11 @@ async def autopilot_status():
         state = _fetch_autopilot_state()
         return JSONResponse(content=state)
     except Exception as e:
+        logger.exception("autopilot_status failed")
         return JSONResponse(
             content={
                 "status": "error",
-                "error": str(e),
+                "error": "Internal error during status fetch",
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             },
             status_code=500,
@@ -155,8 +158,9 @@ async def autopilot_health():
             "health_score": state["health_score"],
         })
     except Exception as e:
+        logger.exception("autopilot_health failed")
         return JSONResponse(
-            content={"healthy": False, "error": str(e)},
+            content={"healthy": False, "error": "Internal error during health fetch"},
             status_code=500,
         )
 

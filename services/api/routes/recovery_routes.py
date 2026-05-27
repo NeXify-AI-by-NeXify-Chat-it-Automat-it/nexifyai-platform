@@ -101,7 +101,7 @@ async def list_workers():
         wr = httpx.get("http://localhost:8234/api/v1/namespaces/default/workflows", timeout=5)
         workflows_info = wr.json() if wr.status_code == 200 else {"error": wr.status_code}
     except Exception as e:
-        workflows_info = {"fetch_error": str(e)}
+        workflows_info = {"fetch_error": "fetch failed"}
     
     return {
         "systemd": systemd_workers,
