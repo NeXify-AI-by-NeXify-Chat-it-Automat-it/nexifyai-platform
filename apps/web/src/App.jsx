@@ -390,7 +390,7 @@ const Ft = ({ onCookieSettings, t, lang }) => {
       <div className="container">
         <div className="footer-grid">
           <div className="footer-brand">
-            <div className="footer-logo"><img src="/icon-mark.svg" alt="" width="28" height="28" /><span>NeXify<span className="brand-ai">AI</span></span></div>
+            <div className="footer-logo"><img src="/logo-light.svg" alt="neXifyAI" height="32" /></div>
             <div className="footer-tagline">{t.footer.tagline}</div>
             <div className="footer-legal-name">{COMPANY.legal}</div>
             <address className="footer-contact">
