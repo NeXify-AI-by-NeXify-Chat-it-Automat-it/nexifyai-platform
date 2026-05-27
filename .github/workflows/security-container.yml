@@ -36,12 +36,15 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install Trivy
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq trivy
-          trivy version
+          wget -q https://github.com/aquasecurity/trivy/releases/download/v0.70.0/trivy_0.70.0_Linux-64bit.deb
+          sudo dpkg -i trivy_0.70.0_Linux-64bit.deb
       - name: Trivy Scan (HIGH/CRITICAL — BLOCKING)
         run: |
-          trivy filesystem --severity HIGH,CRITICAL --exit-code 1 --no-progress .
+          trivy filesystem \
+            --severity HIGH,CRITICAL \
+            --exit-code 1 \
+            --no-progress \
+            .
 
   trivy-sarif:
     name: Trivy SARIF Upload
@@ -51,13 +54,18 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install Trivy
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq trivy
-          trivy version
+          wget -q https://github.com/aquasecurity/trivy/releases/download/v0.70.0/trivy_0.70.0_Linux-64bit.deb
+          sudo dpkg -i trivy_0.70.0_Linux-64bit.deb
       - name: Trivy Scan (SARIF)
         run: |
-          trivy filesystem --severity HIGH,CRITICAL,MEDIUM --format sarif --output trivy-results.sarif --no-progress .
+          trivy filesystem \
+            --severity HIGH,CRITICAL,MEDIUM \
+            --format sarif \
+            --output trivy-results.sarif \
+            --no-progress \
+            .
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy-results.sarif
+          category: trivy
