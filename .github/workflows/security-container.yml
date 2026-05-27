@@ -35,14 +35,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Trivy Scan (HIGH/CRITICAL — BLOCKING)
-        uses: docker://ghcr.io/aquasecurity/trivy:0.58.0
+        uses: aquasecurity/trivy-action@0.29.0
         with:
-          args: >-
-            filesystem
-            --severity HIGH,CRITICAL
-            --exit-code 1
-            --no-progress
-            /github/workspace
+          scan-type: filesystem
+          scan-ref: /github/workspace
+          severity: HIGH,CRITICAL
+          exit-code: 1
+          format: table
+          output: ''
 
   trivy-sarif:
     name: Trivy SARIF Upload
@@ -51,15 +51,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Trivy Scan (SARIF)
-        uses: docker://ghcr.io/aquasecurity/trivy:0.58.0
+        uses: aquasecurity/trivy-action@0.29.0
         with:
-          args: >-
-            filesystem
-            --severity HIGH,CRITICAL,MEDIUM
-            --format sarif
-            --output /github/workspace/trivy-results.sarif
-            --no-progress
-            /github/workspace
+          scan-type: filesystem
+          scan-ref: /github/workspace
+          severity: HIGH,CRITICAL,MEDIUM
+          format: sarif
+          output: trivy-results.sarif
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@v4
         with:
