@@ -3,9 +3,6 @@ name: Enterprise Status Badges
 on:
   push:
     branches: [main]
-  workflow_run:
-    workflows: ["CI *", "Tests *", "Security *", "Vercel *", "Uptime *"]
-    types: [completed]
   schedule:
     - cron: "*/15 * * * *"
 
