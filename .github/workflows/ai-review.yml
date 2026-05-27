@@ -77,16 +77,24 @@ jobs:
 
             let concerns = [];
             if (diff.length > 0 && diff.length < 50000) {
+                // Only check added lines — skip removed lines, context, comments, docs
+              const addedLines = diff.split('\n').filter(l => l.startsWith('+'))
+                .map(l => l.replace(/^\+/, '').trim())
+                .filter(l => l.length > 0 && !l.startsWith('#') && !l.startsWith('//') && !l.startsWith('*') && !l.startsWith('/*') && !l.startsWith('<'));
+
               const securityPatterns = [
-                { pattern: /api[_-]?key|secret|password|token|credential/i, label: 'Credentials' },
+                { pattern: /(?:api|auth|secret|password|token|credential)[_\-\.]?(?:key|secret|token)?\s*[:=]\s*['"`]/, label: 'Credentials (hardcoded)' },
                 { pattern: /exec\(|eval\(|subprocess/i, label: 'Code Execution' },
                 { pattern: /http:\/\/(?!localhost)/i, label: 'Insecure HTTP' },
-                { pattern: /(SELECT|INSERT|UPDATE|DELETE).*FROM/i, label: 'SQL Query' },
-                { pattern: /process\.env/i, label: 'Environment Variables' },
+                { pattern: /(?:SELECT|INSERT|UPDATE|DELETE)\s+.+\s+FROM/i, label: 'SQL Query' },
+                { pattern: /process\.env\./i, label: 'Environment Variables' },
               ];
               for (const { pattern, label } of securityPatterns) {
-                if (pattern.test(diff)) {
-                  concerns.push(label);
+                for (const line of addedLines) {
+                  if (pattern.test(line)) {
+                    concerns.push(label);
+                    break;
+                  }
                 }
               }
             } else if (diff.length >= 50000) {
@@ -100,23 +108,46 @@ jobs:
               ? `### 🔒 Security Scan\n\n${concerns.map(c => `- ${c}`).join('\n')}`
               : '✅ No security concerns detected.';
 
-            const body = `## 🤖 AI Code Review
+            const body = [
+              '## 🤖 AI Code Review',
+              '',
+              '### 📋 Summary',
+              '**Changed files:** ' + changed_files.length + ' files',
+              '**Additions:** ' + additions + ' | **Deletions:** ' + deletions,
+              '',
+              '### Changed Files',
+              changed_files.map(f => '- `' + f + '`').join('\n'),
+              '',
+              foundLabels,
+              '',
+              '> ⚠️ Automated review — human approval still required per Policy #12.'
+            ].join('\n');
 
-### 📋 Summary
-**Changed files:** ${changed_files.length} files
-**Additions:** ${additions} | **Deletions:** ${deletions}
-
-### Changed Files
-${changed_files.map(f => `- \`${f}\``).join('\n')}
-
-${foundLabels}
-
-> ⚠️ Automated review — human approval still required per Policy #12.`;
-
+            const reviewEvent = concerns.length === 0 ? 'APPROVE' : 'COMMENT';
             await github.rest.pulls.createReview({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number,
               body: body,
-              event: concerns.length === 0 ? 'APPROVE' : 'COMMENT'
+              event: reviewEvent
             });
+
+            // On approve: add auto-merge label so automation workflow
+            // enables native GitHub auto-merge. Skips docs-only PRs
+            // (they don't need CI/pipeline) and large PRs.
+            if (reviewEvent === 'APPROVE' && changed_files.length <= 20) {
+              const { data: pr } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+              });
+              const labels = pr.labels.map(l => l.name);
+              if (!labels.includes('auto-merge')) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  labels: ['auto-merge'],
+                });
+              }
+            }

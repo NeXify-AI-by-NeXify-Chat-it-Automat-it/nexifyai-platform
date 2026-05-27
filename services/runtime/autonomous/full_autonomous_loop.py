@@ -7,18 +7,19 @@ import json, logging, os, requests, subprocess, sys, time, uuid
 from datetime import datetime, timezone
 log = logging.getLogger("auto-loop")
 
+REPO = "/opt/nexify/repos/nexifyai-platform"
 ENTERPRISE_CYCLE = [
-    {"name": "observe", "path": "/services/runtime/autonomous/autonomous_orchestration_kernel.py", "critical": True},
-    {"name": "heartbeat", "path": "/services/runtime/rhythm/organization_heartbeat.py", "critical": False},
-    {"name": "cycle_detect", "path": "/services/runtime/rhythm/organizational_cycle_controller.py", "critical": False},
-    {"name": "maturity", "path": "/services/runtime/rhythm/runtime_maturity_evaluator.py", "critical": False},
-    {"name": "planner", "path": "/services/runtime/planner/autonomous_program_manager.py", "critical": True},
-    {"name": "incidents", "path": "/services/runtime/incidents/incident_manager.py", "critical": True},
-    {"name": "reconciliation", "path": "/opt/nexifyai-platform/services/runtime/reconciliation/auto_reconciler.py", "critical": True},
-    {"name": "watchdog", "path": "/opt/nexifyai-platform/services/runtime/watchdog/runtime_watchdog.py", "critical": True},
-    {"name": "convergence", "path": "/opt/nexifyai-platform/services/runtime/convergence/post_deploy_convergence.py", "critical": False},
-    {"name": "learning", "path": "/services/runtime/learning/organizational_learning_engine.py", "critical": False},
-    {"name": "issues", "path": "/services/runtime/github_governance/issue_autogenerator.py", "critical": False},
+    {"name": "observe", "path": f"{REPO}/services/runtime/autonomous/autonomous_orchestration_kernel.py", "critical": True},
+    {"name": "heartbeat", "path": f"{REPO}/services/runtime/rhythm/organization_heartbeat.py", "critical": False},
+    {"name": "cycle_detect", "path": f"{REPO}/services/runtime/rhythm/organizational_cycle_controller.py", "critical": False},
+    {"name": "maturity", "path": f"{REPO}/services/runtime/rhythm/runtime_maturity_evaluator.py", "critical": False},
+    {"name": "planner", "path": f"{REPO}/services/runtime/planner/autonomous_program_manager.py", "critical": True},
+    {"name": "incidents", "path": f"{REPO}/services/runtime/incidents/incident_manager.py", "critical": True},
+    {"name": "reconciliation", "path": f"{REPO}/services/runtime/reconciliation/state_reconciler.py", "critical": True},
+    {"name": "watchdog", "path": f"{REPO}/services/runtime/watchdog/runtime_watchdog.py", "critical": True},
+    {"name": "convergence", "path": f"{REPO}/services/runtime/convergence/post_deploy_convergence.py", "critical": False},
+    {"name": "learning", "path": f"{REPO}/services/runtime/learning/organizational_learning_engine.py", "critical": False},
+    {"name": "issues", "path": f"{REPO}/services/runtime/github_governance/issue_autogenerator.py", "critical": False},
 ]
 
 def run_enterprise_cycle(full=False):
