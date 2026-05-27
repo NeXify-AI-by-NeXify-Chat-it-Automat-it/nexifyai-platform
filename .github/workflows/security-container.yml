@@ -34,15 +34,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install Trivy
+        run: |
+          wget -q https://github.com/aquasecurity/trivy/releases/download/v0.70.0/trivy_0.70.0_Linux-64bit.deb 2>/dev/null \
+            || curl -sL -o /tmp/trivy.deb https://github.com/aquasecurity/trivy/releases/download/v0.70.0/trivy_0.70.0_Linux-64bit.deb
+          dpkg -i /tmp/trivy.deb 2>/dev/null || sudo dpkg -i /tmp/trivy.deb 2>/dev/null
+          trivy version
       - name: Trivy Scan (HIGH/CRITICAL — BLOCKING)
-        uses: docker://ghcr.io/aquasecurity/trivy:0.58.0
-        with:
-          args: >-
-            filesystem
-            --severity HIGH,CRITICAL
-            --exit-code 1
-            --no-progress
-            /github/workspace
+        run: |
+          trivy filesystem --severity HIGH,CRITICAL --exit-code 1 --no-progress .
 
   trivy-sarif:
     name: Trivy SARIF Upload
@@ -50,16 +50,16 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'schedule'
     steps:
       - uses: actions/checkout@v4
+      - name: Install Trivy
+        run: |
+          wget -q https://github.com/aquasecurity/trivy/releases/download/v0.70.0/trivy_0.70.0_Linux-64bit.deb 2>/dev/null \
+            || curl -sL -o /tmp/trivy.deb https://github.com/aquasecurity/trivy/releases/download/v0.70.0/trivy_0.70.0_Linux-64bit.deb
+          dpkg -i /tmp/trivy.deb 2>/dev/null || sudo dpkg -i /tmp/trivy.deb 2>/dev/null
+          trivy version
       - name: Trivy Scan (SARIF)
-        uses: docker://ghcr.io/aquasecurity/trivy:0.58.0
-        with:
-          args: >-
-            filesystem
-            --severity HIGH,CRITICAL,MEDIUM
-            --format sarif
-            --output /github/workspace/trivy-results.sarif
-            --no-progress
-            /github/workspace
+        run: |
+          trivy filesystem --severity HIGH,CRITICAL,MEDIUM --format sarif --output trivy-results.sarif --no-progress .
+
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@v4
         with:
