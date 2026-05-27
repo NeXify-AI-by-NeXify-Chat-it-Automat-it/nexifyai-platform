@@ -121,10 +121,21 @@ jobs:
               '> ⚠️ Automated review — human approval still required per Policy #12.'
             ].join('\n');
 
-            await github.rest.pulls.createReview({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number,
-              body: body,
-              event: concerns.length === 0 ? 'APPROVE' : 'COMMENT'
-            });
+            // GITHUB_TOKEN can't approve (ruleset 422). Fallback to COMMENT.
+            try {
+              await github.rest.pulls.createReview({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                body: body,
+                event: concerns.length === 0 ? 'APPROVE' : 'COMMENT'
+              });
+            } catch {
+              await github.rest.pulls.createReview({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                body: body,
+                event: 'COMMENT'
+              });
+            }
