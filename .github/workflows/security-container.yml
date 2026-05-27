@@ -44,7 +44,7 @@ jobs:
             --severity HIGH,CRITICAL \
             --exit-code 1 \
             --no-progress \
-            /github/workspace
+            .
 
   trivy-sarif:
     name: Trivy SARIF Upload
@@ -61,9 +61,9 @@ jobs:
           trivy filesystem \
             --severity HIGH,CRITICAL,MEDIUM \
             --format sarif \
-            --output /github/workspace/trivy-results.sarif \
+            --output trivy-results.sarif \
             --no-progress \
-            /github/workspace
+            .
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@v4
         with:
