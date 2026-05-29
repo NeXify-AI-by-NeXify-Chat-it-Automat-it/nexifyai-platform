@@ -2,7 +2,7 @@
 
 ## Ziel
 
-Diese Policy definiert, wie Project Manager, Goose, Goose AI ACC und weitere AI-Agenten Arbeit vollständig autonom bis zur GitHub-Rückmeldung, PR-Führung und gegebenenfalls Merge-Fähigkeit führen.
+Diese Policy definiert, wie Project Manager, NeXify AI und weitere AI-Agenten Arbeit vollständig autonom bis zur GitHub-Rückmeldung, PR-Führung und gegebenenfalls Merge-Fähigkeit führen.
 
 Autonomie bedeutet nicht nur lokale Ausführung. Autonomie bedeutet vollständige Rückverfolgbarkeit im Repo.
 

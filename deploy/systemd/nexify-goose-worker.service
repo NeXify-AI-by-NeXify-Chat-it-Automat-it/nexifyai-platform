@@ -1,12 +1,12 @@
 [Unit]
-Description=NeXify Goose PM-Driven Task Worker
+Description=NeXify AI PM-Driven Task Worker
 After=network-online.target nexify-project-manager-api.service
 
 [Service]
 Type=oneshot
 User=root
 WorkingDirectory=/opt/nexify/repos/nexifyai-platform
-ExecStart=/opt/nexify/goose-runtime/bin/nexify-goose-worker.sh
+ExecStart=/opt/nexify/ai-runtime/bin/nexify-goose-worker.sh
 Environment=PM_API_URL=http://127.0.0.1:8421
 Environment=BRAIN_API_URL=http://127.0.0.1:8420
 StandardOutput=append:/var/log/nexify-goose/worker-service.log

@@ -70,7 +70,7 @@
 | docker | #1d76db | Docker/container |
 | brain | #5319e7 | Enterprise Brain system |
 | OpenRouter | #5319e7 | OpenRouter LLM gateway |
-| goose | #5319e7 | Goose AI agent |
+| goose | #5319e7 | NeXify AI agent |
 
 ### Project Type
 | Label | Color | Description |

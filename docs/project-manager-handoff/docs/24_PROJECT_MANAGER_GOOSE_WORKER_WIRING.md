@@ -87,7 +87,7 @@ Der `nexify-goose-worker.sh` implementiert den Polling-Worker:
 **Empfohlene Service-Unit für Worker:**
 ```ini
 [Unit]
-Description=NeXify Goose PM-Driven Task Worker
+Description=NeXify AI PM-Driven Task Worker
 After=network-online.target nexify-project-manager-api.service
 PartOf=nexify-project-manager-api.service
 
