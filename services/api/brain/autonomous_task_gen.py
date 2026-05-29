@@ -48,7 +48,7 @@ class GeneratedTask:
     rice_score: int = 0
 
 
-REPO_ROOT = "/opt/nexifyai-platform"
+REPO_ROOT = "/opt/nexify/repos/nexifyai-platform"
 BRAIN_DB = "/opt/data/brain/brain.db"
 HEALTH_SCRIPT = f"{REPO_ROOT}/automations/cron/health-score.py"
 
@@ -172,7 +172,7 @@ class TaskGenerator:
 
     def _scan_missing_tests(self):
         """Compare backend source files against test files."""
-        backend_dir = os.path.join(REPO_ROOT, "backend")
+        backend_dir = os.path.join(REPO_ROOT, "services/api")
         test_dir = os.path.join(backend_dir, "tests")
 
         if not os.path.exists(backend_dir) or not os.path.exists(test_dir):

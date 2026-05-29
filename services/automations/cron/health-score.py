@@ -114,8 +114,13 @@ def collect_metrics() -> dict:
             capture_output=True, text=True, timeout=10
         )
         metrics["latency_ms"] = round((time.time() - t0) * 1000)
-        if result.returncode == 0 and "healthy" in result.stdout.lower():
+        if result.returncode == 0 and ("ok" in result.stdout.lower() or "healthy" in result.stdout.lower()):
             metrics["backend_alive"] = True
+            # Extrahiere Latenz aus Response falls vorhanden
+            try:
+                parsed = json.loads(result.stdout)
+            except json.JSONDecodeError:
+                parsed = {}
     except Exception:
         pass
     
