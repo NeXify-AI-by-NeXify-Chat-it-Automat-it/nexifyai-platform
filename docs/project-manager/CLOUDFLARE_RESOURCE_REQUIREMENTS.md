@@ -31,7 +31,7 @@
 | Subdomain | Check URL | Intervall |
 |:----------|:----------|:----------|
 | brain | https://brain.nexifyai.cloud/health | 60s |
-| ai-router | https://openrouter.ai/api/v1/models | 60s |
+| openrouter | https://openrouter.ai/api/v1/models | 60s |
 | webhook | https://webhook.nexifyai.cloud | 60s |
 
 ## Aktuelle Subdomain-zu-Port-Matrix

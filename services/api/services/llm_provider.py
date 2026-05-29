@@ -512,178 +512,35 @@ class DeepSeekDirectProvider(LLMProvider):
 
 # ══════════════════════════════════════════
 # FACTORY
-# ══════════════════════════════════════════
-
-# ══════════════════════════════════════════
-# CAMBO 9ROUTER — PRIMÄR (NeXifyAI Zentrale LLM-Infrastruktur)
-# ══════════════════════════════════════════
-
-class CamboProvider(LLMProvider):
-    """
-    PRIMÄRER Provider: OpenRouter (ai-router.nexifyai.cloud).
-    Zentrale LLM-Infrastruktur mit capability-based routing, circuit breaker,
-    und automatischen Fallback-Ketten.
-    Alle Agenten-Calls gehen über diesen Provider.
-    """
-
-    def __init__(self):
-        from services.model_router import router as model_router
-        self._router = model_router
-        self._sessions: Dict[str, list] = {}
-        self._metrics = {"calls": 0, "errors": 0, "total_latency_ms": 0}
-
-    async def chat(
-        self,
-        messages: List[LLMMessage],
-        system_prompt: str = "",
-        temperature: float = 0.7,
-        max_tokens: int = 4096,
-        model: str = None,
-    ) -> str:
-        """Chat completion via central Model Router."""
-        import time as _time
-        start = _time.time()
-        try:
-            msgs = [m.to_dict() if isinstance(m, LLMMessage) else m for m in messages]
-            result = await self._router.complete(
-                messages=msgs,
-                system_prompt=system_prompt,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                task_type="chat",
-            )
-            latency = (_time.time() - start) * 1000
-            self._metrics["calls"] += 1
-            self._metrics["total_latency_ms"] += latency
-            
-            if "error" in result:
-                self._metrics["errors"] += 1
-                logger.error(f"Cambo chat error: {result['error']}")
-                return f"[Fehler: {result['error']}]"
-            
-            content = result.get("content", "")
-            # If reasoning_content exists but content is empty, use reasoning
-            if not content and result.get("reasoning_content"):
-                content = result.get("reasoning_content", "")
-            return content
-        except Exception as e:
-            self._metrics["errors"] += 1
-            logger.error(f"Cambo chat exception: {e}")
-            return f"[Systemfehler: {e}]"
-
-    async def chat_with_history(
-        self,
-        session_id: str,
-        user_message: str,
-        system_prompt: str = "",
-        temperature: float = 0.7,
-        model: str = None,
-    ) -> str:
-        """Chat with session history (delegates to chat for now)."""
-        if session_id not in self._sessions:
-            self._sessions[session_id] = []
-        self._sessions[session_id].append(LLMMessage(role="user", content=user_message))
-        return await self.chat(self._sessions[session_id], system_prompt, temperature)
-
-    def get_provider_name(self) -> str:
-        return "OpenRouter (deepseek/deepseek-v4-flash)"
-
-    def clear_session(self, session_id: str):
-        if session_id in self._sessions:
-            del self._sessions[session_id]
-
-    async def health_check(self) -> dict:
-        """Cambo health check — verifies endpoint reachability."""
-        import httpx
-        try:
-            async with httpx.AsyncClient(timeout=10) as client:
-                r = await client.get(
-                    f"{self._router._OPENROUTER_BASE_URL if hasattr(self._router, '_OPENROUTER_BASE_URL') else 'https://openrouter.ai/api/v1'}/models"
-                )
-                return {
-                    "status": "healthy" if r.status_code == 200 else "degraded",
-                    "http_status": r.status_code,
-                    "enabled": self._router.is_enabled(),
-                }
-        except Exception as e:
-            return {"status": "down", "error": str(e)}
-
-    def get_metrics(self) -> dict:
-        return {
-            **self._metrics,
-            "router_metrics": self._router.get_metrics(),
-            "circuits": self._router.get_circuit_status(),
-        }
-
-
 def create_llm_provider() -> LLMProvider:
     """
-    LLM-Provider basierend auf Konfiguration erstellen.
-    NEU: OpenRouter = PRIMÄR (zentrale LLM-Infrastruktur).
-    Fallback-Kette: Cambo > OpenRouter > Emergent GPT.
+    OpenRouter Provider Factory.
+    NUR OpenRouter: https://openrouter.ai/api/v1
+    NUR Modell: deepseek/deepseek-v4-flash
+    KEINE Fallback-Provider (kein Cambo, Emergent, Anthropic).
+    9Router tot seit 2026-05-29.
     """
-    provider_name = os.environ.get("LLM_PROVIDER", "auto").lower()
-    openrouter_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
-    openrouter_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
     openrouter_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
 
-    # CAMBO 9ROUTER — PRIMÄR (neue zentrale LLM-Infrastruktur)
-    if openrouter_key:
-        if provider_name not in ("openrouter_legacy", "emergent_fallback"):
-            logger.info("LLM-Provider: OpenRouter (PRIMÄR — zentrale NeXifyAI LLM-Infrastruktur)")
-            return CamboProvider()
-        logger.info("LLM-Provider: Cambo available but overridden by LLM_PROVIDER=%s", provider_name)
-
-    if provider_name == "deepseek_direct":
-        logger.info("LLM-Provider: DeepSeek Direct API (PRIMÄR — Bot Fleet)")
-        return DeepSeekDirectProvider()
-
-    if provider_name in ("openrouter", "deepseek") and openrouter_key:
-        logger.info("LLM-Provider: OpenRouter/DeepSeek V4 Flash (LEGACY)")
+    if not openrouter_key:
+        logger.warning("OPENROUTER_API_KEY nicht konfiguriert. Nutze OpenRouterProvider ohne Key.")
         return OpenRouterProvider()
 
-    if provider_name == "auto":
-        if openrouter_key:
-            logger.info("LLM-Provider: OpenRouter/DeepSeek V4 Flash (LEGACY — Cambo key not set)")
-            return OpenRouterProvider()
-        if openrouter_key:
-            logger.info("LLM-Provider: Emergent GPT (FALLBACK)")
-            return EmergentGPTProvider()
-
-    if openrouter_key:
-        logger.info("LLM-Provider: Emergent GPT (FALLBACK)")
-        return EmergentGPTProvider()
-
-    logger.warning("LLM-Provider: Kein API-Key konfiguriert.")
-    return EmergentGPTProvider()
+    logger.info("LLM-Provider: OpenRouter (deepseek/deepseek-v4-flash)")
+    return OpenRouterProvider()
 
 
 def get_provider_status(provider: LLMProvider) -> dict:
     """Provider-Status für Admin-Dashboard."""
-    name = provider.get_provider_name()
-    is_openrouter = name == "openrouter"
-    openrouter_key = bool(os.environ.get("OPENROUTER_API_KEY", "").strip())
-    openrouter_key = bool(os.environ.get("OPENROUTER_API_KEY", "").strip())
-
     result = {
-        "active_provider": name,
-        "is_target_architecture": is_openrouter,
-        "providers": {
-            "openrouter": {
-                "status": "active" if is_openrouter else ("ready" if openrouter_key else "not_configured"),
-                "api_key_set": openrouter_key,
-                "base_url": os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"),
-                "models": list(OpenRouterProvider.MODELS.keys()),
-            },
-            "emergent_gpt": {
-                "status": "active_fallback" if not is_openrouter and openrouter_key else "standby",
-                "api_key_set": openrouter_key,
-                "note": "Fallback — aktiv nur wenn OPENROUTER_API_KEY fehlt",
-            },
-        },
-        "migration_ready": openrouter_key,
+        "active_provider": "OpenRouter (deepseek/deepseek-v4-flash)",
+        "configured": bool(os.environ.get("OPENROUTER_API_KEY", "").strip()),
+        "base_url": "https://openrouter.ai/api/v1",
+        "model": "deepseek/deepseek-v4-flash",
+        "no_fallback": True,
+        "cambo_removed": "2026-05-29",
         "env_config": {
-            "LLM_PROVIDER": os.environ.get("LLM_PROVIDER", "auto"),
+            "OPENROUTER_API_KEY": "***" if os.environ.get("OPENROUTER_API_KEY") else "not set",
             "OPENROUTER_MODEL": os.environ.get("OPENROUTER_MODEL", "deepseek/deepseek-v4-flash"),
         },
     }
