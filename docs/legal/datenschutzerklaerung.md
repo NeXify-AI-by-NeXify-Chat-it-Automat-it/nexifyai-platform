@@ -4,8 +4,8 @@
 
 Pascal Courbois
 NeXifyAI
-[ADRESSE]
-E-Mail: admin@nexifyai.cloud
+Graaf van Loonstraat 1E, 5921 JA Venlo
+E-Mail: support@nexify-automate.com
 
 ## 1. Allgemeine Hinweise
 
@@ -111,7 +111,7 @@ Ihnen stehen grundsätzlich folgende Rechte zu:
 - **Beschwerderecht bei einer Aufsichtsbehörde** (Art. 77 DSGVO): Sie haben das Recht,
   sich bei einer Datenschutz-Aufsichtsbehörde zu beschweren.
 
-Zur Ausübung Ihrer Rechte wenden Sie sich bitte an: admin@nexifyai.cloud
+Zur Ausübung Ihrer Rechte wenden Sie sich bitte an: support@nexify-automate.com
 
 ## 8. Änderung der Datenschutzerklärung
 
