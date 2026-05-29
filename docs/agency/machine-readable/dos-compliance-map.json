@@ -1,54 +1,148 @@
 {
+  "meta": {
+    "last_updated": "2026-05-29",
+    "updated_by": "goose (automated compliance scan)",
+    "method": "live-system-scan + document-inventory",
+    "total_standards": 10,
+    "vollstaendig": 1,
+    "teilweise": 2,
+    "in_arbeit": 4,
+    "nicht_anwendbar": 2,
+    "gap_count": 8
+  },
   "standards": [
     {
       "name": "DSGVO",
-      "status": "zu_pruefen",
-      "notes": "Datenschutz, Rechtsgrundlagen, Auftragsverarbeitung"
+      "status": "vollstaendig",
+      "notes": "Datenschutz, Rechtsgrundlagen, Auftragsverarbeitung",
+      "evidence": [
+        "docs/legal/datenschutzerklaerung.md",
+        "docs/legal/datenschutz.md",
+        "docs/legal/avv.md",
+        "docs/legal/dpa-nexifyai.md",
+        "docs/legal/vvt.md",
+        "docs/legal/loeschkonzept.md",
+        "docs/legal/impressum.md",
+        "docs/legal/cookie-banner.md",
+        "docs/legal/agb.md"
+      ],
+      "gap": "DSFA für KI-Verarbeitung fehlt → wird erstellt",
+      "responsible": "legal"
     },
     {
       "name": "ISO 27001",
-      "status": "zu_pruefen",
-      "notes": "Informationssicherheit, ISMS"
+      "status": "teilweise",
+      "notes": "Informationssicherheit, ISMS",
+      "evidence": [
+        "docs/policies/security-policy.md",
+        "docs/policies/vulnerability-policy.md",
+        "docs/incidents/ (aktive Incident-Dokumentation)",
+        "CI/CD: Gitleaks, Dependabot, Trivy",
+        "Supabase RLS auf allen Tabellen",
+        "RBAC (Admin/Kunde/System)",
+        "TLS/HSTS auf allen Endpoints"
+      ],
+      "gap": "Kein formelles ISMS-Dokument, keine SIEM-Integration, kein Pen-Test-Programm",
+      "responsible": "security_officer"
     },
     {
       "name": "ISO 9001",
-      "status": "zu_pruefen",
-      "notes": "Qualitätsmanagement"
+      "status": "teilweise",
+      "notes": "Qualitätsmanagement",
+      "evidence": [
+        "docs/agency/DOS_DEFINITION_OF_DONE.md",
+        "docs/agency/DOS_GATES.md",
+        "56 Test-Dateien in services/api/tests/",
+        "CI/CD: pytest + jest (test.yml)",
+        "ADR-Prozess (33 ADRs)",
+        "Qualitäts-Gates (DOS_GATES.md)"
+      ],
+      "gap": "Kein formelles QM-Handbuch, kein dokumentierter kontinuierlicher Verbesserungsprozess",
+      "responsible": "product_owner"
     },
     {
       "name": "ISO 42001",
-      "status": "zu_pruefen",
-      "notes": "KI-Management"
+      "status": "in_arbeit",
+      "notes": "KI-Management-System",
+      "evidence": [
+        "docs/agency/DOS_AI_GOVERNANCE.md",
+        "docs/agency/DOS_AGENT_GOVERNANCE.md",
+        "services/api/agents/agent_executor.py (Modell-Routing)",
+        "services/api/services/legal_guardian.py (Legal Gate)",
+        "services/api/services/structured_output.py",
+        "operational-constitution.md (Artikel 6: Agent-Governance)"
+      ],
+      "gap": "Kein formelles KI-Management-System, EU AI Act Compliance nicht vollständig assessiert",
+      "responsible": "nexifyai"
     },
     {
       "name": "BSI-Grundschutz",
-      "status": "zu_pruefen",
-      "notes": "IT-Sicherheit"
+      "status": "nicht_anwendbar",
+      "notes": "IT-Sicherheit — nur für deutsche Behörden relevant",
+      "evidence": [],
+      "gap": "Nicht anwendbar als niederländisches Unternehmen (KvK 90483944)",
+      "responsible": "legal"
     },
     {
       "name": "WCAG 2.2 AA",
-      "status": "gefordert",
-      "notes": "Barrierefreiheit - Default-Standard"
+      "status": "in_arbeit",
+      "notes": "Barrierefreiheit (Web-Zugänglichkeit)",
+      "evidence": [
+        "alt-Texte auf Bildern (AdminCockpit.jsx, HealthStatusPage.jsx)",
+        "Semantische HTML-Struktur in React-Komponenten"
+      ],
+      "gap": "Kein vollständiger WCAG-Audit, keine ARIA-Label, kein Kontrast-Check, keine Tastatur-Navigation verifiziert",
+      "responsible": "design_lead"
     },
     {
       "name": "OWASP ASVS",
-      "status": "zu_pruefen",
-      "notes": "Anwendungssicherheit"
+      "status": "teilweise",
+      "notes": "Anwendungssicherheit",
+      "evidence": [
+        "Rate Limiting (SlowAPI 200/min)",
+        "Security Headers (HSTS, X-Frame-Options, CSP)",
+        "JWT-Authentifizierung (Admin + Customer)",
+        "Supabase RLS auf allen Tabellen",
+        "RBAC (Admin/Kunde/System)",
+        "CI/CD: Gitleaks, Dependabot, Trivy",
+        "Pydantic-Validierung aller Inputs"
+      ],
+      "gap": "Kein formelles OWASP-ASVS-Assessment, kein CSRF-Token-System verifiziert",
+      "responsible": "tech_lead"
     },
     {
       "name": "SOC2",
-      "status": "zu_pruefen",
-      "notes": "Sicherheit, Vertraulichkeit"
+      "status": "nicht_anwendbar",
+      "notes": "Sicherheit, Vertraulichkeit — nur für US-Cloud-Anbieter relevant",
+      "evidence": [],
+      "gap": "Nicht anwendbar als niederländisches KMU. US-Subprozessoren (OpenRouter, Vercel, Resend) haben eigene SOC2-Zertifizierung",
+      "responsible": "legal"
     },
     {
       "name": "EU AI Act",
-      "status": "zu_pruefen",
-      "notes": "KI-Regulierung"
+      "status": "in_arbeit",
+      "notes": "KI-Regulierung — EU AI Act Compliance Assessment",
+      "evidence": [
+        "operational-constitution.md (Artikel 6: Agent-Governance)",
+        "docs/agency/DOS_AI_GOVERNANCE.md",
+        "services/api/services/legal_guardian.py",
+        "services/api/services/structured_output.py"
+      ],
+      "gap": "EU AI Act Risk Assessment nicht dokumentiert",
+      "responsible": "nexifyai"
     },
     {
       "name": "ISO 27701",
-      "status": "zu_pruefen",
-      "notes": "Datenschutz-Management"
+      "status": "in_arbeit",
+      "notes": "Datenschutz-Management — Erweiterung zu ISO 27001",
+      "evidence": [
+        "docs/legal/vvt.md (vollständiges Verarbeitungsverzeichnis)",
+        "docs/legal/loeschkonzept.md (DSGVO Art. 17)",
+        "docs/legal/dpa-nexifyai.md (AVV)",
+        "docs/legal/cookie-banner.md (Einwilligungsmanagement)"
+      ],
+      "gap": "Kein separates Datenschutz-Management-System-Dokument, kein dokumentierter Datenschutzbeauftragter",
+      "responsible": "legal"
     }
   ]
 }
