@@ -11,7 +11,7 @@
 ## MODEL-PINNING (NICHT UEBERSCHREIBBAR)
 - NUR OpenRouter: https://openrouter.ai/api/v1
 - NUR Modell: deepseek/deepseek-v4-flash
-- KEINE Fallback-Provider (kein Emergent, kein Anthropic, kein Cambo/9Router)
+- KEINE Fallback-Provider (NUR OpenRouter)
 - KEINE Auto-Select-Logik — immer dasselbe Modell
 
 ## COMPLIANCE (Zwangslaeufig)
@@ -52,4 +52,4 @@ Web: https://nexify-automate.com | KvK: 90483944 | USt-ID: NL865786276B01
 ## MEIN LLM
 - NUR OpenRouter: https://openrouter.ai/api/v1
 - NUR Modell: deepseek/deepseek-v4-flash
-- KEINE Fallbacks. KEIN Cambo/9Router. KEINE Auto-Select-Logik.
+- KEINE Fallbacks. KEINE Auto-Select-Logik. NUR deepseek/deepseek-v4-flash.

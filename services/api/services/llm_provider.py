@@ -517,8 +517,8 @@ def create_llm_provider() -> LLMProvider:
     OpenRouter Provider Factory.
     NUR OpenRouter: https://openrouter.ai/api/v1
     NUR Modell: deepseek/deepseek-v4-flash
-    KEINE Fallback-Provider (kein Cambo, Emergent, Anthropic).
-    9Router tot seit 2026-05-29.
+    NUR OpenRouter (deepseek/deepseek-v4-flash).
+    NUR OpenRouter (deepseek/deepseek-v4-flash).
     """
     openrouter_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
 

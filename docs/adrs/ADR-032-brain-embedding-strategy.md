@@ -32,5 +32,5 @@ Die Wahl des Embedding-Modells und der Speicherstrategie ist entscheidend für R
 
 ## Verweise
 - ADR-014: Knowledge System Brain
-- ADR-025: 9Router Integration (obsolet 2026-05-29, OpenRouter stattdessen)
+- ADR-025: OpenRouter Integration
 - ADR-027: Brain API Architecture

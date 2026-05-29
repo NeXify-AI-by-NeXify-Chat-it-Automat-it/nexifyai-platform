@@ -3,7 +3,7 @@ NeXifyAI — OpenRouter LLM Provider
 NUR OpenRouter: https://openrouter.ai/api/v1
 NUR Modell: deepseek/deepseek-v4-flash
 
-Ersetzt: 9Router/Cambo ai-router.nexifyai.cloud (deprecated 2026-05-29)
+NUR OpenRouter: https://openrouter.ai/api/v1
 """
 import os, json, logging
 from typing import Optional, AsyncGenerator
