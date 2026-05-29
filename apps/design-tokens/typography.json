@@ -1,0 +1,44 @@
+{
+  "$schema": "https://tokens.design/schema.json",
+  "font_family": {
+    "heading": {
+      "value": "'Manrope', sans-serif",
+      "type": "fontFamily",
+      "description": "Ueberschriften, Navbar, Hero"
+    },
+    "body": {
+      "value": "'Inter', system-ui, -apple-system, sans-serif",
+      "type": "fontFamily",
+      "description": "Fliesstext, Tabellen, Forms"
+    },
+    "mono": {
+      "value": "'JetBrains Mono', monospace",
+      "type": "fontFamily",
+      "description": "Code, Logs, Metriken"
+    }
+  },
+  "weights": {
+    "light": { "value": "300", "type": "fontWeight" },
+    "regular": { "value": "400", "type": "fontWeight" },
+    "medium": { "value": "500", "type": "fontWeight" },
+    "semibold": { "value": "600", "type": "fontWeight" },
+    "bold": { "value": "700", "type": "fontWeight" },
+    "extrabold": { "value": "800", "type": "fontWeight" }
+  },
+  "scale": {
+    "h1": { "value": "40", "type": "fontSize", "weight": "800", "lineHeight": "1.2", "maxWidth": "800" },
+    "h2": { "value": "32", "type": "fontSize", "weight": "700", "lineHeight": "1.25", "maxWidth": "700" },
+    "h3": { "value": "24", "type": "fontSize", "weight": "600", "lineHeight": "1.3", "maxWidth": "600" },
+    "h4": { "value": "20", "type": "fontSize", "weight": "600", "lineHeight": "1.35" },
+    "body": { "value": "16", "type": "fontSize", "weight": "400", "lineHeight": "1.6", "maxWidth": "650" },
+    "small": { "value": "14", "type": "fontSize", "weight": "400", "lineHeight": "1.5" },
+    "xs": { "value": "12", "type": "fontSize", "weight": "400", "lineHeight": "1.4" },
+    "overline": { "value": "11", "type": "fontSize", "weight": "700", "lineHeight": "1.4", "uppercase": true, "tracking": "0.1" }
+  },
+  "admin_scale": {
+    "page_title": { "value": "text-2xl md:text-3xl", "description": "h1 im Admin" },
+    "section_title": { "value": "text-xl md:text-2xl", "description": "h2 im Admin" },
+    "widget_title": { "value": "text-lg font-medium", "description": "h3 im Admin" },
+    "body_admin": { "value": "text-sm", "description": "Fliesstext im Admin" }
+  }
+}

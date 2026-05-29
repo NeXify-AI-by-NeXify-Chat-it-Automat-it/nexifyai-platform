@@ -1,0 +1,101 @@
+{
+  "$schema": "https://tokens.design/schema.json",
+  "token": {
+    "unit": {
+      "value": "4",
+      "type": "dimension",
+      "description": "4px Baseline Grid Unit"
+    },
+    "section_gap": {
+      "value": "96",
+      "type": "dimension",
+      "description": "Section Abstand Desktop"
+    },
+    "section_gap_mobile": {
+      "value": "64",
+      "type": "dimension",
+      "description": "Section Abstand Mobile"
+    },
+    "card_padding": {
+      "value": "24",
+      "type": "dimension",
+      "description": "Card Padding Desktop"
+    },
+    "card_padding_mobile": {
+      "value": "16",
+      "type": "dimension",
+      "description": "Card Padding Mobile"
+    },
+    "card_gap": {
+      "value": "24",
+      "type": "dimension",
+      "description": "Gap zwischen Cards"
+    },
+    "navbar_height_desktop": {
+      "value": "72",
+      "type": "dimension"
+    },
+    "navbar_height_mobile": {
+      "value": "64",
+      "type": "dimension"
+    },
+    "container_max_width": {
+      "value": "1280",
+      "type": "dimension"
+    },
+    "container_narrow": {
+      "value": "800",
+      "type": "dimension"
+    },
+    "container_wide": {
+      "value": "1440",
+      "type": "dimension"
+    },
+    "page_padding_desktop": {
+      "value": "24",
+      "type": "dimension"
+    },
+    "page_padding_mobile": {
+      "value": "16",
+      "type": "dimension"
+    },
+    "input_height": {
+      "value": "48",
+      "type": "dimension"
+    }
+  },
+  "scale": {
+    "0": { "value": "0", "type": "dimension" },
+    "1": { "value": "4", "type": "dimension" },
+    "2": { "value": "8", "type": "dimension" },
+    "3": { "value": "12", "type": "dimension" },
+    "4": { "value": "16", "type": "dimension" },
+    "5": { "value": "20", "type": "dimension" },
+    "6": { "value": "24", "type": "dimension" },
+    "7": { "value": "28", "type": "dimension" },
+    "8": { "value": "32", "type": "dimension" },
+    "10": { "value": "40", "type": "dimension" },
+    "12": { "value": "48", "type": "dimension" },
+    "16": { "value": "64", "type": "dimension" },
+    "24": { "value": "96", "type": "dimension" },
+    "32": { "value": "128", "type": "dimension" }
+  },
+  "breakpoints": {
+    "sm": { "value": "375", "type": "dimension", "description": "Mobile" },
+    "md": { "value": "768", "type": "dimension", "description": "Tablet" },
+    "lg": { "value": "1024", "type": "dimension", "description": "Desktop" },
+    "xl": { "value": "1280", "type": "dimension", "description": "Large Desktop" },
+    "xxl": { "value": "1440", "type": "dimension", "description": "Max Content Width" }
+  },
+  "radius": {
+    "sm": { "value": "6", "type": "dimension" },
+    "md": { "value": "10", "type": "dimension" },
+    "lg": { "value": "16", "type": "dimension" },
+    "full": { "value": "9999", "type": "dimension" }
+  },
+  "sidebar": {
+    "width_collapsed": { "value": "64", "type": "dimension" },
+    "width_expanded": { "value": "256", "type": "dimension" },
+    "icon_size": { "value": "20", "type": "dimension" }
+  }
+}
