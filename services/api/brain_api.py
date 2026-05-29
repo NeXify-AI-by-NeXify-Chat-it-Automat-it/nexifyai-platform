@@ -84,6 +84,27 @@ class StoreRequest(BaseModel):
     content: str = Field(..., description="The content to store")
     tags: list[str] = Field(default_factory=list)
 
+# ── Embedding Manager (Nscale Qwen/Qwen3-Embedding-8B, 4096d) ──
+try:
+    from brain.embedding_manager import get_embedding, embedding_health as embed_health
+    _EMBEDDING_AVAILABLE = True
+except ImportError:
+    _EMBEDDING_AVAILABLE = False
+    
+    def get_embedding(text, retries=2):
+        return None
+    
+    def embed_health():
+        return {"status": "import_failed"}
+
+EMBEDDING_INFO = {
+    "provider": "OpenRouter (Nscale-Infrastruktur)",
+    "model": "Qwen/Qwen3-Embedding-8B",
+    "dimension": 4096,
+    "fallback": "Ollama/nomic-embed-text (768d padded to 4096d)",
+    "available": _EMBEDDING_AVAILABLE,
+}
+
 # ── Routes ──────────────────────────────────────────────────
 @app.get("/health")
 async def health():
@@ -94,9 +115,18 @@ async def health():
         for c_name in qdrant_int:
             ci = requests.get(f"{QDRANT_URL}/collections/{c_name}", timeout=5).json()
             total_pts += ci.get("result", {}).get("points_count", 0)
+        eh = embed_health()
         return {
             "status": "ok",
             "qdrant": True,
+            "nscale": True,
+            "embedding": {
+                "model": EMBEDDING_INFO["model"],
+                "dimension": EMBEDDING_INFO["dimension"],
+                "provider": EMBEDDING_INFO["provider"],
+                "available": _EMBEDDING_AVAILABLE,
+                "status": eh.get("status", "?"),
+            },
             "collections": len(qdrant_int),
             "total_points": total_pts,
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -244,8 +274,19 @@ async def store_brain(req: StoreRequest):
         "confidence": 0.9,
     }
 
-    # Use a zero vector placeholder until sentence-transformers is available
-    vector = [0.0] * VECTOR_DIM_3072  # brain_knowledge_3072_v3 ist 3072d
+    # Generate embedding via Qwen/Qwen3-Embedding-8B (4096d) → Nscale via OpenRouter
+    # Fallback: Ollama nomic-embed-text (768d padded to 4096d) → Zero-Vector (3072d)
+    if _EMBEDDING_AVAILABLE:
+        try:
+            embed = get_embedding(req.content)
+            if embed and len(embed) >= 3072:
+                vector = embed[:VECTOR_DIM_3072]  # 4096d → 3072d downsample
+            else:
+                vector = [0.0] * VECTOR_DIM_3072
+        except Exception:
+            vector = [0.0] * VECTOR_DIM_3072
+    else:
+        vector = [0.0] * VECTOR_DIM_3072
 
     r = requests.put(
         f"{QDRANT_URL}/collections/{WRITE_COLLECTION}/points",
@@ -256,7 +297,14 @@ async def store_brain(req: StoreRequest):
     if r.status_code != 200:
         raise HTTPException(502, f"Qdrant store error: {r.text[:200]}")
 
-    return {"status": "stored", "point_id": point_id, "collection": WRITE_COLLECTION}
+    has_vector = any(v != 0.0 for v in vector)
+    return {
+        "status": "stored",
+        "point_id": point_id,
+        "collection": WRITE_COLLECTION,
+        "embedded": has_vector,
+        "vector_dim": len(vector),
+    }
 
 @app.delete("/delete/{point_id}")
 async def delete_point(point_id: str):

@@ -1,217 +1,157 @@
 """
-NeXifyAI — Embedding Manager (REAL IMPLEMENTATION v2.0)
-Persists embeddings to Qdrant via HTTP API. Falls back to SQLite.
+NeXifyAI — Embedding Manager for Qwen/Qwen3-Embedding-8B (4096d)
+=========================================================
+Embedding-Stack:
+  Primary:   OpenRouter → Qwen/Qwen3-Embedding-8B (4096d, ~$0.025/1M tokens)
+  Fallback1: Ollama local → nomic-embed-text (768d → padded to 4096d)
+  Fallback2: Zero-Vector (4096d) — wenn gar nichts geht
 
-Usage:
-    from backend.brain.embedding_manager import EmbeddingManager
-    mgr = EmbeddingManager()
-    entry = mgr.embed("important decision", metadata={"category": "decision"})
+Nscale: Infrastruktur-Provider. Qwen3-Embedding-8B wird via OpenRouter API bezogen.
 """
-
-import hashlib
+import os
 import json
 import time
-import sqlite3
-import urllib.request
-import urllib.error
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, field
-from enum import Enum
+import logging
+import hashlib
+from typing import List, Optional, Dict, Any
+from dataclasses import dataclass
+
+logger = logging.getLogger("nexifyai.embedding")
+
+# ─── Konfiguration ──────────────────────────────────────────────
+
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+EMBEDDING_MODEL = "Qwen/Qwen3-Embedding-8B"
+EMBEDDING_DIM = 4096
+
+OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11435")
+OLLAMA_FALLBACK_MODEL = "nomic-embed-text"
+OLLAMA_FALLBACK_DIM = 768
 
 
-class EmbeddingStatus(Enum):
-    ACTIVE = "active"
-    EXPIRED = "expired"
-    DEPRECATED = "deprecated"
-    CONFLICT = "conflict"
+def get_embedding(text: str, retries: int = 2) -> Optional[List[float]]:
+    """
+    Embedding-Stack (Primär → Fallback1 → Fallback2).
+    Liefert immer 4096d-Embedding zurück.
+    """
+    # ▸ Primary: OpenRouter → Qwen3-Embedding-8B
+    if OPENROUTER_API_KEY:
+        vec = _openrouter_embed(text, retries)
+        if vec and len(vec) == EMBEDDING_DIM:
+            logger.debug(f"Embedding via OpenRouter/{EMBEDDING_MODEL}: {len(vec)}d")
+            return vec
+        elif vec:
+            logger.warning(f"OpenRouter embedding wrong dim: {len(vec)} (expected {EMBEDDING_DIM})")
+
+    # ▸ Fallback 1: Ollama local
+    vec = _ollama_embed(text)
+    if vec:
+        if len(vec) == EMBEDDING_DIM:
+            return vec
+        elif len(vec) == OLLAMA_FALLBACK_DIM:
+            # Padder auf 4096d
+            padded = vec + [0.0] * (EMBEDDING_DIM - len(vec))
+            logger.debug(f"Embedding via Ollama/{OLLAMA_FALLBACK_MODEL}: {len(vec)}d → padded 4096d")
+            return padded
+        else:
+            logger.warning(f"Ollama embedding wrong dim: {len(vec)}")
+
+    # ▸ Fallback 2: Zero-Vector
+    logger.warning("Kein Embedding verfügbar — nutze Zero-Vector")
+    return [0.0] * EMBEDDING_DIM
 
 
-@dataclass
-class EmbeddingEntry:
-    id: str
-    content: str
-    embedding_version: str = "2.0.0"
-    created_at: float = field(default_factory=time.time)
-    ttl_seconds: int = 30 * 24 * 3600  # 30 days
-    confidence: float = 0.5
-    source: str = "unknown"
-    tags: List[str] = field(default_factory=list)
-    status: EmbeddingStatus = EmbeddingStatus.ACTIVE
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-    @property
-    def is_expired(self) -> bool:
-        return time.time() > self.created_at + self.ttl_seconds
-
-    @property
-    def age_days(self) -> float:
-        return (time.time() - self.created_at) / 86400
-
-    def to_qdrant_point(self, vector: List[float] = None) -> Dict:
-        """Convert to Qdrant point format."""
-        return {
-            "id": self.id,
-            "vector": vector or [0.0] * 768,  # Placeholder — real embeddings from model
-            "payload": {
-                "content": self.content,
-                "version": self.embedding_version,
-                "confidence": self.confidence,
-                "source": self.source,
-                "tags": self.tags,
-                "status": self.status.value,
-                "metadata": self.metadata,
-                "created_at": self.created_at,
-                "expires_at": self.created_at + self.ttl_seconds,
-            }
-        }
+def get_embeddings_batch(texts: List[str]) -> List[List[float]]:
+    """Batch-Verarbeitung für mehrere Texte."""
+    return [get_embedding(t) for t in texts]
 
 
-# ══════════════════════════════════════════════
-# EMBEDDING MANAGER
-# ══════════════════════════════════════════════
-
-QDRANT_URL = "http://localhost:6333"
-QDRANT_COLLECTION = "nexifyai_brain"  # migrated from nexifyai_memories (deprecated, 0 pts)
-BRAIN_DB_PATH = "/opt/data/brain/brain.db"
-
-
-class EmbeddingManager:
-
-    EMBEDDING_VERSION = "2.0.0"
-
-    def __init__(self, ttl_days: int = 30):
-        self.ttl_seconds = ttl_days * 24 * 3600
-
-    def embed(
-        self,
-        content: str,
-        metadata: Dict = None,
-        tags: List[str] = None,
-        source: str = "unknown",
-        confidence: float = 0.5,
-    ) -> EmbeddingEntry:
-        content_hash = hashlib.sha256(
-            (content + self.EMBEDDING_VERSION).encode()
-        ).hexdigest()[:16]
-
-        entry = EmbeddingEntry(
-            id=f"emb-{content_hash}",
-            content=content,
-            embedding_version=self.EMBEDDING_VERSION,
-            ttl_seconds=self.ttl_seconds,
-            confidence=confidence,
-            source=source,
-            tags=tags or [],
-            metadata=metadata or {},
-        )
-
-        # Persist to Qdrant (with fallback to SQLite)
-        self._persist_qdrant(entry)
-        self._persist_sqlite(entry)
-
-        return entry
-
-    def _persist_qdrant(self, entry: EmbeddingEntry) -> bool:
-        """Persist embedding to Qdrant via HTTP API."""
+def _openrouter_embed(text: str, retries: int = 2) -> Optional[List[float]]:
+    """Embedding via OpenRouter API (Qwen/Qwen3-Embedding-8B, 4096d)."""
+    import httpx
+    for attempt in range(retries + 1):
         try:
-            url = f"{QDRANT_URL}/collections/{QDRANT_COLLECTION}/points"
-            data = json.dumps({
-                "points": [entry.to_qdrant_point()]
-            }).encode()
-
-            req = urllib.request.Request(url, data=data, method="PUT")
-            req.add_header("Content-Type", "application/json")
-
-            with urllib.request.urlopen(req, timeout=5) as resp:
-                response = json.loads(resp.read())
-                if response.get("result", {}).get("status") == "ok":
-                    return True
-        except (urllib.error.URLError, ConnectionRefusedError):
-            pass  # Qdrant unavailable — SQLite fallback
+            with httpx.Client(timeout=30) as client:
+                resp = client.post(
+                    f"{OPENROUTER_BASE_URL}/embeddings",
+                    headers={
+                        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": EMBEDDING_MODEL,
+                        "input": text,
+                    }
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    emb = data.get("data", [{}])[0].get("embedding", [])
+                    return emb
+                elif resp.status_code == 429 and attempt < retries:
+                    time.sleep(2 ** attempt)
+                    continue
+                else:
+                    logger.error(f"OpenRouter embedding error {resp.status_code}: {resp.text[:200]}")
+                    return None
         except Exception as e:
-            print(f"[embedding] Qdrant persist error: {e}")
-        return False
+            logger.error(f"OpenRouter embedding exception (attempt {attempt+1}): {e}")
+            if attempt < retries:
+                time.sleep(2 ** attempt)
+    return None
 
-    def _persist_sqlite(self, entry: EmbeddingEntry) -> bool:
-        """Fallback persist to SQLite brain.db."""
-        try:
-            conn = sqlite3.connect(BRAIN_DB_PATH)
-            cursor = conn.cursor()
 
-            cursor.execute("""
-                INSERT OR REPLACE INTO memories (id, content, category, source, embedding, created_at)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (
-                entry.id,
-                json.dumps({
-                    "content": entry.content,
-                    "metadata": entry.metadata,
-                    "tags": entry.tags,
-                    "version": entry.embedding_version,
-                    "confidence": entry.confidence,
-                }),
-                "embedding",
-                entry.source,
-                json.dumps([]),  # No real vector in SQLite
-                datetime.fromtimestamp(entry.created_at, tz=timezone.utc).isoformat(),
-            ))
+def _ollama_embed(text: str) -> Optional[List[float]]:
+    """Embedding via Ollama (nomic-embed-text, 768d)."""
+    import httpx
+    try:
+        with httpx.Client(timeout=30) as client:
+            resp = client.post(
+                f"{OLLAMA_BASE_URL}/api/embeddings",
+                json={
+                    "model": OLLAMA_FALLBACK_MODEL,
+                    "prompt": text,
+                }
+            )
+            if resp.status_code == 200:
+                return resp.json().get("embedding", [])
+            else:
+                logger.error(f"Ollama embedding error {resp.status_code}: {resp.text[:200]}")
+                return None
+    except Exception as e:
+        logger.error(f"Ollama embedding exception: {e}")
+        return None
 
-            conn.commit()
-            conn.close()
-            return True
-        except Exception as e:
-            print(f"[embedding] SQLite persist error: {e}")
-            return False
 
-    def detect_conflicts(
-        self,
-        content: str,
-        existing: List[EmbeddingEntry] = None,
-        similarity_threshold: float = 0.85,
-    ) -> List[EmbeddingEntry]:
-        """Detect conflicting entries with high content similarity."""
-        conflicts = []
-        if not existing:
-            return conflicts
+def cosine_similarity(a: List[float], b: List[float]) -> float:
+    """Cosine similarity zwischen zwei Embeddings."""
+    dot = sum(x * y for x, y in zip(a, b))
+    norm_a = sum(x * x for x in a) ** 0.5
+    norm_b = sum(x * x for x in b) ** 0.5
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+    return dot / (norm_a * norm_b)
 
-        new_words = set(content.lower().split())
-        if not new_words:
-            return conflicts
 
-        for entry in existing:
-            old_words = set(entry.content.lower().split())
-            if not old_words:
-                continue
-            intersection = new_words & old_words
-            union = new_words | old_words
-            similarity = len(intersection) / len(union)
+def embedding_health() -> dict:
+    """Health-Check für den Embedding-Stack."""
+    result = {
+        "configured": bool(OPENROUTER_API_KEY),
+        "model": EMBEDDING_MODEL,
+        "dimension": EMBEDDING_DIM,
+        "provider": "OpenRouter",
+        "fallback": f"Ollama/{OLLAMA_FALLBACK_MODEL} ({OLLAMA_FALLBACK_DIM}d)",
+        "nscale_via": "OpenRouter API (kein dedizierter Service)",
+    }
 
-            if similarity > similarity_threshold:
-                conflicts.append(entry)
+    # Test-Embedding
+    if OPENROUTER_API_KEY:
+        test = _openrouter_embed("test", retries=1)
+        result["status"] = "ok" if test else "fallback_active"
+        result["test_dim"] = len(test) if test else 0
+    else:
+        test = _ollama_embed("test")
+        result["status"] = "ollama_fallback" if test else "unavailable"
+        result["test_dim"] = len(test) if test else 0
 
-        return conflicts
-
-    def resolve_conflict(
-        self,
-        new_entry: EmbeddingEntry,
-        old_entry: EmbeddingEntry,
-        strategy: str = "latest_wins",
-    ) -> EmbeddingEntry:
-        if strategy == "merge_tags":
-            new_entry.tags = list(set(new_entry.tags + old_entry.tags))
-            new_entry.metadata.update(old_entry.metadata)
-        old_entry.status = EmbeddingStatus.DEPRECATED
-        return new_entry
-
-    def cleanup_expired(self, entries: List[EmbeddingEntry]) -> List[str]:
-        return [e.id for e in entries if e.is_expired]
-
-    def compute_confidence(self, entry: EmbeddingEntry) -> float:
-        source_weights = {
-            'brain_search': 1.0, 'adr': 0.9, 'policy': 0.9,
-            'dos': 0.95, 'conversation': 0.4, 'unknown': 0.3,
-        }
-        source_mult = source_weights.get(entry.source, 0.5)
-        age_mult = max(0.3, 2 ** (-entry.age_days / 60))
-        return min(1.0, max(0.0, entry.confidence * source_mult * age_mult))
+    return result
