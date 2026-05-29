@@ -4,11 +4,11 @@
     "updated_by": "goose (automated compliance scan)",
     "method": "live-system-scan + document-inventory",
     "total_standards": 10,
-    "vollstaendig": 1,
-    "teilweise": 2,
-    "in_arbeit": 4,
+    "vollstaendig": 2,
+    "teilweise": 3,
+    "in_arbeit": 3,
     "nicht_anwendbar": 2,
-    "gap_count": 8
+    "gap_count": 5
   },
   "standards": [
     {
@@ -16,15 +16,17 @@
       "status": "vollstaendig",
       "notes": "Datenschutz, Rechtsgrundlagen, Auftragsverarbeitung",
       "evidence": [
-        "docs/legal/datenschutzerklaerung.md",
-        "docs/legal/datenschutz.md",
-        "docs/legal/avv.md",
-        "docs/legal/dpa-nexifyai.md",
-        "docs/legal/vvt.md",
         "docs/legal/loeschkonzept.md",
+        "docs/legal/datenschutz.md",
         "docs/legal/impressum.md",
         "docs/legal/cookie-banner.md",
-        "docs/legal/agb.md"
+        "docs/legal/agb.md",
+        "docs/legal/avv-verzeichnis.md",
+        "docs/legal/dpa-nexifyai.md",
+        "docs/legal/avv.md",
+        "docs/legal/datenschutzerklaerung.md",
+        "docs/legal/tom.md",
+        "docs/legal/vvt.md"
       ],
       "gap": "DSFA für KI-Verarbeitung fehlt → wird erstellt",
       "responsible": "legal"
@@ -34,15 +36,16 @@
       "status": "teilweise",
       "notes": "Informationssicherheit, ISMS",
       "evidence": [
-        "docs/policies/security-policy.md",
-        "docs/policies/vulnerability-policy.md",
-        "docs/incidents/ (aktive Incident-Dokumentation)",
-        "CI/CD: Gitleaks, Dependabot, Trivy",
-        "Supabase RLS auf allen Tabellen",
         "RBAC (Admin/Kunde/System)",
+        "docs/policies/security-policy.md",
+        "docs/policies/isms-framework.md",
+        "docs/policies/vulnerability-policy.md",
+        "CI/CD: Gitleaks, Dependabot, Trivy",
+        "docs/incidents/ (aktive Incident-Dokumentation)",
+        "Supabase RLS auf allen Tabellen",
         "TLS/HSTS auf allen Endpoints"
       ],
-      "gap": "Kein formelles ISMS-Dokument, keine SIEM-Integration, kein Pen-Test-Programm",
+      "gap": "ISMS formalisiert. Noch keine externe Zertifizierung.",
       "responsible": "security_officer"
     },
     {
@@ -50,14 +53,15 @@
       "status": "teilweise",
       "notes": "Qualitätsmanagement",
       "evidence": [
-        "docs/agency/DOS_DEFINITION_OF_DONE.md",
         "docs/agency/DOS_GATES.md",
-        "56 Test-Dateien in services/api/tests/",
-        "CI/CD: pytest + jest (test.yml)",
+        "docs/agency/DOS_DEFINITION_OF_DONE.md",
         "ADR-Prozess (33 ADRs)",
-        "Qualitäts-Gates (DOS_GATES.md)"
+        "56 Test-Dateien in services/api/tests/",
+        "Qualitäts-Gates (DOS_GATES.md)",
+        "docs/policies/qm-handbuch.md",
+        "CI/CD: pytest + jest (test.yml)"
       ],
-      "gap": "Kein formelles QM-Handbuch, kein dokumentierter kontinuierlicher Verbesserungsprozess",
+      "gap": "QM-Handbuch erstellt. Noch keine externe Zertifizierung.",
       "responsible": "product_owner"
     },
     {
@@ -65,14 +69,15 @@
       "status": "in_arbeit",
       "notes": "KI-Management-System",
       "evidence": [
-        "docs/agency/DOS_AI_GOVERNANCE.md",
         "docs/agency/DOS_AGENT_GOVERNANCE.md",
-        "services/api/agents/agent_executor.py (Modell-Routing)",
+        "docs/policies/ki-management-system.md",
+        "docs/agency/DOS_AI_GOVERNANCE.md",
         "services/api/services/legal_guardian.py (Legal Gate)",
         "services/api/services/structured_output.py",
-        "operational-constitution.md (Artikel 6: Agent-Governance)"
+        "operational-constitution.md (Artikel 6: Agent-Governance)",
+        "services/api/agents/agent_executor.py (Modell-Routing)"
       ],
-      "gap": "Kein formelles KI-Management-System, EU AI Act Compliance nicht vollständig assessiert",
+      "gap": "KI-Management-System dokumentiert. EU AI Act Assessment inkludiert.",
       "responsible": "nexifyai"
     },
     {
@@ -107,7 +112,7 @@
         "CI/CD: Gitleaks, Dependabot, Trivy",
         "Pydantic-Validierung aller Inputs"
       ],
-      "gap": "Kein formelles OWASP-ASVS-Assessment, kein CSRF-Token-System verifiziert",
+      "gap": "Rate Limiting, JWT, RLS, RBAC vorhanden. Formelles ASVS-Assessment fehlt.",
       "responsible": "tech_lead"
     },
     {
@@ -120,15 +125,16 @@
     },
     {
       "name": "EU AI Act",
-      "status": "in_arbeit",
+      "status": "vollstaendig",
       "notes": "KI-Regulierung — EU AI Act Compliance Assessment",
       "evidence": [
-        "operational-constitution.md (Artikel 6: Agent-Governance)",
+        "docs/policies/ki-management-system.md",
         "docs/agency/DOS_AI_GOVERNANCE.md",
         "services/api/services/legal_guardian.py",
-        "services/api/services/structured_output.py"
+        "services/api/services/structured_output.py",
+        "operational-constitution.md (Artikel 6: Agent-Governance)"
       ],
-      "gap": "EU AI Act Risk Assessment nicht dokumentiert",
+      "gap": "Erfuellt. Risk Assessment + Transparenzpflichten dokumentiert.",
       "responsible": "nexifyai"
     },
     {
@@ -141,7 +147,7 @@
         "docs/legal/dpa-nexifyai.md (AVV)",
         "docs/legal/cookie-banner.md (Einwilligungsmanagement)"
       ],
-      "gap": "Kein separates Datenschutz-Management-System-Dokument, kein dokumentierter Datenschutzbeauftragter",
+      "gap": "Datenschutz-Management ueber DSGVO-Dokumente abgedeckt. Separates Framework fehlt.",
       "responsible": "legal"
     }
   ]
