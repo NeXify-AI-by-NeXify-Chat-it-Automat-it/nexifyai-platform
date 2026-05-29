@@ -35,16 +35,19 @@ logging.basicConfig(
 
 QDRANT_URL = "http://127.0.0.1:6333"
 COLLECTIONS = {
-    "brain": "brain_knowledge_3072_v3",
-    "memories": "brain_memories_3072_v3",
-    "legacy_brain": "nexifyai_brain_3072_v3",
-    "legacy_memories": "nexifyai_memories_3072_v3",
+    "brain": "nexifyai_brain_3072_v3",
+    "memories": "nexifyai_memories_3072_v3",
+    "brain_knowledge": "nexifyai_brain_3072_v3",
+    "brain_memories": "nexifyai_memories_3072_v3",
 }
-READ_COLLECTIONS = ["brain_knowledge_3072_v3", "nexifyai_brain_3072_v3", "brain_memories_3072_v3", "nexifyai_memories_3072_v3"]
+# Durchsucht: Primär (vektorisiert) + Zukunft (brain_knowledge_3072_v3 ab Embedding)
+READ_COLLECTIONS = ["nexifyai_brain_3072_v3", "nexifyai_memories_3072_v3", "brain_knowledge_3072_v3", "brain_memories_3072_v3"]
 WRITE_COLLECTION = "brain_knowledge_3072_v3"
 WRITE_COLLECTION_MEMORIES = "brain_memories_3072_v3"
 # Legacy 4096er Collections (Read-Only, bis Migration abgeschlossen)
 LEGACY_4096_COLLECTIONS = ["nexifyai_brain", "nexifyai_brain_4096_v1"]
+VECTOR_DIM_3072 = 3072
+VECTOR_DIM_4096 = 4096
 VECTOR_DIM = 3072
 
 # ── Liveliness ──────────────────────────────────────────────
@@ -117,18 +120,31 @@ async def stats():
                 "status": d.get("status", "?"),
             }
         except Exception as e:
-            results[name] = {"error": str(e)}
+            results[col_name] = {"error": str(e)}
     return {"stats": results, "timestamp": datetime.now(timezone.utc).isoformat()}
 
 @app.get("/categories")
 async def list_categories(limit: int = 500):
     """List all distinct categories and their counts."""
-    r = requests.post(
-        f"{QDRANT_URL}/collections/{COLLECTIONS['brain']}/points/scroll",
-        json={"limit": limit, "with_payload": True, "with_vector": False},
-        timeout=10,
-    )
-    pts = r.json().get("result", {}).get("points", [])
+    all_pts = []
+    for col in READ_COLLECTIONS:
+        try:
+            r = requests.post(
+                f"{QDRANT_URL}/collections/{col}/points/scroll",
+                json={"limit": limit, "with_payload": True, "with_vector": False},
+                timeout=10,
+            )
+            if r.status_code == 200:
+                all_pts.extend(r.json().get("result", {}).get("points", []))
+        except Exception:
+            pass
+    seen = set()
+    pts = []
+    for p in all_pts:
+        pid = p.get("id")
+        if pid not in seen:
+            seen.add(pid)
+            pts.append(p)
     cats = {}
     for p in pts:
         c = p.get("payload", {}).get("category", "?")
@@ -160,17 +176,29 @@ async def query_brain(req: QueryRequest):
         body["filter"] = {"must": must}
 
     t0 = time.time()
-    r = requests.post(
-        f"{QDRANT_URL}/collections/{COLLECTIONS['brain']}/points/scroll",
-        json=body,
-        timeout=15,
-    )
+    all_pts = []
+    for col in READ_COLLECTIONS:
+        try:
+            r = requests.post(
+                f"{QDRANT_URL}/collections/{col}/points/scroll",
+                json=body,
+                timeout=15,
+            )
+            if r.status_code == 200:
+                all_pts.extend(r.json().get("result", {}).get("points", []))
+        except Exception as e:
+            log.warning(f"Collection {col} scroll failed: {e}")
+
     elapsed = round((time.time() - t0) * 1000)
 
-    if r.status_code != 200:
-        raise HTTPException(502, f"Qdrant error: {r.text[:200]}")
-
-    pts = r.json().get("result", {}).get("points", [])
+    # Deduplicate by id
+    seen = set()
+    pts = []
+    for p in all_pts:
+        pid = p.get("id")
+        if pid not in seen:
+            seen.add(pid)
+            pts.append(p)
 
     # Basic text relevance filter if query is provided
     query_lower = req.query.lower() if req.query else ""
@@ -217,7 +245,7 @@ async def store_brain(req: StoreRequest):
     }
 
     # Use a zero vector placeholder until sentence-transformers is available
-    vector = [0.0] * VECTOR_DIM
+    vector = [0.0] * VECTOR_DIM_3072  # brain_knowledge_3072_v3 ist 3072d
 
     r = requests.put(
         f"{QDRANT_URL}/collections/{WRITE_COLLECTION}/points",
