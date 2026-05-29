@@ -33,11 +33,19 @@ logging.basicConfig(
     format="%(asctime)s [brain-api] %(levelname)s: %(message)s",
 )
 
-QDRANT_URL = "http://localhost:6333"
+QDRANT_URL = "http://127.0.0.1:6333"
 COLLECTIONS = {
-    "brain": "nexifyai_brain",
-    "memory": "nexifyai_memories",
+    "brain": "brain_knowledge_3072_v3",
+    "memories": "brain_memories_3072_v3",
+    "legacy_brain": "nexifyai_brain_3072_v3",
+    "legacy_memories": "nexifyai_memories_3072_v3",
 }
+READ_COLLECTIONS = ["brain_knowledge_3072_v3", "nexifyai_brain_3072_v3", "brain_memories_3072_v3", "nexifyai_memories_3072_v3"]
+WRITE_COLLECTION = "brain_knowledge_3072_v3"
+WRITE_COLLECTION_MEMORIES = "brain_memories_3072_v3"
+# Legacy 4096er Collections (Read-Only, bis Migration abgeschlossen)
+LEGACY_4096_COLLECTIONS = ["nexifyai_brain", "nexifyai_brain_4096_v1"]
+VECTOR_DIM = 3072
 
 # ── Liveliness ──────────────────────────────────────────────
 @asynccontextmanager
@@ -96,11 +104,13 @@ async def health():
 @app.get("/stats")
 async def stats():
     results = {}
-    for name, col in COLLECTIONS.items():
+    for col_name, col in COLLECTIONS.items():
+        if not isinstance(col, str):
+            continue
         try:
             r = requests.get(f"{QDRANT_URL}/collections/{col}", timeout=5)
             d = r.json().get("result", {})
-            results[name] = {
+            results[col_name] = {
                 "collection": col,
                 "points": d.get("points_count", 0),
                 "indexed": d.get("indexed_vectors_count", 0),
@@ -207,10 +217,10 @@ async def store_brain(req: StoreRequest):
     }
 
     # Use a zero vector placeholder until sentence-transformers is available
-    vector = [0.0] * 4096
+    vector = [0.0] * VECTOR_DIM
 
     r = requests.put(
-        f"{QDRANT_URL}/collections/{COLLECTIONS['brain']}/points",
+        f"{QDRANT_URL}/collections/{WRITE_COLLECTION}/points",
         json={"points": [{"id": point_id, "vector": vector, "payload": payload}]},
         timeout=15,
     )
@@ -218,12 +228,12 @@ async def store_brain(req: StoreRequest):
     if r.status_code != 200:
         raise HTTPException(502, f"Qdrant store error: {r.text[:200]}")
 
-    return {"status": "stored", "point_id": point_id, "collection": COLLECTIONS["brain"]}
+    return {"status": "stored", "point_id": point_id, "collection": WRITE_COLLECTION}
 
 @app.delete("/delete/{point_id}")
 async def delete_point(point_id: str):
     r = requests.post(
-        f"{QDRANT_URL}/collections/{COLLECTIONS['brain']}/points/delete",
+        f"{QDRANT_URL}/collections/{WRITE_COLLECTION}/points/delete",
         json={"points": [point_id]},
         timeout=10,
     )
