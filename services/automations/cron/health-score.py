@@ -110,7 +110,7 @@ def collect_metrics() -> dict:
     try:
         t0 = time.time()
         result = subprocess.run(
-            ["curl", "-s", "--connect-timeout", "5", f"{BACKEND_URL}/api/health"],
+            ["curl", "-s", "--connect-timeout", "5", f"{BACKEND_URL}/health"],
             capture_output=True, text=True, timeout=10
         )
         metrics["latency_ms"] = round((time.time() - t0) * 1000)
@@ -150,7 +150,7 @@ def collect_metrics() -> dict:
     # 5. Events/Stunde: Von /api/analytics/stats
     try:
         result = subprocess.run(
-            ["curl", "-s", "--connect-timeout", "3", f"{BACKEND_URL}/api/analytics/stats"],
+            ["curl", "-s", "--connect-timeout", "3", f"{BACKEND_URL}/analytics/stats"],
             capture_output=True, text=True, timeout=5
         )
         if result.returncode == 0:
