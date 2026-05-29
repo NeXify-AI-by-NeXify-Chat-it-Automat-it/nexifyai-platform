@@ -148,3 +148,72 @@
     --color-neutral-900: #f1f5f9;
   }
 }
+/* ━━━━━━━ Admin Dashboard (Dark Theme Only) ━━━━━━━ */
+:root {
+  --dashboard-bg: #0f1923;
+  --dashboard-surface: rgba(19, 26, 34, 0.85);
+  --dashboard-text: #e2e8f0;
+  --dashboard-text-secondary: #c8d1dc;
+  --dashboard-text-muted: #6b7b8d;
+  --dashboard-border: rgba(255, 255, 255, 0.08);
+  --dashboard-radius: 8px;
+  --sidebar-width-collapsed: 64px;
+  --sidebar-width-expanded: 256px;
+  --sidebar-icon-size: 20px;
+  --topbar-height: 64px;
+  --topbar-padding-x: 24px;
+  --table-header-height: 40px;
+  --table-row-height: 56px;
+  --badge-radius: 9999px;
+}
+
+/* ━━━━━━━ Brand Extras ━━━━━━━ */
+@supports (backdrop-filter: blur(12px)) {
+  .glass-surface {
+    background-color: rgba(19, 26, 34, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+/* ━━━━━━━ Logo / Signature ━━━━━━━ */
+.logo-coral {
+  color: #FE9B7B;
+}
+
+/* ━━━━━━━ Phosphor Icon Sizes ━━━━━━━ */
+.icon-sidebar { width: 20px; height: 20px; }
+.icon-button { width: 16px; height: 16px; }
+.icon-table { width: 18px; height: 18px; }
+.icon-hero { width: 24px; height: 24px; }
+
+/* ━━━━━━━ CTA Weight System (Dark) ━━━━━━━ */
+.cta-primary {
+  height: 48px; min-width: 160px; padding: 0 32px;
+  font-weight: 600; border-radius: 6px;
+  background-color: #FE9B7B; color: #0f1923;
+  border: none; cursor: pointer;
+  transition: all 150ms ease;
+}
+.cta-primary:hover { background-color: #FE9B7B/90; filter: brightness(1.05); }
+
+.cta-secondary {
+  height: 44px; min-width: 140px; padding: 0 24px;
+  font-weight: 600; border-radius: 6px;
+  background: transparent; color: #e2e8f0;
+  border: 1px solid rgba(255,255,255,0.1); cursor: pointer;
+  transition: all 150ms ease;
+}
+.cta-secondary:hover { background: rgba(255,255,255,0.05); }
+
+/* ━━━━━━━ Badge System ━━━━━━━ */
+.badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 9999px; border: 1px solid transparent;
+  padding: 2px 10px; font-size: 0.75rem; font-weight: 500;
+}
+.badge-default { background: rgba(255,255,255,0.1); color: #e2e8f0; }
+.badge-primary { background: rgba(254,155,123,0.2); color: #FE9B7B; }
+.badge-success { background: rgba(34,197,94,0.2); color: #22c55e; }
+.badge-warning { background: rgba(245,158,11,0.2); color: #f59e0b; }
+.badge-error { background: rgba(239,68,68,0.2); color: #ef4444; }

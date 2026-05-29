@@ -1,23 +1,82 @@
 {
   "$schema": "https://tokens.design/schema.json",
   "brand": {
-    "primary": { "value": "#6366F1", "type": "color" },
-    "secondary": { "value": "#8B5CF6", "type": "color" },
-    "accent": { "value": "#06B6D4", "type": "color" },
-    "dark": { "value": "#0F172A", "type": "color" },
-    "light": { "value": "#F8FAFC", "type": "color" }
+    "primary": {
+      "value": "#FE9B7B",
+      "type": "color",
+      "description": "NeXify Coral — CTAs, Links, Highlights"
+    },
+    "secondary": {
+      "value": "#14b8a6",
+      "type": "color",
+      "description": "Teal — Secondary Highlights, Success"
+    },
+    "dark": {
+      "value": "#0f1923",
+      "type": "color",
+      "description": "Deep Navy — Backgrounds, Dark Theme"
+    },
+    "light": {
+      "value": "#e2e8f0",
+      "type": "color",
+      "description": "Light Slate — Text on Dark"
+    },
+    "surface_glass": {
+      "value": "rgba(19, 26, 34, 0.85)",
+      "type": "color",
+      "description": "Glass Surface Overlay"
+    }
   },
   "semantic": {
-    "success": { "value": "#22C55E", "type": "color" },
-    "warning": { "value": "#F59E0B", "type": "color" },
-    "error": { "value": "#EF4444", "type": "color" },
-    "info": { "value": "#3B82F6", "type": "color" }
+    "success": {
+      "value": "#22C55E",
+      "type": "color"
+    },
+    "warning": {
+      "value": "#F59E0B",
+      "type": "color"
+    },
+    "error": {
+      "value": "#EF4444",
+      "type": "color"
+    },
+    "info": {
+      "value": "#3B82F6",
+      "type": "color"
+    }
   },
   "neutral": {
-    "50": { "value": "#FAFAFA", "type": "color" },
-    "100": { "value": "#F5F5F5", "type": "color" },
-    "200": { "value": "#E5E5E5", "type": "color" },
-    "700": { "value": "#404040", "type": "color" },
-    "900": { "value": "#171717", "type": "color" }
+    "50": {
+      "value": "#f1f5f9",
+      "type": "color"
+    },
+    "100": {
+      "value": "#e2e8f0",
+      "type": "color"
+    },
+    "200": {
+      "value": "#c8d1dc",
+      "type": "color"
+    },
+    "300": {
+      "value": "#94a3b8",
+      "type": "color"
+    },
+    "500": {
+      "value": "#6b7b8d",
+      "type": "color"
+    },
+    "700": {
+      "value": "#334155",
+      "type": "color"
+    },
+    "800": {
+      "value": "#1e293b",
+      "type": "color"
+    },
+    "900": {
+      "value": "#0f172a",
+      "type": "color"
+    }
   }
 }
