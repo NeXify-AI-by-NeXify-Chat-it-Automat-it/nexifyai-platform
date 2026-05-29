@@ -44,7 +44,7 @@ Ohne standardisierten Provider:
 
 Begründung:
 1. Einheitliches API-Format reduziert Integrationsaufwand
-2. Multi-Model → optimales Preis/Leistungs-Verhältnis (deepseek-v4-pro für Reasoning, -flash für einfache Tasks)
+2. Multi-Model → optimales Preis/Leistungs-Verhältnis (deepseek/deepseek-v4-flash für alle Tasks (vereinfacht 2026-05-29))
 3. Usage-Tracking → FinOps-Kapitel 25 umsetzbar
 4. Kein Lock-in: Provider-Wechsel durch API-Standardisierung möglich
 

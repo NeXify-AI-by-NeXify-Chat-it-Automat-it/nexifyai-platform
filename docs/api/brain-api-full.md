@@ -68,7 +68,7 @@ Authorization: Bearer <jwt>
 
 {
   "task": "<description>",
-  "model": "ds/deepseek-v4-pro"
+  "model": "deepseek/deepseek-v4-flash"
 }
 ```
 Returns JSON with `task_id` and initial status.

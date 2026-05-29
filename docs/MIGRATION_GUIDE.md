@@ -162,12 +162,10 @@ Die Provider werden über Umgebungsvariablen konfiguriert:
 OPENROUTER_API_KEY=sk-or-v1-...
 
 # Fallback LLM (EmergentGPT/GPT-4o-mini)
-# EMERGENT_LLM_KEY — REMOVED 2026-05-29 (OpenRouter only)
-# EMERGENT_LLM_KEY=...
-# EMERGENT_LLM_BASE=https://emergent-gpt.com/api/v1
+# Emergent GPT removed 2026-05-29 — use OpenRouter only
 
 # Reasoning LLM (Anthropic/Claude)
-# ANTHROPIC_API_KEY — REMOVED 2026-05-29
+# Anthropic removed 2026-05-29
 OPENROUTER_API_KEY=sk-or-...
 
 # LangSmith Observability (optional)

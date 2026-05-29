@@ -19,10 +19,10 @@ PROVIDER_CONFIGS = {
         "cost_per_1m_input": 0.14,
         "cost_per_1m_output": 0.28,
     },
-    "deepseek-v4-pro": {
+    "deepseek-v4-flash": {
         "api_key_env": "DS_DEEPSEEK_D7D70D9A__API_KEY",
         "base_url_env": "DS_DEEPSEEK_D7D70D9A__BASE_URL",
-        "model_id": "deepseek-v4-pro",
+        "model_id": "deepseek-v4-flash",
         "cost_per_1m_input": 0.50,
         "cost_per_1m_output": 2.00,
     },
@@ -54,7 +54,7 @@ PROVIDER_CONFIGS = {
         "cost_per_1m_input": 0.80,
         "cost_per_1m_output": 0.80,
     },
-    "openrouter-deepseek-v4-pro": {
+    "openrouter-deepseek-v4-flash": {
         "api_key_env": "DS_OPENROUTER_58984AC0__API_KEY",
         "base_url_env": "DS_OPENROUTER_58984AC0__BASE_URL",
         "model_id": "deepseek/deepseek-v4-flash",
@@ -65,12 +65,12 @@ PROVIDER_CONFIGS = {
 
 MODEL_ALIASES = {
     "v3": "deepseek-v3",
-    "v4": "deepseek-v4-pro",
+    "v4": "deepseek-v4-flash",
     "qwen32": "nscale-qwen3-32b",
     "qwen14": "nscale-qwen3-14b",
     "coder": "nscale-qwen-coder-32b",
     "qwq": "nscale-qwq-32b",
-    "openrouter": "openrouter-deepseek-v4-pro",
+    "openrouter": "openrouter-deepseek-v4-flash",
 }
 
 @dataclass

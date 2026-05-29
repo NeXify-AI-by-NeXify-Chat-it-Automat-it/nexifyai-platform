@@ -105,7 +105,7 @@
         "affected": [
           "backend/tests/test_openrouter_migration_iter81.py"
         ],
-        "recommendation": "Tests auf aktuelles deepseek-v4-pro Modell migrieren"
+        "recommendation": "Tests auf aktuelles deepseek/deepseek-v4-flash Modell migrieren"
       }
     ],
     "low": [

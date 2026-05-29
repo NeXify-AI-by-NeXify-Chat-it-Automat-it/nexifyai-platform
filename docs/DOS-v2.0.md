@@ -310,7 +310,7 @@ Fehlt die Methodik → "Beispielwert"-Markierung.
 | Backend | FastAPI (Python 3.11) | ✅ Live |
 | Datenbank | Supabase PostgreSQL + MongoDB (Übergang) | 🔄 Migration |
 | Auth | Supabase GoTrue + JWT Legacy | ✅ Dual-Mode |
-| LLM | OpenRouter (deepseek-v4-pro) | ✅ |
+| LLM | OpenRouter (deepseek/deepseek/deepseek-v4-flash) | ✅ |
 | Hosting | Vercel (Frontend) + VPS (Backend) | ✅ |
 | CI/CD | GitHub Actions + Vercel Auto-Deploy | 🔄 Minimal |
 | Monitoring | Watchdog v2.0 + Health-Endpoint | ✅ |
@@ -586,7 +586,7 @@ NeXifyAI (Lead Agent) — Architektur, Orchestrierung, Governance
 - **System-Prompts** sind im Repo versioniert (`/packages/config/prompts/`)
 - **Prefill.md** enthält den ZWANGSBEFEHL-Header (unveränderlich via `preserve_zwangsbefehl_header()`)
 - **Kein Prompt-Injection:** User-Input wird vor Einbettung in Prompts escaped
-- **Model-Pinning:** Lead Agent nutzt `deepseek-v4-pro`, Subagenten `deepseek-v4-flash`
+- **Model-Pinning:** Lead Agent nutzt `deepseek/deepseek/deepseek-v4-flash`, Subagenten `deepseek/deepseek-v4-flash`
 - **Fallback-Chain:** OpenRouter → DeepSeek Direct → Emergent LLM
 
 ### 21.5 Context-Injection & Retrieval-Regeln
@@ -605,11 +605,11 @@ NeXifyAI (Lead Agent) — Architektur, Orchestrierung, Governance
 
 | Aufgabe | Modell | Grund |
 |---------|--------|-------|
-| Architektur, DOS-Compliance | deepseek-v4-pro | Höchste Reasoning-Qualität |
-| Code-Generierung | deepseek-v4-pro | Präzision |
-| Einfache Queries, Health-Checks | deepseek-v4-flash | Kosten ($0.14/M vs $1.40/M) |
-| Subagenten (isoliert) | deepseek-v4-flash | Kosteneffizienz |
-| E-Mail-Autoreplies | deepseek-v4-flash | Schnell, günstig |
+| Architektur, DOS-Compliance | deepseek/deepseek/deepseek-v4-flash | Höchste Reasoning-Qualität |
+| Code-Generierung | deepseek/deepseek/deepseek-v4-flash | Präzision |
+| Einfache Queries, Health-Checks | deepseek/deepseek-v4-flash | Kosten ($0.14/M vs $1.40/M) |
+| Subagenten (isoliert) | deepseek/deepseek-v4-flash | Kosteneffizienz |
+| E-Mail-Autoreplies | deepseek/deepseek-v4-flash | Schnell, günstig |
 
 ### 21.7 Human-Override-Policy
 
@@ -965,7 +965,7 @@ NeXifyAI (Lead Agent) — Architektur, Orchestrierung, Governance
 | Backend | FastAPI (Python 3.11) |
 | Datenbank | Supabase PostgreSQL |
 | Auth | Supabase GoTrue |
-| LLM | OpenRouter (deepseek-v4-pro) |
+| LLM | OpenRouter (deepseek/deepseek/deepseek-v4-flash) |
 | Hosting | Vercel (FE) + VPS (BE) |
 | CI/CD | GitHub Actions |
 

@@ -2,7 +2,7 @@
 
 ## Aktueller Stack
 - **Primary:** Hermes Agent (Container, CLI-first)
-- **LLM Provider:** OpenRouter (deepseek-v4-pro / deepseek-v4-flash)
+- **LLM Provider:** OpenRouter (deepseek/deepseek-v4-flash)
 - **Fallback:** DeepSeek Direct API
 
 ## Evaluierte Frameworks
@@ -23,7 +23,7 @@
 
 ### OpenRouter (Current)
 - **Status:** ✅ Aktiv
-- **Anbieter:** deepseek-v4-pro (primär), deepseek-v4-flash (Subagenten/Cron)
+- **Anbieter:** deepseek/deepseek-v4-flash (einziges Modell)
 - **Kosten:** $1.40/M input (pro), $0.14/M input (flash)
 - **Fallback:** DeepSeek Direct API bei OpenRouter-Ausfall
 

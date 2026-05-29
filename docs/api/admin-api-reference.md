@@ -67,7 +67,7 @@ graph LR
 ```json
 // Request
 {
-  "model": "ds/deepseek-v4-pro",
+  "model": "deepseek/deepseek-v4-flash",
   "messages": [{"role":"user","content":"Hello"}],
   "max_tokens": 2048,
   "temperature": 0.7
@@ -89,10 +89,10 @@ graph LR
 // 200 OK
 {
   "models": [
-    {"id":"ds/deepseek-v4-pro",     "name":"NeXify Pro"},
-    {"id":"ds/deepseek-reasoner",    "name":"NeXify Reasoner"},
+    {"id":"deepseek/deepseek-v4-flash",     "name":"NeXify Pro"},
+    {"id":"deepseek/deepseek-v4-flash",    "name":"NeXify Reasoner"},
     {"id":"ds/deepseek-v4-flash",    "name":"NeXify Flash"},
-    {"id":"ds/deepseek-v4-pro-max",  "name":"NeXify Ultra"}
+    {"id":"deepseek/deepseek-v4-flash-max",  "name":"NeXify Ultra"}
   ]
 }
 ```

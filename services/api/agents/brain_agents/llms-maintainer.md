@@ -24,7 +24,7 @@ After completing your task, you MUST report what you learned back to the Brain w
 ## PROVIDER STACK
 | Provider | Model | Priority | Use Case |
 |----------|-------|----------|---------|
-| DeepSeek | deepseek-v4-pro | Primary | Planning, Coding |
+| DeepSeek | deepseek/deepseek-v4-flash | Primary | Planning, Coding |
 | OpenRouter | claude-4.5-opus | Secondary | Complex Reasoning |
 | Emergent | (varies) | Tertiary | Fallback |
 

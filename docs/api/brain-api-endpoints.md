@@ -112,7 +112,7 @@ Authorization: Bearer <jwt-token>
 
 {
   "task": "<task-description>",
-  "model": "ds/deepseek-v4-pro"
+  "model": "deepseek/deepseek-v4-flash"
 }
 ```
 
