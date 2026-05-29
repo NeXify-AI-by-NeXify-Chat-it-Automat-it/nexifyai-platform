@@ -94,9 +94,10 @@
       "notes": "Barrierefreiheit (Web-Zugänglichkeit)",
       "evidence": [
         "alt-Texte auf Bildern (AdminCockpit.jsx, HealthStatusPage.jsx)",
-        "Semantische HTML-Struktur in React-Komponenten"
+        "Semantische HTML-Struktur in React-Komponenten",
+        "docs/policies/wcag-assessment.md"
       ],
-      "gap": "Kein vollständiger WCAG-Audit, keine ARIA-Label, kein Kontrast-Check, keine Tastatur-Navigation verifiziert",
+      "gap": "8 kritische Luecken (P0): Skip-Link, Fokus-Indikator, Tabellen-Tastatur, Fehlermeldungen, ARIA-Live, Icon-Groesse, Kontrast, Mobile-Sidebar",
       "responsible": "design_lead"
     },
     {
@@ -104,15 +105,16 @@
       "status": "teilweise",
       "notes": "Anwendungssicherheit",
       "evidence": [
-        "Rate Limiting (SlowAPI 200/min)",
-        "Security Headers (HSTS, X-Frame-Options, CSP)",
+        "docs/policies/owasp-asvs-checklist.md",
         "JWT-Authentifizierung (Admin + Customer)",
-        "Supabase RLS auf allen Tabellen",
         "RBAC (Admin/Kunde/System)",
+        "Security Headers (HSTS, X-Frame-Options, CSP)",
         "CI/CD: Gitleaks, Dependabot, Trivy",
+        "Supabase RLS auf allen Tabellen",
+        "Rate Limiting (SlowAPI 200/min)",
         "Pydantic-Validierung aller Inputs"
       ],
-      "gap": "Rate Limiting, JWT, RLS, RBAC vorhanden. Formelles ASVS-Assessment fehlt.",
+      "gap": "4 offene Punkte: CORS-Doku, Key-Rotation, SSRF, Race-Condition-Review",
       "responsible": "tech_lead"
     },
     {

@@ -378,7 +378,7 @@
 .nxai-input-row textarea{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:#e2e8f0;padding:12px 16px;border-radius:10px;font-family:inherit;font-size:.8125rem;line-height:1.5;resize:none;min-height:44px;max-height:160px;outline:none;transition:border-color 200ms}
 .nxai-input-row textarea:focus{border-color:rgba(254,155,123,.3)}
 .nxai-input-row textarea::placeholder{color:#4a5568}
-.nxai-send-btn{background:#FE9B7B;color:#fff;border:none;width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 200ms;flex-shrink:0}
+.nxai-send-btn{background:#FE9B7B;color:#0f1923;border:none;width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 200ms;flex-shrink:0}
 .nxai-send-btn:hover{background:#e55f00;transform:scale(1.04)}
 .nxai-send-btn:disabled{background:#2a3441;color:#4a5568;cursor:not-allowed;transform:none}
 .nxai-send-btn .material-symbols-outlined{font-size:20px}

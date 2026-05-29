@@ -197,7 +197,7 @@ const styles = {
   input: { width:'100%', padding:'12px 16px', background:'rgba(19,26,34,0.8)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, color:'#fff', fontSize:'.875rem', boxSizing:'border-box' },
   canvas: { width:'100%', height:120, background:'#fff', borderRadius:8, cursor:'crosshair', touchAction:'none' },
   secondaryBtn: { background:'transparent', border:'1px solid rgba(255,255,255,0.08)', color:'#6b7b8d', borderRadius:6, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:4 },
-  acceptBtn: { width:'100%', padding:'16px 24px', background:'#FE9B7B', color:'#fff', border:'none', borderRadius:10, fontSize:'1rem', fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all .2s' },
+  acceptBtn: { width:'100%', padding:'16px 24px', background:'#FE9B7B', color:'#0f1923', border:'none', borderRadius:10, fontSize:'1rem', fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all .2s' },
 };
 
 export default ContractAcceptance;

@@ -2761,7 +2761,7 @@ const Admin = () => {
           <h2>Outbound Lead Machine</h2>
           <div style={{display:'flex', gap:8, flexWrap:'wrap'}}>
             <button className="adm-btn" style={{padding:'8px 16px',width:'auto',background:'linear-gradient(135deg,#8b5cf6,#6366f1)',color:'#fff',border:'none'}} onClick={() => triggerAutoRun(true)} disabled={autoRunBusy} data-testid="auto-run-dry"><I n="visibility" /> {autoRunBusy ? 'Läuft...' : 'Vorschau (Dry-Run)'}</button>
-            <button className="adm-btn" style={{padding:'8px 16px',width:'auto',background:'linear-gradient(135deg,#FE9B7B,#f97316)',color:'#fff',border:'none'}} onClick={() => triggerAutoRun(false)} disabled={autoRunBusy} data-testid="auto-run-execute"><I n="play_arrow" /> {autoRunBusy ? 'Engine läuft...' : 'Auto-Engine starten'}</button>
+            <button className="adm-btn" style={{padding:'8px 16px',width:'auto',background:'linear-gradient(135deg,#FE9B7B,#f97316)',color:'#0f1923',border:'none'}} onClick={() => triggerAutoRun(false)} disabled={autoRunBusy} data-testid="auto-run-execute"><I n="play_arrow" /> {autoRunBusy ? 'Engine läuft...' : 'Auto-Engine starten'}</button>
             <button className="adm-btn adm-btn-secondary" style={{padding:'8px 16px',width:'auto'}} onClick={() => { setShowBulkImport(!showBulkImport); setBulkResult(null); }} data-testid="bulk-import-btn"><I n="upload_file" /> CSV-Import</button>
             <button className="adm-btn adm-btn-primary" style={{padding:'8px 16px',width:'auto'}} onClick={() => setShowDiscoverForm(true)} data-testid="discover-lead-btn"><I n="person_add" /> Lead erfassen</button>
           </div>
