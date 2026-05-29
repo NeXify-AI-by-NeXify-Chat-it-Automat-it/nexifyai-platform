@@ -40,6 +40,6 @@ curl http://127.0.0.1:6333/healthz
 # Goose ACP
 curl http://127.0.0.1:3284/health
 
-# 9Router (AI Router)
-curl http://localhost:20128/v1/models
+# OpenRouter (AI Router)
+curl http://localhost:8420 (Brain API)/v1/models
 ```

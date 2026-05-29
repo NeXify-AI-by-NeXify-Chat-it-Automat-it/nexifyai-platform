@@ -8,8 +8,8 @@ Die zentrale Plattform ist nexifyai-platform. Darin leben: Agenturseite, Kundenp
 ## Provider-Regel
 NeXifyAI hostet keine eigenen LLMs lokal. NeXifyAI ist AI-Platform / AI-Service-Layer. Provider: DeepSeek intern, Nscale intern. Kunde sieht nur NeXify API, Modelle, Preise, Rechnungen, Support, Docs. Kunde sieht niemals Provider-Keys.
 
-## 9Router-Regel
-9Router ist kritische Core-Infrastruktur. Routing-Layer für LLM-/Embedding-/Provider-Zugriffe. Niemals beschädigen, unkontrolliert refaktorieren, löschen, blockieren oder destabilisieren.
+## OpenRouter-Regel
+OpenRouter ist kritische Core-Infrastruktur. Routing-Layer für LLM-/Embedding-/Provider-Zugriffe. Niemals beschädigen, unkontrolliert refaktorieren, löschen, blockieren oder destabilisieren.
 
 ## Guthaben-Regel
 Vor jeder AI-Ausführung: Tenant prüfen, API-Key prüfen, Guthaben prüfen, Kosten kalkulieren, Usage loggen, Providerkosten kalkulieren, Marge kalkulieren, Limits prüfen. Kein Guthaben = keine KI-Leistung.

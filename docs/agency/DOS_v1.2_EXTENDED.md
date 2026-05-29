@@ -62,8 +62,8 @@ DOS v1.2 erweitert DOS v1.1 vollständig. Nichts aus DOS v1.1 wird entfernt. All
 - Vercel Deployment Evidence ist Pflicht.
 - Supabase Governance ist Pflicht.
 - Cloudflare/DNS/Tunnel Governance ist Pflicht.
-- 9Router ist kritische Core-Infrastruktur.
-- Brain/Qdrant/9Router/Traefik/Cloudflare niemals gefährden.
+- OpenRouter ist kritische Core-Infrastruktur.
+- Brain/Qdrant/OpenRouter/Traefik/Cloudflare niemals gefährden.
 - Keine Shadow-Systeme.
 - Keine lokalen Sonderlösungen.
 - Keine manuell zusammengeklickten Deployments als Wahrheit.

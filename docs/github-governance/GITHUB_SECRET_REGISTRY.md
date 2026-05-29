@@ -28,7 +28,7 @@
 |-------------|----------|--------|
 | `DEEPSEEK_API_KEY` | LLM Provider | ✅ goose-cli.env |
 | `NSCALE_API_KEY` | Embedding | ✅ `.env.complete` |
-| `AI_ROUTER_ADMIN_KEY` | 9Router Auth | 🔴 Blocked (not found) |
+| `AI_ROUTER_ADMIN_KEY` | OpenRouter Auth | 🔴 Blocked (not found) |
 | `BRAIN_API_KEY` | Brain Auth | ✅ `.env.complete` + systemd |
 
 ## Cloudflare
@@ -79,7 +79,7 @@
 | `GITHUB_APP_ID` | PM API GitHub Client | GitHub UI Settings |
 | `GITHUB_APP_INSTALLATION_ID` | PM API GitHub Client | GitHub UI Settings |
 | `COPILOT_MCP_GITHUB_PAT` | GitHub Cloud Agent | Copilot Lizenz |
-| `AI_ROUTER_ADMIN_KEY` | 9Router Auth | Unknown/not found |
+| `AI_ROUTER_ADMIN_KEY` | OpenRouter Auth | Unknown/not found |
 
 ## Registry Location
 

@@ -22,7 +22,7 @@
   ],
   "provider_rule": "Keine lokalen LLMs. DeepSeek + Nscale intern. Kunde sieht nur NeXify.",
   "router": {
-    "name": "9Router",
+    "name": "OpenRouter",
     "critical": true,
     "purpose": "LLM/Embedding/Provider Routing"
   },

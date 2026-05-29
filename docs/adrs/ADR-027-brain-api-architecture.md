@@ -28,4 +28,4 @@ Brain API (port 8420) dient als Knowledge-Layer für RAG-Queries, System-Status 
 
 ## Auth
 
-Alle Endpoints via JWT (gleicher Pool wie 9Router) oder API-Key.
+Alle Endpoints via JWT (gleicher Pool wie OpenRouter) oder API-Key.

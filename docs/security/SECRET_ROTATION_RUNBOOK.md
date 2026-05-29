@@ -53,7 +53,7 @@ gh secret set TOKEN_NAME --body "new_value" --repo NeXify-AI-by-NeXify-Chat-it-A
 
 ### Step 6: Verify Services
 - Verify Brain API: `curl http://localhost:PORT/health`
-- Verify 9Router: `curl http://localhost:PORT/v1/models`
+- Verify OpenRouter: `curl http://localhost:PORT/v1/models`
 - Run CI pipeline to confirm secrets work
 
 ### Step 7: Close Alert

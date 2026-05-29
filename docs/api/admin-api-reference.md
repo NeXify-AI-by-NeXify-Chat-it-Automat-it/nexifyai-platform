@@ -14,7 +14,7 @@ graph LR
     Browser --> AdminProxy[Admin API Proxy :8002]
     AdminProxy --> Qdrant[Qdrant :6333]
     AdminProxy --> MindsDB[MindsDB :47334]
-    AdminProxy --> Airouter[9Router :20128]
+    AdminProxy --> Airouter[OpenRouter :8420 (Brain API)]
     AdminProxy --> CRM[Mock → Supabase]
 ```
 
@@ -62,7 +62,7 @@ graph LR
 ```
 
 ### AI Chat – Completion
-**`POST /api/v1/ai/chat`** – Chat completion via 9Router (OpenAI‑compatible).
+**`POST /api/v1/ai/chat`** – Chat completion via OpenRouter (OpenAI‑compatible).
 
 ```json
 // Request
@@ -80,7 +80,7 @@ graph LR
   "usage": {"prompt_tokens":10,"completion_tokens":25,"total_tokens":35}
 }
 ```
-**502** when 9Router unreachable.
+**502** when OpenRouter unreachable.
 
 ### AI Models – List
 **`GET /api/v1/ai/models`** – Static model list (defined in `api_proxy.py`).

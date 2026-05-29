@@ -31,7 +31,7 @@
 | Subdomain | Check URL | Intervall |
 |:----------|:----------|:----------|
 | brain | https://brain.nexifyai.cloud/health | 60s |
-| ai-router | https://ai-router.nexifyai.cloud/v1/models | 60s |
+| ai-router | https://openrouter.ai/api/v1/models | 60s |
 | webhook | https://webhook.nexifyai.cloud | 60s |
 
 ## Aktuelle Subdomain-zu-Port-Matrix
@@ -40,7 +40,7 @@
 |:----------|:-----|:--------|:-------|:-------------------|
 | nexifyai.cloud | 8421 | PM API | ✅ | Explicit route |
 | brain.nexifyai.cloud | 8420 | Brain API | ✅ | Explicit route |
-| ai-router.nexifyai.cloud | 20128 | 9Router | ✅ | Explicit route |
+| openrouter.ai | 20128 | OpenRouter | ✅ | Explicit route |
 | webhook.nexifyai.cloud | 8421 | PM API | ✅ | Explicit route |
 | * (catchall) | — | — | ✅ HTTP 404 | Explicit catchall |
 

@@ -7,7 +7,7 @@
 |---------|--------|
 | Brain API (8420) | ✅ ok |
 | Qdrant (6333) | ✅ ok, 42.6k points |
-| 9Router (8080) | ✅ ok |
+| OpenRouter (8080) | ✅ ok |
 | Goose ACP (3284) | ✅ ok |
 | PM API (8421) | ✅ ok, 869 skills |
 | All systemd services | ✅ active/running |

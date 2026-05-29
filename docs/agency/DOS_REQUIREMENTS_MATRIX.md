@@ -13,5 +13,5 @@
 10. Prevention Rules ableiten
 11. Keine Secrets ausgeben
 12. GitHub ist Source of Truth
-13. 9Router ist kritische Infrastruktur
+13. OpenRouter ist kritische Infrastruktur
 14. Keine Shadow-Systeme

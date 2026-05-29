@@ -28,7 +28,7 @@
     ],
     "ai": [
       "claude-code-templates",
-      "9Router",
+      "OpenRouter",
       "Brain API",
       "DeepSeek",
       "Nscale"

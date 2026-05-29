@@ -5,7 +5,7 @@ Läuft alle 30 Minuten. Gleicht Open Notebook, Qdrant und Brain DB
 mit aktuellen Repo-Daten und DOS-Dokument ab.
 
 Installation:
-  */30 * * * * python3 /opt/nexifyai-website-sicherheitskopie/automations/cron/brain-sync.py
+  */30 * * * * python3 /opt/nexify/repos/nexifyai-platform/services/automations/cron/brain-sync.py
 """
 
 import os
@@ -17,8 +17,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 BRAIN_DB = "/opt/data/brain/brain.db"
-REPO_ROOT = "/opt/nexifyai-website-sicherheitskopie"
-OUTPUT_DIR = f"{REPO_ROOT}/automations/cron/output"
+REPO_ROOT = "/opt/nexify/repos/nexifyai-platform"
+OUTPUT_DIR = f"{REPO_ROOT}/services/automations/cron/output"
 
 def sync_dos_to_brain():
     """Synchronisiert DOS v2.0 Kapitel-Struktur ins Brain."""

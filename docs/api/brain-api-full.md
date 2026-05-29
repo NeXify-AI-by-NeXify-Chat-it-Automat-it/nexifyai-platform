@@ -13,9 +13,9 @@
 All non‑public endpoints require **JWT Bearer** token signed with `HS256`.
 Token secret (`JWT_SECRET`) lives in `/root/.secrets/credentials.env`.
 
-### Obtain token (9Router login)
+### Obtain token (OpenRouter login)
 ```bash
-curl -X POST http://localhost:20128/api/auth/login \
+curl -X POST http://localhost:8420 (Brain API)/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"password":"<INITIAL_PASSWORD>"}'
 ```
@@ -32,7 +32,7 @@ GET /health
 {
   "status": "ok",
   "qdrant": true,
-  "9router": true,
+  "OpenRouter": true,
   "embedding_model": "nscale/Qwen/Qwen3-Embedding-8B",
   "collections": 6,
   "total_points": 27989,
@@ -50,7 +50,7 @@ Returns consolidated health of all dependent services.
   "status": "healthy|degraded|down",
   "services": {
     "qdrant": {"status":"healthy","collections":6,"total_points":27989},
-    "9router": {"status":"healthy"},
+    "OpenRouter": {"status":"healthy"},
     "redis": {"status":"healthy"},
     "supabase": {"status":"degraded","error":"service_role key rejected"}
   },
@@ -116,7 +116,7 @@ GET /api/v2/health/ai
 ```
 ```json
 {
-  "llm": {"available":true,"provider":"9router"},
+  "llm": {"available":true,"provider":"OpenRouter"},
   "qdrant": {"available":true,"collections":6},
   "embeddings": {"available":true,"model":"Qwen/Qwen3-Embedding-8B","dimension":4096}
 }

@@ -31,7 +31,7 @@ Lösungen werden einmal zentral sauber gebaut, dokumentiert und wiederverwendet.
 | Sprache/Runtime | Python >=3.10, Playwright/Chromium |
 | Code-Größe | ~1.5k LoC Core, ~3.7k gesamt |
 | CLI | `webwright` (via `pip install webwright`) |
-| Modell-Backends | OpenAI, Anthropic, **OpenRouter** (→ 9Router-kompatibel) |
+| Modell-Backends | OpenAI, Anthropic, **OpenRouter** (→ OpenRouter-kompatibel) |
 | Goose-Integration | Skill-Plugin existiert für Claude Code/Codex → analog für Goose |
 | Status | `planned` — evaluiert, nicht produktiv installiert |
 

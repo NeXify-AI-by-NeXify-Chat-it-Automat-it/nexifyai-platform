@@ -69,7 +69,7 @@
 | cloudflare | #1d76db | Cloudflare related |
 | docker | #1d76db | Docker/container |
 | brain | #5319e7 | Enterprise Brain system |
-| 9router | #5319e7 | 9Router LLM gateway |
+| OpenRouter | #5319e7 | OpenRouter LLM gateway |
 | goose | #5319e7 | Goose AI agent |
 
 ### Project Type

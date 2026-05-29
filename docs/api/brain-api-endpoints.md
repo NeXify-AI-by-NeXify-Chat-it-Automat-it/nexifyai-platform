@@ -47,7 +47,7 @@ Der Endpoint `/system/status` ist Teil der Roadmap und soll einen umfassenden Ü
   "status": "healthy|degraded|down",
   "services": {
     "qdrant": {"status": "healthy", "collections": 6, "total_points": 27989},
-    "9router": {"status": "healthy"},
+    "OpenRouter": {"status": "healthy"},
     "redis": {"status": "healthy"},
     "supabase": {"status": "degraded", "error": "service_role key rejected"}
   },
@@ -65,7 +65,7 @@ Derzeit liefert `GET /` (Root) eine vollständige Service-Übersicht:
   "service": "Nexify Brain API v3 — Unified",
   "version": "3.1.0",
   "qdrant": "http://127.0.0.1:6333",
-  "embeddings": "http://localhost:20128 (nscale/Qwen/Qwen3-Embedding-8B)",
+  "embeddings": "http://localhost:8420 (Brain API) (nscale/Qwen/Qwen3-Embedding-8B)",
   "collections": ["nexifyai_brain", "nexifyai_memories"],
   "endpoints": {
     "health": "GET /health",
@@ -94,7 +94,7 @@ GET /health
 {
   "status": "ok",
   "qdrant": true,
-  "9router": true,
+  "OpenRouter": true,
   "embedding_model": "nscale/Qwen/Qwen3-Embedding-8B",
   "collections": 6,
   "total_points": 27989,
@@ -192,7 +192,7 @@ POST /api/v2/rag/conversation
 GET /api/v2/health/ai
 
 Response: {
-  "llm": {"available": true, "provider": "9router"},
+  "llm": {"available": true, "provider": "OpenRouter"},
   "qdrant": {"available": true, "collections": 6},
   "embeddings": {"available": true, "model": "Qwen/Qwen3-Embedding-8B", "dimension": 4096}
 }
@@ -218,7 +218,7 @@ Response: {
 ├─────────────────────┤
 │ Services:            │
 │ • Qdrant (RAG)      │
-│ • 9Router (LLM)     │
+│ • OpenRouter (LLM)     │
 │ • Redis (Cache)    │
 │ • Supabase (Auth)  │
 └─────────────────────┘

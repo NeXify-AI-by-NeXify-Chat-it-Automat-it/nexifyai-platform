@@ -1,4 +1,4 @@
-# ADR-025: 9Router AI Provider Gateway
+# ADR-025: OpenRouter AI Provider Gateway
 
 **Status:** accepted
 **Datum:** 2026-05-22
@@ -7,11 +7,11 @@
 
 ## Kontext
 
-NeXifyAI benötigt einen zentralen API-Gateway für LLM-Provider (DeepSeek, OpenRouter, Anthropic, OpenAI, Vercel AI, Nscale). 9Router läuft als Docker-Container auf Port 20128.
+NeXifyAI benötigt einen zentralen API-Gateway für LLM-Provider (DeepSeek, OpenRouter, Anthropic, OpenAI, Vercel AI, Nscale). OpenRouter läuft als Docker-Container auf Port 20128.
 
 ## Entscheidung
 
-**9Router als primärer AI-Router** — Lokal gehostet, Multi-Provider, JWT-gesichert.
+**OpenRouter als primärer AI-Router** — Lokal gehostet, Multi-Provider, JWT-gesichert.
 
 ## Architektur
 
@@ -24,11 +24,11 @@ NeXifyAI benötigt einen zentralen API-Gateway für LLM-Provider (DeepSeek, Open
          │ HTTPS
          ▼
 ┌─── Cloudflare Tunnel ────┐
-│  ai-router.nexifyai.cloud│
+│  openrouter.ai│
 └────────┬─────────────────┘
-         │ localhost:20128
+         │ localhost:8420 (Brain API)
          ▼
-┌─────── 9Router ─────────┐
+┌─────── OpenRouter ─────────┐
 │  /v1/chat/completions    │
 │  /v1/models              │
 │  /api/providers          │

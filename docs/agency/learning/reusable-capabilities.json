@@ -47,15 +47,15 @@
   },
   {
     "capability": "LLM/Model Routing",
-    "provided_by": "9Router",
-    "how_to_use": "9Router API endpoint",
+    "provided_by": "OpenRouter",
+    "how_to_use": "OpenRouter API endpoint",
     "when_to_use": "jeder AI-Zugriff",
     "required_checks": [
-      "9Router /health"
+      "OpenRouter /health"
     ],
     "related_skills": [],
     "related_services": [
-      "9Router"
+      "OpenRouter"
     ]
   },
   {

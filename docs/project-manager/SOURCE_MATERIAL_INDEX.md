@@ -23,7 +23,7 @@ Die folgenden Aussagen stammen aus den hochgeladenen ChatGPT-/Projektplanungsunt
 - Kundenprojekte dürfen nicht im Plattform-Core vermischt bleiben.
 
 ### Core-Systeme
-- Brain/Qdrant/9Router sind reale Core-Systeme und dürfen nicht gefährdet werden.
+- Brain/Qdrant/OpenRouter sind reale Core-Systeme und dürfen nicht gefährdet werden.
 - Cline ist Dead Legacy.
 - Goose ist Primärintelligenz.
 - Lokale Fake-Skills sind verboten.

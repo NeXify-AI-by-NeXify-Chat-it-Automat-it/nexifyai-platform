@@ -14,9 +14,9 @@ import re
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-REPO_ROOT = "/opt/nexifyai-website-sicherheitskopie"
+REPO_ROOT = "/opt/nexify/repos/nexifyai-platform"
 TAXONOMY_FILE = f"{REPO_ROOT}/packages/events/taxonomy.ts"
-OUTPUT_DIR = f"{REPO_ROOT}/automations/cron/output"
+OUTPUT_DIR = f"{REPO_ROOT}/services/automations/cron/output"
 
 # ══════════════════════════════════════════════════════════════
 
@@ -68,7 +68,7 @@ def check_events_in_backend(expected_events: list) -> dict:
         }
     
     # Code-Scan: Prüfe ob track(event, ...) Aufrufe existieren
-    frontend_src = f"{REPO_ROOT}/frontend/src"
+    frontend_src = f"{REPO_ROOT}/apps/web/src"
     if os.path.isdir(frontend_src):
         import subprocess as sp
         for event in expected_events:

@@ -99,7 +99,7 @@ def _fetch_autopilot_state() -> dict:
             [
                 "ssh", "-i", SSH_KEY, "-o", "StrictHostKeyChecking=no",
                 "-o", "ConnectTimeout=5", VPS_HOST,
-                "python3 /opt/nexifyai-website-sicherheitskopie/automations/cron/health-score.py"
+                "python3 /opt/nexify/repos/nexifyai-platform/services/automations/cron/health-score.py"
             ],
             capture_output=True, text=True, timeout=15
         )

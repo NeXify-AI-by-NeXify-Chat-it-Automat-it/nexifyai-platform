@@ -142,7 +142,7 @@ class EnterpriseHealth:
         import subprocess, sqlite3, os, json
 
         # 1. RELIABILITY — parse health-score.py output
-        health_script = "/opt/nexifyai-platform/automations/cron/health-score.py"
+        health_script = "/opt/nexify/repos/nexifyai-platform/automations/cron/health-score.py"
         try:
             result = subprocess.run(["python3", health_script], capture_output=True, text=True, timeout=15)
             output = result.stdout + result.stderr
@@ -163,10 +163,10 @@ class EnterpriseHealth:
         checks = {
             "gitleaks": ".github/workflows/security-scan.yml",
             "dependabot": ".github/dependabot.yml",
-            "csp": "backend/middleware/security.py",
+            "csp": "services/api/middleware/security.py",
             "security_txt": "public/.well-known/security.txt",
         }
-        repo = "/opt/nexifyai-platform"
+        repo = "/opt/nexify/repos/nexifyai-platform"
         passed = sum(1 for f in checks.values() if os.path.exists(os.path.join(repo, f)))
         security_score = (passed / len(checks)) * 100
         self.update_component("security", security_score, checks)
@@ -196,7 +196,7 @@ class EnterpriseHealth:
 
         # 5. TEST STABILITY — count test files  
         test_count = 0
-        test_dir = os.path.join(repo, "backend/tests")
+        test_dir = os.path.join(repo, "services/api/tests")
         if os.path.exists(test_dir):
             for _, _, files in os.walk(test_dir):
                 test_count += sum(1 for f in files if f.startswith("test_"))

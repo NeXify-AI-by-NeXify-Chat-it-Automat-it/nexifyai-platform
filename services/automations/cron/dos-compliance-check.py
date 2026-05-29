@@ -5,7 +5,7 @@ Läuft täglich. Validiert die gesamte Systemlandschaft gegen DOS v2.0.
 Generiert Issues/Tickets bei Abweichungen.
 
 Installation:
-  ln -s /opt/nexifyai-website-sicherheitskopie/automations/cron/dos-compliance-check.py /usr/local/bin/
+  ln -s /opt/nexify/repos/nexifyai-platform/services/automations/cron/dos-compliance-check.py /usr/local/bin/
   echo "0 6 * * * python3 /usr/local/bin/dos-compliance-check.py" >> /etc/crontab
 """
 
@@ -16,9 +16,9 @@ import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
-REPO_ROOT = "/opt/nexifyai-website-sicherheitskopie"
+REPO_ROOT = "/opt/nexify/repos/nexifyai-platform"
 DOS_DOC = f"{REPO_ROOT}/docs/DOS-v2.0.md"
-OUTPUT_DIR = f"{REPO_ROOT}/automations/cron/output"
+OUTPUT_DIR = f"{REPO_ROOT}/services/automations/cron/output"
 
 class DOSComplianceCheck:
     def __init__(self):
@@ -47,7 +47,7 @@ class DOSComplianceCheck:
 
     def check_backend_routes(self):
         """Prüft ob OpenAPI/Swagger aktiv ist."""
-        server_py = f"{REPO_ROOT}/backend/server.py"
+        server_py = f"{REPO_ROOT}/services/api/server.py"
         if os.path.isfile(server_py):
             with open(server_py) as f:
                 content = f.read()
@@ -56,7 +56,7 @@ class DOSComplianceCheck:
                 else:
                     self.warnings.append("⚠️ Kein FastAPI erkannt")
         else:
-            self.issues.append("❌ backend/server.py fehlt")
+            self.issues.append("❌ services/api/server.py fehlt (backend/ → services/api/ verschoben)")
 
     def check_error_schema(self):
         """Prüft ob standardisiertes Error-Schema existiert."""

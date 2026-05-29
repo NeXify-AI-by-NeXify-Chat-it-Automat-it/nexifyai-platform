@@ -10,7 +10,7 @@ prompt: |
   GÜLTIGE WAHRHEIT:
   Das einzig gültige Agentur-Repo ist:
   https://github.com/NeXify-AI-by-NeXify-Chat-it-Automat-it/nexifyai-platform.git
-  Lokale Stände gelten niemals allein als Wahrheit. Prüfe Repo, Branches, PRs, Deployments, Logs, Konfigurationen, Brain, Vercel, Supabase, VDS, 9Router, Cloudflare, Cloudflare Tunnel, APIs, Webhooks, Cronjobs, Prompts, MCPs und relevante externe Verbindungen.
+  Lokale Stände gelten niemals allein als Wahrheit. Prüfe Repo, Branches, PRs, Deployments, Logs, Konfigurationen, Brain, Vercel, Supabase, VDS, OpenRouter, Cloudflare, Cloudflare Tunnel, APIs, Webhooks, Cronjobs, Prompts, MCPs und relevante externe Verbindungen.
 
   PFLICHT:
   Nutze vor relevanten Entscheidungen den Nexify Brain Kontext.

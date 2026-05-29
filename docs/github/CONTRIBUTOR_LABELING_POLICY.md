@@ -17,7 +17,7 @@
 - Anything touching auth, billing, payment
 - Security fixes
 - Infra/VDS changes
-- Core Brain/9Router configuration
+- Core Brain/OpenRouter configuration
 - Supabase RLS/Auth
 - CI/CD secrets or environment changes
 - Anything requiring production deployment

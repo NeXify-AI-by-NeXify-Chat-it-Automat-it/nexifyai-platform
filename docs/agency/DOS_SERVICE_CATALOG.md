@@ -7,13 +7,13 @@
 4. Apps: Web-Apps, PWAs, mobile Apps, interne Tools, Kunden-Apps, App-Frontends
 5. Automatisierungen: Geschäftsprozesse, Lead, Angebot, E-Mail/CRM, Datenanalyse, Reporting, Workflows, Integrationen
 6. KI-Leistungen: Beratung, Strategie, Agenten, Berater auf Websites, Angebotsgenerator, Integration, Retrieval/Brain, Lead-Prozesse, Workflows
-7. NeXifyAI Modell-/API-Plattform: Modelle, 9Router, API Keys, Guthaben, Usage, Pricing, Billing, Top-up, Docs, Support, Konsole
+7. NeXifyAI Modell-/API-Plattform: Modelle, OpenRouter, API Keys, Guthaben, Usage, Pricing, Billing, Top-up, Docs, Support, Konsole
 8. Betrieb: Hosting, Monitoring, Security, CI/CD, Updates, Backups, Recovery, Performance, Doku, Weiterentwicklung
 
 ## Infrastruktur
 - Brain API: Retrieval/Memory/Governance
 - Qdrant: Vector Store
-- 9Router: AI/LLM/Embedding Routing
+- OpenRouter: AI/LLM/Embedding Routing
 - Traefik: Reverse Proxy
 - Cloudflare/Tunnel: Edge/DNS
 - Supabase: Auth/DB/Storage

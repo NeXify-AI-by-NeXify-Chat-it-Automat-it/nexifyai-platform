@@ -17,8 +17,8 @@
 | Traefik | 80,443,8080 | nx-traefik | sicher-repo/infrastructure/docker/ |
 | Qdrant | 6333,6334 | nexifyai-qdrant | sicher-repo/infrastructure/docker/ |
 | Redis Cache | 6379 | nx-redis-cache | sicher-repo/infrastructure/docker/ |
-| Redis 9Router | 6380 | nx-redis-9router | 9router/ |
-| 9Router | 20128 | 9router-5afd-niner-router-1 | /docker/9router-5afd/ |
+| Redis OpenRouter | 6380 | nx-redis-OpenRouter | OpenRouter/ |
+| OpenRouter | 20128 | OpenRouter-5afd-openrouter-1 | /docker/OpenRouter-5afd/ |
 | Admin Portal | 5173 | nexifyai-admin | /root/nexifyai-admin/ |
 | Admin API Proxy | 8002 | nexifyai-admin-api | /root/nexifyai-admin/ |
 | Uptime Kuma | 3001 | uptime-kuma | sicher-repo/ |
@@ -74,12 +74,12 @@ docker compose up -d nx-traefik
 # Dashboard: http://127.0.0.1:8080
 ```
 
-### 4. 9Router starten
+### 4. OpenRouter starten
 
 ```bash
-cd /docker/9router-5afd
+cd /docker/OpenRouter-5afd
 docker compose up -d
-# Health: curl http://localhost:20128/api/health
+# Health: curl http://localhost:8420 (Brain API)/api/health
 ```
 
 ### 5. Admin Portal starten
@@ -110,7 +110,7 @@ systemctl status cloudflared
 ```bash
 # Alle Services prüfen
 /root/scripts/e2e-verify.sh 2>/dev/null || \
-for s in qdrant:6333 9router:20128 admin:5173 traefik:8080 brain:8420; do
+for s in qdrant:6333 OpenRouter:8420 (Brain API) admin:5173 traefik:8080 brain:8420; do
   svc=${s%%:*}; port=${s##*:}
   curl -s http://localhost:$port >/dev/null && echo "$svc: ✅" || echo "$svc: ❌"
 done
@@ -123,10 +123,10 @@ done
 - **Daten:** volume `qdrant_data`
 - **Backup:** `/root/backups/qdrant-snapshot-*.tar.gz`
 
-### 9Router
+### OpenRouter
 - **Config:** environment + `/app/data/db/data.sqlite`
 - **Env:** JWT_SECRET, INITIAL_PASSWORD, API_KEY_SECRET, MACHINE_ID_SALT
-- **Backup:** `/root/backups/9router-db-*.sqlite`
+- **Backup:** `/root/backups/OpenRouter-db-*.sqlite`
 
 ### Admin-API-Proxy
 - **Code:** `/root/nexifyai-admin/api_proxy.py`
@@ -147,8 +147,8 @@ done
 # Manuell
 # Qdrant snapshot
 curl -X POST http://localhost:6333/collections/nexifyai_brain/snapshots
-# 9Router DB
-cp /docker/9router-5afd/data/db/data.sqlite /root/backups/9router-db-$(date +%Y%m%d).sqlite
+# OpenRouter DB
+cp /docker/OpenRouter-5afd/data/db/data.sqlite /root/backups/OpenRouter-db-$(date +%Y%m%d).sqlite
 # Secrets
 cp /root/.secrets/credentials.env /root/backups/credentials-backup-$(date +%Y%m%d).env
 ```
@@ -157,7 +157,7 @@ cp /root/.secrets/credentials.env /root/backups/credentials-backup-$(date +%Y%m%
 
 | Symptom | Check | Fix |
 |---------|-------|-----|
-| 9Router 401 Unauthorized | `JWT_SECRET` nicht gesetzt | `source /root/.secrets/credentials.env` |
+| OpenRouter 401 Unauthorized | `JWT_SECRET` nicht gesetzt | `source /root/.secrets/credentials.env` |
 | Brain API 404 /system/status | Route nicht registriert | Siehe ADR-027, Service neustarten |
 | Supabase invalid API key | Service-Role falsch | Supabase Dashboard → API Settings |
 | Traefik 404 /api/overview | API deaktiviert | Traefik static config: `api: {dashboard: true}` |

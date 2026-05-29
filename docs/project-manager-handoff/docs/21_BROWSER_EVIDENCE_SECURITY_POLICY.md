@@ -18,7 +18,7 @@ Diese Policy regelt den sicheren Einsatz von browserbasierten Evidence-Runnern (
 **Verboten:**
 - Produktive Admin-Passwörter
 - Echte Kunden-Zugangsdaten
-- API-Keys (Brain, GitHub, Supabase, Vercel, 9Router)
+- API-Keys (Brain, GitHub, Supabase, Vercel, OpenRouter)
 - Persönliche Tokens
 - Produktive Service-Accounts
 

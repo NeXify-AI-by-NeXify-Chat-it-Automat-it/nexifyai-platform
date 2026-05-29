@@ -77,7 +77,7 @@ Folgende Secrets müssen gesetzt werden (ohne Werte):
 | **GitHub** | `GITHUB_APP_WEBHOOK_SECRET` | Repo | Webhook-Validierung | P1 |
 | **Brain** | `BRAIN_API_KEY` | Repo | Enterprise Brain API | P0 |
 | **Brain** | `QDRANT_API_KEY` | Repo | Qdrant-Vektor-DB | P1 |
-| **9Router** | `NINEROUTER_API_KEY` | Repo | 9Router-API | P1 |
+| **OpenRouter** | `NINEROUTER_API_KEY` | Repo | OpenRouter-API | P1 |
 | **Monitoring** | `SENTRY_DSN` | Production Env | Sentry-Error-Tracking | P1 |
 | **Webhook** | `WEBHOOK_SECRET` | Repo | NeXify-Webhook-Signatur | P1 |
 
@@ -157,7 +157,7 @@ P1:
 6. CLOUDFLARE_API_TOKEN setzen
 7. SENTRY_DSN setzen (Production Env)
 8. WEBHOOK_SECRET setzen
-9. 9Router, OpenAI, Qdrant Secrets setzen
+9. OpenRouter, OpenAI, Qdrant Secrets setzen
 
 P2:
 10. Dependabot Secrets prüfen

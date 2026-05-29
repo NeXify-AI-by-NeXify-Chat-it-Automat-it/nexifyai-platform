@@ -1,8 +1,0 @@
-[Unit]
-Description=9Router Health Check
-After=docker.service
-Requires=docker.service
-
-[Service]
-Type=oneshot
-ExecStart=/opt/nexify/repos/nexifyai-platform/scripts/runtime/check-9router-health.sh

@@ -10,7 +10,7 @@ import json, subprocess, sys, os
 from datetime import datetime, timezone
 from pathlib import Path
 
-INVENTORY_FILE = "/opt/nexifyai-website-sicherheitskopie/docs/infrastructure/connection-inventory.md"
+INVENTORY_FILE = "/opt/nexify/repos/nexifyai-platform/docs/infrastructure/connection-inventory.md"
 
 CHECKS = [
     {

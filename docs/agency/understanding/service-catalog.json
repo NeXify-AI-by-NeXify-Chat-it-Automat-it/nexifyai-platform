@@ -23,9 +23,9 @@
       "current_usage": "aktiv"
     },
     {
-      "name": "9Router",
+      "name": "OpenRouter",
       "type": "core",
-      "location": "localhost:20128",
+      "location": "localhost:8420 (Brain API)",
       "capabilities": [
         "LLM/Embedding Routing",
         "Provider-Abstraktion"

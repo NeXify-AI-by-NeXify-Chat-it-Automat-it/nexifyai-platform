@@ -4,7 +4,7 @@
 1. Gibt es eine Brain-Funktion?
 2. Gibt es ein Goose-Tool?
 3. Gibt es eine Master-Repo-Komponente (Skill/Agent/Hook/MCP)?
-4. Gibt es bestehende Infrastruktur (9Router, Traefik, Cloudflare, Supabase, Vercel, GitHub Actions)?
+4. Gibt es bestehende Infrastruktur (OpenRouter, Traefik, Cloudflare, Supabase, Vercel, GitHub Actions)?
 5. Gibt es Code im nexifyai-platform Repo?
 6. Gibt es ein bestehendes Pattern?
 7. Gibt es Dokumentation oder ADRs?
@@ -59,7 +59,7 @@ Erweitere DOS bei:
 - neue Erkenntnis, die DOS betrifft
 
 ## Kategorien
-- Core: Brain, Qdrant, 9Router, Traefik, Cloudflare, Redis, Supabase, Vercel, GitHub
+- Core: Brain, Qdrant, OpenRouter, Traefik, Cloudflare, Redis, Supabase, Vercel, GitHub
 - Skills: claude-code-templates, Bridge, Registry
 - Tools: Goose-Tools, MCPs, GitHub Actions
 - System: Portale, Services, APIs, Workflows
@@ -77,7 +77,7 @@ Erweitere DOS bei:
 - Als Goose-Skill oder Tool-MCP unter Project Manager Control Plane
 - Brain speichert Test-Results
 - GitHub PRs erhalten Test-Evidence
-- OpenRouter/9Router als privat betreibbarer Model-Backend (keine externen API-Keys nötig)
+- OpenRouter/OpenRouter als privat betreibbarer Model-Backend (keine externen API-Keys nötig)
 
 **Security:**
 - Nur Testaccounts/kurzlebige Tokens

@@ -17,7 +17,7 @@
 | `BRAIN_API_TOKEN` | Local | systemd | pascal | jährlich | PM API |
 | `COPILOT_MCP_GITHUB_PAT` | Agents | GitHub UI | pascal | jährlich | GitHub Agent |
 | `CLOUDFLARE_API_TOKEN` | Account | env file | pascal | jährlich | Cloudflare API |
-| `DEEPSEEK_API_KEY` | Local | goose-cli.env | pascal | jährlich | 9Router/Goose |
+| `DEEPSEEK_API_KEY` | Local | goose-cli.env | pascal | jährlich | OpenRouter/Goose |
 | `NEXIFYAI_GITHUB_USER` | GitHub | `.env.complete` | pascal | — | GitHub CLI/Goose |
 | `NEXIFYAI_GITHUB_PASSWORD` | GitHub | `.env.complete` | pascal | nach Incident | GitHub CLI (sudo/gh auth) |
 

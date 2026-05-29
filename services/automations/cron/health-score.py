@@ -12,8 +12,8 @@ import os
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-REPO_ROOT = "/opt/nexifyai-website-sicherheitskopie"
-BACKEND_URL = os.environ.get("BACKEND_URL", "http://72.62.152.47:8001")
+REPO_ROOT = "/opt/nexify/repos/nexifyai-platform"
+BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8001")
 
 WEIGHTS = {
     # DOS v2.0 Chapter 31 — Zusammengesetzter Health-Score
