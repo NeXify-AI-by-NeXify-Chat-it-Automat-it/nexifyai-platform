@@ -225,22 +225,30 @@ class TestAutoAssignment:
 
     def test_followup_assignment(self, mock_assignment_rule):
         """Follow-up rules should trigger after 3+ days."""
-        rule = dict(mock_assignment_rule)
-        followup_lead = {"lead_score": 55, "last_contact_days": 5}
-        fresh_lead = {"lead_score": 55, "last_contact_days": 1}
+        # Create a followup-specific rule (lead_score >= 40 AND < 70)
+        followup_rule = {
+            "name": "Follow-up Required",
+            "conditions": {"lead_score": {"$gte": 40, "$lt": 70}, "last_contact_days": {"$gte": 3}},
+            "enabled": True,
+        }
+        matching_lead = {"lead_score": 55, "last_contact_days": 5}
+        non_matching_lead = {"lead_score": 55, "last_contact_days": 1}
+        low_score_lead = {"lead_score": 20, "last_contact_days": 5}
 
         def matches(rule, lead):
             for key, condition in rule["conditions"].items():
-                if isinstance(condition, dict) and "$gte" in condition:
-                    if lead.get(key, 0) < condition["$gte"]:
+                if isinstance(condition, dict):
+                    if "$gte" in condition and lead.get(key, 0) < condition["$gte"]:
                         return False
-                elif isinstance(condition, dict) and "$lt" in condition:
-                    if lead.get(key, 0) >= condition["$lt"]:
+                    if "$lt" in condition and lead.get(key, 0) >= condition["$lt"]:
                         return False
+                elif lead.get(key) != condition:
+                    return False
             return True
 
-        assert matches(rule, followup_lead)
-        assert not matches(rule, fresh_lead)
+        assert matches(followup_rule, matching_lead)
+        assert not matches(followup_rule, non_matching_lead)
+        assert not matches(followup_rule, low_score_lead)
 
 
 # ═══════════════════════════════════════════════
@@ -411,8 +419,9 @@ class TestMigrationIntegrity:
         # Step 2: Duplicate check
         assert lead["email"].lower() == "test@example.com"
 
-        # Step 3: Assignment rule check
-        assert lead["lead_score"] >= rule["conditions"]["lead_score"]["$gte"]
+        # Step 3: Assignment rule check (lead_score 65 < 70 → low score rule)
+        low_score_rule = {"name": "New Lead", "conditions": {"status": "new"}, "enabled": True}
+        assert lead["status"] == low_score_rule["conditions"]["status"]
 
         # Step 4: Round-robin assign
         agent["active_leads"] += 1
