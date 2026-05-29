@@ -11,23 +11,60 @@
       "text_muted": "#6b7b8d",
       "border": "rgba(255, 255, 255, 0.08)"
     },
+    "color_tokens": {
+      "primary": "var(--color-primary)",
+      "accent": "var(--color-accent)",
+      "accent2": "var(--color-accent-2)",
+      "neutral_100": "var(--color-neutral-100)",
+      "neutral_900": "var(--color-neutral-900)",
+      "success": "var(--color-success)",
+      "warning": "var(--color-warning)",
+      "danger": "var(--color-danger)"
+    },
     "shadows": {
       "glass": "0 4px 30px rgba(0, 0, 0, 0.1)",
-      "card": "0 2px 8px rgba(0, 0, 0, 0.2)"
+      "card": "0 2px 8px rgba(0, 0, 0, 0.2)",
+      "default_token": "var(--shadow-default)"
     },
     "radii": {
       "card": "8px",
       "input": "6px",
       "button": "6px",
-      "badge": "9999px"
+      "badge": "9999px",
+      "token_sm": "var(--radius-sm)",
+      "token_md": "var(--radius-md)",
+      "token_lg": "var(--radius-lg)"
     }
   },
   "typography": {
     "font_family": {
-      "headings": "Manrope, sans-serif",
-      "body": "system-ui, -apple-system, sans-serif"
+      "headings": "'Manrope', sans-serif",
+      "body": "'Inter', system-ui, -apple-system, sans-serif",
+      "mono": "'JetBrains Mono', monospace"
+    },
+    "font_tokens": {
+      "heading": "var(--font-heading)",
+      "body": "var(--font-body)",
+      "mono": "var(--font-mono)"
     },
     "sizes": {
+      "h1": "2.5rem",
+      "h2": "2rem",
+      "h3": "1.5rem",
+      "h4": "1.25rem",
+      "body": "1rem",
+      "small": "0.875rem",
+      "xs": "0.75rem",
+      "overline": "11px"
+    },
+    "size_tokens": {
+      "h1": "var(--text-h1)",
+      "h3": "var(--text-h3)",
+      "body": "var(--text-body)",
+      "small": "var(--text-small)",
+      "xs": "var(--text-xs)"
+    },
+    "admin_tailwind": {
       "h1": "text-2xl md:text-3xl font-semibold tracking-tight text-[#e2e8f0]",
       "h2": "text-xl md:text-2xl font-semibold tracking-tight text-[#e2e8f0]",
       "h3": "text-lg font-medium text-[#e2e8f0]",
@@ -38,30 +75,42 @@
   },
   "layout_and_spacing": {
     "global_spacing": {
-      "section_gap": "gap-8",
-      "widget_gap": "gap-6",
-      "element_gap": "gap-4"
+      "section_gap": "96px",
+      "section_gap_desktop": "96px",
+      "section_gap_mobile": "64px",
+      "widget_gap": "24px",
+      "element_gap": "16px"
+    },
+    "spacing_tokens": {
+      "section_gap": "var(--section-gap)",
+      "section_gap_mobile": "var(--section-gap-mobile)",
+      "card_padding": "var(--card-padding)",
+      "card_padding_mobile": "var(--card-padding-mobile)",
+      "input_height": "var(--input-height)",
+      "input_padding_x": "var(--input-padding-x)"
     },
     "breakpoints": {
-      "mobile": "default (w < 768px)",
-      "tablet": "md (w >= 768px)",
-      "desktop": "lg (w >= 1024px)"
+      "sm": "375px",
+      "md": "768px",
+      "lg": "1024px",
+      "xl": "1280px",
+      "xxl": "1440px"
     },
     "structural_elements": {
       "sidebar": {
-        "width_collapsed": "w-16",
-        "width_expanded": "w-64",
-        "icon_size": "w-5 h-5",
-        "padding": "p-3"
+        "width_collapsed": "64px",
+        "width_expanded": "256px",
+        "icon_size": "20px",
+        "padding": "12px"
       },
       "topbar": {
-        "height": "h-16",
-        "padding": "px-6",
+        "height": "64px",
+        "padding": "24px",
         "alignment": "flex items-center justify-between"
       },
       "main_content": {
-        "padding_mobile": "p-4",
-        "padding_desktop": "p-8"
+        "padding_mobile": "16px",
+        "padding_desktop": "32px"
       }
     }
   },
@@ -80,6 +129,12 @@
         "md": "h-10 px-4 py-2 text-sm",
         "lg": "h-12 px-8 text-base"
       },
+      "size_tokens": {
+        "primary_height": "var(--cta-primary-height)",
+        "secondary_height": "var(--cta-secondary-height)",
+        "text_height": "var(--cta-text-height)",
+        "gap": "var(--cta-gap)"
+      },
       "variants": {
         "primary": "bg-[#FE9B7B] text-[#0f1923] hover:bg-[#FE9B7B]/90",
         "secondary": "bg-white/5 text-[#e2e8f0] hover:bg-white/10 border border-white/10",
@@ -88,9 +143,7 @@
     },
     "forms_and_inputs": {
       "base": "flex w-full bg-[#0f1923]/50 border border-white/10 text-[#e2e8f0] placeholder:text-[#6b7b8d] focus:outline-none focus:ring-1 focus:ring-[#FE9B7B] focus:border-[#FE9B7B] transition-colors rounded-[6px]",
-      "sizes": {
-        "default": "h-10 px-3 py-2 text-sm"
-      },
+      "sizes": { "default": "h-10 px-3 py-2 text-sm" },
       "labels": "block mb-1.5 text-xs font-medium text-[#c8d1dc]"
     },
     "tables": {
@@ -98,10 +151,13 @@
       "header_row": "border-b border-white/10 bg-[#0f1923]/50 h-10",
       "header_cell": "px-4 py-3 text-left align-middle text-xs font-medium uppercase tracking-wider text-[#6b7b8d]",
       "body_row": "border-b border-white/5 transition-colors hover:bg-white/[0.02] h-14",
-      "body_cell": "p-4 align-middle text-sm text-[#c8d1dc]"
+      "body_cell": "p-4 align-middle text-sm text-[#c8d1dc]",
+      "token_headers": "var(--table-header-height)",
+      "token_rows": "var(--table-row-height)"
     },
     "badges": {
       "base": "inline-flex items-center justify-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors focus:outline-none",
+      "radius_token": "var(--badge-radius)",
       "variants": {
         "default": "border-transparent bg-white/10 text-[#e2e8f0]",
         "primary": "border-transparent bg-[#FE9B7B]/20 text-[#FE9B7B]",
@@ -117,18 +173,34 @@
       "button": "16px",
       "table_action": "18px",
       "hero_stat": "24px"
+    },
+    "token_classes": {
+      "sidebar": "icon-sidebar",
+      "button": "icon-button",
+      "table": "icon-table",
+      "hero": "icon-hero"
     }
   },
+  "token_references": [
+    "tokens.css: --color-*, --space-*, --text-*, --font-*, --radius-*, --shadow-*",
+    "tokens.css: --logo-*, --navbar-*, --container-*, --cta-*, --card-*, --input-*",
+    "tokens.css: --dashboard-*, --sidebar-*, --table-*, --badge-*",
+    "tokens.css: --z-*, --section-*, --page-*, --baseline-*, --transition-*",
+    "constraints.js: canonical component contracts with forbidden rules",
+    "colors.json: apps/design-tokens/ — token studio compatible",
+    "spacing.json: apps/design-tokens/ — token studio compatible",
+    "typography.json: apps/design-tokens/ — token studio compatible"
+  ],
   "instructions_to_main_agent": [
     "CRITICAL: We are using .js and .jsx files exclusively. Do NOT create or use .tsx files.",
-    "CRITICAL: ALL interactive elements (buttons, inputs, links, tabs) and key informational elements (stats, balances, headers) MUST have a `data-testid` attribute using kebab-case role-based naming (e.g., `data-testid='login-submit-button'`, `data-testid='crm-leads-table'`).",
-    "Strictly enforce component consistencies defined in this JSON. Specifically: Ensure all cards use `p-4 md:p-6` to resolve padding irregularities.",
-    "Eliminate inconsistent heading sizes by mapping all page titles to the `h1` definition, section titles to `h2`, and widget titles to `h3`.",
-    "Apply `backdrop-blur-xl` correctly to all glass surfaces with the exact background color `bg-[#131a22]/85` as defined in the glass card spec.",
-    "Ensure table structures follow the specific height (`h-10` header, `h-14` rows) and text alignment specifications provided to unify CRM views.",
-    "Apply the Coral accent (`#FE9B7B`) exclusively for primary actions, active states, and key highlights to avoid overwhelming the dark theme.",
-    "Harmonize button sizing globally across the app ensuring they default to the `md` (`h-10`) size unless explicitly inside a compact area like a table row (`sm`).",
-    "Sidebar tooltips must be present when collapsed. Maintain strict icon sizes (`w-5 h-5`) and proper transition effects.",
-    "Use Phosphor icons. If not installed, run `yarn add @phosphor-icons/react`."
+    "CRITICAL: ALL interactive elements MUST have a `data-testid` attribute using kebab-case role-based naming.",
+    "Body font: 'Inter', system-ui, -apple-system, sans-serif (tokens.css = Source of Truth). Inter IS installed.",
+    "Strictly enforce component consistencies. Ensure all cards use `p-4 md:p-6`.",
+    "Map page titles to h1, section titles to h2, widget titles to h3.",
+    "Apply `backdrop-blur-xl` to all glass surfaces with exact `bg-[#131a22]/85`.",
+    "Coral (#FE9B7B) exclusively for primary actions, active states, highlights.",
+    "Button sizes default to `md` (h-10) unless inside compact area like table row (sm).",
+    "Use `@phosphor-icons/react` library with `weight=regular`.",
+    "Reference CSS custom properties from tokens.css, not hardcoded values."
   ]
 }
