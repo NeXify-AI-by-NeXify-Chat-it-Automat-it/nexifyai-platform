@@ -3,9 +3,10 @@
   "id": null,
   "uid": "nexifyai-ai-cost-tracking",
   "title": "NeXifyAI — AI Cost Tracking",
-  "tags": ["nexifyai", "production"],
+  "tags": ["nexifyai", "production", "cost"],
+  "timezone": "browser",
   "schemaVersion": 38,
   "version": 1,
-  "panels": [],
-  "description": "LLM-Kosten, Rate Limits, Traffic (17 Panels)"
+  "description": "LLM-Kosten, Token-Verbrauch, API-Limit-Raten. Datenquelle: cost_tracking.py (MongoDB ai_usage). Aktualisierung: alle 15 Min.",
+  "panels": []
 }
