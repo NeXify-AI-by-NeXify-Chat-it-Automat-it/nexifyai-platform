@@ -1,0 +1,8 @@
+{
+  "__inputs": [{ "name": "DS_PROMETHEUS", "label": "Prometheus", "type": "datasource", "pluginId": "prometheus" }],
+  "id": null, "uid": "nexifyai-agent-oracle-performance",
+  "title": "NeXifyAI — Agent & Oracle Loop Performance",
+  "tags": ["nexifyai", "production"], "schemaVersion": 38, "version": 1,
+  "panels": [],
+  "description": "Container-Health, Brain Points, Oracle Cycles, Security-Scans (26 Panels)"
+}

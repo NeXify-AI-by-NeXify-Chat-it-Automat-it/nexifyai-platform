@@ -1,0 +1,11 @@
+{
+  "__inputs": [{ "name": "DS_PROMETHEUS", "label": "Prometheus", "type": "datasource", "pluginId": "prometheus" }],
+  "id": null,
+  "uid": "nexifyai-ai-cost-tracking",
+  "title": "NeXifyAI — AI Cost Tracking",
+  "tags": ["nexifyai", "production"],
+  "schemaVersion": 38,
+  "version": 1,
+  "panels": [],
+  "description": "LLM-Kosten, Rate Limits, Traffic (17 Panels)"
+}

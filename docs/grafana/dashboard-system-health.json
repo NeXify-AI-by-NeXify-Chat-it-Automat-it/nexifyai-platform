@@ -1,0 +1,8 @@
+{
+  "__inputs": [{ "name": "DS_PROMETHEUS", "label": "Prometheus", "type": "datasource", "pluginId": "prometheus" }],
+  "id": null, "uid": "nexifyai-system-health",
+  "title": "NeXifyAI — System Health",
+  "tags": ["nexifyai", "production"], "schemaVersion": 38, "version": 1,
+  "panels": [],
+  "description": "CPU/MEM/Disk, Services, Load, Health Scores (19 Panels)"
+}
