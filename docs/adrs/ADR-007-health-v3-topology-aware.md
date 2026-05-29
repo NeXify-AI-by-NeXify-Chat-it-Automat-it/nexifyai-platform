@@ -1,6 +1,6 @@
 # ADR-E1: Health v3 — Topology-Aware Multi-Perspective Health
 
-**Status:** DRAFT (Design)  
+**Status:** accepted  
 **Datum:** 2026-05-08  
 **Decider:** NeXifyAI (Hermes Lead Agent)  
 **Consulted:** Pascal Courbois (CEO)  
