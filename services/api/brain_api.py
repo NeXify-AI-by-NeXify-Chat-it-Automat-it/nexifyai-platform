@@ -105,17 +105,38 @@ EMBEDDING_INFO = {
     "available": _EMBEDDING_AVAILABLE,
 }
 
+# Cache: embedding health (alle 60s refreshed)
+_EMBED_HEALTH_CACHE = {"result": None, "ts": 0}
+
+def _get_cached_embed_health():
+    """Cache embedding health — 60s TTL. Blocked OpenRouter darf den Server nicht killen."""
+    global _EMBED_HEALTH_CACHE
+    now = time.time()
+    if _EMBED_HEALTH_CACHE["result"] is None or (now - _EMBED_HEALTH_CACHE["ts"]) > 60:
+        try:
+            _EMBED_HEALTH_CACHE["result"] = embed_health()
+        except Exception as e:
+            log.warning(f"Embed health failed (cached): {e}")
+            if _EMBED_HEALTH_CACHE["result"] is None:
+                _EMBED_HEALTH_CACHE["result"] = {"status": "unavailable", "error": str(e)}
+        _EMBED_HEALTH_CACHE["ts"] = now
+    return _EMBED_HEALTH_CACHE["result"]
+
 # ── Routes ──────────────────────────────────────────────────
 @app.get("/health")
 async def health():
     try:
         r = requests.get(f"{QDRANT_URL}/collections", timeout=5)
         qdrant_int = [c["name"] for c in r.json()["result"]["collections"]]
+        # Use Qdrant count API for fast total — iterate all (fast, 1 req each)
         total_pts = 0
         for c_name in qdrant_int:
-            ci = requests.get(f"{QDRANT_URL}/collections/{c_name}", timeout=5).json()
-            total_pts += ci.get("result", {}).get("points_count", 0)
-        eh = embed_health()
+            try:
+                ci = requests.get(f"{QDRANT_URL}/collections/{c_name}", timeout=3).json()
+                total_pts += ci.get("result", {}).get("points_count", 0)
+            except:
+                pass
+        eh = _get_cached_embed_health()
         return {
             "status": "ok",
             "qdrant": True,
@@ -254,6 +275,18 @@ async def query_brain(req: QueryRequest):
         } for p in pts[:req.limit]]
 
     return {"results": results, "count": len(results), "query_time_ms": elapsed}
+
+@app.post("/embed")
+async def embed(req: StoreRequest):
+    """Embed text via Qwen3-Embedding-8B (4096d) — Nscale via OpenRouter."""
+    try:
+        from brain.embedding_manager import get_embedding
+        embed_start = time.time()
+        vector = get_embedding(req.content)
+        embed_ms = round((time.time() - embed_start) * 1000)
+        return {"vector": vector, "dims": len(vector) if vector else 0, "embed_time_ms": embed_ms}
+    except Exception as e:
+        return {"vector": [0.0] * 4096, "dims": 4096, "embed_time_ms": 0, "error": str(e)}
 
 @app.post("/store")
 async def store_brain(req: StoreRequest):
