@@ -1,0 +1,25 @@
+/* ══════════════════════════════════════════
+   NeXifyAI Topbar Theme — B2B Harmonized
+   ══════════════════════════════════════════ */
+
+.topbar {
+  height: var(--topbar-height);
+  padding: 0 var(--topbar-padding-x);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--dashboard-bg);
+  border-bottom: 1px solid var(--dashboard-border);
+}
+.topbar-left { display: flex; align-items: center; gap: var(--space-4); }
+.topbar-right { display: flex; align-items: center; gap: var(--space-3); }
+
+.topbar-title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--dashboard-text);
+}
+.topbar-subtitle {
+  font-size: var(--text-small);
+  color: var(--dashboard-text-muted);
+}

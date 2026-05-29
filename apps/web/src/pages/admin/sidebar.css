@@ -1,0 +1,60 @@
+/* ══════════════════════════════════════════
+   NeXifyAI Sidebar Theme — B2B Harmonized
+   ══════════════════════════════════════════ */
+
+.sidebar {
+  width: var(--sidebar-width-expanded);
+  height: 100vh;
+  background: var(--dashboard-bg);
+  border-right: 1px solid var(--dashboard-border);
+  display: flex;
+  flex-direction: column;
+  transition: width var(--transition-default);
+  overflow: hidden;
+}
+.sidebar.collapsed { width: var(--sidebar-width-collapsed); }
+
+.sidebar-header {
+  height: var(--topbar-height);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--topbar-padding-x);
+  border-bottom: 1px solid var(--dashboard-border);
+}
+.sidebar-logo {
+  height: 32px;
+  color: var(--color-accent);
+}
+.sidebar-nav { flex: 1; padding: var(--space-2) 0; overflow-y: auto; }
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 40px;
+  padding: 0 var(--topbar-padding-x);
+  color: var(--dashboard-text-secondary);
+  font-size: var(--text-small);
+  cursor: pointer;
+  transition: all var(--transition-micro);
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+.sidebar-item:hover { 
+  background: rgba(255,255,255,0.05); 
+  color: var(--dashboard-text); 
+}
+.sidebar-item.active {
+  background: rgba(254,155,123,0.1);
+  color: var(--color-accent);
+  border-right: 2px solid var(--color-accent);
+}
+.sidebar-icon { width: 20px; height: 20px; flex-shrink: 0; }
+.sidebar-label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.sidebar.collapsed .sidebar-label { display: none; }
+
+.sidebar-footer {
+  padding: var(--space-3) var(--topbar-padding-x);
+  border-top: 1px solid var(--dashboard-border);
+}

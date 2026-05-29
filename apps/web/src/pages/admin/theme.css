@@ -1,0 +1,140 @@
+/* ═══════════════════════════════════════════════════════════
+   NeXifyAI B2B Harmonized Theme — Entry Point
+   Importiert alle Theme-Komponenten.
+   ═══════════════════════════════════════════════════════════ */
+
+@import './dashboard.css';
+@import './sidebar.css';
+@import './topbar.css';
+@import '../../../packages/ui/tokens.css';
+
+/* ── Base Layout ────────────────────────────────────────── */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--dashboard-bg);
+  color: var(--dashboard-text);
+}
+.admin-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.admin-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+}
+@media (min-width: 768px) {
+  .admin-content { padding: var(--space-8); }
+}
+
+/* ── Typography ─────────────────────────────────────────── */
+.admin-h1 { font-size: var(--text-h2); font-weight: 700; color: var(--dashboard-text); }
+.admin-h2 { font-size: var(--text-h3); font-weight: 600; color: var(--dashboard-text); }
+.admin-h3 { font-size: var(--text-h4); font-weight: 500; color: var(--dashboard-text); }
+.admin-body { font-size: var(--text-small); color: var(--dashboard-text-secondary); line-height: 1.6; }
+.admin-muted { font-size: var(--text-xs); color: var(--dashboard-text-muted); }
+
+/* ── Tables ─────────────────────────────────────────────── */
+.admin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius);
+  overflow: hidden;
+}
+.admin-table thead { background: rgba(15,25,35,0.5); }
+.admin-table th {
+  height: var(--table-header-height);
+  padding: 0 var(--space-4);
+  text-align: left;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--dashboard-text-muted);
+  border-bottom: 1px solid var(--dashboard-border);
+}
+.admin-table td {
+  height: var(--table-row-height);
+  padding: 0 var(--space-4);
+  font-size: var(--text-small);
+  color: var(--dashboard-text-secondary);
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.admin-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+.admin-table tbody tr:last-child td { border-bottom: none; }
+
+/* ── Badges ──────────────────────────────────────────────── */
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--badge-radius);
+  padding: 2px 10px;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+.admin-badge-default { background: rgba(255,255,255,0.1); color: var(--dashboard-text); }
+.admin-badge-primary { background: rgba(254,155,123,0.2); color: var(--color-accent); }
+.admin-badge-success { background: rgba(34,197,94,0.2); color: var(--color-success); }
+.admin-badge-warning { background: rgba(245,158,11,0.2); color: var(--color-warning); }
+.admin-badge-danger { background: rgba(239,68,68,0.2); color: var(--color-danger); }
+
+/* ── Forms ────────────────────────────────────────────────── */
+.admin-input {
+  width: 100%;
+  height: var(--input-height);
+  padding: 0 var(--space-4);
+  background: rgba(15,25,35,0.5);
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--radius-sm);
+  color: var(--dashboard-text);
+  font-size: var(--text-small);
+  transition: all var(--transition-micro);
+}
+.admin-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  ring: 1px solid var(--color-accent);
+}
+.admin-input::placeholder { color: var(--dashboard-text-muted); }
+.admin-label { display: block; margin-bottom: var(--space-1); font-size: var(--text-xs); font-weight: 500; color: var(--dashboard-text-secondary); }
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-micro);
+  border: none;
+}
+.admin-btn-primary {
+  height: 40px; padding: 0 var(--space-4);
+  background: var(--color-accent); color: var(--color-primary);
+  font-size: var(--text-small);
+}
+.admin-btn-primary:hover { filter: brightness(1.1); }
+.admin-btn-secondary {
+  height: 40px; padding: 0 var(--space-4);
+  background: transparent; color: var(--dashboard-text);
+  border: 1px solid var(--dashboard-border);
+  font-size: var(--text-small);
+}
+.admin-btn-secondary:hover { background: rgba(255,255,255,0.05); }
+.admin-btn-sm { height: 32px; padding: 0 var(--space-3); font-size: var(--text-xs); }
+.admin-btn-lg { height: 48px; padding: 0 var(--space-6); font-size: var(--text-body); }
+
+/* ── Status Indicators ───────────────────────────────────── */
+.status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.status-dot-green { background: var(--color-success); }
+.status-dot-yellow { background: var(--color-warning); }
+.status-dot-red { background: var(--color-danger); }
+.status-dot-gray { background: var(--dashboard-text-muted); }

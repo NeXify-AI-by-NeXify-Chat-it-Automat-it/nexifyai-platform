@@ -1,0 +1,99 @@
+/* ═══════════════════════════════════════════════════════════
+   NeXifyAI Dashboard Theme — B2B Harmonized (Dark Variant)
+   Referenziert tokens.css Custom Properties.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Glass Surface ─────────────────────────────────────── */
+.glass-card {
+  background: var(--dashboard-surface);
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.glass-card-hover:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* ── Dashboard Grid ────────────────────────────────────── */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+}
+
+/* ── Stat Card ──────────────────────────────────────────── */
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  background: var(--dashboard-surface);
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius);
+  transition: all var(--transition-micro);
+}
+.stat-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.stat-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+.stat-card-icon { color: var(--color-warning); }
+.stat-card-label {
+  font-size: var(--text-xs);
+  color: var(--dashboard-text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.stat-card-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+/* ── Command Bar ────────────────────────────────────────── */
+.command-bar {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.command-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--dashboard-border);
+  background: transparent;
+  color: var(--dashboard-text);
+  font-size: var(--text-small);
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-micro);
+}
+.command-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--dashboard-text);
+}
+
+/* ── Status Colors ──────────────────────────────────────── */
+.stat-accent-coral { color: var(--color-accent); }
+.stat-success { color: var(--color-success); }
+.stat-warning { color: var(--color-warning); }
+.stat-danger { color: var(--color-danger); }
+.stat-info { color: var(--color-info); }
+
+/* ── Icon Sizes ─────────────────────────────────────────── */
+.icon-btn { width: 16px; height: 16px; }
