@@ -370,7 +370,7 @@ async def mindsdb_predict(request: Request):
 
 
 # ═══════════════════════════════════════════════════
-# TEAM ROUTING ENDPOINT (Cambo 9Router + Supabase Teams)
+# TEAM ROUTING ENDPOINT (OpenRouter + Supabase Teams)
 # ═══════════════════════════════════════════════════
 
 @orch_router.post("/execute-team", response_model=ExecuteResponse)
@@ -381,7 +381,7 @@ async def execute_with_team_routing(
 ):
     """
     TEAM EXECUTE: Route via TeamOrchestrator using Supabase team_routing.
-    Uses Cambo 9Router for model selection with capability-based routing.
+    Uses OpenRouter for model selection with capability-based routing.
     Falls back to v2 AgentRouter on team routing failure.
     """
     import time, uuid

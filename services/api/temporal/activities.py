@@ -1,7 +1,7 @@
 """Temporal Activities — the actual agent execution units.
 
 Each Activity is an idempotent, retry-safe unit of work.
-They call the Cambo 9Router LLM provider for actual agent intelligence.
+They call the OpenRouter LLM provider for actual agent intelligence.
 """
 import os, httpx, json, logging
 from datetime import datetime, timezone
@@ -16,25 +16,25 @@ from circuit_breaker import get_breaker
 logger = logging.getLogger("nexifyai.temporal.activities")
 
 # Circuit breakers for external services
-cambo_breaker = get_breaker("cambo-9router", failure_threshold=5, recovery_timeout=30)
+openrouter_breaker = get_breaker("openrouter", failure_threshold=5, recovery_timeout=30)
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", os.environ.get("DS_SUPABASE_1E93118D__PROJECT_URL", "https://mdlgodcvpasgplcrkiad.supabase.co"))
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", os.environ.get("DS_SUPABASE_1E93118D__SECRET_KEY", ""))
 
-CAMBRO_URL = os.environ.get("CAMBRO_BASE_URL", os.environ.get("OPENROUTER_BASE_URL", "https://ai-router.nexifyai.cloud"))
-CAMBRO_KEY = os.environ.get("DS_CAMBRO_158B458E__API_KEY", os.environ.get("OPENROUTER_API_KEY", ""))
+OPENROUTER_URL = os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+OPENROUTER_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 
 
 @activity.defn
 async def execute_agent_task(task: AgentTask) -> AgentResult:
-    """Execute a task via an agent through the Cambo 9Router."""
+    """Execute a task via an agent through the OpenRouter."""
     import time
     start = time.time()
     wf_type = task.agent if hasattr(task, 'agent') else 'unknown'
     
-    headers = {"Authorization": f"Bearer {CAMBRO_KEY}", "Content-Type": "application/json"}
+    headers = {"Authorization": f"Bearer {OPENROUTER_KEY}", "Content-Type": "application/json"}
     payload = {
-        "model": "ds/deepseek-v4-pro",
+        "model": "deepseek/deepseek-v4-flash",
         "messages": [
             {
                 "role": "system",
@@ -46,9 +46,9 @@ async def execute_agent_task(task: AgentTask) -> AgentResult:
     }
     
     try:
-        r = cambo_breaker.call(
+        r = openrouter_breaker.call(
             lambda: httpx.post(
-                f"{CAMBRO_URL}/v1/chat/completions",
+                f"{OPENROUTER_URL}/v1/chat/completions",
                 headers=headers, json=payload, timeout=60
             )
         )
@@ -56,7 +56,7 @@ async def execute_agent_task(task: AgentTask) -> AgentResult:
         
         if r.status_code == 200:
             raw = r.text
-            # Cambo may append extra data after JSON (streaming remnants)
+            # OpenRouter may append extra data after JSON (streaming remnants)
             # Find the last complete JSON object
             import re
             json_match = re.search(r'\{.*\}', raw, re.DOTALL)

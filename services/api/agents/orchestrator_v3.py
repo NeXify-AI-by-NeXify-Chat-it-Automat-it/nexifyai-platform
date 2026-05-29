@@ -1,7 +1,7 @@
 """
 NeXify AI — Team-Routing Orchestrator v3.0.
 Central orchestrator with Supabase-backed Team-Routing, Task-Graph execution,
-Quality Gates, and execution logging. Uses Cambo 9Router for all LLM calls.
+Quality Gates, and execution logging. Uses OpenRouter (deepseek/deepseek-v4-flash) for all LLM calls.
 
 Replaces: hardcoded single-agent delegation with data-driven team routing.
 """
@@ -304,7 +304,7 @@ class TeamOrchestrator:
                 }
             )
         
-        # 3. Execute via LLM provider (Cambo 9Router handles model selection)
+        # 3. Execute via OpenRouter (deepseek/deepseek-v4-flash)
         enriched_ctx = dict(context or {})
         enriched_ctx["_rules"] = rules
         result = await self.llm.chat(

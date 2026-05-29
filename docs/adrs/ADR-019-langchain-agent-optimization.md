@@ -73,7 +73,7 @@ Wir ersetzen die gesamte Custom-Agent-Infrastruktur durch LangChain 0.3+ und Lan
 ### Provider-Strategie
 ```
 Primary:   LangChain ChatOpenAI → openrouter.ai (DeepSeek V4)
-Fallback:  LangChain ChatOpenAI → emergent-gpt (GPT-4o-mini)
+Fallback:  ENTFERNT 2026-05-29 — NUR OpenRouter (deepseek/deepseek-v4-flash)
 Secondary: LangChain ChatAnthropic → Claude (für komplexe Reasoning-Aufgaben)
 ```
 Alle Provider sind über LangChain's `BaseChatModel`-Interface abstrahiert.

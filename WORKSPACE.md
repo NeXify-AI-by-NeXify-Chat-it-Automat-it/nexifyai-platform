@@ -30,7 +30,7 @@ npm install && npm run dev
 Copy `.env.example` to each service and configure:
 
 ```
-CAMBRO_API_KEY=<key>
+OPENROUTER_API_KEY=<key>  # https://openrouter.ai/api/v1 | deepseek/deepseek-v4-flash
 SUPABASE_URL=<url>
 SUPABASE_SERVICE_KEY=<key>
 REDIS_HOST=localhost

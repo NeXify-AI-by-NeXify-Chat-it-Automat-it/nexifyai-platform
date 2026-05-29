@@ -57,7 +57,7 @@ PROVIDER_CONFIGS = {
     "openrouter-deepseek-v4-pro": {
         "api_key_env": "DS_OPENROUTER_58984AC0__API_KEY",
         "base_url_env": "DS_OPENROUTER_58984AC0__BASE_URL",
-        "model_id": "deepseek/deepseek-v4-pro",
+        "model_id": "deepseek/deepseek-v4-flash",
         "cost_per_1m_input": 2.50,
         "cost_per_1m_output": 10.00,
     },

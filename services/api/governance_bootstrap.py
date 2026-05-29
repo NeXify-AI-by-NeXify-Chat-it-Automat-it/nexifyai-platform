@@ -19,8 +19,8 @@ VAULT_DIR = "/root/.anton/data_vault"
 GOVERNANCE_BLOCK_WORKFLOWS = True
 
 REQUIRED_ENV = {
-    "MINIMAL": ["CAMBRO_API_KEY", "CAMBRO_BASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_KEY"],
-    "FULL": ["CAMBRO_API_KEY", "CAMBRO_BASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_KEY", "REDIS_HOST", "REDIS_PORT", "INTERNAL_AUTH"],
+    "MINIMAL": ["OPENROUTER_API_KEY", "OPENROUTER_BASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_KEY"],
+    "FULL": ["OPENROUTER_API_KEY", "OPENROUTER_BASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_KEY", "REDIS_HOST", "REDIS_PORT", "INTERNAL_AUTH"],
 }
 
 SYSTEMD_WORKER_MAP = {
@@ -79,8 +79,8 @@ def _resolve_env(name):
         return val
     vault = _read_vault()
     alt_map = {
-        "CAMBRO_API_KEY": "DS_CAMBO_158B458E__API_KEY",
-        "CAMBRO_BASE_URL": "DS_CAMBO_158B458E__BASE_URL",
+        "OPENROUTER_API_KEY": "OPENROUTER_API_KEY",
+        "OPENROUTER_BASE_URL": "OPENROUTER_BASE_URL",
         "SUPABASE_URL": "DS_SUPABASE_1E93118D__PROJECT_URL",
         "SUPABASE_SERVICE_KEY": "DS_SUPABASE_1E93118D__SECRET_KEY",
     }
@@ -201,7 +201,7 @@ def _check_worker_env_drift(role):
                 for line in f:
                     if line.strip().startswith("Environment="):
                         has_env.append(line.strip()[12:].split("=")[0])
-    required = ["CAMBRO_API_KEY", "CAMBRO_BASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_KEY"]
+    required = ["OPENROUTER_API_KEY", "OPENROUTER_BASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_KEY"]
     missing = [v for v in required if v not in has_env]
     for v in missing:
         issues.append({"type": "missing_env", "detail": "%s missing env: %s" % (unit, v)})
@@ -231,7 +231,7 @@ def auto_repair(discovery, validation, drift):
             continue
         missing = [i["detail"] for i in issues if i["type"] == "missing_env"]
         if missing:
-            required = ["CAMBRO_API_KEY", "CAMBRO_BASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_KEY", "REDIS_HOST", "REDIS_PORT", "INTERNAL_AUTH"]
+            required = ["OPENROUTER_API_KEY", "OPENROUTER_BASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_KEY", "REDIS_HOST", "REDIS_PORT", "INTERNAL_AUTH"]
             env_lines = ["Environment=%s=%s" % (var, _resolve_env(var)) for var in required if _resolve_env(var)]
             if env_lines:
                 override_dir = "/etc/systemd/system/%s.service.d" % unit

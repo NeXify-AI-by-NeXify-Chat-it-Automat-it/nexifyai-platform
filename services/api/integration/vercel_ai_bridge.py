@@ -22,9 +22,9 @@ import httpx
 # Configuration
 # ──────────────────────────────────────────────────
 
-OPENROUTER_BASE_URL = "https://ai-router.nexifyai.cloud/v1"
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 PLANNING_MODEL = "deepseek/deepseek-v4-flash"
-EXECUTION_MODEL = "deepseek/deepseek-v4-pro"
+EXECUTION_MODEL = "deepseek/deepseek-v4-flash"
 
 # ──────────────────────────────────────────────────
 # Core Types

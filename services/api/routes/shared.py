@@ -162,7 +162,7 @@ S.SUPABASE_JWT_SECRET = os.environ.get("SUPABASE_JWT_SECRET", "")
 S.ALGORITHM = "HS256"
 S.ACCESS_TOKEN_EXPIRE_MINUTES = 60
 S.NOTIFICATION_EMAILS = []
-S.EMERGENT_LLM_KEY = ""
+S.OPENROUTER_API_KEY = ""
 S.ADMIN_EMAIL = ""
 S.ADVISOR_SYSTEM_PROMPT = ""
 S.CRON_SECRET = ""
@@ -178,7 +178,7 @@ def init_config():
     S.ALGORITHM = "HS256"
     S.ACCESS_TOKEN_EXPIRE_MINUTES = 60
     S.NOTIFICATION_EMAILS = ["support@nexify-automate.com", "nexifyai@nexifyai.de"]
-    S.EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
+    S.OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
     S.ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "p.courbois@icloud.com")
     S.CRON_SECRET = os.environ.get("CRON_SECRET", "")
     S.SLACK_WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL", "")

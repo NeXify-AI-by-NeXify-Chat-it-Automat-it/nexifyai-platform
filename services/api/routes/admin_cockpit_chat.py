@@ -1,6 +1,6 @@
 """
 POST /api/admin/chat — Admin Cockpit Chat Endpoint
-SSE-Streaming via Cambo 9Router (OpenRouter Fallback), Supabase Auth + Backend JWT Fallback
+SSE-Streaming via OpenRouter (deepseek/deepseek-v4-flash), Supabase Auth + Backend JWT Fallback
 Erstellt: 08.05.2026 für AdminCockpit v2
 """
 import os
@@ -16,9 +16,9 @@ logger = logging.getLogger("nexifyai.routes.admin_cockpit_chat")
 router = APIRouter(prefix="/api/admin", tags=["admin-cockpit-chat"])
 
 # ── Env ──────────────────────────────────────────
-OPENROUTER_API_KEY = os.getenv("CAMBRO_API_KEY", os.getenv("OPENROUTER_API_KEY", ""))
-OPENROUTER_BASE_URL = os.getenv("CAMBRO_BASE_URL", os.getenv("OPENROUTER_BASE_URL", "https://ai-router.nexifyai.cloud/v1"))
-OPENROUTER_MODEL = os.getenv("CAMBRO_DEFAULT_MODEL", os.getenv("OPENROUTER_MODEL", "ds/deepseek-v4-pro-max"))
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
+OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "deepseek/deepseek-v4-flash")
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "p.courbois@icloud.com")
 
 # ── Models ────────────────────────────────────────
@@ -73,7 +73,7 @@ async def get_admin_session(request: Request) -> dict:
 @router.post("/chat", operation_id="admin_cockpit_chat_v2")
 async def admin_cockpit_chat(body: AdminChatRequest, request: Request):
     """
-    Admin Cockpit Chat — SSE-Streaming via Cambo 9Router.
+    Admin Cockpit Chat — SSE-Streaming via OpenRouter.
     Lightweight version of nexify-ai/chat for the new AdminCockpit.
     """
     admin = await get_admin_session(request)

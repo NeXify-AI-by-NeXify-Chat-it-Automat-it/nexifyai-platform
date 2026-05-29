@@ -130,7 +130,7 @@ print(result.city, result.temperature)
 # OpenAI
 llm = ChatOpenAI(model="gpt-4o")
 # Anthropic
-llm = ChatAnthropic(model="claude-sonnet-4-5-20250929")
+llm = ChatOpenAI(model="deepseek/deepseek-v4-flash", openai_api_base="https://openrouter.ai/api/v1")  # OpenRouter only
 # Google
 llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash-exp")
 ```
@@ -162,11 +162,13 @@ Die Provider werden über Umgebungsvariablen konfiguriert:
 OPENROUTER_API_KEY=sk-or-v1-...
 
 # Fallback LLM (EmergentGPT/GPT-4o-mini)
-EMERGENT_LLM_KEY=...
-EMERGENT_LLM_BASE=https://emergent-gpt.com/api/v1
+# EMERGENT_LLM_KEY — REMOVED 2026-05-29 (OpenRouter only)
+# EMERGENT_LLM_KEY=...
+# EMERGENT_LLM_BASE=https://emergent-gpt.com/api/v1
 
 # Reasoning LLM (Anthropic/Claude)
-ANTHROPIC_API_KEY=sk-ant-...
+# ANTHROPIC_API_KEY — REMOVED 2026-05-29
+OPENROUTER_API_KEY=sk-or-...
 
 # LangSmith Observability (optional)
 LANGCHAIN_API_KEY=lsv2_...

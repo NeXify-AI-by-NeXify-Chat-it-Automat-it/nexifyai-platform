@@ -261,7 +261,7 @@ class EmergentGPTProvider(LLMProvider):
 
     def __init__(self):
         self._sessions = {}
-        self._api_key = os.environ.get("EMERGENT_LLM_KEY", "")
+        self._api_key = os.environ.get("OPENROUTER_API_KEY", "")
         self._metrics = {"calls": 0, "errors": 0}
 
     async def chat(
@@ -286,7 +286,7 @@ class EmergentGPTProvider(LLMProvider):
                 session_id=session_id,
                 system_message=system_prompt,
             )
-            chat.with_model("openai", model or "gpt-4o-mini")
+            chat.with_model("openai", model or "deepseek/deepseek-v4-flash")
 
             last_user = ""
             for msg in messages:
@@ -321,7 +321,7 @@ class EmergentGPTProvider(LLMProvider):
                     session_id=session_id,
                     system_message=system_prompt,
                 )
-                chat.with_model("openai", model or "gpt-4o-mini")
+                chat.with_model("openai", model or "deepseek/deepseek-v4-flash")
                 self._sessions[session_id] = chat
 
             chat = self._sessions[session_id]
@@ -340,7 +340,7 @@ class EmergentGPTProvider(LLMProvider):
 
     async def health_check(self) -> dict:
         if not self._api_key:
-            return {"status": "not_configured", "error": "EMERGENT_LLM_KEY fehlt"}
+            return {"status": "not_configured", "error": "OPENROUTER_API_KEY fehlt"}
         try:
             result = await self.chat(
                 [LLMMessage(role="user", content="Antworte mit exakt einem Wort: OK")],
@@ -520,7 +520,7 @@ class DeepSeekDirectProvider(LLMProvider):
 
 class CamboProvider(LLMProvider):
     """
-    PRIMÄRER Provider: Cambo 9Router (ai-router.nexifyai.cloud).
+    PRIMÄRER Provider: OpenRouter (ai-router.nexifyai.cloud).
     Zentrale LLM-Infrastruktur mit capability-based routing, circuit breaker,
     und automatischen Fallback-Ketten.
     Alle Agenten-Calls gehen über diesen Provider.
@@ -586,7 +586,7 @@ class CamboProvider(LLMProvider):
         return await self.chat(self._sessions[session_id], system_prompt, temperature)
 
     def get_provider_name(self) -> str:
-        return "Cambo 9Router (NeXifyAI)"
+        return "OpenRouter (deepseek/deepseek-v4-flash)"
 
     def clear_session(self, session_id: str):
         if session_id in self._sessions:
@@ -598,7 +598,7 @@ class CamboProvider(LLMProvider):
         try:
             async with httpx.AsyncClient(timeout=10) as client:
                 r = await client.get(
-                    f"{self._router._CAMBRO_BASE_URL if hasattr(self._router, '_CAMBRO_BASE_URL') else 'https://ai-router.nexifyai.cloud/v1'}/models"
+                    f"{self._router._OPENROUTER_BASE_URL if hasattr(self._router, '_OPENROUTER_BASE_URL') else 'https://openrouter.ai/api/v1'}/models"
                 )
                 return {
                     "status": "healthy" if r.status_code == 200 else "degraded",
@@ -619,18 +619,18 @@ class CamboProvider(LLMProvider):
 def create_llm_provider() -> LLMProvider:
     """
     LLM-Provider basierend auf Konfiguration erstellen.
-    NEU: Cambo 9Router = PRIMÄR (zentrale LLM-Infrastruktur).
+    NEU: OpenRouter = PRIMÄR (zentrale LLM-Infrastruktur).
     Fallback-Kette: Cambo > OpenRouter > Emergent GPT.
     """
     provider_name = os.environ.get("LLM_PROVIDER", "auto").lower()
-    camro_key = os.environ.get("CAMBRO_API_KEY", "").strip()
     openrouter_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
-    emergent_key = os.environ.get("EMERGENT_LLM_KEY", "").strip()
+    openrouter_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
+    openrouter_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
 
     # CAMBO 9ROUTER — PRIMÄR (neue zentrale LLM-Infrastruktur)
-    if camro_key:
+    if openrouter_key:
         if provider_name not in ("openrouter_legacy", "emergent_fallback"):
-            logger.info("LLM-Provider: Cambo 9Router (PRIMÄR — zentrale NeXifyAI LLM-Infrastruktur)")
+            logger.info("LLM-Provider: OpenRouter (PRIMÄR — zentrale NeXifyAI LLM-Infrastruktur)")
             return CamboProvider()
         logger.info("LLM-Provider: Cambo available but overridden by LLM_PROVIDER=%s", provider_name)
 
@@ -646,11 +646,11 @@ def create_llm_provider() -> LLMProvider:
         if openrouter_key:
             logger.info("LLM-Provider: OpenRouter/DeepSeek V4 Flash (LEGACY — Cambo key not set)")
             return OpenRouterProvider()
-        if emergent_key:
+        if openrouter_key:
             logger.info("LLM-Provider: Emergent GPT (FALLBACK)")
             return EmergentGPTProvider()
 
-    if emergent_key:
+    if openrouter_key:
         logger.info("LLM-Provider: Emergent GPT (FALLBACK)")
         return EmergentGPTProvider()
 
@@ -663,7 +663,7 @@ def get_provider_status(provider: LLMProvider) -> dict:
     name = provider.get_provider_name()
     is_openrouter = name == "openrouter"
     openrouter_key = bool(os.environ.get("OPENROUTER_API_KEY", "").strip())
-    emergent_key = bool(os.environ.get("EMERGENT_LLM_KEY", "").strip())
+    openrouter_key = bool(os.environ.get("OPENROUTER_API_KEY", "").strip())
 
     result = {
         "active_provider": name,
@@ -676,8 +676,8 @@ def get_provider_status(provider: LLMProvider) -> dict:
                 "models": list(OpenRouterProvider.MODELS.keys()),
             },
             "emergent_gpt": {
-                "status": "active_fallback" if not is_openrouter and emergent_key else "standby",
-                "api_key_set": emergent_key,
+                "status": "active_fallback" if not is_openrouter and openrouter_key else "standby",
+                "api_key_set": openrouter_key,
                 "note": "Fallback — aktiv nur wenn OPENROUTER_API_KEY fehlt",
             },
         },

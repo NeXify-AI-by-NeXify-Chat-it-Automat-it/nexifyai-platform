@@ -58,8 +58,8 @@ def _resolve_env_var(name):
         return defaults[name]
     
     mappings = {
-        "CAMBRO_API_KEY": ["DS_CAMBO_158B458E__API_KEY"],
-        "CAMBRO_BASE_URL": ["DS_CAMBO_158B458E__BASE_URL"],
+        "OPENROUTER_API_KEY": ["OPENROUTER_API_KEY"],
+        "OPENROUTER_BASE_URL": ["OPENROUTER_BASE_URL"],
         "SUPABASE_URL": ["DS_SUPABASE_1E93118D__PROJECT_URL"],
         "SUPABASE_SERVICE_KEY": ["DS_SUPABASE_1E93118D__SECRET_KEY"],
     }
@@ -76,17 +76,17 @@ logger = logging.getLogger("nexifyai.governance")
 
 WORKER_ENV_REQUIREMENTS = {
     "main": {
-        "required": ["CAMBRO_API_KEY", "CAMBRO_BASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_KEY", "REDIS_HOST", "REDIS_PORT", "INTERNAL_AUTH"],
+        "required": ["OPENROUTER_API_KEY", "OPENROUTER_BASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_KEY", "REDIS_HOST", "REDIS_PORT", "INTERNAL_AUTH"],
         "optional": ["OPENROUTER_API_KEY", "OPENROUTER_BASE_URL"],
         "description": "Main worker — orchestrator and task routing",
     },
     "analysis": {
-        "required": ["CAMBRO_API_KEY", "CAMBRO_BASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_KEY"],
+        "required": ["OPENROUTER_API_KEY", "OPENROUTER_BASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_KEY"],
         "optional": [],
         "description": "Analysis worker — research and data processing",
     },
     "engineering": {
-        "required": ["CAMBRO_API_KEY", "CAMBRO_BASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_KEY"],
+        "required": ["OPENROUTER_API_KEY", "OPENROUTER_BASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_KEY"],
         "optional": [],
         "description": "Engineering worker — code and deploy pipelines",
     },

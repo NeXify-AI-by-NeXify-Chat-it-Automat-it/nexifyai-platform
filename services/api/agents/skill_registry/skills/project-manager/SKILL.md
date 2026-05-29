@@ -7,7 +7,7 @@ created: 2026-05-14
 updated: 2026-05-14
 category: core
 provider: openrouter
-model: deepseek/deepseek-v4-pro
+model: deepseek/deepseek-v4-flash
 ---
 
 # Project Manager

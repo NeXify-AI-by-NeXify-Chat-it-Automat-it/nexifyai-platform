@@ -20,9 +20,9 @@ def init_storage():
     global _storage_key
     if _storage_key:
         return _storage_key
-    emergent_key = os.environ.get("EMERGENT_LLM_KEY", "")
+    openrouter_key = os.environ.get("OPENROUTER_API_KEY", "")
     if not emergent_key:
-        logger.warning("Object Storage nicht verfügbar — EMERGENT_LLM_KEY fehlt")
+        logger.warning("Object Storage nicht verfügbar — kein API-Key konfiguriert")
         return None
     try:
         # Send only key prefix for audit (full key never logged or stored in clear text)
@@ -69,4 +69,4 @@ def get_object(path: str) -> tuple:
 
 def is_available() -> bool:
     """Prüfe ob Object Storage verfügbar ist."""
-    return _storage_key is not None or bool(os.environ.get("EMERGENT_LLM_KEY", ""))
+    return _storage_key is not None or bool(os.environ.get("OBJECT_STORAGE_KEY", ""))

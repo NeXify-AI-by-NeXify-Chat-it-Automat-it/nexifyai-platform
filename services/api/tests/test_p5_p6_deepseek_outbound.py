@@ -105,7 +105,7 @@ class TestP5DeepSeekLLMProvider:
         response = requests.post(
             f"{BASE_URL}/api/admin/llm/test",
             headers=headers,
-            json={"prompt": "Test", "model": "gpt-4o-mini"}
+            json={"prompt": "Test", "model": "deepseek/deepseek-v4-flash"}
         )
         
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"

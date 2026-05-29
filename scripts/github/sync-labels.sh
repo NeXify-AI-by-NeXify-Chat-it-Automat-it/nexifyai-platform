@@ -68,7 +68,7 @@ create_label "supabase"         "1d76db" "Supabase related"
 create_label "cloudflare"       "1d76db" "Cloudflare related"
 create_label "docker"           "1d76db" "Docker/container"
 create_label "brain"            "5319e7" "Enterprise Brain system"
-create_label "9router"          "5319e7" "9Router LLM gateway"
+# create_label "9router"          "5319e7" "9Router LLM gateway"  # REMOVED 2026-05-29
 create_label "goose"            "5319e7" "Goose AI agent"
 
 echo "--- Project Type ---"

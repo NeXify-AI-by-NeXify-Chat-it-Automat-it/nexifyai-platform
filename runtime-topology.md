@@ -46,7 +46,7 @@ Internet → Cloudflare Tunnel → Kong Gateway (8000) → Interne Services
 ### AI / Runtime Layer
 | Service | Port | Status | Systemd |
 |---------|------|--------|---------|
-| 9Router | — | ✅ nexify-9router.service | active |
+| 9Router | — | ❌ entfernt (OpenRouter aktiv) | deprecated 2026-05-29 |
 | Orchestrator | — | ✅ nexify-orchestrator.service | active |
 | Planner | — | ✅ nexify-planner.service | active |
 | Event Bus | — | ✅ nexify-eventbus.service | active |
