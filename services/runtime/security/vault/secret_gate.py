@@ -24,7 +24,8 @@ def check_secret_health():
         report["status"] = "degraded"
     ds_count = sum(1 for k in os.environ if k.startswith("DS_"))
     report["env_credentials"] = ds_count
-    if ds_count != 100:
+    expected = int(os.environ.get("DS_EXPECTED_COUNT", "0"))
+    if expected and ds_count != expected:
         report["status"] = "degraded"
     reg_path = "/services/runtime/security/vault/registry.json"
     if os.path.exists(reg_path):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Rotation Engine — actively rotates credentials on schedule."""
 """Phase 1: Track + notify. Phase 2: API-based auto-rotate (GitHub, Vercel, etc)."""
-import os, json, sys, logging
+import os, json, sys, logging, hashlib
 from datetime import datetime, timezone, timedelta
 
 logger = logging.getLogger("nexifyai.security.rotation")
@@ -105,7 +105,8 @@ if __name__ == "__main__":
     due = eng.check_due()
     logger.info("%d secrets due", len(due))
     for d in due[:5]:
-        logger.info("  %s: %d days overdue", d["name"], d["days_overdue"])
+        secret_hash = hashlib.sha256(d["name"].encode()).hexdigest()[:16] if d.get("name") else "none"
+        logger.info("  hash=%s: %d days overdue", secret_hash, d["days_overdue"])
     logger.info("=== Running rotation ===")
     result = eng.rotate_all_due()
     logger.info("Checked: %d, Rotated: %d", result["checked"], result["rotated"])
