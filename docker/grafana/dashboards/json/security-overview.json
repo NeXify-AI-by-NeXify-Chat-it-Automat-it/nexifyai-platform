@@ -1,0 +1,83 @@
+{
+  "title": "Security Overview",
+  "uid": "nexifyai-security-overview",
+  "version": 2,
+  "tags": ["nexifyai", "security", "compliance"],
+  "schemaVersion": 39,
+  "timezone": "utc",
+  "time": { "from": "now-24h", "to": "now" },
+  "refresh": "60s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Security Score",
+      "type": "gauge",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "targets": [{ "expr": "nexifyai_security_score", "legendFormat": "Security Score" }],
+      "options": { "showThresholdLabels": true, "showThresholdMarkers": true },
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "orange", "value": 50 }, { "color": "yellow", "value": 80 }, { "color": "green", "value": 90 }] } } }
+    },
+    {
+      "id": 2,
+      "title": "Security Score Trend",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 4 },
+      "targets": [{ "expr": "nexifyai_security_score", "legendFormat": "Score" }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 } },
+      "options": { "legend": { "calcs": ["min", "max", "avg"], "displayMode": "table", "placement": "bottom" } }
+    },
+    {
+      "id": 3,
+      "title": "Circuit Breaker State",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "targets": [{ "expr": "nexifyai_circuit_breaker_state", "legendFormat": "CB {{loop_name}}" }],
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 2 }] } } }
+    },
+    {
+      "id": 4,
+      "title": "Circuit Breaker Failures",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 4 },
+      "targets": [{ "expr": "nexifyai_circuit_breaker_failures", "legendFormat": "{{loop_name}}" }],
+      "options": { "legend": { "calcs": ["min", "max", "avg"], "displayMode": "table", "placement": "bottom" } }
+    },
+    {
+      "id": 5,
+      "title": "Rate Limit Hits (Blocked)",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 10 },
+      "targets": [{ "expr": "rate(nexify_rate_limit_blocked_total[5m])", "legendFormat": "Blocked/s" }],
+      "fieldConfig": { "defaults": { "unit": "rps" } },
+      "options": { "legend": { "calcs": ["min", "max", "avg"], "displayMode": "table", "placement": "bottom" } }
+    },
+    {
+      "id": 6,
+      "title": "HTTP Error Responses (5xx)",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 10 },
+      "targets": [{ "expr": "rate(http_requests_total{status=~\"5..\"}[5m])", "legendFormat": "5xx/s" }],
+      "fieldConfig": { "defaults": { "unit": "rps" } },
+      "options": { "legend": { "calcs": ["min", "max", "avg"], "displayMode": "table", "placement": "bottom" } }
+    },
+    {
+      "id": 7,
+      "title": "Alertmanager Alerts Firing",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "targets": [{ "expr": "alertmanager_alerts", "legendFormat": "Alerts" }],
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 1 }, { "color": "red", "value": 3 }] } } }
+    },
+    {
+      "id": 8,
+      "title": "Security Composite Score",
+      "type": "gauge",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "targets": [{ "expr": "nexifyai_security_composite", "legendFormat": "Security Composite" }],
+      "options": { "showThresholdLabels": true, "showThresholdMarkers": true },
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "orange", "value": 50 }, { "color": "green", "value": 80 }] } } }
+    }
+  ]
+}

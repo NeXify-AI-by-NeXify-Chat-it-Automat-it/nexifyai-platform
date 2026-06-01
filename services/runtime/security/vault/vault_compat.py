@@ -1,21 +1,25 @@
 #!/usr/bin/env python3
 """Vault Compatibility Layer -- drop-in replacement for os.environ for DS_ secrets."""
 """Phase 1: vault read with audit. Phase 2: TTL/scope. Phase 3: block direct."""
-import os, json, logging
+import os, json, logging, hashlib
 from datetime import datetime, timezone
 
 logger = logging.getLogger("nexifyai.security.vault_compat")
+
+def _hash_key(key):
+    """One-way hash of secret key name for audit logs. Never log raw key names."""
+    return "sk-" + hashlib.sha256(key.encode()).hexdigest()[:16]
 
 class VaultCompat:
     """Thread-safe vault access with audit logging."""
     def __init__(self, worker_id="system"):
         self.worker_id = worker_id
-        self.audit_log = "/services/runtime/security/audit/events.log"
-        os.makedirs("/services/runtime/security/audit", exist_ok=True)
+        self.audit_log = os.environ.get("DS_VAULT_AUDIT_LOG", "/services/runtime/security/audit/events.log")
+        os.makedirs(os.path.dirname(self.audit_log), exist_ok=True)
 
     def _log_access(self, key, found=True):
         entry = {"ts": datetime.now(timezone.utc).isoformat(),
-                 "type": "vault_access", "key": key,
+                 "type": "vault_access", "key": _hash_key(key),
                  "worker": self.worker_id, "found": found}
         try:
             with open(self.audit_log, "a") as f:
@@ -79,5 +83,5 @@ if __name__ == "__main__":
     v = get_vault("test")
     for k in ["MONGO_URL", "RESEND_API_KEY", "ADMIN_EMAIL", "NONEXISTENT"]:
         val = v.get(k)
-        # Log existence metadata only — never log secret values
-        logger.info("Vault check: %s present=%s", k, "yes" if val else "no")
+        # Log existence metadata only — never log secret values, hash key names
+        logger.info("Vault check: %s present=%s", _hash_key(k), "yes" if val else "no")

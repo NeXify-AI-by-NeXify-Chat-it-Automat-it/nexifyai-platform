@@ -31,7 +31,8 @@ class CredentialLease:
         self.revoked = True
 
     def to_dict(self):
-        return {"id": self.id, "secret": self.secret_name, "created": self.created.isoformat(),
+        secret_hash = hashlib.sha256(self.secret_name.encode()).hexdigest()[:16] if self.secret_name else "none"
+        return {"id": self.id, "secret_hash": secret_hash, "created": self.created.isoformat(),
                 "expires": self.expires.isoformat(), "scope": self.scope, "worker": self.worker_id,
                 "access_count": self.access_count, "revoked": self.revoked,
                 "valid": self.is_valid()}

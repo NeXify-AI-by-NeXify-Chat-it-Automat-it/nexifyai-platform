@@ -1,0 +1,111 @@
+{
+  "title": "Brain Analytics",
+  "uid": "nexifyai-brain-analytics",
+  "version": 2,
+  "tags": ["nexifyai", "brain", "analytics", "ai", "qdrant"],
+  "schemaVersion": 39,
+  "timezone": "utc",
+  "time": { "from": "now-6h", "to": "now" },
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Brain Health Status",
+      "type": "stat",
+      "gridPos": { "h": 3, "w": 4, "x": 0, "y": 0 },
+      "targets": [{ "expr": "nexifyai_brain_points_total", "legendFormat": "Brain Points" }],
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "orange", "value": 10000 }, { "color": "green", "value": 50000 }] } } }
+    },
+    {
+      "id": 2,
+      "title": "Brain Points Growth",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 3 },
+      "targets": [{ "expr": "rate(nexifyai_brain_points_total[5m])", "legendFormat": "Points/s" }],
+      "fieldConfig": { "defaults": { "unit": "cps" } },
+      "options": { "legend": { "calcs": ["min", "max", "avg"], "displayMode": "table", "placement": "bottom" } }
+    },
+    {
+      "id": 3,
+      "title": "Collections",
+      "type": "stat",
+      "gridPos": { "h": 3, "w": 4, "x": 4, "y": 0 },
+      "targets": [{ "expr": "nexifyai_brain_collections", "legendFormat": "Collections" }],
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" }
+    },
+    {
+      "id": 4,
+      "title": "Last Sync",
+      "type": "stat",
+      "gridPos": { "h": 3, "w": 4, "x": 8, "y": 0 },
+      "targets": [{ "expr": "time() - nexifyai_brain_last_sync", "legendFormat": "Seconds since sync" }],
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
+      "fieldConfig": { "defaults": { "unit": "s", "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 300 }, { "color": "red", "value": 600 }] } } }
+    },
+    {
+      "id": 5,
+      "title": "HTTP Requests Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 3 },
+      "targets": [
+        { "expr": "rate(http_requests_total[5m])", "legendFormat": "All" },
+        { "expr": "rate(http_requests_total{status=~\"5..\"}[5m])", "legendFormat": "Errors" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "rps" } },
+      "options": { "legend": { "calcs": ["min", "max", "avg"], "displayMode": "table", "placement": "bottom" } }
+    },
+    {
+      "id": 6,
+      "title": "HTTP Latency (p50/p95/p99)",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 9 },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket[5m]))", "legendFormat": "p50" },
+        { "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))", "legendFormat": "p95" },
+        { "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))", "legendFormat": "p99" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "options": { "legend": { "calcs": ["min", "max", "avg"], "displayMode": "table", "placement": "bottom" } }
+    },
+    {
+      "id": 7,
+      "title": "Admin API Health",
+      "type": "stat",
+      "gridPos": { "h": 3, "w": 4, "x": 12, "y": 0 },
+      "targets": [{ "expr": "nexify_admin_api_up", "legendFormat": "Up" }],
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] } } }
+    },
+    {
+      "id": 8,
+      "title": "Admin API Requests",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 9 },
+      "targets": [{ "expr": "rate(nexify_admin_api_requests_total[5m])", "legendFormat": "Requests/s" }],
+      "fieldConfig": { "defaults": { "unit": "rps" } },
+      "options": { "legend": { "calcs": ["min", "max", "avg"], "displayMode": "table", "placement": "bottom" } }
+    },
+    {
+      "id": 9,
+      "title": "Error Rate %",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 15 },
+      "targets": [{ "expr": "rate(http_requests_total{status=~\"5..\"}[5m]) / rate(http_requests_total[5m]) * 100", "legendFormat": "Error %" }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 5 }, { "color": "red", "value": 10 }] } } },
+      "options": { "legend": { "calcs": ["min", "max", "avg"], "displayMode": "table", "placement": "bottom" } }
+    },
+    {
+      "id": 10,
+      "title": "Rate Limit Hits",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 15 },
+      "targets": [
+        { "expr": "rate(nexify_rate_limit_hits_total[5m])", "legendFormat": "Hits/s" },
+        { "expr": "rate(nexify_rate_limit_blocked_total[5m])", "legendFormat": "Blocked/s" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "rps" } },
+      "options": { "legend": { "calcs": ["min", "max", "avg"], "displayMode": "table", "placement": "bottom" } }
+    }
+  ]
+}

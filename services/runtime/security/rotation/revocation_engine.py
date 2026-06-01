@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
-"""Revocation Engine -- immediate credential revocation across all layers."""
-import os, json, sys, logging
+"""Revocation Engine -- immediate credential revocation across all layers.
+   SAFETY: Only hashed secret names logged. Never raw values or secret content."""
+import os, json, sys, logging, hashlib
 from datetime import datetime, timezone
+
+def _hash_secret(name):
+    """One-way hash of secret name for audit logs."""
+    return "sk-" + hashlib.sha256(name.encode()).hexdigest()[:16]
 
 logger = logging.getLogger("nexifyai.security.revocation")
 
@@ -27,7 +32,7 @@ class RevocationEngine:
         count = sum(1 for l in lm.leases.values() if hasattr(l, "secret_name") and l.secret_name == secret_name and not l.revoked)
         lm.revoke_all_for_worker(secret_name)
         if count: layers_affected.append("leases(" + str(count) + ")")
-        entry = {"ts": ts, "action": "revoke", "secret": secret_name, "reason": reason, "operator": operator, "layers": layers_affected}
+        entry = {"ts": ts, "action": "revoke", "secret": _hash_secret(secret_name), "reason": reason, "operator": operator, "layers": layers_affected}
         self._log(entry)
         return entry
 
