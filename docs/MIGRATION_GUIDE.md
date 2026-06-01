@@ -49,7 +49,7 @@ governance = init_ai_infrastructure(
 from services.langchain_config import get_llm_for_task, create_llm_with_fallbacks
 
 llm = get_llm_for_task("research")  # Claude Sonnet (komplexes Reasoning)
-llm = get_llm_for_task("chat")      # DeepSeek V4 (schnell, günstig)
+llm = get_llm_for_task("chat")      # NeXify V4 (schnell, günstig)
 
 response = llm.invoke("Erkläre Python Decorators")
 print(response.content)
@@ -74,7 +74,7 @@ print(result["result"])
 |---|---|---|
 | `services/llm_provider.py` (687 Z.) | `services/langchain_config.py` | `get_llm_for_task(task_type)` statt `create_llm_provider()` |
 | `services/model_router.py` (292 Z.) | `services/langchain_config.py` | `CAPABILITY_ROUTING` Dict + `get_llm_for_task()` |
-| `services/deepseek_provider.py` (102 Z.) | `services/langchain_config.py` | `ChatOpenAI(model="deepseek/deepseek-v4-flash", ...)` |
+| `services/nexify_provider.py` (102 Z.) | `services/langchain_config.py` | `ChatOpenAI(model="nexify/nexify-v4-flash", ...)` |
 | `brain_api.py` (243 Z.) | `services/rag_pipeline.py` | `create_qa_chain()` statt `brain_api.ask()` |
 | `services/llm_provider.py` → `_call_llm()` | `langchain_config.py` → `create_llm_with_fallbacks()` | Automatischer Fallback (Primary → EmergentGPT) |
 | `agents/orchestrator.py` (125 Z.) | `services/agent_system.py` → `build_supervisor_graph()` | LangGraph StateGraph statt Custom Router |
@@ -158,7 +158,7 @@ retriever = get_retriever(
 Die Provider werden über Umgebungsvariablen konfiguriert:
 
 ```bash
-# Primary LLM (OpenRouter/DeepSeek)
+# Primary LLM (OpenRouter/NeXify)
 OPENROUTER_API_KEY=sk-or-v1-...
 
 # Fallback LLM (EmergentGPT/GPT-4o-mini)

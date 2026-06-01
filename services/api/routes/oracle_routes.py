@@ -13,7 +13,7 @@ from pydantic import BaseModel
 
 from routes.shared import S, utcnow, new_id
 from services import supabase_client as supa
-from services import deepseek_provider as openrouter_llm
+from services import nexify_provider_provider as openrouter_llm
 
 logger = logging.getLogger("nexifyai.routes.oracle")
 
@@ -236,7 +236,7 @@ async def list_memory(category: str = None, limit: int = 50, admin: dict = Depen
 
 
 # ════════════════════════════════════════════════════════════
-# AGENT ORCHESTRATION — DeepSeek Sub-Agent Invocation
+# AGENT ORCHESTRATION — NeXify AI Sub-Agent Invocation
 # ════════════════════════════════════════════════════════════
 
 class AgentInvokeRequest(BaseModel):
@@ -344,7 +344,7 @@ async def list_nexify_tasks(status: str = None, limit: int = 50, admin: dict = D
 
 
 # ════════════════════════════════════════════════════════════
-# HEALTH CHECK — Supabase + DeepSeek connectivity
+# HEALTH CHECK — Supabase + NeXify AI connectivity
 # ════════════════════════════════════════════════════════════
 
 @router.get("/api/admin/oracle/health")

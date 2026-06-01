@@ -34,7 +34,7 @@ async def execute_agent_task(task: AgentTask) -> AgentResult:
     
     headers = {"Authorization": f"Bearer {CAMBRO_KEY}", "Content-Type": "application/json"}
     payload = {
-        "model": "ds/deepseek-v4-pro",
+        "model": "ds/nexify-pro",
         "messages": [
             {
                 "role": "system",

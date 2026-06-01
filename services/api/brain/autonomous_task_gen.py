@@ -271,7 +271,7 @@ class TaskGenerator:
                 "status": "waiting",
                 "relevant_docs": json.dumps(t.related_docs),
                 "forbidden": json.dumps(["Stripe", "MiniMax", "Goose"]),
-                "model_policy": "deepseek-v4-flash",
+                "model_policy": "nexify-flash",
             }
             for t in self.tasks
         ]

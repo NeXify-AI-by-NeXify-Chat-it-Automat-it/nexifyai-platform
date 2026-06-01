@@ -103,15 +103,15 @@ class TestOracleSystem:
         return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     
     def test_oracle_health(self, auth_headers):
-        """Test Oracle health - Supabase and DeepSeek connectivity"""
+        """Test Oracle health - Supabase and NeXify AI connectivity"""
         resp = requests.get(f"{BASE_URL}/api/admin/oracle/health", headers=auth_headers)
         assert resp.status_code == 200
         data = resp.json()
         assert "supabase" in data
-        assert "deepseek" in data
+        assert "nexify_provider" in data
         assert data["supabase"]["connected"] == True, "Supabase not connected"
-        assert data["deepseek"]["connected"] == True, "DeepSeek not connected"
-        print(f"PASS: Oracle health - Supabase={data['supabase']['connected']}, DeepSeek={data['deepseek']['connected']}")
+        assert data["nexify_provider"]["connected"] == True, "NeXify AI not connected"
+        print(f"PASS: Oracle health - Supabase={data['supabase']['connected']}, NeXify AI={data['nexify_provider']['connected']}")
     
     def test_oracle_dashboard(self, auth_headers):
         """Test Oracle dashboard returns counts and status"""

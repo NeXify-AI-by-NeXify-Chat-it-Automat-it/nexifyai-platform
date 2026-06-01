@@ -61,12 +61,12 @@ class TestHealthCheck:
         assert "supabase" in data["services"]
         print(f"Supabase status: {data['services']['supabase']}")
     
-    def test_health_has_deepseek_service(self):
-        """Health check includes deepseek service."""
+    def test_health_has_nexify_provider_service(self):
+        """Health check includes nexify_provider service."""
         response = requests.get(f"{BASE_URL}/api/health")
         data = response.json()
-        assert "deepseek" in data["services"]
-        print(f"DeepSeek status: {data['services']['deepseek']}")
+        assert "nexify_provider" in data["services"]
+        print(f"NeXify AI status: {data['services']['nexify_provider']}")
     
     def test_health_has_arcee_service(self):
         """Health check includes arcee service."""
@@ -107,7 +107,7 @@ class TestHealthCheck:
         """Health check has all 8 required services."""
         response = requests.get(f"{BASE_URL}/api/health")
         data = response.json()
-        required_services = ["mongodb", "supabase", "deepseek", "arcee", "mem0", "resend", "revolut", "workers"]
+        required_services = ["mongodb", "supabase", "nexify_provider", "arcee", "mem0", "resend", "revolut", "workers"]
         for svc in required_services:
             assert svc in data["services"], f"Missing service: {svc}"
         print(f"All 8 services present: {list(data['services'].keys())}")

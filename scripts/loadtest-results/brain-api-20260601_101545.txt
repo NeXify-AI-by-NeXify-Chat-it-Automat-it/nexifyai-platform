@@ -1,0 +1,386 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: /root/nexifyai-platform/scripts/loadtest-brain-api.js
+        output: json (/root/nexifyai-platform/scripts/loadtest-results/brain-api-20260601_101545.json)
+
+     scenarios: (100.00%) 3 scenarios, 55 max VUs, 1m30s max duration (incl. graceful stop):
+              * brain_health: 50.00 iterations/s for 30s (maxVUs: 5-20, exec: testHealth, gracefulStop: 30s)
+              * brain_search: Up to 200.00 iterations/s for 50s over 3 stages (maxVUs: 10-30, exec: testSearch, gracefulStop: 30s)
+              * brain_store: 50 iterations for each of 5 VUs (maxDuration: 1m0s, exec: testStore, gracefulStop: 30s)
+
+
+running (0m01.0s), 34/44 VUs, 47 complete and 0 interrupted iterations
+brain_health   [   3% ] 03/13 VUs  01.0s/30s     50.00 iters/s
+brain_search   [   2% ] 26/26 VUs  01.0s/50s     052.46 iters/s
+brain_store    [   0% ] 5 VUs      0m01.0s/1m0s  000/250 iters, 50 per VU
+time="2026-06-01T10:15:46+02:00" level=warning msg="Insufficient VUs, reached 30 active VUs and cannot initialize more" executor=ramping-arrival-rate scenario=brain_search
+
+running (0m02.0s), 48/50 VUs, 126 complete and 0 interrupted iterations
+brain_health   [   7% ] 15/15 VUs  02.0s/30s     50.00 iters/s
+brain_search   [   4% ] 28/30 VUs  02.0s/50s     054.98 iters/s
+brain_store    [   2% ] 5 VUs      0m02.0s/1m0s  005/250 iters, 50 per VU
+time="2026-06-01T10:15:47+02:00" level=warning msg="Insufficient VUs, reached 20 active VUs and cannot initialize more" executor=constant-arrival-rate scenario=brain_health
+
+running (0m03.0s), 52/55 VUs, 203 complete and 0 interrupted iterations
+brain_health   [  10% ] 17/20 VUs  03.0s/30s     50.00 iters/s
+brain_search   [   6% ] 30/30 VUs  03.0s/50s     057.47 iters/s
+brain_store    [   2% ] 5 VUs      0m03.0s/1m0s  005/250 iters, 50 per VU
+
+running (0m04.0s), 52/55 VUs, 278 complete and 0 interrupted iterations
+brain_health   [  13% ] 18/20 VUs  04.0s/30s     50.00 iters/s
+brain_search   [   8% ] 29/30 VUs  04.0s/50s     059.98 iters/s
+brain_store    [   2% ] 5 VUs      0m04.0s/1m0s  005/250 iters, 50 per VU
+
+running (0m05.0s), 52/55 VUs, 349 complete and 0 interrupted iterations
+brain_health   [  17% ] 18/20 VUs  05.0s/30s     50.00 iters/s
+brain_search   [  10% ] 29/30 VUs  05.0s/50s     062.47 iters/s
+brain_store    [   2% ] 5 VUs      0m05.0s/1m0s  005/250 iters, 50 per VU
+
+running (0m06.0s), 52/55 VUs, 424 complete and 0 interrupted iterations
+brain_health   [  20% ] 19/20 VUs  06.0s/30s     50.00 iters/s
+brain_search   [  12% ] 28/30 VUs  06.0s/50s     064.98 iters/s
+brain_store    [   2% ] 5 VUs      0m06.0s/1m0s  005/250 iters, 50 per VU
+
+running (0m07.0s), 45/55 VUs, 511 complete and 0 interrupted iterations
+brain_health   [  23% ] 11/20 VUs  07.0s/30s     50.00 iters/s
+brain_search   [  14% ] 29/30 VUs  07.0s/50s     067.47 iters/s
+brain_store    [   2% ] 5 VUs      0m07.0s/1m0s  005/250 iters, 50 per VU
+
+running (0m08.0s), 50/55 VUs, 598 complete and 0 interrupted iterations
+brain_health   [  27% ] 15/20 VUs  08.0s/30s     50.00 iters/s
+brain_search   [  16% ] 30/30 VUs  08.0s/50s     069.98 iters/s
+brain_store    [   2% ] 5 VUs      0m08.0s/1m0s  005/250 iters, 50 per VU
+
+running (0m09.0s), 52/55 VUs, 675 complete and 0 interrupted iterations
+brain_health   [  30% ] 17/20 VUs  09.0s/30s     50.00 iters/s
+brain_search   [  18% ] 30/30 VUs  09.0s/50s     072.47 iters/s
+brain_store    [   2% ] 5 VUs      0m09.0s/1m0s  005/250 iters, 50 per VU
+
+running (0m10.0s), 42/55 VUs, 774 complete and 0 interrupted iterations
+brain_health   [  33% ] 08/20 VUs  10.0s/30s     50.00 iters/s
+brain_search   [  20% ] 29/30 VUs  10.0s/50s     074.98 iters/s
+brain_store    [   2% ] 5 VUs      0m10.0s/1m0s  005/250 iters, 50 per VU
+
+running (0m11.0s), 45/55 VUs, 822 complete and 0 interrupted iterations
+brain_health   [  37% ] 20/20 VUs  11.0s/30s     50.00 iters/s
+brain_search   [  22% ] 20/30 VUs  11.0s/50s     077.48 iters/s
+brain_store    [   2% ] 5 VUs      0m11.0s/1m0s  005/250 iters, 50 per VU
+
+running (0m12.0s), 37/55 VUs, 920 complete and 0 interrupted iterations
+brain_health   [  40% ] 02/20 VUs  12.0s/30s     50.00 iters/s
+brain_search   [  24% ] 30/30 VUs  12.0s/50s     079.98 iters/s
+brain_store    [   4% ] 5 VUs      0m12.0s/1m0s  010/250 iters, 50 per VU
+
+running (0m13.0s), 48/55 VUs, 997 complete and 0 interrupted iterations
+brain_health   [  43% ] 14/20 VUs  13.0s/30s     50.00 iters/s
+brain_search   [  26% ] 29/30 VUs  13.0s/50s     082.48 iters/s
+brain_store    [   6% ] 5 VUs      0m13.0s/1m0s  015/250 iters, 50 per VU
+
+running (0m14.0s), 37/55 VUs, 1095 complete and 0 interrupted iterations
+brain_health   [  47% ] 05/20 VUs  14.0s/30s     50.00 iters/s
+brain_search   [  28% ] 27/30 VUs  14.0s/50s     084.99 iters/s
+brain_store    [   6% ] 5 VUs      0m14.0s/1m0s  015/250 iters, 50 per VU
+
+running (0m15.0s), 47/55 VUs, 1172 complete and 0 interrupted iterations
+brain_health   [  50% ] 12/20 VUs  15.0s/30s     50.00 iters/s
+brain_search   [  30% ] 30/30 VUs  15.0s/50s     087.48 iters/s
+brain_store    [   6% ] 5 VUs      0m15.0s/1m0s  015/250 iters, 50 per VU
+
+running (0m16.0s), 55/55 VUs, 1228 complete and 0 interrupted iterations
+brain_health   [  53% ] 20/20 VUs  16.0s/30s     50.00 iters/s
+brain_search   [  32% ] 30/30 VUs  16.0s/50s     089.99 iters/s
+brain_store    [   6% ] 5 VUs      0m16.0s/1m0s  015/250 iters, 50 per VU
+
+running (0m17.0s), 54/55 VUs, 1290 complete and 0 interrupted iterations
+brain_health   [  57% ] 20/20 VUs  17.0s/30s     50.00 iters/s
+brain_search   [  34% ] 29/30 VUs  17.0s/50s     092.48 iters/s
+brain_store    [   6% ] 5 VUs      0m17.0s/1m0s  015/250 iters, 50 per VU
+
+running (0m18.0s), 54/55 VUs, 1349 complete and 0 interrupted iterations
+brain_health   [  60% ] 19/20 VUs  18.0s/30s     50.00 iters/s
+brain_search   [  36% ] 30/30 VUs  18.0s/50s     094.99 iters/s
+brain_store    [   6% ] 5 VUs      0m18.0s/1m0s  015/250 iters, 50 per VU
+
+running (0m19.0s), 55/55 VUs, 1403 complete and 0 interrupted iterations
+brain_health   [  63% ] 20/20 VUs  19.0s/30s     50.00 iters/s
+brain_search   [  38% ] 30/30 VUs  19.0s/50s     097.48 iters/s
+brain_store    [   6% ] 5 VUs      0m19.0s/1m0s  015/250 iters, 50 per VU
+
+running (0m20.0s), 55/55 VUs, 1474 complete and 0 interrupted iterations
+brain_health   [  67% ] 20/20 VUs  20.0s/30s     50.00 iters/s
+brain_search   [  40% ] 30/30 VUs  20.0s/50s     099.96 iters/s
+brain_store    [   6% ] 5 VUs      0m20.0s/1m0s  015/250 iters, 50 per VU
+
+running (0m21.0s), 52/55 VUs, 1542 complete and 0 interrupted iterations
+brain_health   [  70% ] 17/20 VUs  21.0s/30s     50.00 iters/s
+brain_search   [  42% ] 30/30 VUs  21.0s/50s     104.95 iters/s
+brain_store    [   6% ] 5 VUs      0m21.0s/1m0s  015/250 iters, 50 per VU
+
+running (0m22.0s), 36/55 VUs, 1609 complete and 0 interrupted iterations
+brain_health   [  73% ] 01/20 VUs  22.0s/30s     50.00 iters/s
+brain_search   [  44% ] 30/30 VUs  22.0s/50s     109.98 iters/s
+brain_store    [   6% ] 5 VUs      0m22.0s/1m0s  015/250 iters, 50 per VU
+
+running (0m23.0s), 45/55 VUs, 1686 complete and 0 interrupted iterations
+brain_health   [  77% ] 10/20 VUs  23.0s/30s     50.00 iters/s
+brain_search   [  46% ] 30/30 VUs  23.0s/50s     114.96 iters/s
+brain_store    [   9% ] 5 VUs      0m23.0s/1m0s  022/250 iters, 50 per VU
+
+running (0m24.0s), 53/55 VUs, 1755 complete and 0 interrupted iterations
+brain_health   [  80% ] 18/20 VUs  24.0s/30s     50.00 iters/s
+brain_search   [  48% ] 30/30 VUs  24.0s/50s     119.98 iters/s
+brain_store    [  10% ] 5 VUs      0m24.0s/1m0s  025/250 iters, 50 per VU
+
+running (0m25.0s), 55/55 VUs, 1840 complete and 0 interrupted iterations
+brain_health   [  83% ] 20/20 VUs  25.0s/30s     50.00 iters/s
+brain_search   [  50% ] 30/30 VUs  25.0s/50s     125.00 iters/s
+brain_store    [  10% ] 5 VUs      0m25.0s/1m0s  025/250 iters, 50 per VU
+
+running (0m26.0s), 55/55 VUs, 1924 complete and 0 interrupted iterations
+brain_health   [  87% ] 20/20 VUs  26.0s/30s     50.00 iters/s
+brain_search   [  52% ] 30/30 VUs  26.0s/50s     129.98 iters/s
+brain_store    [  10% ] 5 VUs      0m26.0s/1m0s  025/250 iters, 50 per VU
+
+running (0m27.0s), 55/55 VUs, 2006 complete and 0 interrupted iterations
+brain_health   [  90% ] 20/20 VUs  27.0s/30s     50.00 iters/s
+brain_search   [  54% ] 30/30 VUs  27.0s/50s     134.96 iters/s
+brain_store    [  10% ] 5 VUs      0m27.0s/1m0s  025/250 iters, 50 per VU
+
+running (0m28.0s), 46/55 VUs, 2095 complete and 0 interrupted iterations
+brain_health   [  93% ] 11/20 VUs  28.0s/30s     50.00 iters/s
+brain_search   [  56% ] 30/30 VUs  28.0s/50s     139.98 iters/s
+brain_store    [  10% ] 5 VUs      0m28.0s/1m0s  025/250 iters, 50 per VU
+
+running (0m29.0s), 54/55 VUs, 2167 complete and 0 interrupted iterations
+brain_health   [  97% ] 19/20 VUs  29.0s/30s     50.00 iters/s
+brain_search   [  58% ] 30/30 VUs  29.0s/50s     144.97 iters/s
+brain_store    [  10% ] 5 VUs      0m29.0s/1m0s  025/250 iters, 50 per VU
+
+running (0m30.0s), 55/55 VUs, 2233 complete and 0 interrupted iterations
+brain_health   [ 100% ] 20/20 VUs  30.0s/30s     50.00 iters/s
+brain_search   [  60% ] 30/30 VUs  30.0s/50s     149.98 iters/s
+brain_store    [  10% ] 5 VUs      0m30.0s/1m0s  025/250 iters, 50 per VU
+
+running (0m31.0s), 35/55 VUs, 2294 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search   [  62% ] 30/30 VUs  31.0s/50s     154.97 iters/s
+brain_store    [  10% ] 5 VUs      0m31.0s/1m0s  025/250 iters, 50 per VU
+
+running (0m32.0s), 35/55 VUs, 2338 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search   [  64% ] 30/30 VUs  32.0s/50s     159.95 iters/s
+brain_store    [  10% ] 5 VUs      0m32.0s/1m0s  025/250 iters, 50 per VU
+
+running (0m33.0s), 35/55 VUs, 2378 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search   [  66% ] 30/30 VUs  33.0s/50s     164.97 iters/s
+brain_store    [  10% ] 5 VUs      0m33.0s/1m0s  025/250 iters, 50 per VU
+
+running (0m34.0s), 35/55 VUs, 2417 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search   [  68% ] 30/30 VUs  34.0s/50s     169.99 iters/s
+brain_store    [  11% ] 5 VUs      0m34.0s/1m0s  028/250 iters, 50 per VU
+
+running (0m35.0s), 35/55 VUs, 2460 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search   [  70% ] 30/30 VUs  35.0s/50s     174.97 iters/s
+brain_store    [  12% ] 5 VUs      0m35.0s/1m0s  030/250 iters, 50 per VU
+
+running (0m36.0s), 35/55 VUs, 2504 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search   [  72% ] 30/30 VUs  36.0s/50s     179.96 iters/s
+brain_store    [  12% ] 5 VUs      0m36.0s/1m0s  030/250 iters, 50 per VU
+
+running (0m37.0s), 34/55 VUs, 2544 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search   [  74% ] 29/30 VUs  37.0s/50s     184.97 iters/s
+brain_store    [  12% ] 5 VUs      0m37.0s/1m0s  030/250 iters, 50 per VU
+
+running (0m38.0s), 34/55 VUs, 2584 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search   [  76% ] 29/30 VUs  38.0s/50s     189.96 iters/s
+brain_store    [  12% ] 5 VUs      0m38.0s/1m0s  030/250 iters, 50 per VU
+
+running (0m39.0s), 35/55 VUs, 2628 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search   [  78% ] 30/30 VUs  39.0s/50s     194.97 iters/s
+brain_store    [  12% ] 5 VUs      0m39.0s/1m0s  030/250 iters, 50 per VU
+
+running (0m40.0s), 35/55 VUs, 2671 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search   [  80% ] 30/30 VUs  40.0s/50s     199.96 iters/s
+brain_store    [  12% ] 5 VUs      0m40.0s/1m0s  030/250 iters, 50 per VU
+
+running (0m41.0s), 35/55 VUs, 2696 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search   [  82% ] 30/30 VUs  41.0s/50s     180.17 iters/s
+brain_store    [  12% ] 5 VUs      0m41.0s/1m0s  030/250 iters, 50 per VU
+
+running (0m42.0s), 35/55 VUs, 2734 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search   [  84% ] 30/30 VUs  42.0s/50s     160.19 iters/s
+brain_store    [  13% ] 5 VUs      0m42.0s/1m0s  033/250 iters, 50 per VU
+
+running (0m43.0s), 35/55 VUs, 2779 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search   [  86% ] 30/30 VUs  43.0s/50s     140.07 iters/s
+brain_store    [  15% ] 5 VUs      0m43.0s/1m0s  037/250 iters, 50 per VU
+
+running (0m44.0s), 35/55 VUs, 2824 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search   [  88% ] 30/30 VUs  44.0s/50s     120.08 iters/s
+brain_store    [  15% ] 5 VUs      0m44.0s/1m0s  037/250 iters, 50 per VU
+
+running (0m45.0s), 35/55 VUs, 2870 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search   [  90% ] 30/30 VUs  45.0s/50s     100.10 iters/s
+brain_store    [  15% ] 5 VUs      0m45.0s/1m0s  037/250 iters, 50 per VU
+
+running (0m46.0s), 34/55 VUs, 2912 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search   [  92% ] 29/30 VUs  46.0s/50s     080.12 iters/s
+brain_store    [  15% ] 5 VUs      0m46.0s/1m0s  037/250 iters, 50 per VU
+
+running (0m47.0s), 35/55 VUs, 2957 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search   [  94% ] 30/30 VUs  47.0s/50s     060.17 iters/s
+brain_store    [  15% ] 5 VUs      0m47.0s/1m0s  037/250 iters, 50 per VU
+
+running (0m48.0s), 35/55 VUs, 2998 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search   [  96% ] 30/30 VUs  48.0s/50s     040.25 iters/s
+brain_store    [  15% ] 5 VUs      0m48.0s/1m0s  037/250 iters, 50 per VU
+
+running (0m49.0s), 22/55 VUs, 3040 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search   [  98% ] 17/30 VUs  49.0s/50s     020.49 iters/s
+brain_store    [  15% ] 5 VUs      0m49.0s/1m0s  037/250 iters, 50 per VU
+
+running (0m50.0s), 08/55 VUs, 3064 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search   [ 100% ] 03/30 VUs  50.0s/50s     003.16 iters/s
+brain_store    [  15% ] 5 VUs      0m50.0s/1m0s  037/250 iters, 50 per VU
+
+running (0m51.0s), 05/55 VUs, 3067 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search ✓ [ 100% ] 00/30 VUs  50s           003.16 iters/s
+brain_store    [  15% ] 5 VUs      0m51.0s/1m0s  037/250 iters, 50 per VU
+
+running (0m52.0s), 05/55 VUs, 3067 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search ✓ [ 100% ] 00/30 VUs  50s           003.16 iters/s
+brain_store    [  15% ] 5 VUs      0m52.0s/1m0s  037/250 iters, 50 per VU
+
+running (0m53.0s), 05/55 VUs, 3070 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search ✓ [ 100% ] 00/30 VUs  50s           003.16 iters/s
+brain_store    [  16% ] 5 VUs      0m53.0s/1m0s  040/250 iters, 50 per VU
+
+running (0m54.0s), 05/55 VUs, 3072 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search ✓ [ 100% ] 00/30 VUs  50s           003.16 iters/s
+brain_store    [  17% ] 5 VUs      0m54.0s/1m0s  042/250 iters, 50 per VU
+
+running (0m55.0s), 05/55 VUs, 3072 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search ✓ [ 100% ] 00/30 VUs  50s           003.16 iters/s
+brain_store    [  17% ] 5 VUs      0m55.0s/1m0s  042/250 iters, 50 per VU
+
+running (0m56.0s), 05/55 VUs, 3072 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search ✓ [ 100% ] 00/30 VUs  50s           003.16 iters/s
+brain_store    [  17% ] 5 VUs      0m56.0s/1m0s  042/250 iters, 50 per VU
+
+running (0m57.0s), 05/55 VUs, 3072 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search ✓ [ 100% ] 00/30 VUs  50s           003.16 iters/s
+brain_store    [  17% ] 5 VUs      0m57.0s/1m0s  042/250 iters, 50 per VU
+
+running (0m58.0s), 05/55 VUs, 3072 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search ✓ [ 100% ] 00/30 VUs  50s           003.16 iters/s
+brain_store    [  17% ] 5 VUs      0m58.0s/1m0s  042/250 iters, 50 per VU
+
+running (0m59.0s), 05/55 VUs, 3072 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search ✓ [ 100% ] 00/30 VUs  50s           003.16 iters/s
+brain_store    [  17% ] 5 VUs      0m59.0s/1m0s  042/250 iters, 50 per VU
+
+running (1m00.0s), 05/55 VUs, 3072 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s           50.00 iters/s
+brain_search ✓ [ 100% ] 00/30 VUs  50s           003.16 iters/s
+brain_store    [  17% ] 5 VUs      1m00.0s/1m0s  042/250 iters, 50 per VU
+
+running (1m01.0s), 05/55 VUs, 3072 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s   50.00 iters/s
+brain_search ✓ [ 100% ] 00/30 VUs  50s   003.16 iters/s
+brain_store  ↓ [ 100% ] 5 VUs      1m0s  042/250 iters, 50 per VU
+
+
+  █ THRESHOLDS 
+
+    brain_health_fails
+    ✓ 'rate<0.01' rate=0.00%
+
+    brain_search_duration
+    ✗ 'p(95)<500' p(95)=1019.997973
+    ✗ 'p(99)<1000' p(99)=1217.014202
+
+    brain_store_duration
+    ✗ 'p(95)<1000' p(95)=10724.1027
+    ✗ 'p(99)<2000' p(99)=10782.278765
+
+    http_req_duration
+    ✗ 'p(95)<300' p(95)=1.01s
+    ✗ 'p(99)<500' p(99)=5.78s
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 6107    99.982549/s
+    checks_succeeded...: 100.00% 6107 out of 6107
+    checks_failed......: 0.00%   0 out of 6107
+
+    ✓ health status 200
+    ✓ health body ok
+    ✓ query status 200
+    ✓ query has results
+    ✓ store status 200
+
+    CUSTOM
+    brain_health_fails.............: 0.00%  0 out of 1141
+    brain_search_duration..........: avg=760.052809  min=560.240273 med=708.35873  max=5809.605869  p(90)=924.438597   p(95)=1019.997973
+    brain_store_duration...........: avg=6493.460349 min=607.077253 med=8336.21661 max=10799.093661 p(90)=10673.171283 p(95)=10724.1027 
+
+    HTTP
+    http_req_duration..............: avg=713.15ms    min=17.97ms    med=657.76ms   max=10.79s       p(90)=897.4ms      p(95)=1.01s      
+      { expected_response:true }...: avg=713.15ms    min=17.97ms    med=657.76ms   max=10.79s       p(90)=897.4ms      p(95)=1.01s      
+    http_req_failed................: 0.00%  0 out of 3077
+    http_reqs......................: 3077   50.376012/s
+
+    EXECUTION
+    dropped_iterations.............: 4173   68.319498/s
+    iteration_duration.............: avg=713.47ms    min=18.15ms    med=658.08ms   max=10.79s       p(90)=897.95ms     p(95)=1.01s      
+    iterations.....................: 3077   50.376012/s
+    vus............................: 5      min=5         max=55
+    vus_max........................: 55     min=44        max=55
+
+    NETWORK
+    data_received..................: 5.9 MB 96 kB/s
+    data_sent......................: 414 kB 6.8 kB/s
+
+
+
+
+running (1m01.1s), 00/55 VUs, 3077 complete and 0 interrupted iterations
+brain_health ✓ [ 100% ] 00/20 VUs  30s   50.00 iters/s
+brain_search ✓ [ 100% ] 00/30 VUs  50s   003.16 iters/s
+brain_store  ✓ [ 100% ] 5 VUs      1m0s  047/250 iters, 50 per VU
+time="2026-06-01T10:16:46+02:00" level=error msg="thresholds on metrics 'brain_search_duration, brain_store_duration, http_req_duration' have been crossed"

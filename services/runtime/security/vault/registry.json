@@ -149,9 +149,9 @@
     "status": "active",
     "access_count": 0
   },
-  "deepseek_4f0bc89d_api_key": {
-    "name": "deepseek_4f0bc89d_api_key",
-    "type": "deepseek",
+  "nexify_4f0bc89d_api_key": {
+    "name": "nexify_4f0bc89d_api_key",
+    "type": "nexify",
     "source": "env",
     "created": "2026-05-17T10:44:57.878399+00:00",
     "last_rotation": "2026-05-17T10:44:57.878399+00:00",
@@ -159,9 +159,9 @@
     "status": "active",
     "access_count": 0
   },
-  "deepseek_600c3ecb_api_key": {
-    "name": "deepseek_600c3ecb_api_key",
-    "type": "deepseek",
+  "nexify_600c3ecb_api_key": {
+    "name": "nexify_600c3ecb_api_key",
+    "type": "nexify",
     "source": "env",
     "created": "2026-05-17T10:44:57.879998+00:00",
     "last_rotation": "2026-05-17T10:44:57.879998+00:00",
@@ -169,9 +169,9 @@
     "status": "active",
     "access_count": 0
   },
-  "deepseek_d7d70d9a_api_key": {
-    "name": "deepseek_d7d70d9a_api_key",
-    "type": "deepseek",
+  "nexify_d7d70d9a_api_key": {
+    "name": "nexify_d7d70d9a_api_key",
+    "type": "nexify",
     "source": "env",
     "created": "2026-05-17T10:44:57.880486+00:00",
     "last_rotation": "2026-05-17T10:44:57.880486+00:00",
@@ -179,9 +179,9 @@
     "status": "active",
     "access_count": 0
   },
-  "deepseek_d7d70d9a_base_url": {
-    "name": "deepseek_d7d70d9a_base_url",
-    "type": "deepseek",
+  "nexify_d7d70d9a_base_url": {
+    "name": "nexify_d7d70d9a_base_url",
+    "type": "nexify",
     "source": "env",
     "created": "2026-05-17T10:44:57.880863+00:00",
     "last_rotation": "2026-05-17T10:44:57.880863+00:00",
@@ -399,9 +399,9 @@
     "status": "active",
     "access_count": 0
   },
-  "nscale_5bd1b61b_base_url": {
-    "name": "nscale_5bd1b61b_base_url",
-    "type": "nscale",
+  "nexify_5bd1b61b_base_url": {
+    "name": "nexify_5bd1b61b_base_url",
+    "type": "nexify",
     "source": "env",
     "created": "2026-05-17T10:44:57.890611+00:00",
     "last_rotation": "2026-05-17T10:44:57.890611+00:00",
@@ -409,9 +409,9 @@
     "status": "active",
     "access_count": 0
   },
-  "nscale_5bd1b61b_api_key": {
-    "name": "nscale_5bd1b61b_api_key",
-    "type": "nscale",
+  "nexify_5bd1b61b_api_key": {
+    "name": "nexify_5bd1b61b_api_key",
+    "type": "nexify",
     "source": "env",
     "created": "2026-05-17T10:44:57.891066+00:00",
     "last_rotation": "2026-05-17T10:44:57.891066+00:00",
@@ -419,9 +419,9 @@
     "status": "active",
     "access_count": 0
   },
-  "nscale_5bd1b61b_organization_id": {
-    "name": "nscale_5bd1b61b_organization_id",
-    "type": "nscale",
+  "nexify_5bd1b61b_organization_id": {
+    "name": "nexify_5bd1b61b_organization_id",
+    "type": "nexify",
     "source": "env",
     "created": "2026-05-17T10:44:57.891629+00:00",
     "last_rotation": "2026-05-17T10:44:57.891629+00:00",
@@ -429,9 +429,9 @@
     "status": "active",
     "access_count": 0
   },
-  "nscale_931d7116_organization_id": {
-    "name": "nscale_931d7116_organization_id",
-    "type": "nscale",
+  "nexify_931d7116_organization_id": {
+    "name": "nexify_931d7116_organization_id",
+    "type": "nexify",
     "source": "env",
     "created": "2026-05-17T10:44:57.892149+00:00",
     "last_rotation": "2026-05-17T10:44:57.892149+00:00",
@@ -439,9 +439,9 @@
     "status": "active",
     "access_count": 0
   },
-  "nscale_931d7116_base_url": {
-    "name": "nscale_931d7116_base_url",
-    "type": "nscale",
+  "nexify_931d7116_base_url": {
+    "name": "nexify_931d7116_base_url",
+    "type": "nexify",
     "source": "env",
     "created": "2026-05-17T10:44:57.892714+00:00",
     "last_rotation": "2026-05-17T10:44:57.892714+00:00",
@@ -449,9 +449,9 @@
     "status": "active",
     "access_count": 0
   },
-  "nscale_bf207386_api_key": {
-    "name": "nscale_bf207386_api_key",
-    "type": "nscale",
+  "nexify_bf207386_api_key": {
+    "name": "nexify_bf207386_api_key",
+    "type": "nexify",
     "source": "env",
     "created": "2026-05-17T10:44:57.893260+00:00",
     "last_rotation": "2026-05-17T10:44:57.893260+00:00",
@@ -459,9 +459,9 @@
     "status": "active",
     "access_count": 0
   },
-  "nscale_bf207386_organization_id": {
-    "name": "nscale_bf207386_organization_id",
-    "type": "nscale",
+  "nexify_bf207386_organization_id": {
+    "name": "nexify_bf207386_organization_id",
+    "type": "nexify",
     "source": "env",
     "created": "2026-05-17T10:44:57.893783+00:00",
     "last_rotation": "2026-05-17T10:44:57.893783+00:00",
@@ -469,9 +469,9 @@
     "status": "active",
     "access_count": 0
   },
-  "nscale_bf207386_base_url": {
-    "name": "nscale_bf207386_base_url",
-    "type": "nscale",
+  "nexify_bf207386_base_url": {
+    "name": "nexify_bf207386_base_url",
+    "type": "nexify",
     "source": "env",
     "created": "2026-05-17T10:44:57.894291+00:00",
     "last_rotation": "2026-05-17T10:44:57.894291+00:00",
@@ -479,9 +479,9 @@
     "status": "active",
     "access_count": 0
   },
-  "nscale_c3f9782d_api_key": {
-    "name": "nscale_c3f9782d_api_key",
-    "type": "nscale",
+  "nexify_c3f9782d_api_key": {
+    "name": "nexify_c3f9782d_api_key",
+    "type": "nexify",
     "source": "env",
     "created": "2026-05-17T10:44:57.894833+00:00",
     "last_rotation": "2026-05-17T10:44:57.894833+00:00",
@@ -489,9 +489,9 @@
     "status": "active",
     "access_count": 0
   },
-  "nscale_c3f9782d_base_url": {
-    "name": "nscale_c3f9782d_base_url",
-    "type": "nscale",
+  "nexify_c3f9782d_base_url": {
+    "name": "nexify_c3f9782d_base_url",
+    "type": "nexify",
     "source": "env",
     "created": "2026-05-17T10:44:57.895434+00:00",
     "last_rotation": "2026-05-17T10:44:57.895434+00:00",
@@ -499,9 +499,9 @@
     "status": "active",
     "access_count": 0
   },
-  "nscale_c3f9782d_organization_id": {
-    "name": "nscale_c3f9782d_organization_id",
-    "type": "nscale",
+  "nexify_c3f9782d_organization_id": {
+    "name": "nexify_c3f9782d_organization_id",
+    "type": "nexify",
     "source": "env",
     "created": "2026-05-17T10:44:57.895927+00:00",
     "last_rotation": "2026-05-17T10:44:57.895927+00:00",
@@ -509,9 +509,9 @@
     "status": "active",
     "access_count": 0
   },
-  "nscale_ef975ebe_base_url": {
-    "name": "nscale_ef975ebe_base_url",
-    "type": "nscale",
+  "nexify_ef975ebe_base_url": {
+    "name": "nexify_ef975ebe_base_url",
+    "type": "nexify",
     "source": "env",
     "created": "2026-05-17T10:44:57.896530+00:00",
     "last_rotation": "2026-05-17T10:44:57.896530+00:00",
@@ -519,9 +519,9 @@
     "status": "active",
     "access_count": 0
   },
-  "nscale_ef975ebe_api_key": {
-    "name": "nscale_ef975ebe_api_key",
-    "type": "nscale",
+  "nexify_ef975ebe_api_key": {
+    "name": "nexify_ef975ebe_api_key",
+    "type": "nexify",
     "source": "env",
     "created": "2026-05-17T10:44:57.897075+00:00",
     "last_rotation": "2026-05-17T10:44:57.897075+00:00",
@@ -529,9 +529,9 @@
     "status": "active",
     "access_count": 0
   },
-  "nscale_ef975ebe_organization_id": {
-    "name": "nscale_ef975ebe_organization_id",
-    "type": "nscale",
+  "nexify_ef975ebe_organization_id": {
+    "name": "nexify_ef975ebe_organization_id",
+    "type": "nexify",
     "source": "env",
     "created": "2026-05-17T10:44:57.897686+00:00",
     "last_rotation": "2026-05-17T10:44:57.897686+00:00",

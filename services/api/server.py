@@ -292,7 +292,7 @@ async def lifespan(app: FastAPI):
 
     # --- Startup API-Key Validation (Graceful Degradation) ---
     key_checks = {
-        "OPENROUTER_API_KEY": ("OpenRouter/DeepSeek (LLM)", True),
+        "OPENROUTER_API_KEY": ("OpenRouter/NeXify AI (LLM)", True),
         "ARCEE_API_KEY": ("Arcee AI (Master)", True),
         "MEM0_API_KEY": ("mem0 (Brain)", True),
         "RESEND_API_KEY": ("Resend (E-Mail)", False),

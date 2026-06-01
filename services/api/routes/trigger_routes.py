@@ -144,8 +144,8 @@ async def trigger_status(admin: dict = Depends(get_admin)):
 # ════════════════════════════════════════════════════════════
 
 async def _execute_locally(task_id: str, payload: dict, admin: dict) -> dict:
-    """Fallback: Task lokal über DeepSeek ausführen wenn Trigger.dev nicht konfiguriert."""
-    from services import deepseek_provider as openrouter_llm
+    """Fallback: Task lokal über NeXify AI ausführen wenn Trigger.dev nicht konfiguriert."""
+    from services import nexify_provider_provider as openrouter_llm
     from services.trigger_service import TRIGGER_TASKS
 
     task_info = TRIGGER_TASKS.get(task_id)
@@ -183,7 +183,7 @@ async def _execute_locally(task_id: str, payload: dict, admin: dict) -> dict:
             "payload": payload,
             "status": "completed" if "error" not in result else "failed",
             "result": result.get("content", ""),
-            "model": result.get("model", "deepseek/deepseek-v4-flash"),
+            "model": result.get("model", "nexify_provider/nexify-flash"),
             "fallback": True,
             "triggered_at": utcnow().isoformat(),
             "completed_at": utcnow().isoformat(),

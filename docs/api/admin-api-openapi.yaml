@@ -63,7 +63,7 @@ paths:
               properties:
                 model:
                   type: string
-                  default: ds/deepseek-v4-pro
+                  default: ds/nexify-v4-pro
                 messages:
                   type: array
                 max_tokens:

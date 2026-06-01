@@ -1,10 +1,10 @@
 """
 LangChain Core Configuration — Enterprise Agent Infrastructure
 =============================================================
-Ersetzt: llm_provider.py (687 Zeilen), model_router.py (292 Zeilen), deepseek_provider.py (102 Zeilen)
+Ersetzt: llm_provider.py (687 Zeilen), model_router.py (292 Zeilen), nexify_provider_provider.py (102 Zeilen)
 
 Provider-Strategie:
-  Primary:   OpenRouter → DeepSeek V4 Flash (chat, code, analyze)
+  Primary:   OpenRouter → NeXify AI V4 Flash (chat, code, analyze)
   Fallback:  EmergentGPT → GPT-4o-mini 
   Secondary: Anthropic → Claude Sonnet (complex reasoning)
   Embedding: HuggingFace → intfloat/e5-small-v2 (lokal, DSGVO-konform)
@@ -17,7 +17,7 @@ from typing import Optional
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain.globals import set_llm_cache
+from langchain_core.globals import set_llm_cache
 from langchain.cache import SQLiteCache
 from langchain.load import dumps, loads
 
@@ -26,9 +26,9 @@ logger = logging.getLogger("nexifyai.langchain")
 # ─── Model Registry ───────────────────────────────────────────────────────────
 
 def get_primary_llm(**kwargs):
-    """OpenRouter → DeepSeek V4 Flash (Standard für alle Agenten)."""
+    """OpenRouter → NeXify AI V4 Flash (Standard für alle Agenten)."""
     return ChatOpenAI(
-        model=kwargs.pop("model", "deepseek/deepseek-v4-flash"),
+        model=kwargs.pop("model", "nexify_provider/nexify-flash"),
         openai_api_key=os.getenv("OPENROUTER_API_KEY"),
         openai_api_base="https://openrouter.ai/api/v1",
         temperature=kwargs.pop("temperature", 0.7),
@@ -84,7 +84,7 @@ def create_llm_with_fallbacks(**kwargs):
     """Erstellt LLM mit automatischer Fallback-Kette.
     
     Verhalten:
-      1. Versuch: Primary (OpenRouter/DeepSeek) 
+      1. Versuch: Primary (OpenRouter/NeXify AI) 
       2. Fallback: EmergentGPT (GPT-4o-mini)
       3. Letzter Fallback: Direkter OpenAI-Aufruf (falls vorhanden)
     
@@ -129,8 +129,8 @@ def get_llm_for_task(task_type: str = "default", **kwargs):
     """Wählt basierend auf task_type das optimale Modell.
     
     >>> get_llm_for_task("research") → Claude Sonnet (complex reasoning)
-    >>> get_llm_for_task("chat") → DeepSeek V4 Flash (fast, cheap)
-    >>> get_llm_for_task("code") → DeepSeek V4 Flash (low temp)
+    >>> get_llm_for_task("chat") → NeXify AI V4 Flash (fast, cheap)
+    >>> get_llm_for_task("code") → NeXify AI V4 Flash (low temp)
     """
     model_type, temp = CAPABILITY_ROUTING.get(task_type, CAPABILITY_ROUTING["default"])
     
@@ -176,7 +176,7 @@ def init_langchain(cache: bool = True):
     if cache:
         configure_cache()
     logger.info("LangChain Core Layer initialisiert")
-    logger.info(f"  Primary:     OpenRouter/DeepSeek V4")
+    logger.info(f"  Primary:     OpenRouter/NeXify AI V4")
     logger.info(f"  Fallback:    EmergentGPT/GPT-4o-mini")
     logger.info(f"  Reasoning:   Anthropic/Claude Sonnet")
     logger.info(f"  Embeddings:  HuggingFace/intfloat-e5-small-v2")

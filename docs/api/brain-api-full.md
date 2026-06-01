@@ -13,9 +13,9 @@
 All non‑public endpoints require **JWT Bearer** token signed with `HS256`.
 Token secret (`JWT_SECRET`) lives in `/root/.secrets/credentials.env`.
 
-### Obtain token (9Router login)
+### Obtain token (OpenRouter (direct) login)
 ```bash
-curl -X POST http://localhost:20128/api/auth/login \
+curl -X POST https://openrouter.ai/api/v1/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"password":"<INITIAL_PASSWORD>"}'
 ```
@@ -32,8 +32,8 @@ GET /health
 {
   "status": "ok",
   "qdrant": true,
-  "9router": true,
-  "embedding_model": "nscale/Qwen/Qwen3-Embedding-8B",
+  "openrouter": true,
+  "embedding_model": "nexify/Qwen/Qwen3-Embedding-8B",
   "collections": 6,
   "total_points": 27989,
   "timestamp": "2026-05-22T20:39:46Z"
@@ -50,7 +50,7 @@ Returns consolidated health of all dependent services.
   "status": "healthy|degraded|down",
   "services": {
     "qdrant": {"status":"healthy","collections":6,"total_points":27989},
-    "9router": {"status":"healthy"},
+    "openrouter": {"status":"healthy"},
     "redis": {"status":"healthy"},
     "supabase": {"status":"degraded","error":"service_role key rejected"}
   },
@@ -68,7 +68,7 @@ Authorization: Bearer <jwt>
 
 {
   "task": "<description>",
-  "model": "ds/deepseek-v4-pro"
+  "model": "ds/nexify-v4-pro"
 }
 ```
 Returns JSON with `task_id` and initial status.
@@ -116,7 +116,7 @@ GET /api/v2/health/ai
 ```
 ```json
 {
-  "llm": {"available":true,"provider":"9router"},
+  "llm": {"available":true,"provider":"openrouter"},
   "qdrant": {"available":true,"collections":6},
   "embeddings": {"available":true,"model":"Qwen/Qwen3-Embedding-8B","dimension":4096}
 }

@@ -1,7 +1,7 @@
 """
 NeXifyAI — OpenRouter Migration Tests (Iteration 81)
-Tests for DeepSeek → OpenRouter (minimax/minimax-m2.7) migration.
-All endpoints should return 'openrouter' instead of 'deepseek'.
+Tests for NeXify AI → OpenRouter (minimax/minimax-m2.7) migration.
+All endpoints should return 'openrouter' instead of 'nexify_provider'.
 """
 import os
 import pytest
@@ -40,8 +40,8 @@ def auth_headers(auth_token):
 class TestHealthEndpoint:
     """Test GET /api/health returns 'openrouter' service status."""
     
-    def test_health_returns_openrouter_not_deepseek(self):
-        """Health check should have 'openrouter' key, not 'deepseek'."""
+    def test_health_returns_openrouter_not_nexify_provider(self):
+        """Health check should have 'openrouter' key, not 'nexify_provider'."""
         response = requests.get(f"{BASE_URL}/api/health")
         assert response.status_code == 200
         data = response.json()
@@ -52,8 +52,8 @@ class TestHealthEndpoint:
         assert data["services"]["openrouter"]["status"] == "ok"
         assert data["services"]["openrouter"]["configured"] == True
         
-        # Should NOT have 'deepseek' service
-        assert "deepseek" not in data["services"], "Found 'deepseek' in services - should be 'openrouter'"
+        # Should NOT have 'nexify_provider' service
+        assert "nexify_provider" not in data["services"], "Found 'nexify_provider' in services - should be 'openrouter'"
         
     def test_health_overall_status_healthy(self):
         """Overall health status should be 'healthy'."""
@@ -67,7 +67,7 @@ class TestNexifyAIStatus:
     """Test GET /api/admin/nexify-ai/status returns OpenRouter config."""
     
     def test_nexify_ai_status_master_llm_openrouter(self, auth_headers):
-        """master_llm should be 'openrouter', not 'deepseek'."""
+        """master_llm should be 'openrouter', not 'nexify_provider'."""
         response = requests.get(
             f"{BASE_URL}/api/admin/nexify-ai/status",
             headers=auth_headers
@@ -94,8 +94,8 @@ class TestNexifyAIStatus:
         assert data["openrouter"]["model"] == "minimax/minimax-m2.7"
         assert data["openrouter"]["primary"] == True
         
-    def test_nexify_ai_status_no_deepseek_key(self, auth_headers):
-        """Should NOT have 'deepseek' key in status response."""
+    def test_nexify_ai_status_no_nexify_provider_key(self, auth_headers):
+        """Should NOT have 'nexify_provider' key in status response."""
         response = requests.get(
             f"{BASE_URL}/api/admin/nexify-ai/status",
             headers=auth_headers
@@ -103,15 +103,15 @@ class TestNexifyAIStatus:
         assert response.status_code == 200
         data = response.json()
         
-        # Should NOT have 'deepseek' key
-        assert "deepseek" not in data, "Found 'deepseek' key in status - should be 'openrouter'"
+        # Should NOT have 'nexify_provider' key
+        assert "nexify_provider" not in data, "Found 'nexify_provider' key in status - should be 'openrouter'"
 
 
 class TestOracleHealth:
     """Test GET /api/admin/oracle/health returns 'openrouter' key."""
     
     def test_oracle_health_has_openrouter(self, auth_headers):
-        """Oracle health should have 'openrouter' key, not 'deepseek'."""
+        """Oracle health should have 'openrouter' key, not 'nexify_provider'."""
         response = requests.get(
             f"{BASE_URL}/api/admin/oracle/health",
             headers=auth_headers
@@ -125,8 +125,8 @@ class TestOracleHealth:
         assert data["openrouter"]["connected"] == True
         assert data["openrouter"]["model"] == "minimax/minimax-m2.7"
         
-        # Should NOT have 'deepseek' key
-        assert "deepseek" not in data, "Found 'deepseek' key in oracle health - should be 'openrouter'"
+        # Should NOT have 'nexify_provider' key
+        assert "nexify_provider" not in data, "Found 'nexify_provider' key in oracle health - should be 'openrouter'"
 
 
 class TestTriggerRun:
@@ -159,8 +159,8 @@ class TestTriggerRun:
         # Should use OpenRouter model
         assert data.get("model") == "minimax/minimax-m2.7", f"Expected model='minimax/minimax-m2.7', got '{data.get('model')}'"
         
-        # Result should not contain 'deepseek' (except in content about migration)
-        # Note: The result content may mention DeepSeek as a topic, but the model used should be OpenRouter
+        # Result should not contain 'nexify_provider' (except in content about migration)
+        # Note: The result content may mention NeXify AI as a topic, but the model used should be OpenRouter
 
 
 class TestTriggerStatus:
@@ -180,22 +180,22 @@ class TestTriggerStatus:
         assert data["tasks_available"] >= 6  # At least 6 tasks
 
 
-class TestNoDeepSeekInResponses:
-    """Verify no API response body contains 'deepseek' or 'DeepSeek' as a service name."""
+class TestNoNeXify AIInResponses:
+    """Verify no API response body contains 'nexify_provider' or 'NeXify AI' as a service name."""
     
-    def test_health_no_deepseek_string(self):
-        """Health response should not contain 'deepseek' as service."""
+    def test_health_no_nexify_provider_string(self):
+        """Health response should not contain 'nexify_provider' as service."""
         response = requests.get(f"{BASE_URL}/api/health")
         assert response.status_code == 200
         text = response.text.lower()
         
-        # Check for deepseek as a service key (not as content)
+        # Check for nexify_provider as a service key (not as content)
         data = response.json()
         services_str = str(data.get("services", {})).lower()
-        assert "deepseek" not in services_str, "Found 'deepseek' in services"
+        assert "nexify_provider" not in services_str, "Found 'nexify_provider' in services"
         
-    def test_nexify_ai_status_no_deepseek_service(self, auth_headers):
-        """NeXify AI status should not have deepseek as a service."""
+    def test_nexify_ai_status_no_nexify_provider_service(self, auth_headers):
+        """NeXify AI status should not have nexify_provider as a service."""
         response = requests.get(
             f"{BASE_URL}/api/admin/nexify-ai/status",
             headers=auth_headers
@@ -205,10 +205,10 @@ class TestNoDeepSeekInResponses:
         
         # Check top-level keys
         top_keys = list(data.keys())
-        assert "deepseek" not in top_keys, f"Found 'deepseek' in top-level keys: {top_keys}"
+        assert "nexify_provider" not in top_keys, f"Found 'nexify_provider' in top-level keys: {top_keys}"
         
-    def test_oracle_health_no_deepseek_service(self, auth_headers):
-        """Oracle health should not have deepseek as a service."""
+    def test_oracle_health_no_nexify_provider_service(self, auth_headers):
+        """Oracle health should not have nexify_provider as a service."""
         response = requests.get(
             f"{BASE_URL}/api/admin/oracle/health",
             headers=auth_headers
@@ -218,7 +218,7 @@ class TestNoDeepSeekInResponses:
         
         # Check top-level keys
         top_keys = list(data.keys())
-        assert "deepseek" not in top_keys, f"Found 'deepseek' in top-level keys: {top_keys}"
+        assert "nexify_provider" not in top_keys, f"Found 'nexify_provider' in top-level keys: {top_keys}"
 
 
 class TestLLMProviderStatus:
