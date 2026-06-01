@@ -20,7 +20,7 @@ jobs:
     name: Generate SBOM
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Generate CycloneDX SBOM
         uses: docker://ghcr.io/aquasecurity/trivy:0.58.0
