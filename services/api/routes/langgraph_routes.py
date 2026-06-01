@@ -106,7 +106,7 @@ async def agent_run(request: AgentRunRequest):
         }
     except Exception as e:
         logger.error(f"[Agent] Fehler: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal error")
 
 
 @router.post("/agent/stream", summary="Streaming Agent (SSE)")
@@ -168,7 +168,7 @@ async def oracle_run(request: OracleRunRequest):
         }
     except Exception as e:
         logger.error(f"[Oracle] Fehler: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal error")
 
 
 @router.get("/oracle/{task_id}", summary="Oracle Task Status abrufen")
@@ -215,7 +215,7 @@ async def planner_cycle(request: PlannerCycleRequest):
         }
     except Exception as e:
         logger.error(f"[Planner] Fehler: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal error")
 
 
 # ─── RAG Endpoints ────────────────────────────────────────────────────────────
@@ -253,7 +253,7 @@ async def rag_query(request: RAGQueryRequest):
         }
     except Exception as e:
         logger.error(f"[RAG] Fehler: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal error")
 
 
 @router.post("/rag/conversation", summary="Conversational RAG")
@@ -274,7 +274,7 @@ async def rag_conversation(request: RAGConversationRequest):
         }
     except Exception as e:
         logger.error(f"[RAG Conversation] Fehler: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal error")
 
 
 # ─── Health Endpoint ──────────────────────────────────────────────────────────
