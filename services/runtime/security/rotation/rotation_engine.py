@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Rotation Engine — actively rotates credentials on schedule."""
 """Phase 1: Track + notify. Phase 2: API-based auto-rotate (GitHub, Vercel, etc)."""
-import os, json, sys, logging, hashlib
+import os, json, logging, hashlib
 from datetime import datetime, timezone, timedelta
 
 logger = logging.getLogger("nexifyai.security.rotation")
