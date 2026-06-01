@@ -269,7 +269,7 @@ def init_ai_infrastructure(
     
     logger.info("=" * 60)
     logger.info("AI-Infrastruktur initialisiert ✅")
-    logger.info(f"  - LLM: OpenRouter/DeepSeek + EmergentGPT-Fallback + Claude-Reasoning")
+    logger.info(f"  - LLM: OpenRouter/NeXify AI + EmergentGPT-Fallback + Claude-Reasoning")
     logger.info(f"  - RAG: Qdrant + HuggingFace Embeddings (intfloat/e5-small-v2)")
     logger.info(f"  - Agents: LangGraph StateGraph mit {len(get_agent_tools())} Tools")
     logger.info(f"  - Observability: {'LangSmith' if enable_langsmith and os.getenv('LANGCHAIN_API_KEY') else 'deaktiviert'}")

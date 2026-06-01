@@ -46,7 +46,7 @@ Token-Ablauf → 30-Tage-Warnung → automatische Erneuerung oder Eskalation.
 | **Health-Check** | `psql -h localhost -U postgres -c "SELECT 1"` |
 | **Status** | ✅ Aktiv |
 
-## 4. DeepSeek / OpenRouter
+## 4. NeXify / OpenRouter
 
 | Feld | Wert |
 |------|------|

@@ -23,7 +23,7 @@ POLICY = {
     "rotation_schedule": {
         "github": 30,
         "vercel": 60,
-        "deepseek": 90,
+        "nexify_provider": 90,
         "resend": 90,
         "supabase": 90,
         "cloudflare": 60,

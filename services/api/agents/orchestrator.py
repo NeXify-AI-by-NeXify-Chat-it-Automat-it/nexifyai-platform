@@ -1,6 +1,6 @@
 """
 NeXifyAI Orchestrator — Central AI Agent Router.
-Nutzt LLMProvider (DeepSeek primary, Emergent fallback).
+Nutzt LLMProvider (NeXify AI primary, Emergent fallback).
 Routes tasks to specialized sub-agents based on intent.
 """
 import os

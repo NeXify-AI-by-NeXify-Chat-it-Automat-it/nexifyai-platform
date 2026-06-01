@@ -12,9 +12,9 @@ BRAIN_KEY = os.environ.get("HERMES_BRAIN_KEY", os.environ.get("DS_HERMES_FFCEF39
 COLLECTION = os.environ.get("BRAIN_COLLECTION", "nexifyai_brain")
 
 # LLM config
-LLM_BASE_URL = os.environ.get("DS_DEEPSEEK_D7D70D9A__BASE_URL") or os.environ.get("DEEPSEEK_BASE_URL") or "https://api.deepseek.com/v1"
-LLM_API_KEY = os.environ.get("DS_DEEPSEEK_D7D70D9A__API_KEY") or os.environ.get("DS_DEEPSEEK_600C3ECB__API_KEY") or os.environ.get("DEEPSEEK_API_KEY") or ""
-LLM_MODEL = os.environ.get("LLM_MODEL", "deepseek-chat")
+LLM_BASE_URL = os.environ.get("DS_NeXify AI_D7D70D9A__BASE_URL") or os.environ.get("NeXify AI_BASE_URL") or "https://api.nexify_provider.com/v1"
+LLM_API_KEY = os.environ.get("DS_NeXify AI_D7D70D9A__API_KEY") or os.environ.get("DS_NeXify AI_600C3ECB__API_KEY") or os.environ.get("NeXify AI_API_KEY") or ""
+LLM_MODEL = os.environ.get("LLM_MODEL", "nexify_provider-chat")
 
 
 
@@ -211,17 +211,17 @@ def _patch_execute_agent_task():
 print("Brain-First patch module ready")
 
 
-# === MindsDB LLM Integration (DeepSeek v4 via MindsDB) ===
+# === MindsDB LLM Integration (NeXify AI v4 via MindsDB) ===
 import requests as _requests
 
 class MindsDBComplete:
-    """LLM completion backed by MindsDB DeepSeek v4 models."""
+    """LLM completion backed by MindsDB NeXify AI v4 models."""
     
     MINDSDB_URL = "http://localhost:32779/api/sql/query"
     
     @staticmethod
-    def complete(system=None, messages=None, prompt=None, model="deepseek_v4_flash", max_tokens=4096, temperature=0.7, **kwargs):
-        """Call MindsDB DeepSeek model. Accepts both system+messages and prompt formats."""
+    def complete(system=None, messages=None, prompt=None, model="nexify_provider_v4_flash", max_tokens=4096, temperature=0.7, **kwargs):
+        """Call MindsDB NeXify AI model. Accepts both system+messages and prompt formats."""
         import json as _json
         
         # Build prompt from system + messages if provided
@@ -259,11 +259,11 @@ class MindsDBComplete:
             else:
                 raise Exception(f"Unexpected MindsDB response: {_json.dumps(data)[:200]}")
         except Exception as e:
-            # Fall through to direct DeepSeek
+            # Fall through to direct NeXify AI
             raise e
     
     @staticmethod
-    def complete_structured(system=None, messages=None, prompt=None, model="deepseek_v4_flash", **kwargs):
+    def complete_structured(system=None, messages=None, prompt=None, model="nexify_provider_v4_flash", **kwargs):
         """Call MindsDB and parse JSON result."""
         result = MindsDBComplete.complete(system=system, messages=messages, prompt=prompt, model=model, **kwargs)
         import json as _json
@@ -292,7 +292,7 @@ except NameError:
     pass
 
 def get_llm():
-    """Get LLM client — prefers MindsDB DeepSeek v4, falls back to direct API."""
+    """Get LLM client — prefers MindsDB NeXify AI v4, falls back to direct API."""
     try:
         # Quick health check
         r = _requests.get("http://localhost:32779/api/util/ping", timeout=3)
@@ -301,15 +301,15 @@ def get_llm():
     except:
         pass
     
-    # Fallback to original DeepSeek direct
+    # Fallback to original NeXify AI direct
     if _original_get_llm:
         return _original_get_llm()
     
-    # Last resort: configure direct DeepSeek
+    # Last resort: configure direct NeXify AI
     import openai
     client = openai.OpenAI(
-        base_url=os.environ.get("DS_DEEPSEEK_D7D70D9A__BASE_URL") or os.environ.get("DEEPSEEK_BASE_URL") or "https://api.deepseek.com/v1",
-        api_key=os.environ.get("DS_DEEPSEEK_D7D70D9A__API_KEY") or os.environ.get("DS_DEEPSEEK_600C3ECB__API_KEY") or os.environ.get("DEEPSEEK_API_KEY", "")
+        base_url=os.environ.get("DS_NeXify AI_D7D70D9A__BASE_URL") or os.environ.get("NeXify AI_BASE_URL") or "https://api.nexify_provider.com/v1",
+        api_key=os.environ.get("DS_NeXify AI_D7D70D9A__API_KEY") or os.environ.get("DS_NeXify AI_600C3ECB__API_KEY") or os.environ.get("NeXify AI_API_KEY", "")
     )
     return client
 

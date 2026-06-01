@@ -1,7 +1,7 @@
 /**
  * NeXifyAI — Deep Research Task
  * Multi-Layer Web Research mit rekursiver Query-Expansion.
- * Nutzt Exa AI für semantische Suche + DeepSeek/OpenAI für Synthese.
+ * Nutzt Exa AI für semantische Suche + NeXify/OpenAI für Synthese.
  */
 import { task, metadata } from "@trigger.dev/sdk/v3";
 import { generateText } from "ai";
@@ -72,7 +72,7 @@ export const deepResearchTask = task({
     metadata.set("progress", 80);
 
     const finalSynthesis = await generateText({
-      model: openai("deepseek/deepseek-v4-flash"),
+      model: openai("nexify/nexify-v4-flash"),
       prompt: `Erstelle eine umfassende Analyse basierend auf diesen Research-Ergebnissen.
       
 Ursprüngliche Frage: ${initialQuery}
@@ -121,7 +121,7 @@ async function searchAndSynthesize(query: string, language: string): Promise<Res
 
   // Synthesize with LLM
   const synthesis = await generateText({
-    model: openai("deepseek/deepseek-v4-flash"),
+    model: openai("nexify/nexify-v4-flash"),
     prompt: `Analysiere diese Suchergebnisse zu "${query}" (Sprache: ${language}):
 
 ${sources.map((s, i) => `[${i + 1}] ${s.title}\n${s.text.substring(0, 800)}\n`).join("\n")}
@@ -136,7 +136,7 @@ Format: Strukturiert mit Überschriften.`,
 
   // Extract sub-queries
   const subQueryExtract = await generateText({
-    model: openai("deepseek/deepseek-v4-flash"),
+    model: openai("nexify/nexify-v4-flash"),
     prompt: `Basierend auf dieser Analyse zu "${query}":
 ${synthesis.text.substring(0, 1500)}
 

@@ -35,7 +35,7 @@ CHECKS = [
         "fallback": "docker exec supabase-db pg_isready"
     },
     {
-        "name": "DeepSeek/OpenRouter",
+        "name": "NeXify AI/OpenRouter",
         "cmd": ["curl", "-s", "--connect-timeout", "10", "-H", f"Authorization: Bearer {os.environ.get('OPENROUTER_API_KEY','')}", "https://openrouter.ai/api/v1/models"],
         "expect": "id",
         "sev": "SEV1",

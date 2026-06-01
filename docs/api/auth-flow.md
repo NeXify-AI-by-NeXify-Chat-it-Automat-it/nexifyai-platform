@@ -16,12 +16,12 @@ NeXifyAI verwendet eine mehrschichtige Auth-Strategie mit dienstspezifischen Met
     ┌────────┼────────┬──────────────┐
     ▼        ▼        ▼              ▼
 ┌───────┐ ┌──────┐ ┌──────┐  ┌──────────┐
-│9Router│ │Brain │ │Traef │  │Admin-Pro │
+│OpenRouter (direct)│ │Brain │ │Traef │  │Admin-Pro │
 │ JWT   │ │ JWT  │ │Basic │  │ localhost│
 └───────┘ └──────┘ └──────┘  └──────────┘
 ```
 
-## 1. 9Router — JWT Auth
+## 1. OpenRouter (direct) — JWT Auth
 
 ### Login-Flow
 
@@ -54,7 +54,7 @@ Response 200:
 | Gültigkeit | 24 Stunden |
 | Rotation | Alle 90 Tage |
 
-### Secret-Rotation (9Router JWT)
+### Secret-Rotation (OpenRouter (direct) JWT)
 
 ```bash
 # 1. Neuen Secret generieren
@@ -63,11 +63,11 @@ openssl rand -hex 32
 # 2. In /root/.secrets/credentials.env aktualisieren
 JWT_SECRET=<neuer-secret>
 
-# 3. 9Router neu starten
-docker restart 9router-5afd-niner-router-1
+# 3. OpenRouter (direct) neu starten
+docker restart openrouter-5afd-niner-router-1
 
 # 4. Verifizieren
-curl -X POST http://localhost:20128/api/auth/login \
+curl -X POST https://openrouter.ai/api/v1/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"password":"<INITIAL_PASSWORD>"}'
 ```
@@ -202,10 +202,10 @@ INITIAL_PASSWORD=...
 API_KEY_SECRET=...
 MACHINE_ID_SALT=...
 OPENROUTER_API_KEY=...
-DEEPSEEK_API_KEY=...
+NEXIFY_API_KEY=...
 ANTHROPIC_API_KEY=...
 VERCEL_AI_GATEWAY_KEY=...
-NSCALE_API_KEY=...
+NEXIFY_API_KEY=...
 ```
 
 ### Sichere Verwendung

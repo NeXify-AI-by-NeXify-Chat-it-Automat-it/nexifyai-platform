@@ -43,7 +43,7 @@ export const generatePdfAndUploadTask = task({
     };
 
     const htmlResult = await generateText({
-      model: openai("deepseek/deepseek-v4-flash"),
+      model: openai("nexify/nexify-v4-flash"),
       prompt: `${templatePrompts[template] || templatePrompts.report}
 
 Titel: ${title}

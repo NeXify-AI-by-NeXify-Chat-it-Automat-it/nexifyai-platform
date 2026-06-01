@@ -1,8 +1,8 @@
 """
-Iteration 79 - DeepSeek Live-Migration, Crawl4AI, Nutrient AI, Intelligence Testing
+Iteration 79 - NeXify AI Live-Migration, Crawl4AI, Nutrient AI, Intelligence Testing
 Tests for:
-1. GET /api/admin/nexify-ai/status - DeepSeek primary, Arcee fallback
-2. GET /api/health - All 8 services including deepseek, arcee, workers
+1. GET /api/admin/nexify-ai/status - NeXify AI primary, Arcee fallback
+2. GET /api/health - All 8 services including nexify_provider, arcee, workers
 3. POST /api/admin/intelligence/crawl - Web crawling with Crawl4AI
 4. POST /api/admin/intelligence/research-company - Company research
 5. GET /api/admin/intelligence/status - Crawl4AI and Nutrient status
@@ -16,8 +16,8 @@ import time
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8001').rstrip('/')
 
-class TestDeepSeekMigration:
-    """Tests for DeepSeek as primary LLM with Arcee fallback"""
+class TestNeXify AIMigration:
+    """Tests for NeXify AI as primary LLM with Arcee fallback"""
     
     @pytest.fixture(scope="class")
     def auth_token(self):
@@ -40,27 +40,27 @@ class TestDeepSeekMigration:
             "Content-Type": "application/json"
         }
     
-    def test_nexify_ai_status_deepseek_primary(self, auth_headers):
-        """Test GET /api/admin/nexify-ai/status returns DeepSeek as primary LLM"""
+    def test_nexify_ai_status_nexify_provider_primary(self, auth_headers):
+        """Test GET /api/admin/nexify-ai/status returns NeXify AI as primary LLM"""
         response = requests.get(f"{BASE_URL}/api/admin/nexify-ai/status", headers=auth_headers)
         assert response.status_code == 200, f"Status check failed: {response.text}"
         
         data = response.json()
-        # Verify master_llm is deepseek
-        assert data.get("master_llm") == "deepseek", f"Expected master_llm='deepseek', got {data.get('master_llm')}"
+        # Verify master_llm is nexify_provider
+        assert data.get("master_llm") == "nexify_provider", f"Expected master_llm='nexify_provider', got {data.get('master_llm')}"
         
-        # Verify deepseek is configured and connected
-        deepseek = data.get("deepseek", {})
-        assert deepseek.get("configured") == True, "DeepSeek should be configured"
-        assert deepseek.get("connected") == True, f"DeepSeek should be connected, got: {deepseek}"
-        assert deepseek.get("primary") == True, "DeepSeek should be marked as primary"
+        # Verify nexify_provider is configured and connected
+        nexify_provider = data.get("nexify_provider", {})
+        assert nexify_provider.get("configured") == True, "NeXify AI should be configured"
+        assert nexify_provider.get("connected") == True, f"NeXify AI should be connected, got: {nexify_provider}"
+        assert nexify_provider.get("primary") == True, "NeXify AI should be marked as primary"
         
         # Verify arcee is configured as fallback
         arcee = data.get("arcee", {})
         assert arcee.get("configured") == True, "Arcee should be configured"
         assert arcee.get("fallback") == True, "Arcee should be marked as fallback"
         
-        print(f"NeXify AI Status: master_llm={data.get('master_llm')}, deepseek.connected={deepseek.get('connected')}, arcee.fallback={arcee.get('fallback')}")
+        print(f"NeXify AI Status: master_llm={data.get('master_llm')}, nexify_provider.connected={nexify_provider.get('connected')}, arcee.fallback={arcee.get('fallback')}")
     
     def test_health_endpoint_all_services(self):
         """Test GET /api/health returns all 8 services"""
@@ -71,13 +71,13 @@ class TestDeepSeekMigration:
         services = data.get("services", {})
         
         # Verify all 8 expected services are present
-        expected_services = ["mongodb", "supabase", "deepseek", "arcee", "mem0", "resend", "revolut", "workers"]
+        expected_services = ["mongodb", "supabase", "nexify_provider", "arcee", "mem0", "resend", "revolut", "workers"]
         for svc in expected_services:
             assert svc in services, f"Service '{svc}' missing from health check"
             print(f"  {svc}: {services[svc].get('status')}")
         
-        # Verify deepseek and arcee are OK
-        assert services.get("deepseek", {}).get("status") == "ok", f"DeepSeek should be OK, got: {services.get('deepseek')}"
+        # Verify nexify_provider and arcee are OK
+        assert services.get("nexify_provider", {}).get("status") == "ok", f"NeXify AI should be OK, got: {services.get('nexify_provider')}"
         assert services.get("arcee", {}).get("status") == "ok", f"Arcee should be OK, got: {services.get('arcee')}"
         assert services.get("workers", {}).get("status") == "ok", f"Workers should be OK, got: {services.get('workers')}"
         

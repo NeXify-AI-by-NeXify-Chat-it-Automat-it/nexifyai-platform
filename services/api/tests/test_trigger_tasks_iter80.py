@@ -43,7 +43,7 @@ class TestTriggerTasksAPI:
         services = data["services"]
         
         # Verify key services are present and ok
-        expected_services = ["mongodb", "supabase", "deepseek", "arcee", "mem0", "resend", "revolut", "workers"]
+        expected_services = ["mongodb", "supabase", "nexify_provider", "arcee", "mem0", "resend", "revolut", "workers"]
         for svc in expected_services:
             assert svc in services, f"Missing service: {svc}"
             assert services[svc].get("status") == "ok", f"Service {svc} not ok"
@@ -133,7 +133,7 @@ class TestTriggerTasksAPI:
             print("✓ Trigger runs list passed - 0 runs (empty)")
     
     def test_trigger_run_deep_research_fallback(self):
-        """Test POST /api/admin/trigger/run executes in fallback mode via DeepSeek"""
+        """Test POST /api/admin/trigger/run executes in fallback mode via NeXify AI"""
         payload = {
             "task_id": "deep-research",
             "payload": {
@@ -147,7 +147,7 @@ class TestTriggerTasksAPI:
         response = self.session.post(
             f"{BASE_URL}/api/admin/trigger/run",
             json=payload,
-            timeout=120  # DeepSeek can take time
+            timeout=120  # NeXify AI can take time
         )
         assert response.status_code == 200, f"Run failed: {response.text}"
         data = response.json()
@@ -182,7 +182,7 @@ class TestTriggerTasksAPI:
 
 
 class TestNeXifyAIStatus:
-    """Test NeXify AI status endpoint for DeepSeek primary configuration"""
+    """Test NeXify AI status endpoint for NeXify AI primary configuration"""
     
     @pytest.fixture(autouse=True)
     def setup(self):
@@ -199,27 +199,27 @@ class TestNeXifyAIStatus:
             "Content-Type": "application/json"
         })
     
-    def test_nexify_ai_status_deepseek_primary(self):
-        """Test that DeepSeek is configured as primary LLM"""
+    def test_nexify_ai_status_nexify_provider_primary(self):
+        """Test that NeXify AI is configured as primary LLM"""
         response = self.session.get(f"{BASE_URL}/api/admin/nexify-ai/status")
         assert response.status_code == 200
         data = response.json()
         
-        # Verify DeepSeek is primary
-        assert data.get("master_llm") == "deepseek", f"Expected master_llm=deepseek, got {data.get('master_llm')}"
+        # Verify NeXify AI is primary
+        assert data.get("master_llm") == "nexify_provider", f"Expected master_llm=nexify_provider, got {data.get('master_llm')}"
         
-        # Verify DeepSeek configuration
-        deepseek = data.get("deepseek", {})
-        assert deepseek.get("configured") == True, "DeepSeek should be configured"
-        assert deepseek.get("connected") == True, "DeepSeek should be connected"
-        assert deepseek.get("primary") == True, "DeepSeek should be primary"
+        # Verify NeXify AI configuration
+        nexify_provider = data.get("nexify_provider", {})
+        assert nexify_provider.get("configured") == True, "NeXify AI should be configured"
+        assert nexify_provider.get("connected") == True, "NeXify AI should be connected"
+        assert nexify_provider.get("primary") == True, "NeXify AI should be primary"
         
         # Verify Arcee as fallback
         arcee = data.get("arcee", {})
         assert arcee.get("configured") == True, "Arcee should be configured"
         assert arcee.get("fallback") == True, "Arcee should be fallback"
         
-        print(f"✓ NeXify AI status passed - DeepSeek primary, Arcee fallback")
+        print(f"✓ NeXify AI status passed - NeXify AI primary, Arcee fallback")
 
 
 if __name__ == "__main__":

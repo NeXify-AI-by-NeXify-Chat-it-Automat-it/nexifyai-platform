@@ -84,7 +84,7 @@ Jeder Schritt:
 
 | Layer | System |
 |-------|--------|
-| AI Runtime | Vercel AI SDK (DeepSeek via OpenRouter) |
+| AI Runtime | Vercel AI SDK (NeXify via OpenRouter) |
 | Orchestration | DeliveryTransaction (SQLite Event Ledger) |
 | Browser | Playwright + Browserbase |
 | Sandbox | E2B |
