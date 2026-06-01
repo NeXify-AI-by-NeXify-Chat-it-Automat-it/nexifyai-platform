@@ -64,7 +64,7 @@ jobs:
           echo "deletions=$deletions" >> $GITHUB_OUTPUT
 
       - name: Security-focused Review
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           CHANGED_FILES: ${{ steps.changed.outputs.files }}
           DIFF_CONTENT: ${{ steps.diff.outputs.diff }}
