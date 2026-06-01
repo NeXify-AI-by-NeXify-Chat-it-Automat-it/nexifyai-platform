@@ -27,12 +27,12 @@ Ohne standardisierten Provider:
 ## Optionen
 
 ### Option A: OpenRouter als Primärprovider (GEWÄHLT)
-- **Pro:** Multi-Model-Zugang (DeepSeek, Anthropic, OpenAI), einheitliches API-Format, Usage-Tracking, Fallback-Routing, $0.14-$1.40/M Tokens
+- **Pro:** Multi-Model-Zugang (NeXify, Anthropic, OpenAI), einheitliches API-Format, Usage-Tracking, Fallback-Routing, $0.14-$1.40/M Tokens
 - **Contra:** Abhängigkeit von Drittanbieter; OpenAI-only-Modelle nicht verfügbar
 
-### Option B: DeepSeek Direct
+### Option B: NeXify Direct
 - **Pro:** Direkte API, keine Mittelschicht
-- **Contra:** Kein Fallback, nur DeepSeek-Modelle, kein Multi-Provider
+- **Contra:** Kein Fallback, nur NeXify-Modelle, kein Multi-Provider
 
 ### Option C: Vercel AI Gateway
 - **Pro:** Edge-nah, einfache Integration
@@ -40,11 +40,11 @@ Ohne standardisierten Provider:
 
 ## Entscheidung
 
-**Option A: OpenRouter als Primärprovider** mit DeepSeek Direct als Fallback und Vercel AI Gateway als zweite Route (optional).
+**Option A: OpenRouter als Primärprovider** mit NeXify Direct als Fallback und Vercel AI Gateway als zweite Route (optional).
 
 Begründung:
 1. Einheitliches API-Format reduziert Integrationsaufwand
-2. Multi-Model → optimales Preis/Leistungs-Verhältnis (deepseek-v4-pro für Reasoning, -flash für einfache Tasks)
+2. Multi-Model → optimales Preis/Leistungs-Verhältnis (nexify-v4-pro für Reasoning, -flash für einfache Tasks)
 3. Usage-Tracking → FinOps-Kapitel 25 umsetzbar
 4. Kein Lock-in: Provider-Wechsel durch API-Standardisierung möglich
 
@@ -56,7 +56,7 @@ Begründung:
 
 ## Rollback-Plan
 
-- DeepSeek Direct API-Credentials liegen bereit für sofortigen Switch
+- NeXify Direct API-Credentials liegen bereit für sofortigen Switch
 - Vercel AI Gateway als dritte Route konfigurierbar
 - Modell-Pinning in `/packages/config/prompts/` zentralisiert → ein Update genügt
 

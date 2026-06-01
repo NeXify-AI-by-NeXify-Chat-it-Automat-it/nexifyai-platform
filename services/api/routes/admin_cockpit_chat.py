@@ -18,7 +18,7 @@ router = APIRouter(prefix="/api/admin", tags=["admin-cockpit-chat"])
 # ── Env ──────────────────────────────────────────
 OPENROUTER_API_KEY = os.getenv("CAMBRO_API_KEY", os.getenv("OPENROUTER_API_KEY", ""))
 OPENROUTER_BASE_URL = os.getenv("CAMBRO_BASE_URL", os.getenv("OPENROUTER_BASE_URL", "https://ai-router.nexifyai.cloud/v1"))
-OPENROUTER_MODEL = os.getenv("CAMBRO_DEFAULT_MODEL", os.getenv("OPENROUTER_MODEL", "ds/deepseek-v4-pro-max"))
+OPENROUTER_MODEL = os.getenv("CAMBRO_DEFAULT_MODEL", os.getenv("OPENROUTER_MODEL", "ds/nexify-pro-max"))
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "p.courbois@icloud.com")
 
 # ── Models ────────────────────────────────────────

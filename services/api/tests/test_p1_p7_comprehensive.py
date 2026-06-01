@@ -1,7 +1,7 @@
 """
 P1-P7 Comprehensive Backend Tests for NeXifyAI
 ==============================================
-P1: DeepSeek Live-Pfad mit Provider-Abstraktionsschicht
+P1: NeXify AI Live-Pfad mit Provider-Abstraktionsschicht
 P2: Portal-Finance-Ansicht
 P3: Contract OS mit Versionshistorie, Evidenzpaket, Signatur-Vorschau
 P4: Webhook-Signaturverifikation, Reconciliation, Webhook-History
@@ -44,7 +44,7 @@ def admin_headers(admin_token):
 
 
 class TestP1LLMProviderAbstraction:
-    """P1: DeepSeek Live-Pfad mit Provider-Abstraktionsschicht"""
+    """P1: NeXify AI Live-Pfad mit Provider-Abstraktionsschicht"""
 
     def test_llm_status_endpoint(self, admin_headers):
         """GET /api/admin/llm/status — Provider info, migration status, metrics"""
@@ -60,11 +60,11 @@ class TestP1LLMProviderAbstraction:
         
         # Verify provider structure
         providers = data["providers"]
-        assert "deepseek" in providers, "Missing deepseek provider info"
+        assert "nexify_provider" in providers, "Missing nexify_provider provider info"
         assert "emergent_gpt" in providers, "Missing emergent_gpt provider info"
         
-        # Since DEEPSEEK_API_KEY is not set, should use emergent_gpt_fallback
-        assert data["active_provider"] in ("emergent_gpt_fallback", "deepseek"), f"Unexpected provider: {data['active_provider']}"
+        # Since NeXify AI_API_KEY is not set, should use emergent_gpt_fallback
+        assert data["active_provider"] in ("emergent_gpt_fallback", "nexify_provider"), f"Unexpected provider: {data['active_provider']}"
         print(f"✅ LLM Status: active_provider={data['active_provider']}, migration_ready={data['migration_ready']}")
 
     def test_llm_health_endpoint(self, admin_headers):

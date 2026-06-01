@@ -1,0 +1,10 @@
+{
+  "name": "NeXify AI",
+  "short_name": "NeXify",
+  "description": "AI API platform for NeXify and NeXify models.",
+  "theme_color": "#0e141b",
+  "background_color": "#0e141b",
+  "display": "standalone",
+  "start_url": "/",
+  "icons": []
+}

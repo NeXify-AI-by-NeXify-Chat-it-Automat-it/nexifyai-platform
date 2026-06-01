@@ -132,7 +132,7 @@ async def contract_risk_score(file_path: str) -> dict:
     extracted_text = json.dumps(extraction.get("result", {}), ensure_ascii=False)[:8000]
 
     try:
-        from services import deepseek_provider as openrouter_llm
+        from services import nexify_provider_provider as openrouter_llm
         scoring = await openrouter_llm.chat_completion(
             messages=[
                 {"role": "system", "content": """Du bist ein Vertrags-Risikobewertungs-Experte.
@@ -184,7 +184,7 @@ async def document_chat(file_path: str, question: str) -> dict:
     extracted_text = json.dumps(extraction.get("result", {}), ensure_ascii=False)[:8000]
 
     try:
-        from services import deepseek_provider as openrouter_llm
+        from services import nexify_provider_provider as openrouter_llm
         answer = await openrouter_llm.chat_completion(
             messages=[
                 {"role": "system", "content": "Du bist ein Dokumentenexperte. Beantworte Fragen basierend auf dem Dokument."},

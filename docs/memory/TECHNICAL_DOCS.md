@@ -125,13 +125,13 @@ Registrierte Handler:
 LLMProvider (Abstract Base Class)
 ├── EmergentGPTProvider  (TEMPORÄR — AKTIV)
 │   └── GPT-5.2 via Emergent LLM Key
-└── DeepSeekProvider     (ZIEL — VORBEREITET)
-    └── DeepSeek API (deepseek-chat)
+└── NeXifyProvider     (ZIEL — VORBEREITET)
+    └── NeXify API (nexify-chat)
 ```
 
-**Migration zu DeepSeek:**
-1. `DEEPSEEK_API_KEY` in `/app/backend/.env` setzen
-2. `LLM_PROVIDER=deepseek` in `.env` setzen
+**Migration zu NeXify:**
+1. `NEXIFY_API_KEY` in `/app/backend/.env` setzen
+2. `LLM_PROVIDER=nexify` in `.env` setzen
 3. System-Prompts optimieren
 4. Regressionstests durchführen
 

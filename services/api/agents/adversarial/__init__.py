@@ -1,6 +1,6 @@
 """
 NeXifyAI Adversarial Review — adapted from zscole/adversarial-spec.
-Multi-model debate engine for spec refinement using DeepSeek + Nscale models.
+Multi-model debate engine for spec refinement using NeXify AI + NeXify models.
 """
 from .model_router import run_debate, call_model, call_models_parallel, ModelResponse, DebateResult
 from .prompts import get_debate_system_prompt, get_review_prompt, DOC_TYPES, FOCUS_AREAS

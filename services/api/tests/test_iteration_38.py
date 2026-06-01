@@ -1,22 +1,22 @@
 """
-Iteration 38 Backend Tests - DeepSeek LIVE + Contract PDF Generation
+Iteration 38 Backend Tests - NeXify AI LIVE + Contract PDF Generation
 
-CRITICAL: This iteration tests DeepSeek as the PRIMARY LLM provider.
-Previous iterations used Emergent GPT fallback. DeepSeek API key is NOW SET.
+CRITICAL: This iteration tests NeXify AI as the PRIMARY LLM provider.
+Previous iterations used Emergent GPT fallback. NeXify AI API key is NOW SET.
 
 Test Coverage:
-1. LLM Status - DeepSeek must be active_provider=deepseek, is_target_architecture=true
-2. LLM Health - DeepSeek health check must return healthy
-3. LLM Test - Direct DeepSeek test with real response
-4. LLM Agent Flow - Full agent flow with session continuity via DeepSeek
-5. Chat Message - Public chat routed through DeepSeek
+1. LLM Status - NeXify AI must be active_provider=nexify_provider, is_target_architecture=true
+2. LLM Health - NeXify AI health check must return healthy
+3. LLM Test - Direct NeXify AI test with real response
+4. LLM Agent Flow - Full agent flow with session continuity via NeXify AI
+5. Chat Message - Public chat routed through NeXify AI
 6. Contract PDF Generation - Generate PDF with CI branding and evidence
 7. Contract PDF Download - Download returns valid PDF
-8. Monitoring Status - Full system monitoring with DeepSeek active
+8. Monitoring Status - Full system monitoring with NeXify AI active
 9. Email Stats - Email statistics with audit trail
 10. Email Test - Test email via Resend
 11. Billing Reconcile - Reconciliation
-12. E2E Verify Flow - E2E verification with DeepSeek healthy
+12. E2E Verify Flow - E2E verification with NeXify AI healthy
 13. Customer Finance - Finance endpoint
 """
 
@@ -58,46 +58,46 @@ def auth_headers(admin_token):
     }
 
 
-class TestDeepSeekLLMProvider:
-    """Tests for DeepSeek as PRIMARY LLM provider"""
+class TestNeXify AILLMProvider:
+    """Tests for NeXify AI as PRIMARY LLM provider"""
 
-    def test_llm_status_deepseek_active(self, auth_headers):
-        """P1: GET /api/admin/llm/status — DeepSeek must be active_provider=deepseek"""
+    def test_llm_status_nexify_provider_active(self, auth_headers):
+        """P1: GET /api/admin/llm/status — NeXify AI must be active_provider=nexify_provider"""
         response = requests.get(f"{BASE_URL}/api/admin/llm/status", headers=auth_headers)
         assert response.status_code == 200, f"LLM status failed: {response.text}"
         
         data = response.json()
         print(f"LLM Status Response: {data}")
         
-        # CRITICAL: DeepSeek must be the active provider
-        assert data.get("active_provider") == "deepseek", \
-            f"Expected active_provider=deepseek, got {data.get('active_provider')}"
+        # CRITICAL: NeXify AI must be the active provider
+        assert data.get("active_provider") == "nexify_provider", \
+            f"Expected active_provider=nexify_provider, got {data.get('active_provider')}"
         
         # CRITICAL: Must be target architecture
         assert data.get("is_target_architecture") == True, \
             f"Expected is_target_architecture=true, got {data.get('is_target_architecture')}"
         
-        # Verify DeepSeek provider status
+        # Verify NeXify AI provider status
         providers = data.get("providers", {})
-        deepseek_status = providers.get("deepseek", {})
-        assert deepseek_status.get("status") == "active", \
-            f"Expected deepseek status=active, got {deepseek_status.get('status')}"
-        assert deepseek_status.get("api_key_set") == True, \
-            "DeepSeek API key should be set"
+        nexify_provider_status = providers.get("nexify_provider", {})
+        assert nexify_provider_status.get("status") == "active", \
+            f"Expected nexify_provider status=active, got {nexify_provider_status.get('status')}"
+        assert nexify_provider_status.get("api_key_set") == True, \
+            "NeXify AI API key should be set"
         
-        print(f"✅ DeepSeek is ACTIVE as primary provider")
+        print(f"✅ NeXify AI is ACTIVE as primary provider")
 
-    def test_llm_health_deepseek_healthy(self, auth_headers):
-        """P1: GET /api/admin/llm/health — DeepSeek health check must return healthy"""
+    def test_llm_health_nexify_provider_healthy(self, auth_headers):
+        """P1: GET /api/admin/llm/health — NeXify AI health check must return healthy"""
         response = requests.get(f"{BASE_URL}/api/admin/llm/health", headers=auth_headers, timeout=30)
         assert response.status_code == 200, f"LLM health failed: {response.text}"
         
         data = response.json()
         print(f"LLM Health Response: {data}")
         
-        # Verify provider is DeepSeek
-        assert data.get("provider") == "deepseek", \
-            f"Expected provider=deepseek, got {data.get('provider')}"
+        # Verify provider is NeXify AI
+        assert data.get("provider") == "nexify_provider", \
+            f"Expected provider=nexify_provider, got {data.get('provider')}"
         
         # Verify is target architecture
         assert data.get("is_target_architecture") == True, \
@@ -110,14 +110,14 @@ class TestDeepSeekLLMProvider:
         # Check response sample exists
         assert "response_sample" in data, "Health check should include response_sample"
         
-        print(f"✅ DeepSeek health check: {data.get('status')}")
+        print(f"✅ NeXify AI health check: {data.get('status')}")
 
-    def test_llm_direct_test_deepseek(self, auth_headers):
-        """P1: POST /api/admin/llm/test — DeepSeek direct test with real response"""
+    def test_llm_direct_test_nexify_provider(self, auth_headers):
+        """P1: POST /api/admin/llm/test — NeXify AI direct test with real response"""
         response = requests.post(
             f"{BASE_URL}/api/admin/llm/test",
             headers=auth_headers,
-            json={"prompt": "Antworte kurz: Was ist DeepSeek?"},
+            json={"prompt": "Antworte kurz: Was ist NeXify AI?"},
             timeout=30
         )
         assert response.status_code == 200, f"LLM test failed: {response.text}"
@@ -125,9 +125,9 @@ class TestDeepSeekLLMProvider:
         data = response.json()
         print(f"LLM Test Response: {data}")
         
-        # Verify provider is DeepSeek
-        assert data.get("provider") == "deepseek", \
-            f"Expected provider=deepseek, got {data.get('provider')}"
+        # Verify provider is NeXify AI
+        assert data.get("provider") == "nexify_provider", \
+            f"Expected provider=nexify_provider, got {data.get('provider')}"
         
         # Verify success
         assert data.get("success") == True, \
@@ -138,9 +138,9 @@ class TestDeepSeekLLMProvider:
         assert not response_text.startswith("["), \
             f"Response should not be an error: {response_text[:100]}"
         
-        print(f"✅ DeepSeek direct test successful: {response_text[:100]}...")
+        print(f"✅ NeXify AI direct test successful: {response_text[:100]}...")
 
-    def test_llm_agent_flow_deepseek(self, auth_headers):
+    def test_llm_agent_flow_nexify_provider(self, auth_headers):
         """P1: POST /api/admin/llm/test-agent-flow — Full agent flow with session continuity"""
         response = requests.post(
             f"{BASE_URL}/api/admin/llm/test-agent-flow",
@@ -153,9 +153,9 @@ class TestDeepSeekLLMProvider:
         data = response.json()
         print(f"Agent Flow Response: {data}")
         
-        # Verify provider is DeepSeek
-        assert data.get("provider") == "deepseek", \
-            f"Expected provider=deepseek, got {data.get('provider')}"
+        # Verify provider is NeXify AI
+        assert data.get("provider") == "nexify_provider", \
+            f"Expected provider=nexify_provider, got {data.get('provider')}"
         
         # Verify overall success
         assert data.get("success") == True, \
@@ -170,14 +170,14 @@ class TestDeepSeekLLMProvider:
         assert test_results.get("session_continuity") == True, \
             "Session continuity should be maintained"
         
-        print(f"✅ DeepSeek agent flow test successful with session continuity")
+        print(f"✅ NeXify AI agent flow test successful with session continuity")
 
 
-class TestPublicChatDeepSeek:
-    """Test public chat endpoint routes through DeepSeek"""
+class TestPublicChatNeXify AI:
+    """Test public chat endpoint routes through NeXify AI"""
 
-    def test_chat_message_via_deepseek(self):
-        """P1: POST /api/chat/message — Public chat routed through DeepSeek"""
+    def test_chat_message_via_nexify_provider(self):
+        """P1: POST /api/chat/message — Public chat routed through NeXify AI"""
         import secrets
         session_id = f"test_iter38_{secrets.token_hex(6)}"
         
@@ -204,7 +204,7 @@ class TestPublicChatDeepSeek:
         # Response should mention NeXifyAI or relevant content
         assert len(message) > 50, "Chat response should be substantial"
         
-        print(f"✅ Public chat via DeepSeek successful: {message[:100]}...")
+        print(f"✅ Public chat via NeXify AI successful: {message[:100]}...")
 
 
 class TestContractPDFGeneration:
@@ -287,19 +287,19 @@ class TestContractPDFGeneration:
 class TestMonitoringAndEmail:
     """Tests for monitoring and email endpoints"""
 
-    def test_monitoring_status_deepseek_active(self, auth_headers):
-        """P7: GET /api/admin/monitoring/status — Full system monitoring with DeepSeek active"""
+    def test_monitoring_status_nexify_provider_active(self, auth_headers):
+        """P7: GET /api/admin/monitoring/status — Full system monitoring with NeXify AI active"""
         response = requests.get(f"{BASE_URL}/api/admin/monitoring/status", headers=auth_headers)
         assert response.status_code == 200, f"Monitoring status failed: {response.text}"
         
         data = response.json()
         print(f"Monitoring Status: {data}")
         
-        # Verify LLM status shows DeepSeek (nested under systems.llm)
+        # Verify LLM status shows NeXify AI (nested under systems.llm)
         systems = data.get("systems", {})
         llm_status = systems.get("llm", {})
-        assert llm_status.get("active_provider") == "deepseek", \
-            f"Expected LLM active_provider=deepseek, got {llm_status.get('active_provider')}"
+        assert llm_status.get("active_provider") == "nexify_provider", \
+            f"Expected LLM active_provider=nexify_provider, got {llm_status.get('active_provider')}"
         
         # Verify is target architecture
         assert llm_status.get("is_target_architecture") == True, \
@@ -309,7 +309,7 @@ class TestMonitoringAndEmail:
         assert "api" in systems, "Should include API status"
         assert "database" in systems, "Should include database status"
         
-        print(f"✅ Monitoring shows DeepSeek as LLM provider")
+        print(f"✅ Monitoring shows NeXify AI as LLM provider")
 
     def test_email_stats(self, auth_headers):
         """P3: GET /api/admin/email/stats — Email statistics with audit trail"""
@@ -363,7 +363,7 @@ class TestBillingAndE2E:
         print(f"✅ Billing reconciliation completed")
 
     def test_e2e_verify_flow(self, auth_headers):
-        """P5: POST /api/admin/e2e/verify-flow — E2E verification with DeepSeek healthy"""
+        """P5: POST /api/admin/e2e/verify-flow — E2E verification with NeXify AI healthy"""
         response = requests.post(
             f"{BASE_URL}/api/admin/e2e/verify-flow",
             headers=auth_headers,

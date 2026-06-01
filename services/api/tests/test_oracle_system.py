@@ -1,6 +1,6 @@
 """
 NeXifyAI — Oracle System Integration Tests (Iteration 73)
-Tests for Oracle Command Center: Supabase PostgreSQL + DeepSeek LLM integration
+Tests for Oracle Command Center: Supabase PostgreSQL + NeXify AI LLM integration
 """
 import pytest
 import requests
@@ -57,7 +57,7 @@ class TestOracleHealth:
     """Oracle System health check tests"""
     
     def test_oracle_health_endpoint(self, auth_headers):
-        """GET /api/admin/oracle/health returns Supabase and DeepSeek status"""
+        """GET /api/admin/oracle/health returns Supabase and NeXify AI status"""
         response = requests.get(f"{BASE_URL}/api/admin/oracle/health", headers=auth_headers)
         assert response.status_code == 200, f"Health check failed: {response.text}"
         
@@ -68,11 +68,11 @@ class TestOracleHealth:
         assert data["supabase"]["connected"] == True, f"Supabase not connected: {data['supabase']}"
         print(f"✓ Supabase connected: {data['supabase']['connected']}")
         
-        # Verify DeepSeek configuration
-        assert "deepseek" in data, "Missing deepseek in health response"
-        assert data["deepseek"]["configured"] == True, "DeepSeek not configured"
-        assert data["deepseek"]["connected"] == True, f"DeepSeek not connected: {data['deepseek']}"
-        print(f"✓ DeepSeek connected: {data['deepseek']['connected']}, model: {data['deepseek'].get('model', 'N/A')}")
+        # Verify NeXify AI configuration
+        assert "nexify_provider" in data, "Missing nexify_provider in health response"
+        assert data["nexify_provider"]["configured"] == True, "NeXify AI not configured"
+        assert data["nexify_provider"]["connected"] == True, f"NeXify AI not connected: {data['nexify_provider']}"
+        print(f"✓ NeXify AI connected: {data['nexify_provider']['connected']}, model: {data['nexify_provider'].get('model', 'N/A')}")
 
 
 class TestOracleDashboard:
@@ -236,7 +236,7 @@ class TestOracleTasks:
 
 
 class TestOracleAgentInvocation:
-    """Oracle Agent Invocation (DeepSeek) tests"""
+    """Oracle Agent Invocation (NeXify AI) tests"""
     
     def test_invoke_agent_strategist(self, auth_headers):
         """POST /api/admin/oracle/invoke-agent with Strategist agent"""
@@ -250,7 +250,7 @@ class TestOracleAgentInvocation:
             f"{BASE_URL}/api/admin/oracle/invoke-agent",
             headers=auth_headers,
             json=payload,
-            timeout=60  # DeepSeek can take 5-10 seconds
+            timeout=60  # NeXify AI can take 5-10 seconds
         )
         assert response.status_code == 200, f"Agent invocation failed: {response.text}"
         

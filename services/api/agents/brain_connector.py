@@ -93,7 +93,7 @@ async def search_agents(query: str, limit: int = 3, category: str = None) -> Lis
         "documentation-expert": ["doku", "dokumentation", "readme", "docs", "docusaurus"],
         "context-manager": ["kontext", "brain", "retrieval", "memory", "session"],
         "search-specialist": ["suche", "search", "finden", "qdrant"],
-        "llms-maintainer": ["llm", "model", "token", "provider", "deepseek"],
+        "llms-maintainer": ["llm", "model", "token", "provider", "nexify_provider"],
         "agent-expert": ["agent", "prompt", "optimieren"],
         "dependency-manager": ["dependency", "npm", "package", "update", "renovate"],
         "metadata-agent": ["metadata", "tag", "tagging"],

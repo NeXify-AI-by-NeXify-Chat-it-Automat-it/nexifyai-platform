@@ -105,7 +105,7 @@
         "affected": [
           "backend/tests/test_openrouter_migration_iter81.py"
         ],
-        "recommendation": "Tests auf aktuelles deepseek-v4-pro Modell migrieren"
+        "recommendation": "Tests auf aktuelles nexify-v4-pro Modell migrieren"
       }
     ],
     "low": [

@@ -1,12 +1,12 @@
 # NeXifyAI — Product Requirements Document (PRD)
 
 ## Plattform
-NeXifyAI by NeXify — B2B AI Agency Platform. API-First, Unified Communication, Deep Customer Memory (mem0), Supabase Oracle System, OpenRouter/DeepSeek V4 Flash (Primary LLM), Agent Zero (External Master).
+NeXifyAI by NeXify — B2B AI Agency Platform. API-First, Unified Communication, Deep Customer Memory (mem0), Supabase Oracle System, OpenRouter/NeXify V4 Flash (Primary LLM), Agent Zero (External Master).
 
 ## Architektur
 - **Frontend**: React 18 SPA (Vercel Pro, Edge Network)
 - **Backend**: FastAPI (Python, Emergent Preview)
-- **AI**: OpenRouter / DeepSeek V4 Flash (Primary), Arcee AI (Fallback)
+- **AI**: OpenRouter / NeXify V4 Flash (Primary), Arcee AI (Fallback)
 - **Deployment**: Vercel Pro (Frontend + Edge Functions + Cron)
 
 ## Vercel Pro Stack (27.04.2026)
@@ -71,7 +71,7 @@ cd /tmp/vercel-deploy && npx vercel deploy --prod --prebuilt --token <TOKEN>
 
 **Neue Backend-Endpoints**:
 - `POST /api/admin/outbound/bulk-import` — CSV-Rows (max. 500), Auto-Dedup nach E-Mail, nutzt `discover_lead` pro Row
-- `POST /api/admin/outbound/{lead_id}/ai-website-analyze` — httpx-Fallback-Crawl + OpenRouter/deepseek-v4-flash-LLM → industry, company_size, pain_signals, value_hooks, contact_hints, language; automatisches Re-Scoring + Status-Update
+- `POST /api/admin/outbound/{lead_id}/ai-website-analyze` — httpx-Fallback-Crawl + OpenRouter/nexify-v4-flash-LLM → industry, company_size, pain_signals, value_hooks, contact_hints, language; automatisches Re-Scoring + Status-Update
 - `POST /api/admin/outbound/{lead_id}/ai-outreach` — LLM generiert UWG §7 + DSGVO-konforme Erstansprache (subject+HTML); intelligenter Fallback auf Template wenn LLM reasoning-only antwortet
 - `POST /api/admin/outbound/{lead_id}/ai-followup` — LLM generiert höfliches Follow-up (max. 3 pro Lead) basierend auf Outreach-History
 
@@ -82,7 +82,7 @@ cd /tmp/vercel-deploy && npx vercel deploy --prod --prebuilt --token <TOKEN>
 
 **Technische Fixes (gleicher Release)**:
 - `crawl4ai_service.py` — httpx/BeautifulSoup-Fallback falls Playwright/chromium nicht verfügbar
-- `llm_provider.py` OpenRouter — `reasoning`-Field als Content-Fallback (deepseek-v4-flash liefert Output manchmal in reasoning statt content)
+- `llm_provider.py` OpenRouter — `reasoning`-Field als Content-Fallback (nexify-v4-flash liefert Output manchmal in reasoning statt content)
 - Robuste JSON-Extraktion aus LLM-Responses (Regex-Fallback für Markdown-Fences)
 
 **E2E-Test**: `/app/backend/tests/test_outbound_machine_e2e.py` — bestanden (bulk-import, prequalify, ai-website-analyze mit Live-Crawl + Live-LLM, legal-check, ai-outreach).

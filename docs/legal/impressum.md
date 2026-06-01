@@ -4,20 +4,20 @@
 
 NeXifyAI
 Pascal Courbois
-[ADRESSE]
-[PLZ, STADT]
+Graaf van Loonstraat 1E
+5921 JA Venlo, Niederlande
 
 **Kontakt**
-E-Mail: admin@nexifyai.cloud
-Telefon: [TELEFON]
+E-Mail: support@nexifyai.cloud
+Telefon: +31 6 133 188 56
 
 **Umsatzsteuer-ID**
 Umsatzsteuer-Identifikationsnummer gemäß §27a Umsatzsteuergesetz:
-[UST-IDNR — falls vorhanden]
+NL865786276B01
 
 **Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV**
 Pascal Courbois
-[ADRESSE]
+Graaf van Loonstraat 1E, 5921 JA Venlo, Niederlande
 
 **EU-Streitschlichtung**
 Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:

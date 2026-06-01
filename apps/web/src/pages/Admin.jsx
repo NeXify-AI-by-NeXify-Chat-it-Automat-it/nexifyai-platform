@@ -3704,7 +3704,7 @@ curl ${API}/api/v1/docs`}
             <button className="nxai-send-btn" onClick={() => sendNxMessage()} disabled={!nxInput.trim() || nxStreaming} data-testid="nxai-send"><I n="send" /></button>
           </div>
           <div className="nxai-status-bar">
-            <span>OpenRouter deepseek-v4-flash</span>
+            <span>OpenRouter nexify-v4-flash</span>
             <span>|</span>
             <span>{nxUseMemory ? 'mem0 Brain aktiv' : 'Ohne Brain'}</span>
           </div>
