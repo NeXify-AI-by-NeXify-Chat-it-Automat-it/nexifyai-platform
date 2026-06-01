@@ -56,7 +56,7 @@ SENSORISCH              ARBEITSGEDÄCHTNIS        LANGZEITGEDÄCHTNIS
 
 | Layer | System |
 |-------|--------|
-| AI Runtime | DeepSeek via OpenRouter |
+| AI Runtime | NeXify via OpenRouter |
 | Governance | BrainGovernor + GovernanceKernel |
 | Event Bus | CognitiveBus (pub/sub) |
 | Memory | Unified Memory (SQLite, 5-Type) |

@@ -1,7 +1,7 @@
 """
 MCP Router — Model Context Protocol Integration für NeXifyAI.
 
-Alle externen Services (GitHub, Vercel, Supabase, Cloudflare, DeepSeek, MongoDB, Resend, Revolut)
+Alle externen Services (GitHub, Vercel, Supabase, Cloudflare, NeXify AI, MongoDB, Resend, Revolut)
 werden über MCP-Protokoll (JSON-RPC 2.0) angebunden. Jeder Service registriert Tools,
 die von Agenten über den Orchestrator aufgerufen werden.
 

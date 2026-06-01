@@ -6,7 +6,7 @@ author: NeXifyAI Agent Mesh
 created: 2026-05-14
 updated: 2026-05-14
 category: review
-provider: custom:nscale
+provider: custom:nexify
 model: qwen3-32b
 ---
 

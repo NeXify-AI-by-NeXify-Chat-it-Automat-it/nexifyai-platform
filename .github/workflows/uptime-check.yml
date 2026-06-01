@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Check Website
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://nexifyai.cloud)
+          STATUS=$(curl -sL -o /dev/null -w "%{http_code}" --max-time 10 https://nexifyai.cloud)
           if [ "$STATUS" != "200" ]; then
             echo "❌ Website returned HTTP $STATUS"
             exit 1

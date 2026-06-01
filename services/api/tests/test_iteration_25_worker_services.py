@@ -158,18 +158,18 @@ class TestLLMProviderEndpoints:
         data = response.json()
         
         assert "provider" in data
-        assert "deepseek_configured" in data
+        assert "nexify_provider_configured" in data
         assert "emergent_configured" in data
         assert "target_architecture" in data
         assert "current_status" in data
         
         # Verify expected values
-        assert data["target_architecture"] == "deepseek"
-        assert isinstance(data["deepseek_configured"], bool)
+        assert data["target_architecture"] == "nexify_provider"
+        assert isinstance(data["nexify_provider_configured"], bool)
         assert isinstance(data["emergent_configured"], bool)
         
         print(f"✅ LLM status: provider={data['provider']}, status={data['current_status']}")
-        print(f"   DeepSeek configured: {data['deepseek_configured']}, Emergent configured: {data['emergent_configured']}")
+        print(f"   NeXify AI configured: {data['nexify_provider_configured']}, Emergent configured: {data['emergent_configured']}")
 
 
 class TestOutboundLeadMachineEndpoints:

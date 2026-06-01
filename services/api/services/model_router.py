@@ -12,10 +12,10 @@ No direct model calls anywhere else in the system.
 
 Architecture:
   Agent/Task → model_router.route(task_type, complexity) → Cambo → Model
-  - Planning/light tasks → ds/deepseek-v4-flash
-  - Coding/engineering → ds/deepseek-v4-pro-max  
-  - Architecture/reasoning → ds/deepseek-reasoner
-  - JSON mode / tool calling → ds/deepseek-v4-pro-max
+  - Planning/light tasks → ds/nexify-flash
+  - Coding/engineering → ds/nexify-pro-max  
+  - Architecture/reasoning → ds/nexify_provider-reasoner
+  - JSON mode / tool calling → ds/nexify-pro-max
 
 Features:
   - Capability-based routing
@@ -40,41 +40,41 @@ CAMBRO_API_KEY = os.environ.get("CAMBRO_API_KEY", os.environ.get("OPENROUTER_API
 
 # Model mapping
 MODEL_MAP = {
-    "planning": "ds/deepseek-v4-flash",
-    "flash": "ds/deepseek-v4-flash",
-    "coding": "ds/deepseek-v4-pro-max",
-    "pro_max": "ds/deepseek-v4-pro-max",
-    "reasoning": "ds/deepseek-reasoner",
-    "reasoner": "ds/deepseek-reasoner",
-    "default": "ds/deepseek-v4-pro-max",
+    "planning": "ds/nexify-flash",
+    "flash": "ds/nexify-flash",
+    "coding": "ds/nexify-pro-max",
+    "pro_max": "ds/nexify-pro-max",
+    "reasoning": "ds/nexify_provider-reasoner",
+    "reasoner": "ds/nexify_provider-reasoner",
+    "default": "ds/nexify-pro-max",
 }
 
 # Capability → model routing
 CAPABILITY_ROUTING = {
-    "chat": "ds/deepseek-v4-flash",
-    "plan": "ds/deepseek-v4-flash",
-    "route": "ds/deepseek-v4-flash",
-    "classify": "ds/deepseek-v4-flash",
-    "summarize": "ds/deepseek-v4-flash",
-    "code": "ds/deepseek-v4-pro-max",
-    "develop": "ds/deepseek-v4-pro-max",
-    "debug": "ds/deepseek-v4-pro-max",
-    "refactor": "ds/deepseek-v4-pro-max",
-    "json": "ds/deepseek-v4-pro-max",
-    "tool_call": "ds/deepseek-v4-pro-max",
-    "analyze": "ds/deepseek-reasoner",
-    "reason": "ds/deepseek-reasoner",
-    "architect": "ds/deepseek-reasoner",
-    "design": "ds/deepseek-reasoner",
-    "research": "ds/deepseek-reasoner",
+    "chat": "ds/nexify-flash",
+    "plan": "ds/nexify-flash",
+    "route": "ds/nexify-flash",
+    "classify": "ds/nexify-flash",
+    "summarize": "ds/nexify-flash",
+    "code": "ds/nexify-pro-max",
+    "develop": "ds/nexify-pro-max",
+    "debug": "ds/nexify-pro-max",
+    "refactor": "ds/nexify-pro-max",
+    "json": "ds/nexify-pro-max",
+    "tool_call": "ds/nexify-pro-max",
+    "analyze": "ds/nexify_provider-reasoner",
+    "reason": "ds/nexify_provider-reasoner",
+    "architect": "ds/nexify_provider-reasoner",
+    "design": "ds/nexify_provider-reasoner",
+    "research": "ds/nexify_provider-reasoner",
 }
 
 # Fallback chain: try primary, then fallback
 FALLBACK_CHAIN = {
-    "ds/deepseek-v4-pro-max": ["ds/deepseek-v4-pro", "ds/deepseek-v4-flash"],
-    "ds/deepseek-v4-pro": ["ds/deepseek-v4-flash"],
-    "ds/deepseek-reasoner": ["ds/deepseek-v4-pro-max", "ds/deepseek-v4-flash"],
-    "ds/deepseek-v4-flash": ["ds/deepseek-v4-pro-max"],  # flash fails → try pro
+    "ds/nexify-pro-max": ["ds/nexify-pro", "ds/nexify-flash"],
+    "ds/nexify-pro": ["ds/nexify-flash"],
+    "ds/nexify_provider-reasoner": ["ds/nexify-pro-max", "ds/nexify-flash"],
+    "ds/nexify-flash": ["ds/nexify-pro-max"],  # flash fails → try pro
 }
 
 # ═══ CIRCUIT BREAKER ═══
@@ -163,9 +163,9 @@ class ModelRouter:
         
         # Complexity-based
         if complexity == "high":
-            return "ds/deepseek-reasoner"
+            return "ds/nexify_provider-reasoner"
         elif complexity == "low":
-            return "ds/deepseek-v4-flash"
+            return "ds/nexify-flash"
         
         return MODEL_MAP["default"]
     

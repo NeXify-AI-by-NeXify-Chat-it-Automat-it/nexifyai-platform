@@ -1,7 +1,7 @@
 """
-Test Suite for P1 (DeepSeek LLM Provider), P2 (Portal Finance), P3 (Contract OS Enhancement)
+Test Suite for P1 (NeXify AI LLM Provider), P2 (Portal Finance), P3 (Contract OS Enhancement)
 Iteration 35 - Testing new features:
-- P1: LLM Provider abstraction with DeepSeek/Emergent GPT fallback
+- P1: LLM Provider abstraction with NeXify AI/Emergent GPT fallback
 - P2: Customer Portal Finance view (invoices, payment status, bank info)
 - P3: Contract OS enhancements (versions, evidence trail, signature preview)
 """
@@ -70,15 +70,15 @@ class TestP1LLMProviderStatus:
         
         # Verify provider details
         providers = data["providers"]
-        assert "deepseek" in providers, "Missing deepseek provider info"
+        assert "nexify_provider" in providers, "Missing nexify_provider provider info"
         assert "emergent_gpt" in providers, "Missing emergent_gpt provider info"
         
-        # Since DEEPSEEK_API_KEY is not set, should be using emergent_gpt fallback
+        # Since NeXify AI_API_KEY is not set, should be using emergent_gpt fallback
         assert data["active_provider"] == "emergent_gpt_fallback", f"Expected emergent_gpt_fallback, got {data['active_provider']}"
-        assert data["is_target_architecture"] == False, "Should not be target architecture without DeepSeek"
+        assert data["is_target_architecture"] == False, "Should not be target architecture without NeXify AI"
         
         print(f"✅ LLM Status: active_provider={data['active_provider']}, migration_ready={data['migration_ready']}")
-        print(f"   DeepSeek status: {providers['deepseek']['status']}")
+        print(f"   NeXify AI status: {providers['nexify_provider']['status']}")
         print(f"   Emergent GPT status: {providers['emergent_gpt']['status']}")
     
     def test_llm_status_requires_auth(self):

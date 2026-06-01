@@ -1,3 +1,5 @@
+# SUPERSEDED — 9Router removed 29.05.2026 — direct OpenRouter
+
 # ADR-025: 9Router AI Provider Gateway
 
 **Status:** accepted
@@ -7,7 +9,7 @@
 
 ## Kontext
 
-NeXifyAI benötigt einen zentralen API-Gateway für LLM-Provider (DeepSeek, OpenRouter, Anthropic, OpenAI, Vercel AI, Nscale). 9Router läuft als Docker-Container auf Port 20128.
+NeXifyAI benötigt einen zentralen API-Gateway für LLM-Provider (NeXify, OpenRouter, Anthropic, OpenAI, Vercel AI, NeXify). 9Router läuft als Docker-Container auf Port 20128.
 
 ## Entscheidung
 
@@ -36,19 +38,19 @@ NeXifyAI benötigt einen zentralen API-Gateway für LLM-Provider (DeepSeek, Open
 └────────┬─────────────────┘
     ┌────┼────┐
     ▼    ▼    ▼
- DeepSeek OpenRouter VercelAI
+ NeXify OpenRouter VercelAI
 ```
 
 ## Providers
 
 | Provider | Status | Model Count |
 |----------|--------|-------------|
-| DeepSeek (ds/) | ✅ live | 10 |
+| NeXify (ds/) | ✅ live | 10 |
 | OpenRouter (openrouter/) | ✅ live | 35+ |
 | OpenAI (openai/) | ✅ live | 8 |
 | Anthropic (anthropic/) | ✅ live | 5 |
 | Vercel AI Gateway | ✅ live | 73 |
-| Nscale | ✅ live | 6 |
+| NeXify | ✅ live | 6 |
 | LlamaLocal | ⚠️ eval | - |
 
 ## Auth

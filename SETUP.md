@@ -19,7 +19,7 @@ cp backend/.env.template backend/.env
 | `MONGO_URL` | MongoDB | mongodb.com oder lokal |
 | `ALT_SUPABASE_POSTGRESQL` | Supabase PostgreSQL | supabase.com → Settings → Database |
 | `ALT_SUPABASE_SERVICE_ROLE_KEY` | Supabase API | supabase.com → Settings → API |
-| `DEEPSEEK_API_KEY` | DeepSeek LLM | platform.deepseek.com |
+| `NEXIFY_API_KEY` | NeXify LLM | platform.nexify.com |
 | `ARCEE_API_KEY` | Arcee AI Master | arcee.ai → Account |
 | `MEM0_API_KEY` | mem0 Brain | app.mem0.ai → Settings |
 | `SECRET_KEY` | JWT-Signierung | Selbst generieren (32+ Zeichen) |
@@ -59,7 +59,7 @@ Erwartete Antwort:
   "services": {
     "mongodb": {"status": "ok"},
     "supabase": {"status": "ok"},
-    "deepseek": {"status": "ok", "configured": true},
+    "nexify": {"status": "ok", "configured": true},
     "arcee": {"status": "ok", "configured": true},
     "mem0": {"status": "ok", "configured": true},
     "resend": {"status": "ok", "configured": true},
@@ -113,7 +113,7 @@ erkannt → eingeplant → gestartet → in_bearbeitung
 Frontend (React 18) → Backend (FastAPI)
                         ├── MongoDB (CRM, Projekte, Leads)
                         ├── Supabase PostgreSQL (Oracle, Brain, Audit)
-                        ├── DeepSeek API (Sub-Agenten)
+                        ├── NeXify API (Sub-Agenten)
                         ├── Arcee AI (Master Orchestrator)
                         ├── mem0 (Brain Memory)
                         ├── Resend (E-Mail)
