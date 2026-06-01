@@ -21,7 +21,7 @@ jobs:
     name: CI/CD Status
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Query CI workflow statuses from GitHub API
         env:
           GH_TOKEN: ${{ github.token }}
@@ -60,7 +60,7 @@ jobs:
     name: Security Status
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Query security workflow statuses from GitHub API
         env:
           GH_TOKEN: ${{ github.token }}
@@ -103,7 +103,7 @@ jobs:
     name: Brain Status
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Brain Health Check (VPS-limited)
         run: |
           echo "## Brain / Oracle Status" >> $GITHUB_STEP_SUMMARY
@@ -132,7 +132,7 @@ jobs:
     name: Runtime Status
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Runtime Health Check (VPS-limited)
         run: |
           echo "## Runtime Status" >> $GITHUB_STEP_SUMMARY
@@ -160,7 +160,7 @@ jobs:
     name: Infrastructure Status
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Query infrastructure statuses
         env:
           GH_TOKEN: ${{ github.token }}
@@ -205,7 +205,7 @@ jobs:
     needs: [ci-badge, security-badge, brain-badge, runtime-badge, infra-badge]
     if: always()
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Generate artifacts
         run: |
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
