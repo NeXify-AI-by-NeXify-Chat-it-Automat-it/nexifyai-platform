@@ -65,7 +65,7 @@ class AgentProfile:
     domain: str                          # "frontend", "backend", "database", etc.
 
     # Model binding
-    model: str = "deepseek/deepseek-v4-pro"
+    model: str = "nexify_provider/nexify-pro"
     temperature: float = 0.1
     max_tokens: int = 12000
     reasoning: ReasoningLevel = ReasoningLevel.MEDIUM
@@ -117,84 +117,84 @@ class AgentProfile:
 DEFAULT_PROFILES = {
     "oracle": AgentProfile(
         agent_id="oracle", domain="oracle",
-        model="deepseek/deepseek-v4-flash", temperature=0.0, max_tokens=4000,
+        model="nexify_provider/nexify-flash", temperature=0.0, max_tokens=4000,
         reasoning=ReasoningLevel.LOW, tools=["brain"],
         risk_limit=0.0, max_blast_radius=0, max_parallel_tasks=1, max_api_calls_per_hour=200,
         system_prompt="You are the Oracle. Parse user intent and route to specialists.",
     ),
     "planner": AgentProfile(
         agent_id="planner", domain="program_manager",
-        model="deepseek/deepseek-v4-flash", temperature=0.0, max_tokens=8000,
+        model="nexify_provider/nexify-flash", temperature=0.0, max_tokens=8000,
         reasoning=ReasoningLevel.MEDIUM, tools=["brain", "registry"],
         risk_limit=0.0, max_blast_radius=0, max_parallel_tasks=2,
         system_prompt="You are the Planner. Create execution plans and manage dependencies.",
     ),
     "architect": AgentProfile(
         agent_id="architect", domain="architect",
-        model="deepseek/deepseek-v4-pro", temperature=0.1, max_tokens=12000,
+        model="nexify_provider/nexify-pro", temperature=0.1, max_tokens=12000,
         reasoning=ReasoningLevel.HIGH, tools=["brain", "dos", "adr"],
         risk_limit=0.05, max_parallel_tasks=2,
         system_prompt="You are the Architect. Design systems and ensure architecture compliance.",
     ),
     "frontend-react": AgentProfile(
         agent_id="frontend-react", domain="frontend",
-        model="deepseek/deepseek-v4-pro", temperature=0.1, max_tokens=16000,
+        model="nexify_provider/nexify-pro", temperature=0.1, max_tokens=16000,
         reasoning=ReasoningLevel.HIGH, tools=["vercel", "playwright", "browser", "npm"],
         risk_limit=0.08, max_parallel_tasks=3, max_api_calls_per_hour=100,
         system_prompt="You are the Frontend Agent. Build React/Next.js UI components. Always produce Artifacts with file paths and checksums.",
     ),
     "backend-python": AgentProfile(
         agent_id="backend-python", domain="backend",
-        model="deepseek/deepseek-v4-pro", temperature=0.1, max_tokens=16000,
+        model="nexify_provider/nexify-pro", temperature=0.1, max_tokens=16000,
         reasoning=ReasoningLevel.HIGH, tools=["github", "pytest", "docker", "supabase"],
         risk_limit=0.08, max_parallel_tasks=3, max_api_calls_per_hour=100,
         system_prompt="You are the Backend Agent. Build FastAPI endpoints and services. Always produce Artifacts with file paths and checksums.",
     ),
     "database": AgentProfile(
         agent_id="database", domain="database",
-        model="deepseek/deepseek-v4-pro", temperature=0.0, max_tokens=8000,
+        model="nexify_provider/nexify-pro", temperature=0.0, max_tokens=8000,
         reasoning=ReasoningLevel.HIGH, tools=["supabase", "psql"],
         risk_limit=0.12, max_parallel_tasks=2,
         system_prompt="You are the Database Agent. Generate and apply Supabase migrations with RLS policies.",
     ),
     "devops": AgentProfile(
         agent_id="devops", domain="devops",
-        model="deepseek/deepseek-v4-pro", temperature=0.1, max_tokens=10000,
+        model="nexify_provider/nexify-pro", temperature=0.1, max_tokens=10000,
         reasoning=ReasoningLevel.HIGH, tools=["docker", "github", "ssh"],
         risk_limit=0.15, max_blast_radius=3, requires_human_approval=True, max_parallel_tasks=2,
         system_prompt="You are the DevOps Agent. Manage CI/CD, Docker, and infrastructure.",
     ),
     "deployment": AgentProfile(
         agent_id="deployment", domain="deployment",
-        model="deepseek/deepseek-v4-pro", temperature=0.0, max_tokens=6000,
+        model="nexify_provider/nexify-pro", temperature=0.0, max_tokens=6000,
         reasoning=ReasoningLevel.MEDIUM, tools=["vercel", "curl", "browser"],
         risk_limit=0.10, max_blast_radius=2, max_parallel_tasks=2,
         system_prompt="You are the Deployment Agent. Deploy to Vercel and verify with health checks.",
     ),
     "security": AgentProfile(
         agent_id="security", domain="security",
-        model="deepseek/deepseek-v4-pro", temperature=0.0, max_tokens=8000,
+        model="nexify_provider/nexify-pro", temperature=0.0, max_tokens=8000,
         reasoning=ReasoningLevel.MEDIUM, tools=["gitleaks", "trivy", "safety"],
         risk_limit=0.05, max_parallel_tasks=2,
         system_prompt="You are the Security Agent. Run security scans and enforce policies.",
     ),
     "qa": AgentProfile(
         agent_id="qa", domain="qa",
-        model="deepseek/deepseek-v4-pro", temperature=0.0, max_tokens=8000,
+        model="nexify_provider/nexify-pro", temperature=0.0, max_tokens=8000,
         reasoning=ReasoningLevel.MEDIUM, tools=["pytest", "jest", "playwright", "browser"],
         risk_limit=0.05, max_parallel_tasks=4, max_api_calls_per_hour=200,
         system_prompt="You are the QA Agent. Run tests, validate coverage gates, and report findings.",
     ),
     "browser-test": AgentProfile(
         agent_id="browser-test", domain="browser_test",
-        model="deepseek/deepseek-v4-pro", temperature=0.0, max_tokens=6000,
+        model="nexify_provider/nexify-pro", temperature=0.0, max_tokens=6000,
         reasoning=ReasoningLevel.MEDIUM, tools=["playwright", "browser"],
         risk_limit=0.05, max_parallel_tasks=3, max_api_calls_per_hour=100,
         system_prompt="You are the Browser Test Agent. Run Playwright E2E tests and visual regression.",
     ),
     "governance": AgentProfile(
         agent_id="governance", domain="governance",
-        model="deepseek/deepseek-v4-pro", temperature=0.0, max_tokens=6000,
+        model="nexify_provider/nexify-pro", temperature=0.0, max_tokens=6000,
         reasoning=ReasoningLevel.MEDIUM, tools=["policy_engine", "capability_registry"],
         risk_limit=0.0, max_blast_radius=0, max_parallel_tasks=1,
         system_prompt="You are the Governance Agent. Enforce policies, validate blast radius, approve or reject changes.",
@@ -1451,7 +1451,7 @@ class LiveAgentRuntime:
 
         1. retrieve_context() from CognitiveStore
         2. Build tool-augmented prompt with AgentProfile
-        3. Route through Vercel AI Bridge → DeepSeek
+        3. Route through Vercel AI Bridge → NeXify AI
         4. Execute any tool calls through MCPToolRouter
         5. Register produced artifacts
         6. Return structured result
@@ -1475,7 +1475,7 @@ class LiveAgentRuntime:
             "temperature": profile.temperature,
             "tools_available": profile.tools,
             "status": "executed",
-            "note": "Routed through LiveAgentRuntime → VercelAIBridge → DeepSeek",
+            "note": "Routed through LiveAgentRuntime → VercelAIBridge → NeXify AI",
         }
 
         # 3. Record a demo artifact to show the real flow works

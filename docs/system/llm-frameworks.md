@@ -2,8 +2,8 @@
 
 ## Aktueller Stack
 - **Primary:** Hermes Agent (Container, CLI-first)
-- **LLM Provider:** OpenRouter (deepseek-v4-pro / deepseek-v4-flash)
-- **Fallback:** DeepSeek Direct API
+- **LLM Provider:** OpenRouter (nexify-v4-pro / nexify-v4-flash)
+- **Fallback:** NeXify Direct API
 
 ## Evaluierte Frameworks
 
@@ -23,9 +23,9 @@
 
 ### OpenRouter (Current)
 - **Status:** ✅ Aktiv
-- **Anbieter:** deepseek-v4-pro (primär), deepseek-v4-flash (Subagenten/Cron)
+- **Anbieter:** nexify-v4-pro (primär), nexify-v4-flash (Subagenten/Cron)
 - **Kosten:** $1.40/M input (pro), $0.14/M input (flash)
-- **Fallback:** DeepSeek Direct API bei OpenRouter-Ausfall
+- **Fallback:** NeXify Direct API bei OpenRouter-Ausfall
 
 ### Supabase Edge Functions + LLM
 - **Status:** 🔜 Vorgemerkt

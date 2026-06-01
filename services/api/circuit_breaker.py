@@ -1,7 +1,7 @@
 """Circuit Breaker — prevent cascading failures on external API calls.
 
 Tracks failure rates per service. Opens (trips) when threshold exceeded.
-Supports: Cambo 9Router, Supabase, OpenRouter, NScale, external HTTP.
+Supports: Cambo 9Router, Supabase, OpenRouter, NeXify, external HTTP.
 Uses Redis for distributed state, in-memory fallback for local mode.
 """
 

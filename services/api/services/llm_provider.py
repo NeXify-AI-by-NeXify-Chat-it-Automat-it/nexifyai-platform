@@ -7,7 +7,7 @@ DEPRECATED: Wird durch services/langchain_config.py ersetzt.
 
 """
 NeXifyAI — LLM Provider Abstraction Layer
-OpenRouter (DeepSeek V4 Flash) = Primary. Emergent GPT = Fallback.
+OpenRouter (NeXify AI V4 Flash) = Primary. Emergent GPT = Fallback.
 """
 import os
 import time
@@ -62,23 +62,23 @@ class LLMProvider:
 
 
 # ══════════════════════════════════════════
-# OPENROUTER — PRIMÄRER PROVIDER (DeepSeek V4 Flash)
+# OPENROUTER — PRIMÄRER PROVIDER (NeXify AI V4 Flash)
 # ══════════════════════════════════════════
 
 class OpenRouterProvider(LLMProvider):
     """
-    PRIMÄRER Provider: OpenRouter (DeepSeek V4 Flash).
+    PRIMÄRER Provider: OpenRouter (NeXify AI V4 Flash).
     OpenAI-kompatible API mit Retry-Logik und Audit-Trail.
     """
 
     MODELS = {
-        "deepseek/deepseek-v4-flash": "DeepSeek V4 Flash (Standard)",
+        "nexify_provider/nexify-flash": "NeXify AI V4 Flash (Standard)",
     }
 
     def __init__(self):
         self._api_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
         self._base_url = os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
-        self._default_model = os.environ.get("OPENROUTER_MODEL", "deepseek/deepseek-v4-flash")
+        self._default_model = os.environ.get("OPENROUTER_MODEL", "nexify_provider/nexify-flash")
         self._sessions: Dict[str, list] = {}
         self._metrics = {"calls": 0, "errors": 0, "total_latency_ms": 0}
         self._max_retries = 3
@@ -355,24 +355,24 @@ class EmergentGPTProvider(LLMProvider):
 
 
 # ══════════════════════════════════════════
-# DEEPSEEK DIRECT — PRIMÄRER PROVIDER (Bot Fleet)
+# NeXify AI DIRECT — PRIMÄRER PROVIDER (Bot Fleet)
 # ══════════════════════════════════════════
 
-class DeepSeekDirectProvider(LLMProvider):
+class NeXify AIDirectProvider(LLMProvider):
     """
-    PRIMÄRER Provider: DeepSeek Direct API.
+    PRIMÄRER Provider: NeXify AI Direct API.
     OpenAI-kompatible API, dedizierter API-Key.
     Identische Schnittstelle wie OpenRouterProvider.
     """
 
     MODELS = {
-        "deepseek-chat": "DeepSeek Chat (Standard, 1M Kontext)",
+        "nexify_provider-chat": "NeXify AI Chat (Standard, 1M Kontext)",
     }
 
     def __init__(self):
-        self._api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
-        self._base_url = "https://api.deepseek.com/v1"
-        self._default_model = "deepseek-chat"
+        self._api_key = os.environ.get("NeXify AI_API_KEY", "").strip()
+        self._base_url = "https://api.nexify_provider.com/v1"
+        self._default_model = "nexify_provider-chat"
         self._sessions: Dict[str, list] = {}
         self._metrics = {"calls": 0, "errors": 0, "total_latency_ms": 0}
         self._max_retries = 3
@@ -408,13 +408,13 @@ class DeepSeekDirectProvider(LLMProvider):
 
                     if response.status_code == 429:
                         retry_after = float(response.headers.get("retry-after", self._retry_base_delay * (2 ** attempt)))
-                        logger.warning(f"DeepSeek rate-limited (429), retry in {retry_after}s (attempt {attempt+1}/{self._max_retries})")
+                        logger.warning(f"NeXify AI rate-limited (429), retry in {retry_after}s (attempt {attempt+1}/{self._max_retries})")
                         import asyncio
                         await asyncio.sleep(retry_after)
                         continue
 
                     if response.status_code >= 500:
-                        logger.warning(f"DeepSeek server error {response.status_code}, retry (attempt {attempt+1}/{self._max_retries})")
+                        logger.warning(f"NeXify AI server error {response.status_code}, retry (attempt {attempt+1}/{self._max_retries})")
                         import asyncio
                         await asyncio.sleep(self._retry_base_delay * (2 ** attempt))
                         continue
@@ -424,7 +424,7 @@ class DeepSeekDirectProvider(LLMProvider):
                     choices = data.get("choices")
                     if not choices:
                         self._metrics["errors"] += 1
-                        logger.error(f"DeepSeek API response ohne 'choices'-Feld: code={response.status_code}, body={response.text[:500]}")
+                        logger.error(f"NeXify AI API response ohne 'choices'-Feld: code={response.status_code}, body={response.text[:500]}")
                         import asyncio
                         await asyncio.sleep(self._retry_base_delay * (2 ** attempt))
                         last_error = f"API ohne 'choices': {response.text[:80]}"
@@ -433,36 +433,36 @@ class DeepSeekDirectProvider(LLMProvider):
                     content = msg_obj.get("content")
                     if not content:
                         content = msg_obj.get("reasoning") or ""
-                    logger.info(f"DeepSeek OK — model={target_model}, latency={latency}ms, tokens_used={data.get('usage', {}).get('total_tokens', '?')}")
+                    logger.info(f"NeXify AI OK — model={target_model}, latency={latency}ms, tokens_used={data.get('usage', {}).get('total_tokens', '?')}")
                     return content or ""
 
             except httpx.TimeoutException:
                 latency = int((time.monotonic() - start) * 1000)
                 self._metrics["errors"] += 1
                 last_error = f"Timeout nach {latency}ms"
-                logger.warning(f"DeepSeek timeout (attempt {attempt+1}/{self._max_retries})")
+                logger.warning(f"NeXify AI timeout (attempt {attempt+1}/{self._max_retries})")
                 import asyncio
                 await asyncio.sleep(self._retry_base_delay * (2 ** attempt))
             except httpx.HTTPStatusError as e:
                 self._metrics["errors"] += 1
                 last_error = f"HTTP {e.response.status_code}"
-                logger.error(f"DeepSeek HTTP error: {e.response.status_code} — {e.response.text[:200]}")
+                logger.error(f"NeXify AI HTTP error: {e.response.status_code} — {e.response.text[:200]}")
                 if e.response.status_code in (401, 403):
-                    return "[DeepSeek Auth-Fehler: API-Key ungültig oder gesperrt]"
+                    return "[NeXify AI Auth-Fehler: API-Key ungültig oder gesperrt]"
                 break
             except Exception as e:
                 self._metrics["errors"] += 1
                 last_error = str(e)[:100]
-                logger.error(f"DeepSeek connection error: {e}")
+                logger.error(f"NeXify AI connection error: {e}")
                 import asyncio
                 await asyncio.sleep(self._retry_base_delay * (2 ** attempt))
 
         self._metrics["errors"] += 1
-        return f"[DeepSeek nicht erreichbar nach {self._max_retries} Versuchen: {last_error}]"
+        return f"[NeXify AI nicht erreichbar nach {self._max_retries} Versuchen: {last_error}]"
 
     async def chat(self, messages, system_prompt="", temperature=0.7, max_tokens=2048, model=None):
         if not self._api_key:
-            return "[DeepSeek nicht konfiguriert]"
+            return "[NeXify AI nicht konfiguriert]"
         api_messages = []
         if system_prompt:
             api_messages.append({"role": "system", "content": system_prompt})
@@ -471,7 +471,7 @@ class DeepSeekDirectProvider(LLMProvider):
 
     async def chat_with_history(self, session_id, user_message, system_prompt="", temperature=0.7, model=None):
         if not self._api_key:
-            return "[DeepSeek nicht konfiguriert]"
+            return "[NeXify AI nicht konfiguriert]"
         if session_id not in self._sessions:
             self._sessions[session_id] = []
             if system_prompt:
@@ -486,7 +486,7 @@ class DeepSeekDirectProvider(LLMProvider):
         return result
 
     def get_provider_name(self):
-        return "deepseek_direct"
+        return "nexify_provider_direct"
 
     def clear_session(self, session_id):
         self._sessions.pop(session_id, None)
@@ -634,17 +634,17 @@ def create_llm_provider() -> LLMProvider:
             return CamboProvider()
         logger.info("LLM-Provider: Cambo available but overridden by LLM_PROVIDER=%s", provider_name)
 
-    if provider_name == "deepseek_direct":
-        logger.info("LLM-Provider: DeepSeek Direct API (PRIMÄR — Bot Fleet)")
-        return DeepSeekDirectProvider()
+    if provider_name == "nexify_provider_direct":
+        logger.info("LLM-Provider: NeXify AI Direct API (PRIMÄR — Bot Fleet)")
+        return NeXify AIDirectProvider()
 
-    if provider_name in ("openrouter", "deepseek") and openrouter_key:
-        logger.info("LLM-Provider: OpenRouter/DeepSeek V4 Flash (LEGACY)")
+    if provider_name in ("openrouter", "nexify_provider") and openrouter_key:
+        logger.info("LLM-Provider: OpenRouter/NeXify AI V4 Flash (LEGACY)")
         return OpenRouterProvider()
 
     if provider_name == "auto":
         if openrouter_key:
-            logger.info("LLM-Provider: OpenRouter/DeepSeek V4 Flash (LEGACY — Cambo key not set)")
+            logger.info("LLM-Provider: OpenRouter/NeXify AI V4 Flash (LEGACY — Cambo key not set)")
             return OpenRouterProvider()
         if emergent_key:
             logger.info("LLM-Provider: Emergent GPT (FALLBACK)")
@@ -684,7 +684,7 @@ def get_provider_status(provider: LLMProvider) -> dict:
         "migration_ready": openrouter_key,
         "env_config": {
             "LLM_PROVIDER": os.environ.get("LLM_PROVIDER", "auto"),
-            "OPENROUTER_MODEL": os.environ.get("OPENROUTER_MODEL", "deepseek/deepseek-v4-flash"),
+            "OPENROUTER_MODEL": os.environ.get("OPENROUTER_MODEL", "nexify_provider/nexify-flash"),
         },
     }
 

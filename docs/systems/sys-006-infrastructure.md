@@ -17,7 +17,7 @@ INTERNET → Cloudflare (DNS, SSL) → VPS (mail.nexifyai.cloud)
     │
     ├── Backend (systemd, :8001)
     │   ├── FastAPI + Uvicorn
-    │   ├── OpenRouter (DeepSeek v4 Pro)
+    │   ├── OpenRouter (NeXify v4 Pro)
     │   ├── MongoDB (connected)
     │   └── MCP Router (/mcp/rpc)
     │

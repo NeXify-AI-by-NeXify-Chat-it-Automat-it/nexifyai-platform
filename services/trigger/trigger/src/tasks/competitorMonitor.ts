@@ -81,7 +81,7 @@ export const competitorMonitorTask = task({
       // Analyze changes
       if (allSources.length > 0) {
         const analysis = await generateText({
-          model: openai("deepseek/deepseek-v4-flash"),
+          model: openai("nexify/nexify-v4-flash"),
           prompt: `Analysiere die neuesten Aktivitäten von ${comp.name} (${comp.url}):
 
 ${allSources.map((s, i) => `[${i + 1}] ${s.title}\n${s.summary}\n`).join("\n")}
@@ -114,7 +114,7 @@ Erstelle auf ${language === "de" ? "Deutsch" : "English"}:
     metadata.set("progress", 90);
 
     const overallSummary = await generateText({
-      model: openai("deepseek/deepseek-v4-flash"),
+      model: openai("nexify/nexify-v4-flash"),
       prompt: `Erstelle einen Gesamt-Wettbewerbsbericht (${language === "de" ? "Deutsch" : "English"}):
 
 ${results.map((r) => `## ${r.competitor}\n${r.analysis}\n`).join("\n")}

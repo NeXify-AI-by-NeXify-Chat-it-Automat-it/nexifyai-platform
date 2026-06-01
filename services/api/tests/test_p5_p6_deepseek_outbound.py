@@ -1,7 +1,7 @@
 """
-P5+P6 Test Suite: DeepSeek Live-Pfad + Outbound Lead Machine
+P5+P6 Test Suite: NeXify AI Live-Pfad + Outbound Lead Machine
 
-P5: DeepSeek als realer Provider mit ENV-basierter Umschaltung, Provider-Status, Test-Endpoint
+P5: NeXify AI als realer Provider mit ENV-basierter Umschaltung, Provider-Status, Test-Endpoint
 P6: Vollständige Outbound-Pipeline: Discovery → Vorqualifizierung → Analyse → Legal Gate → 
     Personalisierte Erstansprache → Follow-up → Antwort-Erfassung → Handover (Angebot/Termin/Nurture)
 
@@ -27,8 +27,8 @@ ADMIN_EMAIL = "p.courbois@icloud.com"
 ADMIN_PASSWORD = "NxAi#Secure2026!"
 
 
-class TestP5DeepSeekLLMProvider:
-    """P5: DeepSeek Live-Pfad Tests"""
+class TestP5NeXify AILLMProvider:
+    """P5: NeXify AI Live-Pfad Tests"""
     
     @pytest.fixture(autouse=True)
     def setup(self, auth_token):
@@ -50,13 +50,13 @@ class TestP5DeepSeekLLMProvider:
         
         # Verify provider structure
         providers = data["providers"]
-        assert "deepseek" in providers, "Missing deepseek provider info"
+        assert "nexify_provider" in providers, "Missing nexify_provider provider info"
         assert "emergent_gpt52" in providers, "Missing emergent_gpt52 provider info"
         
-        # Verify deepseek provider details
-        deepseek = providers["deepseek"]
-        assert "status" in deepseek, "Missing deepseek status"
-        assert "api_key_set" in deepseek, "Missing deepseek api_key_set"
+        # Verify nexify_provider provider details
+        nexify_provider = providers["nexify_provider"]
+        assert "status" in nexify_provider, "Missing nexify_provider status"
+        assert "api_key_set" in nexify_provider, "Missing nexify_provider api_key_set"
         
         # Verify emergent provider details
         emergent = providers["emergent_gpt52"]
@@ -64,7 +64,7 @@ class TestP5DeepSeekLLMProvider:
         assert "api_key_set" in emergent, "Missing emergent api_key_set"
         
         print(f"✅ LLM Status: active_provider={data['active_provider']}, migration_ready={data['migration_ready']}")
-        print(f"   DeepSeek: {deepseek['status']}, Emergent: {emergent['status']}")
+        print(f"   NeXify AI: {nexify_provider['status']}, Emergent: {emergent['status']}")
     
     def test_llm_status_requires_auth(self):
         """LLM status endpoint requires authentication"""

@@ -13,7 +13,7 @@ NeXifyAI betreibt multiple KI-Agenten (Orchestrator, Sub-Agenten, Cron-Jobs, Bra
 
 KI-Agenten müssen:
 - Wissen konsistent im Brain persistieren
-- Modellkosten kontrollieren (DeepSeek vs. Claude vs. GPT)
+- Modellkosten kontrollieren (NeXify vs. Claude vs. GPT)
 - Memory-Write-Policies einhalten (Attributed, Corroborated, Governed)
 - Sub-Agent-Isolation gewährleisten (kein Cross-Kunden-Zugriff)
 
