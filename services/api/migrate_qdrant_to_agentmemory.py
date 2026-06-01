@@ -6,7 +6,7 @@ Qdrant bleibt als Archiv erhalten.
 
 Usage: python3 migrate_qdrant_to_agentmemory.py
 """
-import json, logging, time, sys
+import json, logging, time
 from datetime import datetime, timezone
 import requests
 import agentmemory
