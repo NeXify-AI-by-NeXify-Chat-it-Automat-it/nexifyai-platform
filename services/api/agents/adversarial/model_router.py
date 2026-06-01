@@ -1,6 +1,6 @@
 """
 NeXifyAI Model Router — adapted from adversarial-spec models.py.
-Routes to DeepSeek v3/v4 (OpenRouter) and Nscale models.
+Routes to NeXify AI v3/v4 (OpenRouter) and NeXify models.
 Uses Data Vault credentials (DS_ env vars) — never raw keys.
 """
 import os, time, logging
@@ -12,65 +12,65 @@ logger = logging.getLogger("adversarial.model_router")
 
 # ── Provider configs (all from Data Vault) ──
 PROVIDER_CONFIGS = {
-    "deepseek-v3": {
-        "api_key_env": "DS_DEEPSEEK_600C3ECB__API_KEY",
+    "nexify_provider-v3": {
+        "api_key_env": "DS_NeXify AI_600C3ECB__API_KEY",
         "base_url_env": None,
-        "model_id": "deepseek-chat",
+        "model_id": "nexify_provider-chat",
         "cost_per_1m_input": 0.14,
         "cost_per_1m_output": 0.28,
     },
-    "deepseek-v4-pro": {
-        "api_key_env": "DS_DEEPSEEK_D7D70D9A__API_KEY",
-        "base_url_env": "DS_DEEPSEEK_D7D70D9A__BASE_URL",
-        "model_id": "deepseek-v4-pro",
+    "nexify-pro": {
+        "api_key_env": "DS_NeXify AI_D7D70D9A__API_KEY",
+        "base_url_env": "DS_NeXify AI_D7D70D9A__BASE_URL",
+        "model_id": "nexify-pro",
         "cost_per_1m_input": 0.50,
         "cost_per_1m_output": 2.00,
     },
-    "nscale-qwen3-32b": {
-        "api_key_env": "DS_NSCALE_EF975EBE__API_KEY",
-        "base_url_env": "DS_NSCALE_EF975EBE__BASE_URL",
+    "NeXify-qwen3-32b": {
+        "api_key_env": "DS_NeXify_EF975EBE__API_KEY",
+        "base_url_env": "DS_NeXify_EF975EBE__BASE_URL",
         "model_id": "qwen3-32b",
         "cost_per_1m_input": 0.80,
         "cost_per_1m_output": 0.80,
     },
-    "nscale-qwen3-14b": {
-        "api_key_env": "DS_NSCALE_EF975EBE__API_KEY",
-        "base_url_env": "DS_NSCALE_EF975EBE__BASE_URL",
+    "NeXify-qwen3-14b": {
+        "api_key_env": "DS_NeXify_EF975EBE__API_KEY",
+        "base_url_env": "DS_NeXify_EF975EBE__BASE_URL",
         "model_id": "qwen3-14b",
         "cost_per_1m_input": 0.40,
         "cost_per_1m_output": 0.40,
     },
-    "nscale-qwen-coder-32b": {
-        "api_key_env": "DS_NSCALE_EF975EBE__API_KEY",
-        "base_url_env": "DS_NSCALE_EF975EBE__BASE_URL",
+    "NeXify-qwen-coder-32b": {
+        "api_key_env": "DS_NeXify_EF975EBE__API_KEY",
+        "base_url_env": "DS_NeXify_EF975EBE__BASE_URL",
         "model_id": "qwen2.5-coder-32b",
         "cost_per_1m_input": 0.80,
         "cost_per_1m_output": 0.80,
     },
-    "nscale-qwq-32b": {
-        "api_key_env": "DS_NSCALE_EF975EBE__API_KEY",
-        "base_url_env": "DS_NSCALE_EF975EBE__BASE_URL",
+    "NeXify-qwq-32b": {
+        "api_key_env": "DS_NeXify_EF975EBE__API_KEY",
+        "base_url_env": "DS_NeXify_EF975EBE__BASE_URL",
         "model_id": "qwq-32b",
         "cost_per_1m_input": 0.80,
         "cost_per_1m_output": 0.80,
     },
-    "openrouter-deepseek-v4-pro": {
+    "openrouter-nexify-pro": {
         "api_key_env": "DS_OPENROUTER_58984AC0__API_KEY",
         "base_url_env": "DS_OPENROUTER_58984AC0__BASE_URL",
-        "model_id": "deepseek/deepseek-v4-pro",
+        "model_id": "nexify_provider/nexify-pro",
         "cost_per_1m_input": 2.50,
         "cost_per_1m_output": 10.00,
     },
 }
 
 MODEL_ALIASES = {
-    "v3": "deepseek-v3",
-    "v4": "deepseek-v4-pro",
-    "qwen32": "nscale-qwen3-32b",
-    "qwen14": "nscale-qwen3-14b",
-    "coder": "nscale-qwen-coder-32b",
-    "qwq": "nscale-qwq-32b",
-    "openrouter": "openrouter-deepseek-v4-pro",
+    "v3": "nexify_provider-v3",
+    "v4": "nexify-pro",
+    "qwen32": "NeXify-qwen3-32b",
+    "qwen14": "NeXify-qwen3-14b",
+    "coder": "NeXify-qwen-coder-32b",
+    "qwq": "NeXify-qwq-32b",
+    "openrouter": "openrouter-nexify-pro",
 }
 
 @dataclass
@@ -110,8 +110,8 @@ def resolve_model(model_name: str) -> dict:
             config = dict(PROVIDER_CONFIGS[provider])
             config["model_id"] = model
             return config
-    logger.warning(f"Unknown model: {model_name}, falling back to deepseek-v3")
-    return PROVIDER_CONFIGS["deepseek-v3"]
+    logger.warning(f"Unknown model: {model_name}, falling back to nexify_provider-v3")
+    return PROVIDER_CONFIGS["nexify_provider-v3"]
 
 def get_api_key(config: dict) -> str:
     """Get API key from environment (Data Vault)."""

@@ -7,7 +7,7 @@
 
 ## Kontext
 
-Die NeXifyAI-Plattform betreibt eine Multi-Service-Architektur mit zahlreichen externen API-Integrationen (DeepSeek, OpenRouter, MindsDB, Qdrant, Resend etc.) sowie internen Infrastruktur-Komponenten (Supabase, Redis, Traefik, Loki, Grafana). Jeder dieser Services benötigt Credentials (API-Keys, Passwörter, Tokens, JWT-Secrets), die sicher gespeichert und verwaltet werden müssen.
+Die NeXifyAI-Plattform betreibt eine Multi-Service-Architektur mit zahlreichen externen API-Integrationen (NeXify, OpenRouter, MindsDB, Qdrant, Resend etc.) sowie internen Infrastruktur-Komponenten (Supabase, Redis, Traefik, Loki, Grafana). Jeder dieser Services benötigt Credentials (API-Keys, Passwörter, Tokens, JWT-Secrets), die sicher gespeichert und verwaltet werden müssen.
 
 Die aktuelle Situation (vor dieser Implementierung) war:
 
@@ -88,7 +88,7 @@ Die Implementierung umfasst:
 
 ### Tabellen (public Schema)
 - `service_categories` — Kategorisierung (LLM, Database, Infrastruktur etc.)
-- `services` — Konkrete Dienste (DeepSeek, Supabase, Redis etc.)
+- `services` — Konkrete Dienste (NeXify, Supabase, Redis etc.)
 - `secrets_vault` — Verschlüsselte Credentials (auto-encrypted via Trigger)
 - `customer_projects` — Kundenprojekte für Cost-Tracking
 - `project_services` — Projekt-Service-Zuordnung
@@ -151,7 +151,7 @@ Die Implementierung umfasst:
 | Datei | Beschreibung |
 |---|---|
 | `supabase/migrations/020_secrets_vault_complete.sql` | Konsolidierte Roll-Up Migration (Tabellen, Funktionen, Trigger, RLS, Views) |
-| `supabase/migrations/021_seed_service_catalog.sql` | Seed der Standard-Services (DeepSeek, Supabase, Redis etc.) |
+| `supabase/migrations/021_seed_service_catalog.sql` | Seed der Standard-Services (NeXify, Supabase, Redis etc.) |
 | `scripts/generate_vault_key.sh` | Master-Key Generator (512 Bit, Base64/Hex/Raw) |
 
 ### Setup-Schritte

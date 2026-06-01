@@ -19,13 +19,13 @@ C4Context
   Person(agent, "KI‑Agent", "Nutzt DB‑gestützte Funktionen")
   System(portal, "Admin‑Portal", "React SPA")
   System(brain, "Brain API", "Wissens‑System")
-  System(9router, "9Router Gateway", "AI‑Provider Gateway")
+  System(openrouter, "OpenRouter (direct) Gateway", "AI‑Provider Gateway")
   System_Ext(supabase, "Supabase", "PostgreSQL + GoTrue + Storage + Realtime")
   Rel(admin, portal, "Verwaltet Schema", "HTTPS")
   Rel(portal, supabase, "SQL/REST", "RLS")
   Rel(agent, brain, "Queries", "HTTPS")
   Rel(brain, supabase, "Metadaten‑CRUD", "SQL")
-  Rel(9router, supabase, "User‑Info", "REST")
+  Rel(openrouter, supabase, "User‑Info", "REST")
 ```
 
 ### C4‑Container

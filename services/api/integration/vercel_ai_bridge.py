@@ -2,11 +2,11 @@
 NeXifyAI — Vercel AI SDK Bridge (R9.1)
 Standardizes LLM calls via generateObject / streamText / tool() patterns.
 
-Bridges Python runtime → Vercel AI SDK semantics → OpenRouter (DeepSeek).
+Bridges Python runtime → Vercel AI SDK semantics → OpenRouter (NeXify AI).
 Every LLM call in the system flows through this bridge. No free-text generation.
 
 Protocol: OpenAI-compatible chat completions (Vercel AI SDK uses this internally).
-Provider: DeepSeek via OpenRouter (model-policy enforced).
+Provider: NeXify AI via OpenRouter (model-policy enforced).
 """
 import json
 import os
@@ -23,8 +23,8 @@ import httpx
 # ──────────────────────────────────────────────────
 
 OPENROUTER_BASE_URL = "https://ai-router.nexifyai.cloud/v1"
-PLANNING_MODEL = "deepseek/deepseek-v4-flash"
-EXECUTION_MODEL = "deepseek/deepseek-v4-pro"
+PLANNING_MODEL = "nexify_provider/nexify-flash"
+EXECUTION_MODEL = "nexify_provider/nexify-pro"
 
 # ──────────────────────────────────────────────────
 # Core Types
@@ -112,7 +112,7 @@ class VercelAIBridge:
     generateObject() → structured JSON output with schema validation
     streamText()    → async streaming text generation
 
-    All calls flow through OpenRouter → DeepSeek (model-policy enforced).
+    All calls flow through OpenRouter → NeXify AI (model-policy enforced).
 
     Usage:
         bridge = VercelAIBridge()

@@ -1,3 +1,5 @@
+# SUPERSEDED — 9Router removed 29.05.2026 — direct OpenRouter
+
 # ADR-102: 9Router Auth-Flow
 
 **Status:** proposed

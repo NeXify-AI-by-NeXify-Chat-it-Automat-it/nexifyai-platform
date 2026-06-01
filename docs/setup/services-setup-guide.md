@@ -13,9 +13,9 @@
 
 | Service | Port | Compose file | Auth | External? |
 |---------|------|-------------|------|-----------|
-| 9Router | 127.0.0.1:20128 | `/docker/9router-5afd/docker-compose.yml` | JWT | ai-router.nexifyai.cloud |
+| OpenRouter (direct) | 127.0.0.1:20128 | `/docker/openrouter-5afd/docker-compose.yml` | JWT | ai-router.nexifyai.cloud |
 | Qdrant | 127.0.0.1:6333 | `/root/sicher-repo/infrastructure/docker/docker-compose.yml` | — | ❌ |
-| Redis (9router) | 6379 | bundled with 9router | — | ❌ |
+| Redis (openrouter) | 6379 | bundled with openrouter | — | ❌ |
 | Redis (cache) | 6380 | `/root/sicher-repo/infrastructure/docker/docker-compose.yml` | — | ❌ |
 | Traefik | 80, 443, 8080 | `/docker/traefik/` | Basic-Auth (dash) | *.nexifyai.cloud |
 | Admin Portal | 80 (internal) | `/root/nexifyai-admin/docker-compose.yml` | API‑Key | ❌ |
@@ -41,12 +41,12 @@ docker compose -f /root/sicher-repo/infrastructure/docker/docker-compose.yml up 
 ```
 Starts Qdrant, Redis cache, API service.
 
-### 3. 9Router
+### 3. OpenRouter (direct)
 ```bash
-cd /docker/9router-5afd
+cd /docker/openrouter-5afd
 docker compose up -d
 ```
-Verify: `curl http://localhost:20128/api/health` → `{"ok":true}`
+Verify: `curl https://openrouter.ai/api/v1/api/health` → `{"ok":true}`
 
 ### 4. Traefik
 ```bash
@@ -83,7 +83,7 @@ Check: `systemctl status cloudflared`
 # Quick smoke test
 curl -s http://localhost:8002/api/v1/health
 curl -s http://localhost:8420/health
-curl -s http://localhost:20128/api/health
+curl -s https://openrouter.ai/api/v1/api/health
 curl -s http://localhost:6333/collections
 ```
 
@@ -93,7 +93,7 @@ Full automated health: `/root/scripts/e2e-verify.sh` (planned).
 
 | Symptom | Likely cause | Fix |
 |---------|-------------|-----|
-| 9Router `/api/providers` → 401 | JWT not configured | Set `JWT_SECRET` in credentials.env, restart container |
+| OpenRouter (direct) `/api/providers` → 401 | JWT not configured | Set `JWT_SECRET` in credentials.env, restart container |
 | Brain `/system/status` → 404 | Route not implemented yet | See ADR-027 |
 | Supabase service_role rejected | Misconfigured RLS or key expired | Re‑generate API keys in Supabase dashboard |
 | Traefik dashboard reachable without auth | `20-dashboard.yml` not loaded | Check dynamic config mount, restart Traefik |
@@ -102,7 +102,7 @@ Full automated health: `/root/scripts/e2e-verify.sh` (planned).
 ## Shutdown (graceful)
 ```bash
 systemctl stop cloudflared
-docker compose -f /docker/9router-5afd/docker-compose.yml down
+docker compose -f /docker/openrouter-5afd/docker-compose.yml down
 docker compose -f /root/sicher-repo/infrastructure/docker/docker-compose.yml down
 docker compose -f /root/nexifyai-admin/docker-compose.yml down
 docker compose -f /root/observability/docker-compose.yml down

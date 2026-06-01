@@ -5,7 +5,7 @@
 
 ## Kontext
 Die Agenten-Infrastruktur umfasst ~5.000 Zeilen Custom-Code:
-- Custom LLM-Provider (687 Zeilen) für OpenRouter, DeepSeek, EmergentGPT
+- Custom LLM-Provider (687 Zeilen) für OpenRouter, NeXify, EmergentGPT
 - Custom Model-Router (292 Zeilen) mit Circuit-Breaker, Fallback-Chain
 - Custom Agent Executor (537 Zeilen) mit OODA-Loop
 - Custom Agent Mesh (676 Zeilen) mit Peer-to-Peer-Netzwerk
@@ -52,7 +52,7 @@ Wir ersetzen die gesamte Custom-Agent-Infrastruktur durch LangChain 0.3+ und Lan
 |---|---|---|---|---|
 | `llm_provider.py` | 687 | `ChatOpenAI` / `ChatAnthropic` + `with_fallbacks()` | ~30 | ~96% |
 | `model_router.py` | 292 | `RunnableLambda` + `RunnableBranch` | ~50 | ~83% |
-| `deepseek_provider.py` | 102 | `ChatOpenAI(api_base=..., model=...)` | ~1 | ~99% |
+| `nexify_provider.py` | 102 | `ChatOpenAI(api_base=..., model=...)` | ~1 | ~99% |
 | `brain_api.py` | 243 | `QdrantVectorStore` + `HuggingFaceEmbeddings` | ~30 | ~88% |
 | `supabase_client.py` | 229 | `SQLDatabase` + `PostgresChatMessageHistory` | ~80 | ~65% |
 | `base_agent.py` | 118 | `create_react_agent()` | ~0 | 100% |
@@ -72,7 +72,7 @@ Wir ersetzen die gesamte Custom-Agent-Infrastruktur durch LangChain 0.3+ und Lan
 
 ### Provider-Strategie
 ```
-Primary:   LangChain ChatOpenAI → openrouter.ai (DeepSeek V4)
+Primary:   LangChain ChatOpenAI → openrouter.ai (NeXify V4)
 Fallback:  LangChain ChatOpenAI → emergent-gpt (GPT-4o-mini)
 Secondary: LangChain ChatAnthropic → Claude (für komplexe Reasoning-Aufgaben)
 ```

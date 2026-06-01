@@ -158,7 +158,7 @@ class ServiceRegistry:
                 dependencies=["brain", "openrouter"],
             ),
             ServiceNode("openrouter", "OpenRouter API",
-                "LLM API gateway (DeepSeek)",
+                "LLM API gateway (NeXify)",
                 endpoints=[
                     ServiceEndpoint("openrouter-api", url="https://openrouter.ai/api/v1",
                                    check_path="/models", check_type=CheckType.HTTP, tags=["ai", "critical"]),
