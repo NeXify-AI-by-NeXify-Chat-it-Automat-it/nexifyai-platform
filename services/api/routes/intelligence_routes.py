@@ -173,7 +173,7 @@ async def contract_risk_endpoint(
     from services.nutrient_service import contract_risk_score, is_configured
 
     if not is_configured():
-        # Fallback: Nur mit DeepSeek analysieren (ohne Nutrient-Extraktion)
+        # Fallback: Nur mit NeXify AI analysieren (ohne Nutrient-Extraktion)
         import tempfile
         suffix = os.path.splitext(file.filename)[1] if file.filename else ".pdf"
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
@@ -187,7 +187,7 @@ async def contract_risk_endpoint(
             if len(text_content.strip()) < 100:
                 return {"success": False, "error": "NUTRIENT_API_KEY nicht konfiguriert und Dokument ist nicht textbasiert."}
 
-            from services import deepseek_provider as openrouter_llm
+            from services import nexify_provider_provider as openrouter_llm
             scoring = await openrouter_llm.chat_completion(
                 messages=[
                     {"role": "system", "content": "Du bist ein Vertrags-Risikobewertungs-Experte. Analysiere und bewerte den Vertrag. Antwort als JSON: {\"score\": N, \"risks\": [...], \"missing\": [...], \"recommendations\": [...]}"},

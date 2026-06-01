@@ -31,7 +31,7 @@ export const generateAndTranslateCopyTask = task({
     metadata.set("progress", 10);
 
     const generated = await generateText({
-      model: openai("deepseek/deepseek-v4-flash"),
+      model: openai("nexify/nexify-v4-flash"),
       prompt: `Erstelle professionellen Marketing-Copy auf Deutsch.
 Brief: ${brief}
 Tonalität: ${tone}
@@ -44,7 +44,7 @@ Erstelle: Headline, Subheadline, Body-Text, Call-to-Action.`,
     metadata.set("progress", 40);
 
     const validation = await generateObject({
-      model: openai("deepseek/deepseek-v4-flash"),
+      model: openai("nexify/nexify-v4-flash"),
       schema: ValidationSchema,
       prompt: `Bewerte diesen Marketing-Copy:
 "${generated.text}"
@@ -62,7 +62,7 @@ Bewerte: Qualität (1-10), Probleme, Verbesserungsvorschläge.`,
       metadata.set("progress", 55);
 
       const improved = await generateText({
-        model: openai("deepseek/deepseek-v4-flash"),
+        model: openai("nexify/nexify-v4-flash"),
         prompt: `Verbessere diesen Marketing-Copy basierend auf dem Feedback:
 Original: "${generated.text}"
 Feedback: ${validation.object.suggestions.join(", ")}
@@ -81,7 +81,7 @@ Behalte die Struktur (Headline, Subheadline, Body, CTA) bei.`,
       if (lang === "de") continue;
       const langNames: Record<string, string> = { en: "Englisch", fr: "Französisch", es: "Spanisch", it: "Italienisch" };
       const translated = await generateText({
-        model: openai("deepseek/deepseek-v4-flash"),
+        model: openai("nexify/nexify-v4-flash"),
         prompt: `Übersetze diesen Marketing-Copy nach ${langNames[lang] || lang}. Behalte Tonalität und Wirkung bei:\n"${finalCopy}"`,
       });
       translations[lang] = translated.text;

@@ -14,7 +14,7 @@ graph LR
     Browser --> AdminProxy[Admin API Proxy :8002]
     AdminProxy --> Qdrant[Qdrant :6333]
     AdminProxy --> MindsDB[MindsDB :47334]
-    AdminProxy --> Airouter[9Router :20128]
+    AdminProxy --> Airouter[OpenRouter (direct) :20128]
     AdminProxy --> CRM[Mock → Supabase]
 ```
 
@@ -62,12 +62,12 @@ graph LR
 ```
 
 ### AI Chat – Completion
-**`POST /api/v1/ai/chat`** – Chat completion via 9Router (OpenAI‑compatible).
+**`POST /api/v1/ai/chat`** – Chat completion via OpenRouter (direct) (OpenAI‑compatible).
 
 ```json
 // Request
 {
-  "model": "ds/deepseek-v4-pro",
+  "model": "ds/nexify-v4-pro",
   "messages": [{"role":"user","content":"Hello"}],
   "max_tokens": 2048,
   "temperature": 0.7
@@ -80,7 +80,7 @@ graph LR
   "usage": {"prompt_tokens":10,"completion_tokens":25,"total_tokens":35}
 }
 ```
-**502** when 9Router unreachable.
+**502** when OpenRouter (direct) unreachable.
 
 ### AI Models – List
 **`GET /api/v1/ai/models`** – Static model list (defined in `api_proxy.py`).
@@ -89,10 +89,10 @@ graph LR
 // 200 OK
 {
   "models": [
-    {"id":"ds/deepseek-v4-pro",     "name":"NeXify Pro"},
-    {"id":"ds/deepseek-reasoner",    "name":"NeXify Reasoner"},
-    {"id":"ds/deepseek-v4-flash",    "name":"NeXify Flash"},
-    {"id":"ds/deepseek-v4-pro-max",  "name":"NeXify Ultra"}
+    {"id":"ds/nexify-v4-pro",     "name":"NeXify Pro"},
+    {"id":"ds/nexify-reasoner",    "name":"NeXify Reasoner"},
+    {"id":"ds/nexify-v4-flash",    "name":"NeXify Flash"},
+    {"id":"ds/nexify-v4-pro-max",  "name":"NeXify Ultra"}
   ]
 }
 ```

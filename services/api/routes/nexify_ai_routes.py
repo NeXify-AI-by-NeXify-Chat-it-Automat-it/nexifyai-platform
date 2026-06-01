@@ -1,6 +1,6 @@
 """
 NeXifyAI — NeXify AI Master Chat Routes
-OpenRouter Chat Integration (deepseek/deepseek-v4-pro) + NeXifyAI Brain
+OpenRouter Chat Integration (nexify_provider/nexify-pro) + NeXifyAI Brain
 """
 import os
 import re
@@ -21,10 +21,10 @@ logger = logging.getLogger("nexifyai.nexify_ai")
 
 router = APIRouter(tags=["NeXify AI Master"])
 
-# OpenRouter (PRIMARY) — DeepSeek V4 Pro/Flash (Auto-Select)
+# OpenRouter (PRIMARY) — NeXify AI V4 Pro/Flash (Auto-Select)
 OPENROUTER_API_KEY=os.environ.get("OPENROUTER_API_KEY", "")
 OPENROUTER_BASE_URL = os.environ.get("CAMBRO_BASE_URL", os.environ.get("OPENROUTER_BASE_URL", "https://ai-router.nexifyai.cloud/v1"))
-OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "deepseek/deepseek-v4-pro")
+OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "nexify_provider/nexify-pro")
 OPENROUTER_CHAT_URL = f"{OPENROUTER_BASE_URL}/chat/completions"
 OPENROUTER_HEADERS_EXTRA = {"HTTP-Referer": "https://nexifyai.de", "X-Title": "NeXifyAI"}
 
@@ -36,8 +36,8 @@ try:
     _MODEL_SELECTOR_AVAILABLE = True
 except Exception:
     _MODEL_SELECTOR_AVAILABLE = False
-    MODEL_FLASH = "deepseek/deepseek-v4-flash"
-    MODEL_PRO = "deepseek/deepseek-v4-pro"
+    MODEL_FLASH = "nexify_provider/nexify-flash"
+    MODEL_PRO = "nexify_provider/nexify-pro"
 
 def _resolve_model(user_message: str) -> str:
     """Wählt das optimale Modell für die gegebene Nachricht."""
@@ -52,7 +52,7 @@ def _resolve_model(user_message: str) -> str:
 
 # OpenRouter is the only provider (Arcee+mem0 removed — no longer exist)
 MASTER_LLM = "openrouter"
-logger.info(f"Master LLM: OpenRouter (deepseek/deepseek-v4-pro)")
+logger.info(f"Master LLM: OpenRouter (nexify_provider/nexify-pro)")
 
 SYSTEM_PROMPT = """SYSTEM PROMPT — NeXify AI (Operativer Assistent)
 
@@ -69,13 +69,13 @@ Der eigentliche NeXify AI Master ist **Agent Zero** — ein vollautonomer, selbs
 - Docker: `agent0ai/agent-zero:latest`
 - Deployment: Traefik-Reverse-Proxy mit Let's Encrypt SSL
 - Persistenz: `agent-zero-data:/a0/usr` Volume
-- Agent Zero hat vollständiges Wissen aus allen Quellen geladen (DeepSeek-powered)
+- Agent Zero hat vollständiges Wissen aus allen Quellen geladen (NeXify AI-powered)
 - Agent Zero ist die zentrale Leit-, Koordinations- und Entscheidungsinstanz
 - DIESE Docker-Konfiguration darf NIEMALS geändert werden
 
 ## Hierarchie
 1. Pascal (CEO/Directeur)
-2. Agent Zero (NeXify AI Master) — Externer, autonomer Master mit DeepSeek
+2. Agent Zero (NeXify AI Master) — Externer, autonomer Master mit NeXify AI
 3. NeXify AI (Du) — Operativer Plattform-Assistent
 4. Fachagenten / Spezialagenten / Worker
 
@@ -135,7 +135,7 @@ Die Oracle Engine läuft 24/7. Als Master orchestrierst du:
 | Care | Customer Success | CRM, Support, Kundenbeziehungen, Retention |
 | Rank | SEO/Analytics | SEO, KPIs, Growth, Performance-Analyse |
 
-Alle Sub-Agenten laufen auf OpenRouter (deepseek/deepseek-v4-flash). Du (Master) läufst auf OpenRouter (deepseek/deepseek-v4-flash), mit Arcee AI als Fallback.
+Alle Sub-Agenten laufen auf OpenRouter (nexify_provider/nexify-flash). Du (Master) läufst auf OpenRouter (nexify_provider/nexify-flash), mit Arcee AI als Fallback.
 
 ## Granulares Status-Modell (Zentrale Leitstelle)
 Jeder Task durchläuft diese 13 Status:
@@ -228,8 +228,8 @@ Das System führt das Tool serverseitig aus und gibt dir das Ergebnis automatisc
 - Backend: FastAPI (Port 8001), Python
 - Datenbank: MongoDB (CRM) + Supabase PostgreSQL (Oracle System, Brain, Knowledge, Tasks)
 - Auth: JWT (Admin) + Magic Links (Kunden) + API Keys (extern)
-- LLM Master: OpenRouter (deepseek/deepseek-v4-pro) — Du
-- LLM Fachagenten: OpenRouter (deepseek/deepseek-v4-pro) — Alle Sub-Agenten
+- LLM Master: OpenRouter (nexify_provider/nexify-pro) — Du
+- LLM Fachagenten: OpenRouter (nexify_provider/nexify-pro) — Alle Sub-Agenten
 - Memory: NeXifyAI Brain (brain.db + Qdrant Vector Store, 4096-dim) — Automatic context injection
 - Oracle: Supabase PostgreSQL — 2.624 Tasks, 10.144 Brain-Notes, 156 Knowledge, 33 AI-Agenten
 - Workers: APScheduler (Hintergrund-Jobs)
@@ -629,7 +629,7 @@ GATEWAY_MODEL = "hermes-agent"
 # ──────────────────────────────────────────────
 
 async def _openrouter_chat(body: ChatRequest, admin: dict = None) -> StreamingResponse:
-    """OpenRouter/DeepSeek Chat (public): prefill.md + Historie + mem0."""
+    """OpenRouter/NeXify AI Chat (public): prefill.md + Historie + mem0."""
     conversation_id = body.conversation_id or "nxc_" + __import__('secrets').token_hex(8)
 
     # Lade prefill.md als System-Prompt
@@ -957,7 +957,7 @@ Format: Strukturiert mit **Fettschrift** und Aufzaehlungen."""
         try:
             openrouter_url = os.environ.get("CAMBRO_BASE_URL", os.environ.get("OPENROUTER_BASE_URL", "https://ai-router.nexifyai.cloud/v1")) + "/chat/completions"
             openrouter_key = os.environ.get("OPENROUTER_API_KEY", "")
-            model = os.environ.get("OPENROUTER_MODEL", "deepseek/deepseek-v4-pro")
+            model = os.environ.get("OPENROUTER_MODEL", "nexify_provider/nexify-pro")
 
             if not openrouter_key:
                 yield f"data: {json.dumps({'error': 'OPENROUTER_API_KEY nicht konfiguriert'})}\n\n"

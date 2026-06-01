@@ -6,7 +6,7 @@ Tests for the NEW Oracle Engine features:
 - Font audit
 - Knowledge sync
 - Task creation with valid types
-- Health check (Supabase + DeepSeek connectivity)
+- Health check (Supabase + NeXify AI connectivity)
 """
 import os
 import pytest
@@ -56,7 +56,7 @@ class TestOracleEngineAuth:
 
 
 class TestOracleHealth:
-    """Oracle Health endpoint tests - Supabase + DeepSeek connectivity"""
+    """Oracle Health endpoint tests - Supabase + NeXify AI connectivity"""
     
     @pytest.fixture(scope="class")
     def auth_token(self):
@@ -72,7 +72,7 @@ class TestOracleHealth:
         return {"Authorization": f"Bearer {auth_token}", "Content-Type": "application/json"}
     
     def test_oracle_health_endpoint(self, headers):
-        """GET /api/admin/oracle/health returns supabase.connected=true and deepseek.connected=true"""
+        """GET /api/admin/oracle/health returns supabase.connected=true and nexify_provider.connected=true"""
         response = requests.get(f"{BASE_URL}/api/admin/oracle/health", headers=headers)
         assert response.status_code == 200, f"Health check failed: {response.text}"
         data = response.json()
@@ -81,10 +81,10 @@ class TestOracleHealth:
         assert "supabase" in data, "Missing supabase in health response"
         assert data["supabase"]["connected"] == True, f"Supabase not connected: {data['supabase']}"
         
-        # Verify DeepSeek connection
-        assert "deepseek" in data, "Missing deepseek in health response"
-        assert data["deepseek"]["configured"] == True, "DeepSeek not configured"
-        assert data["deepseek"]["connected"] == True, f"DeepSeek not connected: {data['deepseek']}"
+        # Verify NeXify AI connection
+        assert "nexify_provider" in data, "Missing nexify_provider in health response"
+        assert data["nexify_provider"]["configured"] == True, "NeXify AI not configured"
+        assert data["nexify_provider"]["connected"] == True, f"NeXify AI not connected: {data['nexify_provider']}"
         
         # Verify timestamp
         assert "timestamp" in data
@@ -186,11 +186,11 @@ class TestOracleEngineTrigger:
     
     def test_engine_trigger_cycle(self, headers):
         """POST /api/admin/oracle/engine/trigger triggers processing cycle"""
-        # Note: This endpoint may take 60+ seconds due to DeepSeek calls
+        # Note: This endpoint may take 60+ seconds due to NeXify AI calls
         response = requests.post(
             f"{BASE_URL}/api/admin/oracle/engine/trigger",
             headers=headers,
-            timeout=120  # Long timeout for DeepSeek processing
+            timeout=120  # Long timeout for NeXify AI processing
         )
         assert response.status_code == 200, f"Engine trigger failed: {response.text}"
         data = response.json()

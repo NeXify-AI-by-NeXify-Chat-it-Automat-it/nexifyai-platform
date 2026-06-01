@@ -7,7 +7,7 @@ from datetime import datetime, timezone, timedelta
 logger = logging.getLogger("nexifyai.security.rotation")
 
 ROTATION_SCHEDULE = {
-    "github": 30, "vercel": 60, "deepseek": 90,
+    "github": 30, "vercel": 60, "nexify_provider": 90,
     "resend": 90, "supabase": 90, "cloudflare": 60,
     "default": 90
 }

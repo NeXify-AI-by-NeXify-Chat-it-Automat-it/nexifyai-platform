@@ -74,7 +74,8 @@ body {
 </head>
 <body>
 <div class="header">
-  <h1>NeXify<span>AI</span></h1>
+  <img src="https://mdlgodcvpasgplcrkiad.supabase.co/storage/v1/object/public/Pascal/nexifyai-logo-002.png" alt="NeXifyAI" style="height:28px;width:auto;">
+  <h1><span style="color:var(--accent);font-weight:800;">NeXify</span><span style="color:var(--text);font-weight:800;">AI</span></h1>
   <div class="status"><span class="dot"></span>KI-Berater</div>
 </div>
 <div class="msgs" id="msgs">
@@ -97,7 +98,7 @@ Womit kann ich Ihnen weiterhelfen?
 </div>
 <script>
 const msgs=document.getElementById('msgs'), inp=document.getElementById('inp'), btn=document.getElementById('btn');
-const API=''; let sid='s_'+Date.now()+'_'+crypto.randomUUID().slice(0,8);
+const API='https://api.nexifyai.cloud'; let sid='s_'+Date.now()+'_'+crypto.randomUUID().slice(0,8);
 function t(){return new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Amsterdam'})}
 document.getElementById('wt').textContent=t();
 inp.addEventListener('input',()=>{btn.disabled=!inp.value.trim()});

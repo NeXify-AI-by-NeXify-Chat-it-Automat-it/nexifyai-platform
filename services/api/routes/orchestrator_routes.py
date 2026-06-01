@@ -343,7 +343,7 @@ async def mindsdb_predict(request: Request):
     import subprocess as sp
     data = await request.json()
     question = data.get("question", "")
-    model = data.get("model", "deepseek_v4_flash")
+    model = data.get("model", "nexify_provider_v4_flash")
     
     query = f"SELECT answer FROM mindsdb.{model} WHERE question = '{question.replace(chr(39), chr(39)+chr(39))}';"
     result = sp.run(["curl", "-s", "--max-time", "120", "-X", "POST", "http://localhost:32779/api/sql/query",
@@ -357,7 +357,7 @@ async def mindsdb_predict(request: Request):
     import aiohttp
     data = await request.json()
     question = data.get("question", "")
-    model = data.get("model", "deepseek_v4_flash")
+    model = data.get("model", "nexify_provider_v4_flash")
     
     query = f"SELECT answer FROM mindsdb.{model} WHERE question = '{question}';"
     async with aiohttp.ClientSession() as s:

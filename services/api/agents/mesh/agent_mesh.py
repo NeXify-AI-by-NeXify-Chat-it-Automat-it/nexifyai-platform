@@ -175,7 +175,7 @@ class AgentRegistry:
             AgentCapability("search-specialist", AgentDomain.ORACLE, "Qdrant Vector+Keyword, Reranking",
                           tools=["qdrant", "brain"], risk_limit=0.01, max_parallel_tasks=2),
             # === AI INFRA ===
-            AgentCapability("llms-maintainer", AgentDomain.ORACLE, "LLM-Provider: DeepSeek/OpenRouter/Emergent",
+            AgentCapability("llms-maintainer", AgentDomain.ORACLE, "LLM-Provider: NeXify AI/OpenRouter/Emergent",
                           tools=["llm", "monitoring"], risk_limit=0.02, max_parallel_tasks=1),
             AgentCapability("context-manager", AgentDomain.ORACLE, "Brain-Integration, Context-Window-Management",
                           tools=["brain", "qdrant"], risk_limit=0.01, max_parallel_tasks=2),

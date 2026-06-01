@@ -8,6 +8,6 @@ VALUES
 ('Mock-Code in Agent-Scan-Methoden eliminieren', 'pass in refactor_agent, finops_agent, retrieval_agent Scan-Methoden. return [] in runtime_governance.', 'dos-v2.1-audit', 'high', 'waiting', 'Hermes', 'Hermes', ARRAY['backend/agents','backend/runtime']),
 ('Gitleaks + Trivy im Container installieren', 'Security-Tools fehlen lokal. Pre-Commit-Checks nicht möglich.', 'dos-v2.1-audit', 'high', 'waiting', 'Hermes', 'Hermes', ARRAY['Container']),
 ('except:pass in enterprise_health.py fixen', '3 bare except:pass Blöcke verschlucken Exceptions.', 'dos-v2.1-audit', 'medium', 'waiting', 'Hermes', 'Hermes', ARRAY['backend/health']),
-('MiniMax-Testreferenzen auf deepseek-v4-pro migrieren', 'test_openrouter_migration_iter81.py testet veraltetes Modell.', 'dos-v2.1-audit', 'medium', 'waiting', 'Hermes', 'Hermes', ARRAY['backend/tests']);
+('MiniMax-Testreferenzen auf nexify-v4-pro migrieren', 'test_openrouter_migration_iter81.py testet veraltetes Modell.', 'dos-v2.1-audit', 'medium', 'waiting', 'Hermes', 'Hermes', ARRAY['backend/tests']);
 
 -- END

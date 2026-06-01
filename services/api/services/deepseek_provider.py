@@ -1,6 +1,6 @@
 """
 DEPRECATED: Wird durch services/langchain_config.py ersetzt.
-            ChatOpenAI(model="deepseek/deepseek-v4-flash", ...) via OpenRouter.
+            ChatOpenAI(model="nexify_provider/nexify-flash", ...) via OpenRouter.
             Entfernung geplant: 2026-06-21
 """
 
@@ -18,7 +18,7 @@ logger = logging.getLogger("nexifyai.services.llm")
 
 CAMRO_API_KEY = os.environ.get("CAMBRO_API_KEY", os.environ.get("OPENROUTER_API_KEY", ""))
 CAMRO_BASE_URL = os.environ.get("CAMBRO_BASE_URL", "https://ai-router.nexifyai.cloud/v1")
-CAMRO_DEFAULT_MODEL = os.environ.get("CAMRO_DEFAULT_MODEL", "ds/deepseek-v4-pro-max")
+CAMRO_DEFAULT_MODEL = os.environ.get("CAMRO_DEFAULT_MODEL", "ds/nexify-pro-max")
 
 # Legacy compat
 OPENROUTER_API_KEY = CAMRO_API_KEY
