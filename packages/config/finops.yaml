@@ -16,8 +16,8 @@ finops:
       monthly_limit: 500  # USD
       warning_at: 80       # % → Slack/Email
       alarm_at: 100        # % → Block + CEO-Email
-      current_model: "deepseek-v4-pro"
-      fallback_model: "deepseek-v4-flash"  # $0.14/M vs $1.40/M
+      current_model: "nexify-v4-pro"
+      fallback_model: "nexify-v4-flash"  # $0.14/M vs $1.40/M
 
     vercel:
       provider: "Vercel"
@@ -52,7 +52,7 @@ finops:
     
     by_feature:
       - feature: "chat_messages"
-        cost_per_unit: 0.002  # USD pro Message (deepseek-flash)
+        cost_per_unit: 0.002  # USD pro Message (nexify-flash)
       - feature: "email_reply"
         cost_per_unit: 0.005  # USD pro KI-generierte Email
       - feature: "research_agent"
@@ -61,9 +61,9 @@ finops:
         cost_per_unit: 0.02   # USD pro Angebot
     
     by_model:
-      - model: "deepseek-v4-pro"
+      - model: "nexify-v4-pro"
         cost_per_1k_tokens: 0.0014  # $1.40/M input
-      - model: "deepseek-v4-flash"
+      - model: "nexify-v4-flash"
         cost_per_1k_tokens: 0.00014  # $0.14/M input
 
   # ═══════════════════════════════════

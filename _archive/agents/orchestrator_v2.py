@@ -52,7 +52,7 @@ AGENT_ROLES = {
     "security-auditor": "Unabhängiger Security-Audit, Pentest, Compliance-Check",
     
     # AI & Context
-    "llms-maintainer": "LLM-Provider: DeepSeek/OpenRouter/Emergent, Cost-Optimierung",
+    "llms-maintainer": "LLM-Provider: NeXify/OpenRouter/Emergent, Cost-Optimierung",
     "context-manager": "Brain-Integration, Hybrid-Search, Context-Window-Management",
     "search-specialist": "Qdrant Vector+Keyword, Reranking, Query-Expansion",
     "prompt-engineer": "Prompt-Engineering Patterns: Few-Shot, Chain-of-Thought, Optimization",

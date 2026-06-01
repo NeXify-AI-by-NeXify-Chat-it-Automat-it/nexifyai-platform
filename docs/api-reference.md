@@ -45,8 +45,8 @@
 
 ---
 
-## 2. 9Router AI Gateway
-**Base URL:** `https://ai-router.nexifyai.cloud` / `http://localhost:20128`
+## 2. OpenRouter (direct) AI Gateway
+**Base URL:** `https://openrouter.ai` / `https://openrouter.ai/api/v1`
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -56,8 +56,8 @@
 | POST | `/api/chat/completions` | OpenAI-compatible chat |
 
 ### Auth
-- Dashboard: `https://ai-router.nexifyai.cloud` (pw in credentials.env)
-- API keys: Per-provider in 9Router DB
+- Dashboard: `https://openrouter.ai` (pw in credentials.env)
+- API keys: Per-provider in OpenRouter (direct) DB
 
 ---
 
@@ -166,7 +166,7 @@
 | Endpoint | Limit | Window |
 |----------|-------|--------|
 | Brain API | 100 req/s | Per IP |
-| 9Router | Provider-dependent | Per key |
+| OpenRouter (direct) | Provider-dependent | Per key |
 | Qdrant | Unlimited (internal) | — |
 | Webhook | 5000 req/h | GitHub limit |
 

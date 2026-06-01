@@ -17,11 +17,11 @@ C4Context
   title NeXifyAI – Brain API Context
   Person(user, "Kunde / Agent", "Verwendet KI‑Funktionen")
   System(brain, "Brain API", "Persistentes Wissenssystem (SQLite + Qdrant)")
-  System_Ext(9router, "9Router Gateway", "AI‑Provider Vermittler")
+  System_Ext(openrouter, "OpenRouter (direct) Gateway", "AI‑Provider Vermittler")
   System_Ext(supabase, "Supabase", "Primary DB & Auth")
   Rel(user, brain, "Queries / Updates", "HTTPS/JSON")
   Rel(brain, supabase, "Speichert Metadaten", "SQL/REST")
-  Rel(brain, 9router, "Liefert Embeddings", "gRPC/HTTP")
+  Rel(brain, openrouter, "Liefert Embeddings", "gRPC/HTTP")
 ```
 
 ### C4‑Container

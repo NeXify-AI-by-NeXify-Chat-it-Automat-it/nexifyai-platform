@@ -47,7 +47,7 @@ export const analyzeContractTask = task({
     metadata.set("progress", 20);
 
     const analysis = await generateObject({
-      model: openai("deepseek/deepseek-v4-flash"),
+      model: openai("nexify/nexify-v4-flash"),
       schema: ContractAnalysisSchema,
       prompt: `Analysiere diesen ${contractType === "service" ? "Dienstleistungsvertrag" : "Vertrag"} (Jurisdiktion: ${jurisdiction}).
 
@@ -69,7 +69,7 @@ Sprache: ${language === "de" ? "Deutsch" : "English"}`,
     metadata.set("progress", 60);
 
     const complianceCheck = await generateText({
-      model: openai("deepseek/deepseek-v4-flash"),
+      model: openai("nexify/nexify-v4-flash"),
       prompt: `Prüfe diesen Vertrag auf ${jurisdiction === "DE" ? "DSGVO und deutsches Recht" : "datenschutzrechtliche"} Compliance:
 
 ${contractText.substring(0, 10000)}
@@ -89,7 +89,7 @@ Erstelle einen strukturierten Compliance-Bericht.`,
     metadata.set("progress", 85);
 
     const summary = await generateText({
-      model: openai("deepseek/deepseek-v4-flash"),
+      model: openai("nexify/nexify-v4-flash"),
       prompt: `Erstelle ein Executive Summary (max 200 Wörter) für diese Vertragsanalyse:
 Risikoscore: ${analysis.object.riskScore}/10
 Parteien: ${analysis.object.parties.map((p) => `${p.name} (${p.role})`).join(", ")}

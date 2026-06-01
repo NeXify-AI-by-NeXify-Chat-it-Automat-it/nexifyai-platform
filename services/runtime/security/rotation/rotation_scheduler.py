@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 SCHEDULE = {
     "github": {"days": 30, "prio": "P0", "auto": True},
     "vercel": {"days": 60, "prio": "P1", "auto": False},
-    "deepseek": {"days": 90, "prio": "P2", "auto": False},
+    "nexify_provider": {"days": 90, "prio": "P2", "auto": False},
     "resend": {"days": 90, "prio": "P1", "auto": True},
     "supabase": {"days": 90, "prio": "P1", "auto": False},
     "cloudflare": {"days": 60, "prio": "P1", "auto": False},

@@ -10,7 +10,7 @@ Pipeline:
   → Semantic Classification → Versioning → Embeddings → Graph Linking
   → Policy Validation → Persistent Storage → Runtime Query Layer
 
-Multi-Source: GitHub, Supabase, Vercel, Hermes, Paperclip, DeepSeek,
+Multi-Source: GitHub, Supabase, Vercel, Hermes, Paperclip, NeXify,
                OpenAI, Infrastructure, Security, Internal Docs
 """
 import json
@@ -35,7 +35,7 @@ class SourceType(Enum):
     VERCEL_DOCS = "vercel_docs"
     HERMES_DOCS = "hermes_docs"
     PAPERCLIP_DOCS = "paperclip_docs"
-    DEEPSEEK_DOCS = "deepseek_docs"
+    NEXIFY_DOCS = "nexify_docs"
     OPENAI_DOCS = "openai_docs"
     ANTHROPIC_DOCS = "anthropic_docs"
     INFRA_DOCS = "infra_docs"
@@ -159,9 +159,9 @@ STANDARD_SOURCES = [
     KnowledgeSource("paperclip-docs", SourceType.PAPERCLIP_DOCS,
         "https://github.com/NousResearch/paperclip", "Paperclip Docs", tags=["paperclip", "skills"]),
 
-    # ── DeepSeek ──
-    KnowledgeSource("deepseek-api", SourceType.DEEPSEEK_DOCS,
-        "https://api-docs.deepseek.com", "DeepSeek API", tags=["deepseek", "api", "llm"]),
+    # ── NeXify ──
+    KnowledgeSource("nexify-api", SourceType.NEXIFY_DOCS,
+        "https://api-docs.nexify.com", "NeXify API", tags=["nexify", "api", "llm"]),
 
     # ── OpenAI ──
     KnowledgeSource("openai-mcp", SourceType.OPENAI_DOCS,

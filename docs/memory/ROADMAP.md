@@ -30,7 +30,7 @@
 - [ ] Automatische Status-Übergänge (Quote sent → accepted → invoiced → paid)
 
 ### P1 — Betriebsoptimierung
-- [ ] DeepSeek Live-Migration (ersetze GPT-5.2 Fallback) — benötigt DeepSeek API-Key
+- [ ] NeXify Live-Migration (ersetze GPT-5.2 Fallback) — benötigt NeXify API-Key
 - [ ] Stripe Live-Webhooks für Zahlungsstatus-Sync
 - [ ] Revolut-Integration als Zahlungsalternative
 - [ ] Admin E-Mail-Dashboard (Send-Status, Delivery, Bounces)
@@ -60,7 +60,7 @@
 ### Offene Konfigurationsanforderungen
 | Bereich | Benötigt | Status |
 |---------|----------|--------|
-| DeepSeek API Key | Benutzer muss bereitstellen | Ausstehend |
+| NeXify API Key | Benutzer muss bereitstellen | Ausstehend |
 | Stripe Live Keys | Benutzer muss bereitstellen | Ausstehend |
 | Revolut API | Benutzer muss bereitstellen | Ausstehend |
 | Resend API Key | Benutzer muss bereitstellen | Ausstehend |
@@ -72,7 +72,7 @@
 |--------|-------------|--------------|----------|
 | Keine E-Mail-Zustellung | Hoch | Resend API Key | Fallback: Manual E-Mail |
 | Keine Live-Zahlungen | Hoch | Stripe Live Keys | Aktuell: Manuelle Erfassung |
-| DeepSeek nicht aktiv | Mittel | DeepSeek API Key | Fallback: GPT-5.2 via Emergent |
+| NeXify nicht aktiv | Mittel | NeXify API Key | Fallback: GPT-5.2 via Emergent |
 | CORS offen für alle Origins | Mittel | Produktions-Domain | Einschränkung bei Go-Live |
 | Keine automatischen Backups | Mittel | Ops-Entscheidung | MongoDB Atlas Auto-Backup |
 | **VPS Ablauf 09.05.2026** | **P1 — KRITISCH** | Hostinger-Verlängerung | **SOFORT: hostinger.com Dashboard → VPS verlängern (72.62.152.47)** |
