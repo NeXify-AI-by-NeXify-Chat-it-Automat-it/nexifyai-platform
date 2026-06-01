@@ -4,7 +4,7 @@ NeXifyAI — AI Cost Tracking Middleware
 Loggt Token-Verbrauch und OpenRouter-Kosten in MongoDB.
 Datenquelle fuer Grafana AI Cost Tracking Dashboard.
 """
-import os, json, time, logging
+import os, time, logging
 from datetime import datetime, timezone
 from pymongo import MongoClient
 
