@@ -44,6 +44,7 @@ END $$;
 -- oracle_documents
 DROP POLICY IF EXISTS oracle_documents_all ON public.oracle_documents;
 CREATE POLICY oracle_documents_read ON public.oracle_documents FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS oracle_documents_insert ON public.oracle_documents;
 CREATE POLICY oracle_documents_insert ON public.oracle_documents FOR INSERT TO authenticated WITH CHECK (is_staff(auth.uid()));
 CREATE POLICY oracle_documents_update ON public.oracle_documents FOR UPDATE TO authenticated USING (is_staff(auth.uid()));
 CREATE POLICY oracle_documents_delete ON public.oracle_documents FOR DELETE TO authenticated USING (is_staff(auth.uid()));
