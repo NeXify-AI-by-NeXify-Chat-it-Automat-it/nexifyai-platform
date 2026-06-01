@@ -62,11 +62,11 @@ export const Footer = ({ onCookieSettings, t, lang }) => {
       <div className="container">
         <div className="footer-grid">
           <div className="footer-brand">
-            <div className="footer-logo"><img src="/logo-light.svg" alt="neXifyAI" height="28" /></div>
+            <div className="footer-logo"><img src="/logo-light.svg" alt="neXifyAI" height="32" /></div>
             <div className="footer-tagline">{t?.footer?.tagline || 'Chat it. Automate it.'}</div>
             <div className="footer-legal-name">{COMPANY.legal}</div>
             <div className="footer-founder-row">
-              <img src={`/pascal_courbois.png?v=20260508`} alt="Pascal Courbois" className="footer-founder-img" width="48" height="48" />
+              <img src="/pascal_courbois.png" alt="Pascal Courbois" className="footer-founder-img" width="48" height="48" />
               <div>
                 <div className="footer-founder-name">Pascal Courbois</div>
                 <div className="footer-founder-role">{lang === 'en' ? 'CEO & Founder' : lang === 'nl' ? 'CEO & Oprichter' : 'Geschäftsführer & Inhaber'}</div>
