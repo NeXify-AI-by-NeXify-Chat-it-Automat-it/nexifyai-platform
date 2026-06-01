@@ -5,7 +5,7 @@ kanban, auto-assignment, messaging extensions, timeline.
 """
 import pytest
 from datetime import datetime, timezone
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 from typing import Dict, List, Optional
 
 
