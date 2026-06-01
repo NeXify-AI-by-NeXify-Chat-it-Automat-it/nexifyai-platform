@@ -78,7 +78,7 @@ jobs:
 
       - name: VERIFY - Frontend Reachability
         run: |
-          STATUS=$(curl -sf -o /dev/null -w "%{http_code}" --max-time 15 "https://nexifyai.cloud" 2>/dev/null || echo "000")
+          STATUS=$(curl -sfL -o /dev/null -w "%{http_code}" --max-time 15 "https://nexifyai.cloud" 2>/dev/null || echo "000")
           echo "Frontend status: HTTP $STATUS"
           if [ "$STATUS" != "200" ] && [ "$STATUS" != "301" ] && [ "$STATUS" != "302" ]; then
             echo "Frontend not reachable after deploy"
