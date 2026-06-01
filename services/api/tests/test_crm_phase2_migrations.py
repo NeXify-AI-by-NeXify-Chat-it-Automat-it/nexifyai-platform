@@ -4,7 +4,6 @@ Tests for: SLA endpoints, lead ingestion, duplicate detection,
 kanban, auto-assignment, messaging extensions, timeline.
 """
 import pytest
-import json
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, Mock, patch
 from typing import Dict, List, Optional
