@@ -16,6 +16,9 @@ import MCPToolsView from './components/MCPToolsView';
 import './admin.css';
 
 const I = ({ n, s = 20 }) => (
+
+// In-memory token store — never write auth tokens to localStorage
+const tokenHolder = { access_token: null, auth: null };
   <span className="material-symbols-outlined" style={{ fontSize: s, width: s, height: s }}>{n}</span>
 );
 
@@ -54,18 +57,18 @@ export default function AdminCockpit() {
       if (sess?.user) {
         const role = sess.user.user_metadata?.role || sess.user.app_metadata?.role;
         if (role === 'admin') {
-          localStorage.setItem('nx_admin_token', sess.access_token);
-          localStorage.setItem('nx_auth', JSON.stringify({ role: 'admin', token: sess.access_token, email: sess.user.email, method: 'supabase' }));
+          tokenHolder.access_token = sess.access_token;
+          tokenHolder.auth = { role: 'admin', token: sess.access_token, email: sess.user.email, method: 'supabase' }
           setSession(sess);
           setAuthChecked(true);
           return;
         }
       }
       // Check for existing backend token
-      const legacyToken = localStorage.getItem('nx_admin_token');
+      const legacyToken = tokenHolder.access_token;
       if (legacyToken) {
         try {
-          const auth = JSON.parse(localStorage.getItem('nx_auth') || '{}');
+          const auth = tokenHolder.auth || {};
           if (auth.role === 'admin') {
             setSession({ user: { email: auth.email }, access_token: legacyToken });
             setAuthChecked(true);
@@ -87,8 +90,8 @@ export default function AdminCockpit() {
     // Try Supabase first
     const { data: sbData, error: sbError } = await signIn(loginEmail, loginPassword);
     if (!sbError && sbData?.session) {
-      localStorage.setItem('nx_admin_token', sbData.session.access_token);
-      localStorage.setItem('nx_auth', JSON.stringify({ role: 'admin', token: sbData.session.access_token, email: sbData.session.user.email, method: 'supabase' }));
+      tokenHolder.access_token = sbData.session.access_token;
+      tokenHolder.auth = { role: 'admin', token: sbData.session.access_token, email: sbData.session.user.email, method: 'supabase' }
       setSession(sbData.session);
       setLoginBusy(false);
       return;
@@ -99,8 +102,8 @@ export default function AdminCockpit() {
       const backendResult = await api.login(loginEmail, loginPassword);
       if (backendResult?.access_token || backendResult?.token) {
         const token = backendResult.access_token || backendResult.token;
-        localStorage.setItem('nx_admin_token', token);
-        localStorage.setItem('nx_auth', JSON.stringify({ role: 'admin', token, email: loginEmail, method: 'backend' }));
+        tokenHolder.access_token = token;
+        tokenHolder.auth = { role: 'admin', token, email: loginEmail, method: 'backend' }
         setSession({ user: { email: loginEmail }, access_token: token });
         setLoginBusy(false);
         return;

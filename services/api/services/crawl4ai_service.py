@@ -317,45 +317,82 @@ async def crawl_url(
         return await _fallback_http_fetch(url, extract_mode)
 
 
+async def _safe_httpx_get(url: str, timeout: float = 15.0) -> tuple:
+    """SSRF-safe HTTP GET with manual redirect validation at each hop.
+
+    Returns (response | None, error_dict | None).
+    Each redirect is validated before following — blocks chain attacks
+    that use intermediate redirects to reach internal IPs.
+    """
+    if not await is_safe_url_async(url):
+        return None, {"success": False, "error": "URL blocked (SSRF prevention)", "url": url}
+
+    import httpx
+
+    async with httpx.AsyncClient(
+        timeout=timeout,
+        follow_redirects=False,
+        headers={"User-Agent": "NeXifyAI-Research/1.0 (+https://nexify-automate.com)"},
+    ) as c:
+        current_url = url
+        for hop in range(MAX_REDIRECTS + 1):
+            try:
+                r = await c.get(current_url)
+            except Exception as e:
+                return None, {"success": False, "error": f"HTTP request failed: {str(e)[:200]}", "url": url}
+
+            # OK if not a redirect
+            if r.status_code not in (301, 302, 303, 307, 308):
+                return r, None
+
+            location = r.headers.get("location") or ""
+            if not location:
+                return r, None
+
+            # Resolve relative redirect URL
+            from urllib.parse import urljoin
+            next_url = urljoin(str(r.url), location)
+
+            # Validate redirect target BEFORE following
+            if not await is_safe_url_async(next_url):
+                logger.warning(f"SSRF blocked redirect hop {hop + 1}: {next_url}")
+                return None, {"success": False, "error": "Redirect target blocked (SSRF prevention)", "url": url, "blocked_redirect": next_url}
+
+            logger.info(f"Following safe redirect ({hop + 1}/{MAX_REDIRECTS}): {next_url}")
+            current_url = next_url
+
+        # Exceeded max redirects
+        return None, {"success": False, "error": f"Too many redirects (> {MAX_REDIRECTS})", "url": url}
+
+
 async def _fallback_http_fetch(url: str, extract_mode: str = "markdown") -> dict:
     """Lightweight HTTP-fetch fallback when Playwright/crawl4ai is unavailable."""
-    if not await is_safe_url_async(url):
-        return {"success": False, "error": "Invalid or blocked URL (SSRF prevention)", "url": url}
+    r, err = await _safe_httpx_get(url)
+    if err:
+        return err
     try:
-        import httpx
         from bs4 import BeautifulSoup
-        async with httpx.AsyncClient(
-            timeout=15.0,
-            follow_redirects=True,
-            max_redirects=MAX_REDIRECTS,
-            headers={"User-Agent": "NeXifyAI-Research/1.0 (+https://nexify-automate.com)"},
-        ) as c:
-            r = await c.get(url)
-            # Check if redirect target is safe
-            final_url = str(r.url)
-            if final_url != url and not await is_safe_url_async(final_url):
-                logger.warning(f"SSRF blocked redirect in httpx fallback: {final_url}")
-                return {"success": False, "error": "Redirect target blocked (SSRF prevention)", "url": url, "blocked_redirect": final_url}
-            if r.status_code >= 400:
-                return {"success": False, "error": f"HTTP {r.status_code}", "url": url}
-            soup = BeautifulSoup(r.text, "html.parser")
-            for tag in soup(["script", "style", "noscript"]):
-                tag.decompose()
-            title = soup.title.string.strip() if soup.title and soup.title.string else ""
-            desc_tag = soup.find("meta", attrs={"name": "description"}) or soup.find("meta", attrs={"property": "og:description"})
-            description = desc_tag["content"].strip() if desc_tag and desc_tag.get("content") else ""
-            text = " ".join(soup.get_text(separator=" ").split())[:20000]
-            return {
-                "success": True,
-                "url": final_url,
-                "original_url": url,
-                "title": title,
-                "description": description,
-                "content": text,
-                "content_length": len(text),
-                "crawled_at": datetime.now(timezone.utc).isoformat(),
-                "method": "httpx_fallback",
-            }
+        if r.status_code >= 400:
+            return {"success": False, "error": f"HTTP {r.status_code}", "url": url}
+        final_url = str(r.url)
+        soup = BeautifulSoup(r.text, "html.parser")
+        for tag in soup(["script", "style", "noscript"]):
+            tag.decompose()
+        title = soup.title.string.strip() if soup.title and soup.title.string else ""
+        desc_tag = soup.find("meta", attrs={"name": "description"}) or soup.find("meta", attrs={"property": "og:description"})
+        description = desc_tag["content"].strip() if desc_tag and desc_tag.get("content") else ""
+        text = " ".join(soup.get_text(separator=" ").split())[:20000]
+        return {
+            "success": True,
+            "url": final_url,
+            "original_url": url,
+            "title": title,
+            "description": description,
+            "content": text,
+            "content_length": len(text),
+            "crawled_at": datetime.now(timezone.utc).isoformat(),
+            "method": "httpx_fallback",
+        }
     except httpx.InvalidURL:
         logger.warning(f"httpx fallback invalid URL: {url}")
         return {"success": False, "error": "Invalid URL", "url": url}

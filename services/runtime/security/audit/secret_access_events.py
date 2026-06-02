@@ -22,19 +22,16 @@ def _redact(val, max_len=80):
 
 class AccessEventBus:
     def __init__(self):
-        self.log = LOG_PATH
-        os.makedirs(os.path.dirname(self.log), exist_ok=True)
+        self._buffer = []
     def emit(self, secret, worker, action="access", detail=""):
         ev = {"ts": datetime.now(timezone.utc).isoformat(), "type": action,
               "secret": _hash_secret(secret), "worker": worker, "detail": _redact(detail)}
-        with open(self.log, "a") as f:
-            f.write(json.dumps(ev) + "\n")
+        self._buffer.append(ev)
+        if len(self._buffer) > 5000:
+            self._buffer = self._buffer[-1000:]
         return ev
     def recent(self, n=20):
-        if not os.path.exists(self.log): return []
-        with open(self.log) as f:
-            lines = f.readlines()
-        return [json.loads(l) for l in lines[-n:]]
+        return self._buffer[-n:]
 
 if __name__ == "__main__":
     b = AccessEventBus()

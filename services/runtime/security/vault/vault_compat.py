@@ -14,18 +14,16 @@ class VaultCompat:
     """Thread-safe vault access with audit logging."""
     def __init__(self, worker_id="system"):
         self.worker_id = worker_id
-        self.audit_log = os.environ.get("DS_VAULT_AUDIT_LOG", "/services/runtime/security/audit/events.log")
-        os.makedirs(os.path.dirname(self.audit_log), exist_ok=True)
+        self._audit_buffer = []
 
     def _log_access(self, key, found=True):
         entry = {"ts": datetime.now(timezone.utc).isoformat(),
                  "type": "vault_access", "key": _hash_key(key),
                  "worker": self.worker_id, "found": found}
-        try:
-            with open(self.audit_log, "a") as f:
-                f.write(json.dumps(entry) + "\n")
-        except:
-            pass
+        # Audit in memory only — never write secret metadata to disk
+        self._audit_buffer.append(entry)
+        if len(self._audit_buffer) > 5000:
+            self._audit_buffer = self._audit_buffer[-1000:]
 
     def get(self, key, default=None):
         """Get secret via vault. Falls back to os.environ with audit."""
