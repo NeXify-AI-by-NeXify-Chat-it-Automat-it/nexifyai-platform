@@ -27,19 +27,7 @@ const BOOKING_STATUS = {
 
 const Admin = () => {
   useEffect(() => { document.body.classList.add('hide-wa'); return () => document.body.classList.remove('hide-wa'); }, []);
-  const [token, setToken] = useState(() => {
-    // Check both storage keys for backward compatibility
-    const directToken = localStorage.getItem('nx_admin_token');
-    if (directToken) return directToken;
-    try {
-      const auth = JSON.parse(localStorage.getItem('nx_auth') || '{}');
-      if (auth.role === 'admin' && auth.token) {
-        localStorage.setItem('nx_admin_token', auth.token); // Sync for future
-        return auth.token;
-      }
-    } catch {}
-    return '';
-  });
+  const [token, setToken] = useState('');
   const [view, setView] = useState(() => localStorage.getItem('nx_admin_view') || 'dashboard');
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [loginErr, setLoginErr] = useState('');
@@ -186,7 +174,7 @@ const Admin = () => {
 
   const apiFetch = useCallback(async (url, opts = {}) => {
     const r = await fetch(`${API}${url}`, { ...opts, headers: { ...headers, ...opts.headers } });
-    if (r.status === 401) { setToken(''); localStorage.removeItem('nx_admin_token'); localStorage.removeItem('nx_auth'); return null; }
+    if (r.status === 401) { setToken(''); return null; }
     return r.json();
   }, [headers]);
 
@@ -197,8 +185,7 @@ const Admin = () => {
         body: `username=${encodeURIComponent(loginForm.email)}&password=${encodeURIComponent(loginForm.password)}` });
       const d = await r.json();
       if (!r.ok) throw new Error(d.detail || 'Anmeldung fehlgeschlagen');
-      setToken(d.access_token); localStorage.setItem('nx_admin_token', d.access_token);
-      localStorage.setItem('nx_auth', JSON.stringify({ token: d.access_token, role: 'admin', email: loginForm.email }));
+      setToken(d.access_token);
     } catch (err) { setLoginErr(err.message); } finally { setLoginBusy(false); }
   };
 
@@ -3151,6 +3138,18 @@ const Admin = () => {
     });
   };
 
+  const sanitizeHtml = (html) => {
+    return html
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<iframe\b[^>]*>/gi, '')
+      .replace(/<\/iframe>/gi, '')
+      .replace(/<embed\b[^>]*>/gi, '')
+      .replace(/<object\b[^>]*>/gi, '')
+      .replace(/\bon\w+\s*=\s*["'][^"']*["']/gi, '')
+      .replace(/\bon\w+\s*=\s*[^\s>]+/gi, '')
+      .replace(/javascript\s*:/gi, 'blocked:');
+  };
+
   const renderMarkdown = (text) => {
     if (!text) return '';
     let html = text
@@ -3165,7 +3164,7 @@ const Admin = () => {
       .replace(/\n\n/g, '</p><p>')
       .replace(/\n/g, '<br/>');
     if (!html.startsWith('<')) html = '<p>' + html + '</p>';
-    return html;
+    return sanitizeHtml(html);
   };
 
   const nxUpdateStream = (text) => {

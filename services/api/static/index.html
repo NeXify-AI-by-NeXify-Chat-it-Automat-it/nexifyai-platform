@@ -98,7 +98,12 @@ inp.addEventListener('input',()=>{btn.disabled=!inp.value.trim()});
 inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
 function add(r,c){
   const d=document.createElement('div'); d.className='msg '+r;
-  d.innerHTML='<div class="msg-av">'+(r==='assistant'?'N':'S')+'</div><div><div class="msg-b">'+c+'</div><div class="msg-t">'+t()+'</div></div>';
+  const av=document.createElement('div'); av.className='msg-av'; av.textContent=r==='assistant'?'N':'S';
+  const wrap=document.createElement('div');
+  const bubble=document.createElement('div'); bubble.className='msg-b'; bubble.textContent=c;
+  const time=document.createElement('div'); time.className='msg-t'; time.textContent=t();
+  wrap.appendChild(bubble); wrap.appendChild(time);
+  d.appendChild(av); d.appendChild(wrap);
   msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight;
 }
 function typing(){
