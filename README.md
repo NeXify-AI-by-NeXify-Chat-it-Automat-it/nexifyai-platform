@@ -2,19 +2,19 @@
 
 **Governed AI Operations & Knowledge Platform**
 
-[![CI Gates](https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/ci.yml/badge.svg)](https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/ci.yml)
-[![Tests](https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/test.yml/badge.svg)](https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/test.yml)
-[![Deploy](https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/deploy.yml/badge.svg)](https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/deploy.yml)
-[![Status](https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/all-badges.yml/badge.svg)](https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/all-badges.yml)
+[![CI Gates](https://github.com/NeXify-AI-by-NeXify-Chat-it-Automat-it/nexifyai-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/NeXify-AI-by-NeXify-Chat-it-Automat-it/nexifyai-platform/actions/workflows/ci.yml)
+[![Tests](https://github.com/NeXify-AI-by-NeXify-Chat-it-Automat-it/nexifyai-platform/actions/workflows/test.yml/badge.svg)](https://github.com/NeXify-AI-by-NeXify-Chat-it-Automat-it/nexifyai-platform/actions/workflows/test.yml)
+[![Deploy](https://github.com/NeXify-AI-by-NeXify-Chat-it-Automat-it/nexifyai-platform/actions/workflows/deploy.yml/badge.svg)](https://github.com/NeXify-AI-by-NeXify-Chat-it-Automat-it/nexifyai-platform/actions/workflows/deploy.yml)
+[![Status](https://github.com/NeXify-AI-by-NeXify-Chat-it-Automat-it/nexifyai-platform/actions/workflows/all-badges.yml/badge.svg)](https://github.com/NeXify-AI-by-NeXify-Chat-it-Automat-it/nexifyai-platform/actions/workflows/all-badges.yml)
 
 ---
 
 ## 🛡️ Security
 
-[![Gitleaks](https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/security-secrets.yml/badge.svg)](https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/security-secrets.yml)
-[![Trivy](https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/security-container.yml/badge.svg)](https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/security-container.yml)
-[![Dependencies](https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/security-dependencies.yml/badge.svg)](https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/security-dependencies.yml)
-[![OpenAPI Lint](https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/openapi-lint.yml/badge.svg)](https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/openapi-lint.yml)
+[![Gitleaks](https://github.com/NeXify-AI-by-NeXify-Chat-it-Automat-it/nexifyai-platform/actions/workflows/security-secrets.yml/badge.svg)](https://github.com/NeXify-AI-by-NeXify-Chat-it-Automat-it/nexifyai-platform/actions/workflows/security-secrets.yml)
+[![Trivy](https://github.com/NeXify-AI-by-NeXify-Chat-it-Automat-it/nexifyai-platform/actions/workflows/security-container.yml/badge.svg)](https://github.com/NeXify-AI-by-NeXify-Chat-it-Automat-it/nexifyai-platform/actions/workflows/security-container.yml)
+[![Dependencies](https://github.com/NeXify-AI-by-NeXify-Chat-it-Automat-it/nexifyai-platform/actions/workflows/security-dependencies.yml/badge.svg)](https://github.com/NeXify-AI-by-NeXify-Chat-it-Automat-it/nexifyai-platform/actions/workflows/security-dependencies.yml)
+[![OpenAPI Lint](https://github.com/NeXify-AI-by-NeXify-Chat-it-Automat-it/nexifyai-platform/actions/workflows/openapi-lint.yml/badge.svg)](https://github.com/NeXify-AI-by-NeXify-Chat-it-Automat-it/nexifyai-platform/actions/workflows/openapi-lint.yml)
 
 ---
 
@@ -39,7 +39,7 @@
 ## 🏗️ Infrastructure
 
 [![Vercel](https://img.shields.io/badge/Vercel-READY-brightgreen)](https://www.nexify-automate.com)
-[![Uptime](https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/uptime-check.yml/badge.svg)](https://github.com/nexifyai-dev/nexifyai-website-sicherheitskopie/actions/workflows/uptime-check.yml)
+[![Uptime](https://github.com/NeXify-AI-by-NeXify-Chat-it-Automat-it/nexifyai-platform/actions/workflows/uptime-check.yml/badge.svg)](https://github.com/NeXify-AI-by-NeXify-Chat-it-Automat-it/nexifyai-platform/actions/workflows/uptime-check.yml)
 [![Docker](https://img.shields.io/badge/Docker-Build-blue)](status/system-status.json)
 [![TLS](https://img.shields.io/badge/TLS-Valid-brightgreen)](status/system-status.json)
 
