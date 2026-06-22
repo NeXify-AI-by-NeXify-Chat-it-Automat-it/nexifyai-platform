@@ -44,7 +44,7 @@ jobs:
       pr_number: ${{ steps.run-automation.outputs.pr_number }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Node
         uses: actions/setup-node@v6
