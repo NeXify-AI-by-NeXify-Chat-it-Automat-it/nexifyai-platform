@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "Dockerfile*"
+      - "**/package-lock.json"
       - "infrastructure/docker/**"
       - "services/api/**"
       - "infrastructure/**"
@@ -13,6 +14,7 @@ on:
     branches: [main]
     paths:
       - "Dockerfile*"
+      - "**/package-lock.json"
       - "infrastructure/docker/**"
       - "services/api/**"
       - "infrastructure/**"
